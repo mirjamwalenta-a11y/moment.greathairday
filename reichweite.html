@@ -1,0 +1,639 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Reichweite — A great hair day</title>
+<style>
+:root {
+  --bg: #F5F3EF;
+  --surface: #fff;
+  --ink: #1C1C1C;
+  --sub: #6B6B6B;
+  --line: #E3E0D9;
+  --accent: #2E5D4B;
+  --gold: #C8A96E;
+  --chip: #ECEAE5;
+  --r: 14px;
+  --f: system-ui, sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
+.phone{width:100%;max-width:390px;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;}
+
+/* Topbar */
+.topbar{background:var(--surface);padding:16px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.wordmark{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px;}
+.topsub{font-size:10px;color:var(--sub);}
+
+/* Tab Nav */
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:52px;z-index:19;}
+.tab{flex:1;padding:12px 4px;font-size:12px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;transition:all .15s;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+/* Screens */
+.screen{display:none;flex-direction:column;padding:20px 20px 100px;gap:20px;}
+.screen.active{display:flex;}
+
+/* Cards */
+.card{background:var(--surface);border-radius:var(--r);padding:18px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.card-title{font-size:16px;font-weight:700;color:var(--ink);line-height:1.3;letter-spacing:-.2px;}
+.card-body{font-size:14px;color:var(--ink);line-height:1.65;margin-top:10px;}
+.card-sub{font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5;}
+
+/* Input */
+.input-wrap{display:flex;flex-direction:column;gap:8px;}
+.input-label{font-size:12px;font-weight:600;color:var(--sub);letter-spacing:.3px;text-transform:uppercase;}
+textarea,input[type=text]{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;line-height:1.5;transition:border-color .15s;}
+textarea:focus,input[type=text]:focus{border-color:var(--accent);}
+textarea::placeholder,input::placeholder{color:#B0ABA4;}
+textarea{resize:none;min-height:80px;}
+
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:8px 14px;border-radius:20px;background:var(--chip);color:var(--ink);font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:var(--f);transition:all .15s;}
+.chip.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(46,93,75,.2);}
+.chip.sm{padding:6px 11px;font-size:12px;}
+
+/* Buttons */
+.btn{width:100%;padding:15px;background:var(--accent);color:#fff;font-family:var(--f);font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;box-shadow:0 3px 12px rgba(46,93,75,.25);transition:opacity .15s;}
+.btn:active{opacity:.85;}
+.btn-sm{padding:10px 16px;font-size:13px;border-radius:10px;width:auto;}
+.btn-ghost{background:none;border:1.5px solid var(--line);border-radius:12px;padding:13px;width:100%;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;font-family:var(--f);}
+
+/* Result items */
+.result-list{display:flex;flex-direction:column;gap:12px;}
+.result-item{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:8px;}
+.result-num{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;}
+.result-text{font-size:14px;color:var(--ink);line-height:1.6;font-weight:500;}
+.result-why{font-size:12px;color:var(--sub);line-height:1.5;padding-top:6px;border-top:1px solid var(--line);}
+.copy-btn{align-self:flex-end;background:var(--chip);border:none;border-radius:8px;padding:6px 12px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;font-family:var(--f);transition:all .15s;}
+.copy-btn:active{background:var(--accent);color:#fff;}
+.copy-btn.done{background:#EEF4F1;color:var(--accent);}
+
+/* Story frames */
+.story-list{display:flex;flex-direction:column;gap:10px;}
+.story-frame{background:var(--surface);border-radius:12px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);border-left:3px solid var(--accent);}
+.story-frame.gold{border-left-color:var(--gold);}
+.story-num{font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+.story-label{font-size:12px;font-weight:700;color:var(--accent);margin-bottom:4px;}
+.story-text{font-size:14px;color:var(--ink);line-height:1.6;}
+.story-tip{font-size:11px;color:var(--sub);margin-top:6px;font-style:italic;}
+
+/* Post preview */
+.post-preview{background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.post-ig-header{padding:12px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);}
+.post-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0;}
+.post-ig-name{font-size:13px;font-weight:700;}
+.post-ig-loc{font-size:11px;color:var(--sub);}
+.post-image-placeholder{background:linear-gradient(135deg,#EEF4F1,#E3E0D9);height:200px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);text-align:center;padding:20px;line-height:1.5;}
+.post-content{padding:14px;}
+.post-hook{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:8px;line-height:1.4;}
+.post-body{font-size:13px;color:var(--ink);line-height:1.6;white-space:pre-line;}
+.post-cta{margin-top:10px;padding-top:10px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);}
+
+/* Divider */
+.divider{height:1px;background:var(--line);}
+
+/* Section header */
+.sec-head{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
+
+/* Idea grid */
+.idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.idea-card{background:var(--surface);border-radius:12px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.06);cursor:pointer;border:2px solid transparent;transition:all .15s;display:flex;flex-direction:column;gap:6px;}
+.idea-card:active,.idea-card.picked{border-color:var(--accent);}
+.idea-icon{font-size:22px;}
+.idea-label{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;}
+.idea-desc{font-size:11px;color:var(--sub);line-height:1.4;}
+
+/* Fixed CTA */
+.fixed-cta{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:390px;padding:14px 20px 28px;background:linear-gradient(to top,var(--bg) 70%,transparent);z-index:18;}
+
+@media(min-width:420px){body{padding-top:20px;}.phone{border-radius:36px;min-height:auto;box-shadow:0 8px 40px rgba(0,0,0,.13);overflow:hidden;}}
+</style>
+</head>
+<body>
+<div class="phone">
+
+<div class="topbar">
+  <div class="wordmark">A great hair day</div>
+  <div class="topsub">Reichweite &amp; Content</div>
+</div>
+
+<div class="tabnav">
+  <button class="tab active" onclick="showTab('hook')">&#x1F3AF; Hook</button>
+  <button class="tab" onclick="showTab('post')">&#x270D; Post</button>
+  <button class="tab" onclick="showTab('story')">&#x1F4F1; Story</button>
+  <button class="tab" onclick="showTab('ideen')">&#x1F4A1; Ideen</button>
+</div>
+
+<!-- ── HOOK GENERATOR ── -->
+<div class="screen active" id="screen-hook">
+
+  <div class="card">
+    <div class="card-tag">Hook-Generator</div>
+    <div class="card-title">Was ist dein Thema?</div>
+    <div class="card-body" style="color:var(--sub);font-size:13px">Gib ein Stichwort ein — die App baut daraus 5 starke Einstiege, die Menschen stoppen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Thema</div>
+    <input type="text" id="hook-thema" placeholder="z.B. Ausbildung, Stammkunden, ruhiger Tag, neue Farbe..." oninput="hookCheck()">
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Welches Ziel?</div>
+    <div class="chips" id="chips-hook-ziel">
+      <button class="chip on" data-val="neugier" onclick="pickChip(this,'hook-ziel')">Neugier</button>
+      <button class="chip" data-val="emotion" onclick="pickChip(this,'hook-ziel')">Emotion</button>
+      <button class="chip" data-val="diskussion" onclick="pickChip(this,'hook-ziel')">Diskussion</button>
+      <button class="chip" data-val="expertise" onclick="pickChip(this,'hook-ziel')">Expertise</button>
+      <button class="chip" data-val="provokativ" onclick="pickChip(this,'hook-ziel')">Provokativ</button>
+    </div>
+  </div>
+
+  <button class="btn" onclick="generateHooks()">5 Hooks generieren</button>
+
+  <div id="hook-results" style="display:none">
+    <div class="sec-head" style="margin-bottom:10px">Deine 5 Hooks</div>
+    <div class="result-list" id="hook-list"></div>
+    <button class="btn-ghost" style="margin-top:4px" onclick="generateHooks()">&#x21BA; Neue Varianten</button>
+  </div>
+
+</div>
+
+<!-- ── POST GENERATOR ── -->
+<div class="screen" id="screen-post">
+
+  <div class="card">
+    <div class="card-tag">Post-Generator</div>
+    <div class="card-title">Aus einem Moment ein vollst&auml;ndiger Post.</div>
+    <div class="card-body" style="color:var(--sub);font-size:13px">Kein Hochglanz, keine Floskeln. Ein Text der nach dir klingt.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Was ist passiert oder was willst du zeigen?</div>
+    <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht. Die Kundin war so begeistert, dass sie fast geweint hat." rows="4" oninput="postCheck()"></textarea>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Tonalität</div>
+    <div class="chips" id="chips-post-ton">
+      <button class="chip on" data-val="nahbar" onclick="pickChip(this,'post-ton')">Nahbar &amp; echt</button>
+      <button class="chip" data-val="stolz" onclick="pickChip(this,'post-ton')">Stolz &amp; w&uuml;rdevoll</button>
+      <button class="chip" data-val="nachdenklich" onclick="pickChip(this,'post-ton')">Nachdenklich</button>
+      <button class="chip" data-val="direkt" onclick="pickChip(this,'post-ton')">Direkt &amp; klar</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Wen willst du erreichen?</div>
+    <div class="chips" id="chips-post-wer">
+      <button class="chip on" data-val="kundinnen" onclick="pickChip(this,'post-wer')">Stammkund:innen</button>
+      <button class="chip" data-val="neu" onclick="pickChip(this,'post-wer')">Neue Kund:innen</button>
+      <button class="chip" data-val="lehrlinge" onclick="pickChip(this,'post-wer')">Lehrlinge</button>
+      <button class="chip" data-val="branche" onclick="pickChip(this,'post-wer')">Branche</button>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
+
+  <div id="post-result" style="display:none">
+    <div class="sec-head" style="margin-bottom:10px">Dein Instagram-Post</div>
+    <div class="post-preview">
+      <div class="post-ig-header">
+        <div class="post-avatar">M</div>
+        <div>
+          <div class="post-ig-name">greathairday.at</div>
+          <div class="post-ig-loc">Wien, 1050</div>
+        </div>
+      </div>
+      <div class="post-image-placeholder" id="post-bild-hint">&#x1F4F8; Dein Foto hier — <br>sieh die Bildidee unten</div>
+      <div class="post-content">
+        <div class="post-hook" id="res-post-hook"></div>
+        <div class="post-body" id="res-post-body"></div>
+        <div class="post-cta" id="res-post-cta"></div>
+      </div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-tag">Bildidee</div>
+      <div class="card-body" id="res-post-bild" style="font-size:13px;color:var(--sub)"></div>
+    </div>
+    <div class="card" style="margin-top:0">
+      <div class="card-tag">Beste Uhrzeit zum Posten</div>
+      <div class="card-body" style="font-size:13px;color:var(--sub)">Di–Fr zwischen 11–12 Uhr oder 19–20 Uhr. Nie am Montag.</div>
+    </div>
+    <button class="btn-ghost" onclick="copyPost()">&#x1F4CB; Post kopieren</button>
+    <button class="btn-ghost" style="margin-top:8px" onclick="generatePost()">&#x21BA; Neue Variante</button>
+  </div>
+
+</div>
+
+<!-- ── STORY MAKER ── -->
+<div class="screen" id="screen-story">
+
+  <div class="card">
+    <div class="card-tag">Story-Maker</div>
+    <div class="card-title">Eine Story, die Menschen bis zum Ende schauen.</div>
+    <div class="card-body" style="color:var(--sub);font-size:13px">5 Frames mit echtem Spannungsbogen. Kein Erkl&auml;rtext, kein leeres Gef&uuml;hl.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Thema oder Moment</div>
+    <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag dafür genutzt, mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Stimmung der Story</div>
+    <div class="chips" id="chips-story-mood">
+      <button class="chip on" data-val="emotional" onclick="pickChip(this,'story-mood')">&#x2764; Emotional</button>
+      <button class="chip" data-val="neugier" onclick="pickChip(this,'story-mood')">&#x1F914; Neugier wecken</button>
+      <button class="chip" data-val="behind" onclick="pickChip(this,'story-mood')">&#x1F3AC; Hinter die Kulissen</button>
+      <button class="chip" data-val="haltung" onclick="pickChip(this,'story-mood')">&#x1F4AA; Haltung zeigen</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Ziel der Story</div>
+    <div class="chips" id="chips-story-ziel">
+      <button class="chip on" data-val="vertrauen" onclick="pickChip(this,'story-ziel')">Vertrauen aufbauen</button>
+      <button class="chip" data-val="reichweite" onclick="pickChip(this,'story-ziel')">Reichweite</button>
+      <button class="chip" data-val="termin" onclick="pickChip(this,'story-ziel')">Termin</button>
+      <button class="chip" data-val="lehrling" onclick="pickChip(this,'story-ziel')">Lehrling gewinnen</button>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
+
+  <div id="story-result" style="display:none">
+    <div class="sec-head" style="margin-bottom:10px">Deine 5 Story-Frames</div>
+    <div class="story-list" id="story-list"></div>
+    <button class="btn-ghost" style="margin-top:4px" onclick="generateStory()">&#x21BA; Neue Variante</button>
+  </div>
+
+</div>
+
+<!-- ── IDEEN ── -->
+<div class="screen" id="screen-ideen">
+
+  <div class="card">
+    <div class="card-tag">Content-Ideen</div>
+    <div class="card-title">Was k&ouml;nntest du heute posten?</div>
+    <div class="card-body" style="color:var(--sub);font-size:13px">W&auml;hle eine Idee — sie wird direkt als Thema in den Hook- oder Post-Generator &uuml;bernommen.</div>
+  </div>
+
+  <div class="sec-head">Nach Ziel sortiert</div>
+
+  <div class="idea-grid" id="idea-grid"></div>
+
+  <div class="card" style="background:#EEF4F1;border:none;">
+    <div class="card-tag" style="color:var(--accent)">Dein Mantra</div>
+    <div class="card-title" style="font-size:15px">&bdquo;Bei uns musst du dich nicht erkl&auml;ren.&ldquo;</div>
+    <div class="card-sub">Dieser Satz tr&auml;gt 33 Jahre Haltung. Er passt in jeden zweiten Post — als Abschluss, als Einleitung, als Antwort.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-tag">Reichweiten-Formel</div>
+    <div class="card-title" style="font-size:15px">Hook + Moment + Haltung + Einladung</div>
+    <div class="card-sub" style="margin-top:8px">Das ist die Struktur die bei pers&ouml;nlichen Accounts am besten funktioniert. Nicht Produkte zeigen — Menschen zeigen.</div>
+  </div>
+
+</div>
+
+</div><!-- /phone -->
+
+<script>
+// ── STATE ──
+const S = {
+  hookZiel:'neugier', postTon:'nahbar', postWer:'kundinnen',
+  storyMood:'emotional', storyZiel:'vertrauen'
+};
+
+function showTab(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  event.target.classList.add('active');
+  window.scrollTo(0,0);
+}
+
+function pickChip(el, group) {
+  el.closest('.chips').querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+  el.classList.add('on');
+  S[group.replace(/-/g,'')] = el.dataset.val;
+}
+
+function hookCheck() {
+  // no disable on hook, just generate
+}
+
+function postCheck() {
+  document.getElementById('btn-post').disabled = document.getElementById('post-moment').value.trim().length < 5;
+}
+
+function storyCheck() {
+  document.getElementById('btn-story').disabled = document.getElementById('story-moment').value.trim().length < 5;
+}
+
+// ── HOOK GENERATOR ──
+const HOOKS = {
+  neugier: [
+    t => `Was glaubst du, warum ${t} bei uns so anders ist als woanders?`,
+    t => `Ich werde oft gefragt, was das Geheimnis hinter ${t} ist. Hier ist meine ehrliche Antwort.`,
+    t => `Bevor ich dir von ${t} erzähle — eine kurze Frage: Was erwartest du dir eigentlich?`,
+    t => `Das, was bei ${t} wirklich passiert, sieht man von außen nicht.`,
+    t => `Ich habe über 30 Jahre gebraucht, um zu verstehen, was ${t} wirklich bedeutet.`,
+    t => `Was haben ${t} und Vertrauen gemeinsam? Mehr als du denkst.`,
+    t => `Drei Dinge, die uns bei ${t} immer wieder überraschen.`,
+  ],
+  emotion: [
+    t => `Heute ist etwas passiert, das uns an ${t} erinnert hat, warum wir diesen Job lieben.`,
+    t => `Manchmal braucht es einen Moment wie ${t}, um zu merken, wofür das alles da ist.`,
+    t => `${t} hat uns heute kurz sprachlos gemacht. Im besten Sinne.`,
+    t => `Es gibt Momente, die bleiben. ${t} war heute so einer.`,
+    t => `Wir reden selten darüber. Aber ${t} bewegt uns mehr als wir zeigen.`,
+    t => `33 Jahre im Salon. Und ${t} berührt mich heute noch genauso wie damals.`,
+    t => `Heute hat ${t} gezeigt, dass es im Friseurhandwerk um viel mehr geht als Haare.`,
+  ],
+  diskussion: [
+    t => `Ehrliche Frage: Was erwartest du dir wirklich von ${t}?`,
+    t => `${t} — wird das überschätzt oder unterschätzt? Ich bin gespannt auf eure Meinung.`,
+    t => `Unpopular Opinion: Bei ${t} machen die meisten einen entscheidenden Fehler.`,
+    t => `Wir sehen das bei ${t} anders als viele in der Branche. Zu Recht?`,
+    t => `${t}: Was würdet ihr anders machen? Ich bin neugierig.`,
+    t => `Muss ${t} wirklich so kompliziert sein? Meine Meinung dazu — und ich freue mich auf eure.`,
+    t => `Bei ${t} gehen die Meinungen auseinander. Wie seht ihr das?`,
+  ],
+  expertise: [
+    t => `3 Dinge, die die meisten über ${t} nicht wissen — obwohl sie es sollten.`,
+    t => `Was ich nach 33 Jahren Erfahrung über ${t} sagen kann: Es ist einfacher als du denkst.`,
+    t => `Der häufigste Irrtum bei ${t} — und wie du ihn vermeidest.`,
+    t => `${t}: Was wirklich dahinter steckt. Ohne Marketingsprache.`,
+    t => `Warum ${t} bei uns anders funktioniert — und was du daraus mitnehmen kannst.`,
+    t => `Was Friseurmeister:innen über ${t} wissen, das sie selten sagen.`,
+    t => `${t} richtig gemacht sieht so aus. Alles andere ist Kompromiss.`,
+  ],
+  provokativ: [
+    t => `Ich sage es direkt: ${t} wird in unserer Branche meistens falsch gemacht.`,
+    t => `Warum die meisten bei ${t} aufgeben — und wir nicht.`,
+    t => `${t} klingt einfach. Ist es aber nicht. Und wer das behauptet, lügt.`,
+    t => `Nein — ${t} braucht kein Marketing. Es braucht Haltung.`,
+    t => `Ich habe einen Kunden abgelehnt. Wegen ${t}. Und ich würde es wieder tun.`,
+    t => `${t} ist nicht für jeden. Das ist kein Fehler — das ist unser Anspruch.`,
+    t => `Wer denkt, ${t} ist selbstverständlich, hat noch nicht wirklich hingeschaut.`,
+  ]
+};
+
+const WHY = {
+  neugier: 'Weckt Neugier ohne zu viel zu verraten — Menschen scrollen weiter um die Antwort zu finden.',
+  emotion: 'Emotionale Einstiege werden 3× häufiger gespeichert als informative Posts.',
+  diskussion: 'Fragen erzeugen Kommentare — und Kommentare schieben den Post im Algorithmus nach oben.',
+  expertise: 'Positioniert dich als Expertin. Wer Wissen teilt, wird als vertrauenswürdig wahrgenommen.',
+  provokativ: 'Starke Meinungen polarisieren. Wer nicht polarisiert, bleibt unsichtbar.'
+};
+
+function generateHooks() {
+  const thema = document.getElementById('hook-thema').value.trim();
+  const t = thema || 'Ausbildung';
+  const ziel = S.hookziel || 'neugier';
+  const pool = HOOKS[ziel] || HOOKS.neugier;
+  const shuffled = [...pool].sort(()=>Math.random()-.5).slice(0,5);
+
+  const list = document.getElementById('hook-list');
+  list.innerHTML = shuffled.map((fn,i) =>
+    `<div class="result-item">
+      <div class="result-num">Hook ${i+1} &middot; ${ziel.charAt(0).toUpperCase()+ziel.slice(1)}</div>
+      <div class="result-text">&bdquo;${fn(t)}&ldquo;</div>
+      <div class="result-why">${WHY[ziel]}</div>
+      <button class="copy-btn" onclick="copyHook(this,'${fn(t).replace(/'/g,"\\'")}')">Kopieren</button>
+    </div>`
+  ).join('');
+
+  document.getElementById('hook-results').style.display = 'block';
+  document.getElementById('hook-results').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyHook(btn, text) {
+  navigator.clipboard && navigator.clipboard.writeText('\u201E' + text + '\u201C');
+  btn.textContent = 'Kopiert \u2713';
+  btn.classList.add('done');
+  setTimeout(()=>{btn.textContent='Kopieren';btn.classList.remove('done');},2000);
+}
+
+// ── POST GENERATOR ──
+const POST_TEMPLATES = {
+  nahbar: {
+    kundinnen: (m) => ({
+      hook: m.length>10 ? `\u201E${m.slice(0,65)}${m.length>65?'...':''}\u201C` : `Heute war so ein Moment, den man nicht vergisst.`,
+      body: `${m}\n\nGenau das ist es, was ich nach 33 Jahren noch genauso sp\u00FCre wie am ersten Tag.\n\nEs geht nicht um Haare. Es geht darum, dass du herausgehst und dich in deiner Haut wohlf\u00FChlst.\n\nDas ist unser Job. Das ist unser Anspruch.\n\n#GreatHairDay #Wien #Friseur #Stammkunden #Vertrauen`,
+      cta: `\ud83d\udccd Rechte Wienzeile 47, 1050 Wien\nTermin: Link in Bio`,
+      bild: `Ein echter Moment aus dem Salon \u2014 keine gestellte Aufnahme. Das Ergebnis, wie es war.`
+    }),
+    neu: (m) => ({
+      hook: `Was passiert, wenn du zum ersten Mal zu uns kommst?`,
+      body: `${m}\n\nBei uns musst du dich nicht erkl\u00E4ren. Nicht beim ersten Besuch, nicht beim zehnten.\n\nWir h\u00F6ren zu. Wir beraten ehrlich. Und wir sagen auch mal, wenn etwas nicht zu dir passt.\n\nSeit 33 Jahren in Wien. Nicht trotz unserer Haltung \u2014 wegen ihr.\n\n#GreatHairDay #Wien #Friseur #NeuHier`,
+      cta: `Erster Termin? Einfach schreiben oder den Link in der Bio nutzen.`,
+      bild: `Der erste Eindruck z\u00E4hlt \u2014 ein Bild vom Salon, warm und einladend. Keine Perfektion, echte Atmosph\u00E4re.`
+    }),
+    lehrlinge: (m) => ({
+      hook: `Was bedeutet Ausbildung wirklich?`,
+      body: `${m}\n\nBei uns lernt man nicht nur Frisieren. Man lernt, wie man mit Menschen umgeht. Wie man zuh\u00F6rt. Wie man Verantwortung \u00FCbernimmt.\n\nRonya ist seit 4 Monaten dabei. Und sie w\u00E4chst mit jedem Tag.\n\nAusbildungsplatz noch frei. Wir suchen jemanden, der wirklich will.\n\n#Ausbildung #Lehrling #Friseur #Wien #HandwerkMitZukunft`,
+      cta: `Interesse? Schreib uns direkt.`,
+      bild: `Ronya oder ein Lehrlings-Moment im Salon \u2014 beim Arbeiten, nicht beim Posieren.`
+    }),
+    branche: (m) => ({
+      hook: `Was ich nach 33 Jahren \u00FCber unseren Beruf gelernt habe.`,
+      body: `${m}\n\nDie Lehrlingszahlen in \u00D6sterreich sind von 2.500 auf 500 gesunken. In sechs Jahren.\n\nDas ist kein Zufall. Das ist eine Konsequenz davon, wie wir als Branche ausgebildet \u2014 und wie wir \u00FCber Ausbildung reden.\n\nWir k\u00F6nnen das \u00E4ndern. Aber nicht durch Jammern.\n\n#Friseurbranche #Ausbildung #Handwerk #\u00D6sterreich`,
+      cta: `Was denkst du? Ich bin gespannt auf eure Erfahrungen.`,
+      bild: `Ein starkes Bild aus dem Salon \u2014 Meisterin bei der Arbeit.`
+    }),
+  },
+  stolz: {
+    kundinnen: (m) => ({
+      hook: `M\u00FCssen wir kurz \u00FCber etwas reden, das uns heute wirklich gefreut hat.`,
+      body: `${m}\n\nSolche Momente passieren nicht zuf\u00E4llig. Sie entstehen, wenn man seit Jahren zuh\u00F6rt, ehrlich arbeitet und den Menschen wirklich sieht \u2014 nicht nur die Haare.\n\nDaf\u00FCr sind wir hier. Jeden Tag.\n\n#GreatHairDay #Wien #Meisterin #Qualit\u00E4t #Vertrauen`,
+      cta: `Rechte Wienzeile 47, 1050 Wien. Termin: Link in Bio.`,
+      bild: `Das Ergebnis der Arbeit \u2014 w\u00FCrdevoll, kein \u00DCberfilter.`
+    }),
+    lehrlinge: (m) => ({
+      hook: `Heute sind wir stolz. Sehr.`,
+      body: `${m}\n\nDas ist kein kleines Ding. Wir bilden seit Jahrzehnten aus \u2014 und dieser Moment geh\u00F6rt zu den sch\u00F6nsten.\n\nGute Ausbildung bedeutet: Vertrauen geben, bevor jemand fertig ist.\n\n#Ausbildung #Lehrling #GreatHairDay #Wien`,
+      cta: `Ausbildungsplatz frei. Anfragen willkommen.`,
+      bild: `Lehrling und Inhaberin \u2014 echter Moment, keine Pose.`
+    }),
+  },
+  nachdenklich: {
+    kundinnen: (m) => ({
+      hook: `Ich denke oft dar\u00FCber nach, warum manche Dinge so bleiben, wie sie sind.`,
+      body: `${m}\n\nUnsere \u00E4ltesten Stammkund:innen kommen seit \u00FCber 20 Jahren. Manche seit 30.\n\nNicht wegen der Haare. Wegen dem Gef\u00FChl, das bleibt.\n\nIch glaube, das ist das Einzige, was wirklich z\u00E4hlt.\n\n#GreatHairDay #Vertrauen #Wien #Nachdenklich`,
+      cta: `Was macht f\u00FCr euch einen guten Salon aus? Ich bin ehrlich neugierig.`,
+      bild: `Ruhige Stimmung im Salon \u2014 Licht, Detail, Atmosphaere. Kein Aktionsbild.`
+    }),
+  },
+  direkt: {
+    kundinnen: (m) => ({
+      hook: `Direkt gesagt:`,
+      body: `${m}\n\nBei uns gibt es keine leeren Versprechen. Keine Rabattaktionen, die unter der Hand finanziert werden.\n\nWir arbeiten ehrlich. Wir beraten ehrlich. Und wir sagen, wenn etwas nicht passt.\n\nDas ist kein Anspruch. Das ist unser Alltag.\n\n#GreatHairDay #Wien #Ehrlichkeit #Handwerk`,
+      cta: `Termin: Link in Bio oder direkt anrufen.`,
+      bild: `Hands-on Bild \u2014 Arbeit an den Haaren, klar und nah.`
+    }),
+  }
+};
+
+function generatePost() {
+  const moment = document.getElementById('post-moment').value.trim();
+  if(!moment) return;
+  const ton = S.postton || 'nahbar';
+  const wer = S.postwer || 'kundinnen';
+
+  const template = (POST_TEMPLATES[ton] && POST_TEMPLATES[ton][wer])
+    || POST_TEMPLATES.nahbar.kundinnen;
+  const result = template(moment);
+
+  document.getElementById('res-post-hook').textContent = result.hook;
+  document.getElementById('res-post-body').textContent = result.body;
+  document.getElementById('res-post-cta').textContent = result.cta;
+  document.getElementById('res-post-bild').textContent = result.bild;
+
+  document.getElementById('post-result').style.display = 'flex';
+  document.getElementById('post-result').style.flexDirection = 'column';
+  document.getElementById('post-result').style.gap = '12px';
+  document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function copyPost() {
+  const hook = document.getElementById('res-post-hook').textContent;
+  const body = document.getElementById('res-post-body').textContent;
+  const cta = document.getElementById('res-post-cta').textContent;
+  navigator.clipboard && navigator.clipboard.writeText(hook+'\n\n'+body+'\n\n'+cta);
+  alert('Post kopiert!');
+}
+
+// ── STORY MAKER ──
+const STORY_TEMPLATES = {
+  emotional: {
+    vertrauen: (m) => [
+      {label:'Frame 1 \u2014 Hook', text: `\u201E${m.slice(0,50)||'Heute war so ein Moment.'}\u201C`, tip:'Text auf dunklem Hintergrund. Keine Erklärung.', gold:false},
+      {label:'Frame 2 \u2014 Kontext', text:'Solche Momente passieren nicht jeden Tag. Aber wenn sie passieren, merkt man, wof\u00FCr man das alles macht.', tip:'Ruhiges Bild vom Salon oder von den Händen.', gold:false},
+      {label:'Frame 3 \u2014 Pers\u00F6nlich werden', text:'Ich bin seit 33 Jahren in diesem Beruf. Und das hier bewegt mich immer noch.', tip:'Du sprichst kurz in die Kamera. 5–8 Sekunden reicht.', gold:true},
+      {label:'Frame 4 \u2014 Wert sichtbar machen', text:'Vertrauen entsteht nicht in einem Termin. Es entsteht in hundert kleinen Momenten.', tip:'Schlichter Text-Frame. Gold oder weiß auf dunkelgrünem Hintergrund.', gold:false},
+      {label:'Frame 5 \u2014 Einladung', text:'Wie sieht dein Lieblingsmoment im Salon aus? Schreib mir \u2014 ich bin neugierig. \u2193', tip:'Umfrage oder DM-Einladung. Call to Action klar machen.', gold:true},
+    ],
+    lehrling: (m) => [
+      {label:'Frame 1 \u2014 Hook', text:`Was macht gute Ausbildung wirklich aus?`, tip:'Frage als Text-Frame. Keine Antwort, nur die Frage.', gold:false},
+      {label:'Frame 2 \u2014 Der Moment', text:`${m.slice(0,80)||'Heute ist genau das passiert, was Ausbildung lebendig macht.'}`, tip:'Foto oder kurzer Clip vom heutigen Moment.', gold:false},
+      {label:'Frame 3 \u2014 Deine Haltung', text:'Wir geben Vertrauen, bevor jemand fertig ist. Das ist der Unterschied.', tip:'Du, kurz in die Kamera. Echt und ruhig.', gold:true},
+      {label:'Frame 4 \u2014 Kontext', text:'Österreich hat heute ca. 500 Lehrlinge im Friseurbereich. 2020 waren es 2.500.', tip:'Fakten-Frame. Weiß auf dunklem Hintergrund.', gold:false},
+      {label:'Frame 5 \u2014 CTA', text:'Ausbildungsplatz noch frei. Melde dich direkt bei uns.', tip:'Link oder DM-Button. Klar, kurz, direkt.', gold:true},
+    ],
+  },
+  neugier: {
+    vertrauen: (m) => [
+      {label:'Frame 1 \u2014 Hook', text:'Was glaubst du, warum manche Fris\u00F6r:innen Kund:innen seit 30 Jahren haben?', tip:'Frage-Frame. Keine Antwort.', gold:false},
+      {label:'Frame 2 \u2014 Aufbau', text:`${m.slice(0,70)||'Heute hat uns jemand etwas gesagt, das wir nicht vergessen werden.'}`, tip:'Foto oder Text. Spannung halten.', gold:false},
+      {label:'Frame 3 \u2014 Twist', text:'Es hat nichts mit Technik zu tun. Und auch nichts mit Preisen.', tip:'Kurzer Text, großer Impact.', gold:true},
+      {label:'Frame 4 \u2014 Antwort', text:'Es hat damit zu tun, dass du dich nicht erklären musst. Dass du einfach du sein kannst.', tip:'Ruhiges Bild, ruhiger Text.', gold:false},
+      {label:'Frame 5 \u2014 Einladung', text:'Wann hast du das zuletzt gespürt? Schreib mir. 💚', tip:'DM-Einladung, kein harter Verkauf.', gold:true},
+    ],
+  },
+  behind: {
+    vertrauen: (m) => [
+      {label:'Frame 1 \u2014 Einstieg', text:'Was passiert eigentlich hinter den Kulissen?', tip:'Frage als Einstieg. Neugier.', gold:false},
+      {label:'Frame 2 \u2014 Behind the Scenes', text:`${m.slice(0,80)||'Heute haben wir etwas getan, das man von außen nicht sieht.'}`, tip:'Echter Moment, ungeplant.', gold:false},
+      {label:'Frame 3 \u2014 Warum das z\u00E4hlt', text:'Weil der Unterschied selten sichtbar ist. Aber immer sp\u00FCrbar.', tip:'Text-Frame. Schlicht und stark.', gold:true},
+      {label:'Frame 4 \u2014 Team zeigen', text:'Mazen, Alina, Hassan, Ronya \u2014 das sind die Menschen hinter jedem Termin.', tip:'Team-Foto oder kurzer Clip. Echt, nicht gestellt.', gold:false},
+      {label:'Frame 5 \u2014 CTA', text:'Termin buchen? Link in Bio \u2014 oder einfach schreiben.', tip:'Klar, freundlich, einladend.', gold:true},
+    ],
+  },
+  haltung: {
+    vertrauen: (m) => [
+      {label:'Frame 1 \u2014 Statement', text:'Wir haben einmal einen Kunden abgelehnt. Und es war richtig so.', tip:'Provokanter Einstieg. Kein Kontext.', gold:false},
+      {label:'Frame 2 \u2014 Erkl\u00E4rung', text:`${m.slice(0,80)||'Weil Haltung mehr zählt als Umsatz.'}`, tip:'Ruhige Erklärung. Keine Entschuldigung.', gold:false},
+      {label:'Frame 3 \u2014 Wert', text:'Wer sich hier wohlfühlen will, muss auch bereit sein, andere zu respektieren. Das ist keine Bedingung \u2014 das ist Grundlage.', tip:'Deine Stimme, direkt. Du sprichst in die Kamera.', gold:true},
+      {label:'Frame 4 \u2014 Konsequenz', text:'Dieser Kunde ist heute noch bei uns. Und er hat sich entschuldigt.', tip:'Die Pointe. Einfach lassen.', gold:false},
+      {label:'Frame 5 \u2014 Einladung', text:'Wie seht ihr das? Haltung im Arbeitsalltag \u2014 wo zieht ihr eure Grenze?', tip:'Diskussion einladen. Keine Antwort vorgeben.', gold:true},
+    ],
+  }
+};
+
+function generateStory() {
+  const moment = document.getElementById('story-moment').value.trim();
+  if(!moment) return;
+  const mood = S.storymood || 'emotional';
+  const ziel = S.storyziel || 'vertrauen';
+
+  const pool = (STORY_TEMPLATES[mood] && STORY_TEMPLATES[mood][ziel])
+    || STORY_TEMPLATES.emotional.vertrauen;
+  const frames = pool(moment);
+
+  const list = document.getElementById('story-list');
+  list.innerHTML = frames.map((fr,i)=>
+    `<div class="story-frame${fr.gold?' gold':''}">
+      <div class="story-num">Frame ${i+1}</div>
+      <div class="story-label">${fr.label}</div>
+      <div class="story-text">${fr.text}</div>
+      <div class="story-tip">&#x1F4CC; ${fr.tip}</div>
+    </div>`
+  ).join('');
+
+  document.getElementById('story-result').style.display='block';
+  document.getElementById('story-result').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── IDEEN ──
+const IDEAS = [
+  {icon:'&#x2764;',label:'Stammkunden-Moment',desc:'Eine Kundin kommt seit Jahren. Was macht das mit dir?',ziel:'Emotion + Vertrauen'},
+  {icon:'&#x1F4AA;',label:'Haltung zeigen',desc:'Etwas, wof\u00FCr du eingestanden bist. Ruhig und klar.',ziel:'Authentizit\u00E4t'},
+  {icon:'&#x1F393;',label:'Ausbildungs-Einblick',desc:'Ronya lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
+  {icon:'&#x1F914;',label:'Branchenfrage',desc:'Was l\u00E4uft falsch? Was k\u00F6nnte besser sein?',ziel:'Diskussion + Reichweite'},
+  {icon:'&#x1F4A1;',label:'Expertentipp',desc:'Ein Fehler den fast alle machen. Deine Antwort.',ziel:'Expertise'},
+  {icon:'&#x1F91D;',label:'Team-Moment',desc:'Mazen, Alina oder Hassan \u2014 was macht euch als Team aus?',ziel:'Vertrauen + Menschlichkeit'},
+  {icon:'&#x1F333;',label:'Wohlbefinden-Thema',desc:'Haare, Ern\u00E4hrung, Bewegung \u2014 wie h\u00E4ngt das zusammen?',ziel:'Differenzierung'},
+  {icon:'&#x1F550;',label:'33 Jahre Salon',desc:'Was hat sich ver\u00E4ndert? Was bleibt?',ziel:'Geschichte + Vertrauen'},
+];
+
+function initIdeas() {
+  document.getElementById('idea-grid').innerHTML = IDEAS.map((idea,i)=>
+    `<div class="idea-card" onclick="useIdea('${idea.label}')">
+      <div class="idea-icon">${idea.icon}</div>
+      <div class="idea-label">${idea.label}</div>
+      <div class="idea-desc">${idea.desc}</div>
+      <div style="font-size:10px;color:var(--accent);font-weight:600;margin-top:4px">${idea.ziel}</div>
+    </div>`
+  ).join('');
+}
+
+function useIdea(label) {
+  document.getElementById('hook-thema').value = label;
+  document.getElementById('post-moment').value = '';
+  showTabByName('hook');
+  document.getElementById('hook-thema').focus();
+}
+
+function showTabByName(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const tabs = document.querySelectorAll('.tab');
+  const map = {hook:0,post:1,story:2,ideen:3};
+  if(tabs[map[name]]) tabs[map[name]].classList.add('active');
+  window.scrollTo(0,0);
+}
+
+// Fix state keys
+document.querySelectorAll('[id^=chips-]').forEach(wrap=>{
+  wrap.querySelectorAll('.chip').forEach(chip=>{
+    const group = wrap.id.replace('chips-','');
+    chip.addEventListener('click',()=>{
+      wrap.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      S[group.replace(/-/g,'')] = chip.dataset.val;
+    });
+  });
+});
+
+initIdeas();
+</script>
+</body>
+</html>

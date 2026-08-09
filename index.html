@@ -284,13 +284,29 @@ textarea{resize:none;}
 <div class="screen" id="screen-story">
   <div class="card">
     <div class="card-tag">Story-Maker</div>
-    <div class="card-title">Eine Story die Menschen bis Frame 5 schauen.</div>
-    <div class="card-sub">Vorschau + Kopieren f&uuml;r jeden Frame.</div>
+    <div class="card-title">Textframes + Fotos abwechselnd — wie eine echte Story.</div>
+    <div class="card-sub">Bis zu 3 Fotos hochladen. Die App baut daraus eine abwechselnde Abfolge: Text &rarr; Foto &rarr; Text &rarr; Foto &rarr; Abschluss.</div>
   </div>
 
   <div class="input-wrap">
     <div class="input-label">Thema oder Moment</div>
     <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag genutzt um mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Starker Satz (optional) — erscheint als extra Textframe</div>
+    <input type="text" id="story-satz" placeholder='z.B. "Bei uns musst du dich nicht erklären."'>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Fotos hochladen (1–3, optional)</div>
+    <input type="file" id="story-foto-input" accept="image/*" multiple style="display:none" onchange="handleStoryFotos(this)">
+    <button class="foto-upload" onclick="document.getElementById('story-foto-input').click()">
+      <span style="font-size:26px">&#128247;</span>
+      <span>1–3 Fotos ausw&auml;hlen</span>
+      <span style="font-size:11px;color:#A8A49E">Erscheinen als Fotoframes zwischen den Texten</span>
+    </button>
+    <div id="story-foto-previews" style="display:flex;gap:8px;flex-wrap:wrap;margin-top:4px;"></div>
   </div>
 
   <div class="input-wrap">
@@ -316,7 +332,7 @@ textarea{resize:none;}
   <button class="btn" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
 
   <div id="story-result" style="display:none;flex-direction:column;gap:14px;">
-    <div class="sec-head">5 Story-Frames — Vorschau + Kopieren</div>
+    <div class="sec-head">Deine Story-Frames — Screenshot je Frame</div>
     <div class="story-frames-wrap" id="story-list"></div>
     <button class="btn-ghost" onclick="generateStory()">&#x21BA; Neue Variante</button>
   </div>
@@ -701,28 +717,110 @@ const STORY={
   }
 };
 
+// Story foto handling
+S.storyFotos=[];
+function handleStoryFotos(input){
+  const files=Array.from(input.files).slice(0,3);
+  const previews=document.getElementById('story-foto-previews');
+  S.storyFotos=[];
+  previews.innerHTML='';
+  files.forEach((file,i)=>{
+    const r=new FileReader();
+    r.onload=e=>{
+      S.storyFotos[i]=e.target.result;
+      const img=document.createElement('img');
+      img.src=e.target.result;
+      img.style.cssText='width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid var(--accent);';
+      previews.appendChild(img);
+    };
+    r.readAsDataURL(file);
+  });
+}
+
 function generateStory(){
   const m=document.getElementById('story-moment').value.trim();
   if(!m) return;
+  const satz=document.getElementById('story-satz').value.trim();
   const mood=S.storymood||'emotional';
   const ziel=S.storyziel||'vertrauen';
   const pool=(STORY[mood]&&STORY[mood][ziel])||(STORY[mood]&&STORY[mood][Object.keys(STORY[mood])[0]])||STORY.emotional.vertrauen;
-  const frames=pool(m);
+  const textFrames=pool(m);
+  const fotos=S.storyFotos||[];
+
+  // Build alternating sequence: text, foto, text, foto, text/satz
+  const allFrames=[];
+  let ti=0, fi=0;
+  // Frame 1: always text (hook)
+  allFrames.push({type:'text', frame:textFrames[ti++]||null, bg:BGS[0]});
+  // Frame 2: foto if available, else text
+  if(fotos[fi]) allFrames.push({type:'foto', src:fotos[fi++]});
+  else if(textFrames[ti]) allFrames.push({type:'text', frame:textFrames[ti++], bg:BGS[1]});
+  // Frame 3: text
+  if(textFrames[ti]) allFrames.push({type:'text', frame:textFrames[ti++], bg:BGS[2]});
+  // Frame 4: foto if available, else text
+  if(fotos[fi]) allFrames.push({type:'foto', src:fotos[fi++]});
+  else if(textFrames[ti]) allFrames.push({type:'text', frame:textFrames[ti++], bg:BGS[3]});
+  // Frame 5: starker Satz or last text or foto
+  if(satz) allFrames.push({type:'satz', text:satz, bg:'gold-bg'});
+  else if(fotos[fi]) allFrames.push({type:'foto', src:fotos[fi++]});
+  else if(textFrames[ti]) allFrames.push({type:'text', frame:textFrames[ti++], bg:BGS[4]});
+
   const list=document.getElementById('story-list');
-  list.innerHTML=frames.map((fr,i)=>{
-    const bg=BGS[i]||'dark';
+  list.innerHTML=allFrames.map((f,i)=>{
+    const num=`Frame ${i+1}`;
+    if(f.type==='foto'){
+      return `<div class="story-card">
+        <div class="story-card-header">
+          <div>
+            <div class="story-frame-label">Fotoframe</div>
+            <div class="story-frame-name">${num}</div>
+          </div>
+        </div>
+        <div class="story-card-body">
+          <img src="${f.src}" style="width:100%;aspect-ratio:9/16;object-fit:cover;border-radius:10px;max-height:320px;display:block;">
+          <div class="story-frame-tip" style="margin-top:8px">&#x1F4CC; Screenshot dieses Frames &rarr; direkt als Story posten</div>
+        </div>
+      </div>`;
+    }
+    if(f.type==='satz'){
+      const txt=f.text.replace(/`/g,"'");
+      return `<div class="story-card">
+        <div class="story-card-header gold">
+          <div>
+            <div class="story-frame-label">Starker Satz</div>
+            <div class="story-frame-name">${num}</div>
+          </div>
+          <button class="fav-star" onclick="saveFav('story',\`${txt}\`)" style="color:#fff;font-size:18px">&#x2606;</button>
+        </div>
+        <div class="story-card-body">
+          <div class="story-visual gold-bg" style="margin-bottom:12px">
+            <div class="story-visual-num">${num}</div>
+            <div class="story-visual-text" style="font-size:22px">&bdquo;${f.text}&ldquo;</div>
+            <div class="story-visual-tip">Screenshot &rarr; direkt posten</div>
+          </div>
+          <div class="story-frame-actions">
+            <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
+            <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
+          </div>
+        </div>
+      </div>`;
+    }
+    // text frame
+    const fr=f.frame;
+    if(!fr) return '';
+    const bg=f.bg||'dark';
     const txt=fr.text.replace(/`/g,"'");
     return `<div class="story-card">
       <div class="story-card-header${bg==='gold-bg'?' gold':''}">
         <div>
           <div class="story-frame-label">${fr.label}</div>
-          <div class="story-frame-name">${fr.name}</div>
+          <div class="story-frame-name">${num}</div>
         </div>
         <button class="fav-star" onclick="saveFav('story',\`${txt}\`)" style="color:#fff;font-size:18px">&#x2606;</button>
       </div>
       <div class="story-card-body">
         <div class="story-visual ${bg}" style="margin-bottom:12px">
-          <div class="story-visual-num">${fr.name}</div>
+          <div class="story-visual-num">${num}</div>
           <div class="story-visual-label">${fr.label}</div>
           <div class="story-visual-text">${fr.text}</div>
           <div class="story-visual-tip">${fr.tip}</div>
@@ -734,6 +832,7 @@ function generateStory(){
       </div>
     </div>`;
   }).join('');
+
   const r=document.getElementById('story-result');
   r.style.display='flex';
   r.scrollIntoView({behavior:'smooth',block:'start'});

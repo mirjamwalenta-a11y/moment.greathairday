@@ -107,14 +107,13 @@ textarea{resize:none;}
 .story-frame-actions{display:flex;gap:8px;margin-top:10px;}
 
 /* Story visual preview (9:16) */
-.story-visual{width:100%;aspect-ratio:9/16;max-height:420px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;background:#C8A96E;}
-.story-visual.dark,.story-visual.green,.story-visual.gold-bg{background:#C8A96E;}
-.story-visual-m{position:absolute;font-size:180px;font-weight:900;color:rgba(28,28,28,.08);line-height:1;font-family:Georgia,serif;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;user-select:none;}
-.story-visual-brand{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:rgba(28,28,28,.4);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
-.story-visual-num{position:absolute;bottom:14px;left:16px;font-size:10px;font-weight:700;color:rgba(28,28,28,.35);text-transform:uppercase;letter-spacing:.5px;}
-.story-visual-label{position:absolute;bottom:14px;right:16px;font-size:10px;font-weight:700;color:rgba(28,28,28,.35);text-transform:uppercase;}
-.story-visual-text{font-size:19px;font-weight:700;color:#1C1C1C;line-height:1.4;letter-spacing:-.2px;position:relative;z-index:2;padding:0 8px;}
-.story-visual-tip{position:absolute;top:14px;right:14px;font-size:10px;color:rgba(28,28,28,.3);text-align:right;}
+.story-visual{width:100%;aspect-ratio:9/16;max-height:480px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 24px 24px;text-align:center;background:#FFFFFF;border:1px solid #E3E0D9;}
+.story-visual.dark,.story-visual.green,.story-visual.gold-bg{background:#FFFFFF;}
+.story-visual-logo-m{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto;}
+.story-visual-text{font-size:20px;font-weight:700;color:#1C1C1C;line-height:1.45;letter-spacing:-.2px;position:relative;z-index:2;padding:0 8px;flex:1;display:flex;align-items:center;justify-content:center;}
+.story-visual-sig{width:160px;object-fit:contain;display:block;margin:0 auto;opacity:.85;}
+.story-visual-num{position:absolute;bottom:10px;left:14px;font-size:9px;font-weight:700;color:rgba(0,0,0,.25);text-transform:uppercase;letter-spacing:.5px;}
+.story-visual-label{position:absolute;bottom:10px;right:14px;font-size:9px;font-weight:700;color:rgba(0,0,0,.25);text-transform:uppercase;}
 
 /* Favoriten */
 .fav-list{display:flex;flex-direction:column;gap:10px;}
@@ -815,9 +814,9 @@ function generateStory(){
         </div>
         <div class="story-card-body">
           <div class="story-visual gold-bg" style="margin-bottom:12px">
-            <div class="story-visual-m">M</div>
-            <div class="story-visual-brand">Mirjam Walenta &middot; A Great Hair Day</div>
+            <img class="story-visual-logo-m" src="logo-m.png" alt="M">
             <div class="story-visual-text" style="font-size:22px">&bdquo;${f.text}&ldquo;</div>
+            <img class="story-visual-sig" src="logo-name.png" alt="Mirjam Walenta">
             <div class="story-visual-num">${num} &middot; Abschluss</div>
           </div>
           <div class="story-frame-actions">
@@ -842,9 +841,9 @@ function generateStory(){
       </div>
       <div class="story-card-body">
         <div class="story-visual ${bg}" style="margin-bottom:12px">
-          <div class="story-visual-m">M</div>
-          <div class="story-visual-brand">Mirjam Walenta &middot; A Great Hair Day</div>
+          <img class="story-visual-logo-m" src="logo-m.png" alt="M">
           <div class="story-visual-text">&bdquo;${fr.text}&ldquo;</div>
+          <img class="story-visual-sig" src="logo-name.png" alt="Mirjam Walenta">
           <div class="story-visual-num">${num}</div>
           <div class="story-visual-label">${fr.label}</div>
         </div>

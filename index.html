@@ -107,14 +107,14 @@ textarea{resize:none;}
 .story-frame-actions{display:flex;gap:8px;margin-top:10px;}
 
 /* Story visual preview (9:16) */
-.story-visual{width:100%;aspect-ratio:9/16;max-height:420px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;}
-.story-visual.dark{background:#1C1C1C;}
-.story-visual.green{background:var(--accent);}
-.story-visual.gold-bg{background:var(--gold);}
-.story-visual-num{position:absolute;top:16px;left:16px;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;}
-.story-visual-label{position:absolute;top:16px;right:16px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;}
-.story-visual-text{font-size:18px;font-weight:700;color:#fff;line-height:1.35;letter-spacing:-.2px;}
-.story-visual-tip{position:absolute;bottom:16px;font-size:11px;color:rgba(255,255,255,.55);text-align:center;padding:0 10px;}
+.story-visual{width:100%;aspect-ratio:9/16;max-height:420px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;background:#C8A96E;}
+.story-visual.dark,.story-visual.green,.story-visual.gold-bg{background:#C8A96E;}
+.story-visual-m{position:absolute;font-size:180px;font-weight:900;color:rgba(28,28,28,.08);line-height:1;font-family:Georgia,serif;top:50%;left:50%;transform:translate(-50%,-50%);pointer-events:none;user-select:none;}
+.story-visual-brand{position:absolute;top:18px;left:50%;transform:translateX(-50%);font-size:11px;font-weight:700;color:rgba(28,28,28,.4);letter-spacing:2px;text-transform:uppercase;white-space:nowrap;}
+.story-visual-num{position:absolute;bottom:14px;left:16px;font-size:10px;font-weight:700;color:rgba(28,28,28,.35);text-transform:uppercase;letter-spacing:.5px;}
+.story-visual-label{position:absolute;bottom:14px;right:16px;font-size:10px;font-weight:700;color:rgba(28,28,28,.35);text-transform:uppercase;}
+.story-visual-text{font-size:19px;font-weight:700;color:#1C1C1C;line-height:1.4;letter-spacing:-.2px;position:relative;z-index:2;padding:0 8px;}
+.story-visual-tip{position:absolute;top:14px;right:14px;font-size:10px;color:rgba(28,28,28,.3);text-align:right;}
 
 /* Favoriten */
 .fav-list{display:flex;flex-direction:column;gap:10px;}
@@ -294,8 +294,10 @@ textarea{resize:none;}
   </div>
 
   <div class="input-wrap">
-    <div class="input-label">Starker Satz (optional) — erscheint als extra Textframe</div>
-    <input type="text" id="story-satz" placeholder='z.B. "Bei uns musst du dich nicht erklären."'>
+    <div class="input-label">Starker Satz — erscheint als goldener Schluss-Frame</div>
+    <input type="text" id="story-satz" placeholder='Eigener Text oder Spruch unten ausw&auml;hlen...'>
+    <div style="font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.4px;margin-top:8px;">Vorschl&auml;ge — antippen zum &Uuml;bernehmen</div>
+    <div id="sprueche-chips" style="display:flex;flex-wrap:wrap;gap:7px;margin-top:4px;"></div>
   </div>
 
   <div class="input-wrap">
@@ -663,7 +665,26 @@ function favPost(){
 }
 
 // ── STORY ──
-const BGS=['dark','green','dark','green','gold-bg'];
+const BGS=['gold','gold','gold','gold','gold'];
+
+// Sprüche-Bibliothek passend zum Salon
+const SPRUECHE=[
+  {kat:'Vertrauen', text:'Bei uns musst du dich nicht erklären.'},
+  {kat:'Vertrauen', text:'Vertrauen wächst still. Seit über 30 Jahren.'},
+  {kat:'Vertrauen', text:'Manche Kund:innen kommen seit 20 Jahren. Das sagt mehr als jede Werbung.'},
+  {kat:'Haltung', text:'Wer aufhört zu lernen, hört auf zu wachsen.'},
+  {kat:'Haltung', text:'Qualität ist keine Entscheidung. Sie ist eine Haltung.'},
+  {kat:'Haltung', text:'Wir sagen auch mal Nein. Weil das ehrlicher ist.'},
+  {kat:'Wohlbefinden', text:'Schneide die Vergangenheit ab. Entdecke deinen neuen Stil.'},
+  {kat:'Wohlbefinden', text:'Äußeres und inneres Wohlbefinden gehören zusammen.'},
+  {kat:'Wohlbefinden', text:'Eine Stunde bei uns. Und du gehst anders raus als du reingekommen bist.'},
+  {kat:'Ausbildung', text:'Ausbildung heißt: Vertrauen geben, bevor jemand fertig ist.'},
+  {kat:'Ausbildung', text:'Wir formen nicht nur Friseur:innen. Wir formen Menschen.'},
+  {kat:'Team', text:'Hinter jedem Termin steckt ein Team, das seinen Job liebt.'},
+  {kat:'Team', text:'Mazen, Alina, Hassan, Ronya — und ich. Das sind wir.'},
+  {kat:'Salon', text:'Seit 1993 in Wien. Nicht trotz unserer Haltung — wegen ihr.'},
+  {kat:'Salon', text:'Ein Ort, an dem du du sein kannst. Rechte Wienzeile 47.'},
+];
 const STORY={
   emotional:{
     vertrauen:m=>[
@@ -794,9 +815,10 @@ function generateStory(){
         </div>
         <div class="story-card-body">
           <div class="story-visual gold-bg" style="margin-bottom:12px">
-            <div class="story-visual-num">${num}</div>
+            <div class="story-visual-m">M</div>
+            <div class="story-visual-brand">Mirjam Walenta &middot; A Great Hair Day</div>
             <div class="story-visual-text" style="font-size:22px">&bdquo;${f.text}&ldquo;</div>
-            <div class="story-visual-tip">Screenshot &rarr; direkt posten</div>
+            <div class="story-visual-num">${num} &middot; Abschluss</div>
           </div>
           <div class="story-frame-actions">
             <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
@@ -820,10 +842,11 @@ function generateStory(){
       </div>
       <div class="story-card-body">
         <div class="story-visual ${bg}" style="margin-bottom:12px">
+          <div class="story-visual-m">M</div>
+          <div class="story-visual-brand">Mirjam Walenta &middot; A Great Hair Day</div>
+          <div class="story-visual-text">&bdquo;${fr.text}&ldquo;</div>
           <div class="story-visual-num">${num}</div>
           <div class="story-visual-label">${fr.label}</div>
-          <div class="story-visual-text">${fr.text}</div>
-          <div class="story-visual-tip">${fr.tip}</div>
         </div>
         <div class="story-frame-actions">
           <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
@@ -882,6 +905,22 @@ function copyText(btn,text){
   btn.classList.add('done');
   setTimeout(()=>{btn.textContent=old;btn.classList.remove('done');},2000);
 }
+
+// ── SPRUECHE ──
+function initSprueche(){
+  const wrap=document.getElementById('sprueche-chips');
+  if(!wrap) return;
+  wrap.innerHTML=SPRUECHE.map((s,i)=>
+    `<button class="chip sm" onclick="useSpruch(${i})" style="text-align:left;height:auto;padding:7px 12px;font-size:12px;line-height:1.4;white-space:normal;border-radius:10px;">
+      <span style="font-size:9px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.5px;display:block;margin-bottom:2px">${s.kat}</span>
+      ${s.text}
+    </button>`
+  ).join('');
+}
+function useSpruch(i){
+  document.getElementById('story-satz').value=SPRUECHE[i].text;
+}
+initSprueche();
 
 // ── IDEAS ──
 const IDEAS=[

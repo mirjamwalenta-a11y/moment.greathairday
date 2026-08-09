@@ -2,632 +2,813 @@
 <html lang="de">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-<title>Moment — Sichtbarkeit fuer deinen Salon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Reichweite">
+<meta name="theme-color" content="#2E5D4B">
+<title>Reichweite — A great hair day</title>
 <style>
-  :root {
-    --bg: #F5F3EF;
-    --surface: #FFFFFF;
-    --ink: #1C1C1C;
-    --sub: #6B6B6B;
-    --line: #E3E0D9;
-    --accent: #2E5D4B;
-    --accent2: #C8A96E;
-    --chip-off: #ECEAE5;
-    --r: 16px;
-    --f: system-ui, sans-serif;
-  }
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--f); background: var(--bg); color: var(--ink); min-height: 100vh; display: flex; justify-content: center; }
-  .phone { width: 100%; max-width: 390px; background: var(--bg); display: flex; flex-direction: column; min-height: 100vh; }
+:root{
+  --bg:#F5F3EF;--surface:#fff;--ink:#1C1C1C;--sub:#6B6B6B;
+  --line:#E3E0D9;--accent:#2E5D4B;--gold:#C8A96E;--chip:#ECEAE5;
+  --r:14px;--f:system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;overscroll-behavior:none;}
+.phone{width:100%;max-width:390px;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;position:relative;}
 
-  .topbar { background: var(--surface); padding: 18px 20px 14px; display: flex; align-items: center; justify-content: space-between; border-bottom: 1px solid var(--line); position: sticky; top: 0; z-index: 10; }
-  .wordmark { font-size: 18px; font-weight: 700; color: var(--accent); letter-spacing: -.4px; }
-  .topsub { font-size: 11px; color: var(--sub); }
+/* Topbar */
+.topbar{background:var(--surface);padding:14px 20px 12px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.wordmark{font-size:16px;font-weight:700;color:var(--accent);letter-spacing:-.3px;}
+.fav-btn-top{background:none;border:none;font-size:20px;cursor:pointer;padding:4px;}
 
-  .prog-wrap { background: var(--surface); padding: 10px 20px 14px; border-bottom: 1px solid var(--line); }
-  .prog-track { height: 3px; background: var(--line); border-radius: 2px; overflow: hidden; }
-  .prog-fill { height: 100%; background: var(--accent); border-radius: 2px; transition: width .35s; }
-  .prog-label { font-size: 11px; color: var(--sub); margin-top: 7px; }
+/* Tab Nav */
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:50px;z-index:19;}
+.tab{flex:1;padding:11px 2px 10px;font-size:11px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;transition:all .15s;letter-spacing:.2px;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
 
-  .screen { display: none; flex-direction: column; padding: 24px 20px 140px; gap: 24px; }
-  .screen.active { display: flex; }
+/* Screens */
+.screen{display:none;flex-direction:column;padding:18px 18px 110px;gap:18px;}
+.screen.active{display:flex;}
 
-  .sec { display: flex; flex-direction: column; gap: 10px; }
-  .sec-label { font-size: 12px; font-weight: 600; color: var(--sub); letter-spacing: .4px; text-transform: uppercase; }
-  .sec-q { font-size: 17px; font-weight: 600; color: var(--ink); line-height: 1.35; }
-  .hint { font-size: 13px; color: var(--sub); line-height: 1.5; }
-  .divider { height: 1px; background: var(--line); }
+/* Cards */
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;color:var(--accent);margin-bottom:6px;}
+.card-title{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;}
+.card-sub{font-size:13px;color:var(--sub);margin-top:6px;line-height:1.5;}
 
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 2px; }
-  .chip { padding: 9px 16px; border-radius: 24px; background: var(--chip-off); color: var(--ink); font-size: 14px; font-weight: 500; border: none; cursor: pointer; font-family: var(--f); transition: all .15s; }
-  .chip.on { background: var(--accent); color: #fff; box-shadow: 0 2px 8px rgba(46,93,75,.25); }
+/* Inputs */
+.input-wrap{display:flex;flex-direction:column;gap:7px;}
+.input-label{font-size:11px;font-weight:700;color:var(--sub);letter-spacing:.4px;text-transform:uppercase;}
+textarea,input[type=text]{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;line-height:1.5;transition:border-color .15s;}
+textarea:focus,input[type=text]:focus{border-color:var(--accent);}
+textarea::placeholder,input::placeholder{color:#B0ABA4;}
+textarea{resize:none;}
 
-  textarea { background: var(--surface); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 16px; font-family: var(--f); font-size: 15px; color: var(--ink); resize: none; min-height: 90px; outline: none; line-height: 1.5; width: 100%; transition: border-color .15s; }
-  textarea:focus { border-color: var(--accent); }
-  textarea::placeholder { color: #A8A49E; }
+/* Chips */
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:8px 13px;border-radius:20px;background:var(--chip);color:var(--ink);font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:var(--f);transition:all .15s;}
+.chip.on{background:var(--accent);color:#fff;box-shadow:0 2px 8px rgba(46,93,75,.2);}
 
-  .ausb-extra { display: none; flex-direction: column; gap: 10px; background: #EEF4F1; border-left: 3px solid var(--accent); border-radius: 12px; padding: 16px; }
-  .ausb-extra.visible { display: flex; }
-  .ausb-label { font-size: 12px; font-weight: 600; color: var(--accent); text-transform: uppercase; letter-spacing: .5px; }
-  .ausb-q { font-size: 15px; font-weight: 600; color: var(--ink); }
+/* Buttons */
+.btn{width:100%;padding:15px;background:var(--accent);color:#fff;font-family:var(--f);font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;box-shadow:0 3px 12px rgba(46,93,75,.25);}
+.btn:disabled{background:#B5B5B5;box-shadow:none;cursor:default;}
+.btn-ghost{background:none;border:1.5px solid var(--line);border-radius:12px;padding:12px;width:100%;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;font-family:var(--f);}
+.btn-sm{padding:8px 14px;font-size:12px;border-radius:9px;width:auto;font-weight:600;}
 
-  .foto-upload-btn { border: 2px dashed #C8C4BD; border-radius: 12px; padding: 24px 16px; background: transparent; cursor: pointer; color: var(--sub); font-size: 14px; font-family: var(--f); width: 100%; display: flex; flex-direction: column; align-items: center; gap: 6px; }
-  .foto-upload-btn .sub { font-size: 12px; color: #A8A49E; }
-  .foto-preview { position: relative; border-radius: 12px; overflow: hidden; }
-  .foto-remove { position: absolute; top: 8px; right: 8px; background: rgba(0,0,0,.5); color: #fff; border: none; border-radius: 20px; width: 28px; height: 28px; cursor: pointer; font-size: 16px; display: flex; align-items: center; justify-content: center; }
-  .format-btns { display: flex; gap: 8px; margin-top: 6px; }
-  .format-btn { flex: 1; padding: 8px 0; border-radius: 8px; border: none; cursor: pointer; font-size: 13px; font-family: var(--f); background: var(--chip-off); color: var(--ink); font-weight: 500; transition: all .15s; }
-  .format-btn.on { background: var(--accent); color: #fff; }
+/* Result items */
+.result-list{display:flex;flex-direction:column;gap:10px;}
+.result-item{background:var(--surface);border-radius:var(--r);padding:15px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.result-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:8px;}
+.result-num{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;}
+.result-text{font-size:14px;color:var(--ink);line-height:1.6;font-weight:500;margin-bottom:8px;}
+.result-why{font-size:12px;color:var(--sub);line-height:1.5;padding-top:8px;border-top:1px solid var(--line);}
+.result-actions{display:flex;gap:8px;margin-top:10px;}
+.copy-btn{background:var(--chip);border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;color:var(--sub);cursor:pointer;font-family:var(--f);}
+.copy-btn.done{background:#EEF4F1;color:var(--accent);}
+.fav-star{background:none;border:none;font-size:18px;cursor:pointer;padding:4px;line-height:1;}
 
-  .cta-wrap { padding: 16px 20px 32px; position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 390px; background: linear-gradient(to top, var(--bg) 75%, transparent); z-index: 20; }
-  .btn-primary { width: 100%; padding: 17px; background: var(--accent); color: #fff; font-family: var(--f); font-size: 16px; font-weight: 600; border: none; border-radius: 14px; cursor: pointer; box-shadow: 0 4px 16px rgba(46,93,75,.3); }
-  .btn-primary:disabled { background: #B0B0B0; box-shadow: none; cursor: default; }
-  .btn-ghost { width: 100%; padding: 13px; background: none; border: 1.5px solid var(--line); border-radius: 14px; font-size: 14px; font-weight: 500; color: var(--sub); cursor: pointer; margin-top: 8px; font-family: var(--f); }
+/* Foto upload */
+.foto-upload{border:2px dashed #C8C4BD;border-radius:12px;padding:20px;background:transparent;cursor:pointer;color:var(--sub);font-size:13px;font-family:var(--f);width:100%;display:flex;flex-direction:column;align-items:center;gap:5px;text-align:center;}
+.foto-preview-wrap{position:relative;border-radius:12px;overflow:hidden;}
+.foto-preview-wrap img{width:100%;aspect-ratio:1/1;object-fit:cover;display:block;}
+.foto-remove{position:absolute;top:8px;right:8px;background:rgba(0,0,0,.5);color:#fff;border:none;border-radius:50%;width:28px;height:28px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;}
+.format-btns{display:flex;gap:8px;margin-top:6px;}
+.format-btn{flex:1;padding:8px;border-radius:8px;border:none;cursor:pointer;font-size:12px;font-family:var(--f);background:var(--chip);color:var(--ink);font-weight:600;transition:all .15s;}
+.format-btn.on{background:var(--accent);color:#fff;}
 
-  /* ── OUTPUT SCREEN ── */
-  .out-hero { background: var(--accent); color: #fff; border-radius: var(--r); padding: 20px; }
-  .out-hero-eye { font-size: 11px; opacity: .7; font-weight: 600; text-transform: uppercase; letter-spacing: .6px; }
-  .out-hero-title { font-size: 22px; font-weight: 700; margin-top: 4px; letter-spacing: -.3px; line-height: 1.2; }
-  .out-hero-kanal { display: inline-block; margin-top: 10px; background: rgba(255,255,255,.18); border-radius: 20px; padding: 5px 12px; font-size: 12px; font-weight: 600; letter-spacing: .2px; }
-  .out-kanal-reason { font-size: 12px; opacity: .8; margin-top: 6px; line-height: 1.4; }
+/* Post Preview */
+.post-preview-card{background:var(--surface);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.post-ig-bar{padding:11px 14px;display:flex;align-items:center;gap:9px;border-bottom:1px solid var(--line);}
+.post-avatar{width:30px;height:30px;border-radius:50%;background:var(--accent);display:flex;align-items:center;justify-content:center;color:#fff;font-size:12px;font-weight:700;flex-shrink:0;}
+.post-ig-name{font-size:13px;font-weight:700;color:var(--ink);}
+.post-ig-loc{font-size:11px;color:var(--sub);}
+.post-photo{width:100%;display:block;object-fit:cover;}
+.post-photo.sq{aspect-ratio:1/1;max-height:350px;}
+.post-photo.st{aspect-ratio:9/16;max-height:480px;}
+.post-photo-placeholder{background:linear-gradient(135deg,#EEF4F1,#E3E0D9);height:180px;display:flex;align-items:center;justify-content:center;font-size:13px;color:var(--sub);padding:20px;text-align:center;line-height:1.5;}
+.post-caption{padding:13px 14px;}
+.post-hook-text{font-size:14px;font-weight:700;color:var(--ink);margin-bottom:7px;line-height:1.4;}
+.post-body-text{font-size:13px;color:var(--ink);line-height:1.6;white-space:pre-line;}
+.post-cta-text{margin-top:9px;padding-top:9px;border-top:1px solid var(--line);font-size:12px;color:var(--sub);}
+.screenshot-hint{background:#EEF4F1;border-radius:0 0 var(--r) var(--r);padding:10px 14px;font-size:12px;color:var(--accent);font-weight:600;text-align:center;}
 
-  .out-card { background: var(--surface); border-radius: var(--r); padding: 20px; box-shadow: 0 2px 12px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 14px; }
-  .out-card-tag { font-size: 10px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; color: var(--accent); }
-  .out-card-title { font-size: 15px; font-weight: 700; color: var(--ink); line-height: 1.3; }
-  .out-card-body { font-size: 14px; color: var(--ink); line-height: 1.65; white-space: pre-line; }
-  .out-card-divider { height: 1px; background: var(--line); }
-  .out-card-meta { font-size: 12px; color: var(--sub); line-height: 1.5; }
+/* Story Frames */
+.story-frames-wrap{display:flex;flex-direction:column;gap:10px;}
+.story-card{background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.story-card-header{background:var(--accent);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.story-card-header.gold{background:var(--gold);}
+.story-frame-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;}
+.story-frame-name{font-size:13px;font-weight:700;color:#fff;}
+.story-card-body{padding:14px;}
+.story-frame-text{font-size:14px;color:var(--ink);line-height:1.6;font-weight:500;}
+.story-frame-tip{font-size:11px;color:var(--sub);margin-top:8px;font-style:italic;line-height:1.4;}
+.story-frame-actions{display:flex;gap:8px;margin-top:10px;}
 
-  /* Story frames */
-  .frames-scroll { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-  .frames-scroll::-webkit-scrollbar { display: none; }
-  .frame { flex-shrink: 0; width: 130px; background: var(--bg); border: 1.5px solid var(--line); border-radius: 12px; padding: 14px 12px; display: flex; flex-direction: column; gap: 6px; }
-  .frame-num { font-size: 10px; font-weight: 700; color: var(--accent); }
-  .frame-title { font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.3; }
-  .frame-text { font-size: 11px; color: var(--sub); line-height: 1.45; }
-  .frame-note { font-size: 10px; color: var(--accent2); font-weight: 600; margin-top: 2px; }
+/* Story visual preview (9:16) */
+.story-visual{width:100%;aspect-ratio:9/16;max-height:420px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:24px 20px;text-align:center;}
+.story-visual.dark{background:#1C1C1C;}
+.story-visual.green{background:var(--accent);}
+.story-visual.gold-bg{background:var(--gold);}
+.story-visual-num{position:absolute;top:16px;left:16px;font-size:11px;font-weight:700;color:rgba(255,255,255,.6);text-transform:uppercase;letter-spacing:.5px;}
+.story-visual-label{position:absolute;top:16px;right:16px;font-size:10px;font-weight:700;color:rgba(255,255,255,.5);text-transform:uppercase;}
+.story-visual-text{font-size:18px;font-weight:700;color:#fff;line-height:1.35;letter-spacing:-.2px;}
+.story-visual-tip{position:absolute;bottom:16px;font-size:11px;color:rgba(255,255,255,.55);text-align:center;padding:0 10px;}
 
-  /* Video */
-  .video-box { background: #F9F5EE; border-radius: 12px; padding: 16px; font-size: 13px; color: var(--ink); line-height: 1.6; border-left: 3px solid var(--accent2); white-space: pre-line; }
-  .video-tag { font-size: 10px; font-weight: 700; color: var(--accent2); text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+/* Favoriten */
+.fav-list{display:flex;flex-direction:column;gap:10px;}
+.fav-item{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.06);display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.fav-item-text{font-size:14px;color:var(--ink);line-height:1.6;flex:1;}
+.fav-item-meta{font-size:11px;color:var(--sub);margin-top:4px;}
+.fav-delete{background:none;border:none;font-size:16px;cursor:pointer;color:var(--sub);padding:2px;}
 
-  /* Google */
-  .google-box { background: #F2F5FF; border-radius: 12px; padding: 16px; font-size: 13px; color: var(--ink); line-height: 1.6; border-left: 3px solid #4A6FD4; }
-  .google-tag { font-size: 10px; font-weight: 700; color: #4A6FD4; text-transform: uppercase; letter-spacing: .6px; margin-bottom: 6px; }
+/* Idea grid */
+.idea-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.idea-card{background:var(--surface);border-radius:12px;padding:13px;box-shadow:0 1px 8px rgba(0,0,0,.06);cursor:pointer;border:2px solid transparent;transition:border-color .15s;display:flex;flex-direction:column;gap:5px;}
+.idea-card:active{border-color:var(--accent);}
+.idea-icon{font-size:20px;}
+.idea-label{font-size:13px;font-weight:700;color:var(--ink);line-height:1.3;}
+.idea-desc{font-size:11px;color:var(--sub);line-height:1.4;}
+.idea-ziel{font-size:10px;color:var(--accent);font-weight:700;margin-top:2px;}
 
-  /* Alternativen */
-  .alt-card { background: var(--surface); border-radius: var(--r); padding: 18px 20px; box-shadow: 0 2px 12px rgba(0,0,0,.07); display: flex; flex-direction: column; gap: 16px; }
-  .alt-header { font-size: 10px; font-weight: 700; color: var(--sub); text-transform: uppercase; letter-spacing: .8px; }
-  .alt-item { display: flex; flex-direction: column; gap: 5px; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
-  .alt-item:last-child { padding-bottom: 0; border-bottom: none; }
-  .alt-winkel { font-size: 13px; font-weight: 700; color: var(--ink); }
-  .alt-desc { font-size: 13px; color: var(--sub); line-height: 1.5; }
-  .alt-hook { font-size: 13px; color: var(--accent); font-style: italic; line-height: 1.45; margin-top: 2px; }
+/* Mantra box */
+.mantra-box{background:#EEF4F1;border-radius:var(--r);padding:16px;border-left:3px solid var(--accent);}
 
-  /* Post Vorschau */
-  .post-preview { background: var(--surface); border-radius: var(--r); overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.07); }
-  .post-header { padding: 12px 16px; display: flex; align-items: center; gap: 10px; border-bottom: 1px solid var(--line); }
-  .post-avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); display: flex; align-items: center; justify-content: center; color: #fff; font-size: 13px; font-weight: 700; flex-shrink: 0; }
-  .post-foto { width: 100%; object-fit: cover; display: block; }
-  .post-foto.square { aspect-ratio: 1/1; max-height: 370px; }
-  .post-foto.story { aspect-ratio: 9/16; max-height: 500px; }
-  .post-caption { padding: 14px 16px; }
-  .post-hook { font-size: 14px; font-weight: 700; margin-bottom: 6px; }
-  .post-body { font-size: 13px; line-height: 1.55; white-space: pre-line; }
-  .post-hint { margin: 0 16px 14px; font-size: 12px; color: var(--sub); background: var(--bg); border-radius: 8px; padding: 8px 10px; }
+/* Divider */
+.divider{height:1px;background:var(--line);}
+.sec-head{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
 
-  .copy-hint { font-size: 12px; color: var(--sub); text-align: center; padding-top: 4px; }
-
-  @media (min-width: 420px) {
-    body { padding-top: 24px; }
-    .phone { border-radius: 40px; min-height: auto; box-shadow: 0 8px 48px rgba(0,0,0,.15); overflow: hidden; }
-  }
+@media(min-width:420px){
+  body{padding-top:20px;}
+  .phone{border-radius:36px;min-height:auto;box-shadow:0 8px 40px rgba(0,0,0,.13);overflow:hidden;}
+}
 </style>
 </head>
 <body>
 <div class="phone">
 
-  <div class="topbar">
-    <div class="wordmark">Moment</div>
-    <div class="topsub">Sichtbarkeit fuer deinen Salon</div>
-  </div>
-
-  <div class="prog-wrap" id="prog-wrap">
-    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
-    <div class="prog-label" id="prog-label">0 von 6 Angaben</div>
-  </div>
-
-  <!-- MAIN -->
-  <div class="screen active" id="screen-main">
-
-    <div class="sec">
-      <div class="sec-label">Foto (optional)</div>
-      <div class="sec-q">Hast du ein Foto zum Moment?</div>
-      <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="handleFoto(this)">
-      <div id="foto-area">
-        <button class="foto-upload-btn" onclick="document.getElementById('foto-input').click()">
-          <span style="font-size:28px">&#128247;</span>
-          <span>Foto hochladen</span>
-          <span class="sub">Erscheint dann in der Post-Vorschau</span>
-        </button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">1 &middot; Anlass</div>
-      <div class="sec-q">Worum geht es heute?</div>
-      <div class="chips" id="chips-anlass">
-        <button class="chip" data-val="ausbildung" onclick="pick(this,'anlass')">Ausbildung</button>
-        <button class="chip" data-val="team" onclick="pick(this,'anlass')">Team</button>
-        <button class="chip" data-val="vertrauen" onclick="pick(this,'anlass')">Vertrauen</button>
-        <button class="chip" data-val="salon" onclick="pick(this,'anlass')">Besonderes im Salon</button>
-        <button class="chip" data-val="alltag" onclick="pick(this,'anlass')">Einblick in den Alltag</button>
-      </div>
-    </div>
-
-    <div class="ausb-extra" id="ausb-extra">
-      <div class="ausb-label">Nur fuer Ausbildung</div>
-      <div class="ausb-q">Was hat euch beim Lernen unterstuetzt?</div>
-      <div class="chips" id="chips-lernmittel">
-        <button class="chip" data-val="quiz" onclick="tog(this,'lernmittel')">Lernquiz-App</button>
-        <button class="chip" data-val="uebung" onclick="tog(this,'lernmittel')">Praktische Uebung</button>
-        <button class="chip" data-val="englisch" onclick="tog(this,'lernmittel')">Englisch im Salon</button>
-        <button class="chip" data-val="gespraech" onclick="tog(this,'lernmittel')">Gespraech im Team</button>
-        <button class="chip" data-val="checkliste" onclick="tog(this,'lernmittel')">Checkliste</button>
-        <button class="chip" data-val="anderes" onclick="tog(this,'lernmittel')">Anderes</button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">2 &middot; Fokus</div>
-      <div class="sec-q">Wer steht im Mittelpunkt?</div>
-      <div class="chips" id="chips-fokus">
-        <button class="chip" data-val="salon" onclick="pick(this,'fokus')">Salon</button>
-        <button class="chip" data-val="mitarbeiterin" onclick="pick(this,'fokus')">Mitarbeiter:in</button>
-        <button class="chip" data-val="kundin" onclick="pick(this,'fokus')">Kund:in</button>
-        <button class="chip" data-val="ich" onclick="pick(this,'fokus')">Ich als Inhaberin</button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">3 &middot; Zielgruppe</div>
-      <div class="sec-q">Wen wollen wir erreichen?</div>
-      <div class="chips" id="chips-zielgruppe">
-        <button class="chip" data-val="kundinnen" onclick="pick(this,'zielgruppe')">Kund:innen</button>
-        <button class="chip" data-val="lehrlinge" onclick="pick(this,'zielgruppe')">Lehrlinge</button>
-        <button class="chip" data-val="topstylistinnen" onclick="pick(this,'zielgruppe')">Topstylist:innen</button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">4 &middot; Ziel</div>
-      <div class="sec-q">Was soll es bewirken?</div>
-      <div class="chips" id="chips-ziel">
-        <button class="chip" data-val="vertrauen" onclick="pick(this,'ziel')">Vertrauen aufbauen</button>
-        <button class="chip" data-val="interesse" onclick="pick(this,'ziel')">Interesse wecken</button>
-        <button class="chip" data-val="anfrage" onclick="pick(this,'ziel')">Anfrage ausloesen</button>
-        <button class="chip" data-val="einblick" onclick="pick(this,'ziel')">Einblick geben</button>
-      </div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">5 &middot; Der Moment</div>
-      <div class="sec-q">Was ist heute konkret passiert?</div>
-      <textarea id="moment-text" placeholder="Kurz und ehrlich reicht voellig." rows="3" oninput="updateProgress()"></textarea>
-      <div class="hint">z.B.: Lehrling hat etwas Neues gemeistert &middot; Kundin war begeistert &middot; ruhiger Tag gut genutzt</div>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="sec">
-      <div class="sec-label">6 &middot; Kanaele</div>
-      <div class="sec-q">Wo soll es hin?</div>
-      <div class="chips" id="chips-kanaele">
-        <button class="chip" data-val="ig-post" onclick="tog(this,'kanaele')">Instagram Post</button>
-        <button class="chip" data-val="ig-story" onclick="tog(this,'kanaele')">Instagram Story</button>
-        <button class="chip" data-val="facebook" onclick="tog(this,'kanaele')">Facebook</button>
-        <button class="chip" data-val="yt-short" onclick="tog(this,'kanaele')">YouTube Short</button>
-        <button class="chip" data-val="google" onclick="tog(this,'kanaele')">Google Business</button>
-      </div>
-    </div>
-
-  </div>
-
-  <!-- OUTPUT -->
-  <div class="screen" id="screen-output">
-
-    <!-- Hero -->
-    <div class="out-hero">
-      <div class="out-hero-eye">Dein Content-Entwurf</div>
-      <div class="out-hero-title" id="out-winkel"></div>
-      <div class="out-hero-kanal" id="out-kanal-badge"></div>
-      <div class="out-kanal-reason" id="out-kanal-reason"></div>
-    </div>
-
-    <!-- Foto Vorschau -->
-    <div class="post-preview" id="post-preview" style="display:none">
-      <div class="post-header">
-        <div class="post-avatar">M</div>
-        <div>
-          <div style="font-size:13px;font-weight:700">dein.salon</div>
-          <div style="font-size:11px;color:var(--sub)">Wien</div>
-        </div>
-      </div>
-      <img id="post-foto-img" class="post-foto square" src="" alt="Dein Foto">
-      <div class="post-caption">
-        <div class="post-hook" id="post-hook-prev"></div>
-        <div class="post-body" id="post-body-prev"></div>
-      </div>
-      <div class="post-hint">&#128247; Screenshot &rarr; direkt posten</div>
-    </div>
-
-    <!-- Feed -->
-    <div class="out-card">
-      <div class="out-card-tag">Feed-Entwurf</div>
-      <div class="out-card-title" id="feed-hook"></div>
-      <div class="out-card-divider"></div>
-      <div class="out-card-body" id="feed-body"></div>
-      <div class="out-card-divider"></div>
-      <div class="out-card-meta" id="feed-bild"></div>
-    </div>
-
-    <!-- Story -->
-    <div class="out-card">
-      <div class="out-card-tag">Story-Abfolge</div>
-      <div class="frames-scroll" id="story-frames"></div>
-    </div>
-
-    <!-- Video -->
-    <div class="out-card" id="video-card">
-      <div class="out-card-tag">Kurzvideo-Idee</div>
-      <div class="video-box">
-        <div class="video-tag" id="video-format"></div>
-        <div id="video-body"></div>
-      </div>
-    </div>
-
-    <!-- Google -->
-    <div class="out-card" id="google-card" style="display:none">
-      <div class="out-card-tag">Google-Beitrag</div>
-      <div class="google-box">
-        <div class="google-tag">Google Business &middot; Aktuelles</div>
-        <div id="google-body"></div>
-      </div>
-    </div>
-
-    <!-- Alternativen -->
-    <div class="alt-card">
-      <div class="alt-header">Zwei weitere Blickwinkel fuer denselben Moment</div>
-      <div id="alt-items"></div>
-    </div>
-
-    <div class="copy-hint">Alle Texte sind Entwuerfe &mdash; pass sie an deine Stimme an.</div>
-
-  </div>
-
-  <div class="cta-wrap" id="cta-main">
-    <button class="btn-primary" id="btn-gen" onclick="generate()" disabled>Entwurf erstellen &rarr;</button>
-  </div>
-  <div class="cta-wrap" id="cta-out" style="display:none">
-    <button class="btn-primary" id="btn-copy" onclick="copyAll()">Texte kopieren</button>
-    <button class="btn-ghost" onclick="resetApp()">Neuer Moment</button>
-  </div>
-
+<div class="topbar">
+  <div class="wordmark">&#x2728; Reichweite</div>
+  <button class="fav-btn-top" onclick="showTab('favs')" title="Favoriten">&#x2B50;</button>
 </div>
 
+<div class="tabnav">
+  <button class="tab active" onclick="showTab('hook')">&#x1F3AF; Hook</button>
+  <button class="tab" onclick="showTab('post')">&#x270D; Post</button>
+  <button class="tab" onclick="showTab('story')">&#x1F4F1; Story</button>
+  <button class="tab" onclick="showTab('ideen')">&#x1F4A1; Ideen</button>
+</div>
+
+<!-- ══ HOOK ══ -->
+<div class="screen active" id="screen-hook">
+  <div class="card">
+    <div class="card-tag">Hook-Generator</div>
+    <div class="card-title">Welches Thema willst du heute zeigen?</div>
+    <div class="card-sub">Gib ein Stichwort ein — du bekommst 5 starke Einstiege die Menschen stoppen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Thema</div>
+    <input type="text" id="hook-thema" placeholder="z.B. Stammkunden, Ausbildung, ruhiger Tag...">
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Ziel des Hooks</div>
+    <div class="chips" id="chips-hookziel">
+      <button class="chip on" data-val="neugier">Neugier</button>
+      <button class="chip" data-val="emotion">Emotion</button>
+      <button class="chip" data-val="diskussion">Diskussion</button>
+      <button class="chip" data-val="expertise">Expertise</button>
+      <button class="chip" data-val="provokativ">Provokativ</button>
+    </div>
+  </div>
+
+  <button class="btn" onclick="generateHooks()">5 Hooks generieren</button>
+
+  <div id="hook-results" style="display:none;flex-direction:column;gap:12px;">
+    <div class="sec-head">Deine 5 Hooks — tippe &#x2B50; um zu speichern</div>
+    <div class="result-list" id="hook-list"></div>
+    <button class="btn-ghost" onclick="generateHooks()">&#x21BA; Neue Varianten</button>
+  </div>
+</div>
+
+<!-- ══ POST ══ -->
+<div class="screen" id="screen-post">
+  <div class="card">
+    <div class="card-tag">Post-Generator</div>
+    <div class="card-title">Aus einem echten Moment ein vollst&auml;ndiger Post.</div>
+    <div class="card-sub">Kein Hochglanz, keine Floskeln. Ein Text der nach dir klingt.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Foto (optional)</div>
+    <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="handleFoto(this)">
+    <div id="foto-area">
+      <button class="foto-upload" onclick="document.getElementById('foto-input').click()">
+        <span style="font-size:26px">&#128247;</span>
+        <span>Foto hochladen</span>
+        <span style="font-size:11px;color:#A8A49E">Erscheint in der Post-Vorschau</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Was ist passiert?</div>
+    <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht. Die Kundin war so begeistert, sie hat fast geweint." rows="4" oninput="postCheck()"></textarea>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Tonalit&auml;t</div>
+    <div class="chips" id="chips-postton">
+      <button class="chip on" data-val="nahbar">Nahbar &amp; echt</button>
+      <button class="chip" data-val="stolz">Stolz &amp; w&uuml;rdevoll</button>
+      <button class="chip" data-val="nachdenklich">Nachdenklich</button>
+      <button class="chip" data-val="direkt">Direkt &amp; klar</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Wen willst du erreichen?</div>
+    <div class="chips" id="chips-postwer">
+      <button class="chip on" data-val="kundinnen">Stammkund:innen</button>
+      <button class="chip" data-val="neu">Neue Kund:innen</button>
+      <button class="chip" data-val="lehrlinge">Lehrlinge</button>
+      <button class="chip" data-val="branche">Branche</button>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
+
+  <div id="post-result" style="display:none;flex-direction:column;gap:12px;">
+    <div class="sec-head">Dein Instagram-Post</div>
+
+    <div class="post-preview-card">
+      <div class="post-ig-bar">
+        <div class="post-avatar">M</div>
+        <div>
+          <div class="post-ig-name">greathairday.at</div>
+          <div class="post-ig-loc">Wien, 1050</div>
+        </div>
+      </div>
+      <div id="post-foto-slot">
+        <div class="post-photo-placeholder" id="post-placeholder">&#128247; Dein Foto erscheint hier</div>
+      </div>
+      <div class="post-caption">
+        <div class="post-hook-text" id="res-hook"></div>
+        <div class="post-body-text" id="res-body"></div>
+        <div class="post-cta-text" id="res-cta"></div>
+      </div>
+      <div class="screenshot-hint">&#128247; Screenshot dieser Vorschau &rarr; direkt posten</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Bildidee</div>
+      <div class="card-sub" id="res-bild"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Beste Zeit zum Posten</div>
+      <div class="card-sub">Di–Fr zwischen 11–12 Uhr oder 19–20 Uhr. Nie am Montag.</div>
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <button class="btn" style="flex:1" onclick="copyPost()">&#x1F4CB; Kopieren</button>
+      <button class="btn-ghost" style="flex:1" onclick="favPost()">&#x2B50; Speichern</button>
+    </div>
+    <button class="btn-ghost" onclick="generatePost()">&#x21BA; Neue Variante</button>
+  </div>
+</div>
+
+<!-- ══ STORY ══ -->
+<div class="screen" id="screen-story">
+  <div class="card">
+    <div class="card-tag">Story-Maker</div>
+    <div class="card-title">Eine Story die Menschen bis Frame 5 schauen.</div>
+    <div class="card-sub">Vorschau + Kopieren f&uuml;r jeden Frame.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Thema oder Moment</div>
+    <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag genutzt um mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Stimmung</div>
+    <div class="chips" id="chips-storymood">
+      <button class="chip on" data-val="emotional">&#x2764; Emotional</button>
+      <button class="chip" data-val="neugier">&#x1F914; Neugier</button>
+      <button class="chip" data-val="behind">&#x1F3AC; Hinter die Kulissen</button>
+      <button class="chip" data-val="haltung">&#x1F4AA; Haltung zeigen</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Ziel</div>
+    <div class="chips" id="chips-storyziel">
+      <button class="chip on" data-val="vertrauen">Vertrauen</button>
+      <button class="chip" data-val="reichweite">Reichweite</button>
+      <button class="chip" data-val="termin">Termin</button>
+      <button class="chip" data-val="lehrling">Lehrling gewinnen</button>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
+
+  <div id="story-result" style="display:none;flex-direction:column;gap:14px;">
+    <div class="sec-head">5 Story-Frames — Vorschau + Kopieren</div>
+    <div class="story-frames-wrap" id="story-list"></div>
+    <button class="btn-ghost" onclick="generateStory()">&#x21BA; Neue Variante</button>
+  </div>
+</div>
+
+<!-- ══ IDEEN ══ -->
+<div class="screen" id="screen-ideen">
+  <div class="card">
+    <div class="card-tag">Content-Ideen</div>
+    <div class="card-title">Was k&ouml;nntest du heute posten?</div>
+    <div class="card-sub">Tippe eine Idee an — sie landet direkt im Hook- oder Post-Generator.</div>
+  </div>
+
+  <div class="sec-head">Nach Ziel sortiert</div>
+  <div class="idea-grid" id="idea-grid"></div>
+
+  <div class="mantra-box">
+    <div class="card-tag">Dein Mantra</div>
+    <div style="font-size:16px;font-weight:700;color:var(--ink);margin-top:4px">&bdquo;Bei uns musst du dich nicht erkl&auml;ren.&ldquo;</div>
+    <div class="card-sub">33 Jahre Haltung in einem Satz. Passt als Abschluss in jeden zweiten Post.</div>
+  </div>
+
+  <div class="card">
+    <div class="card-tag">Die Formel die funktioniert</div>
+    <div style="font-size:15px;font-weight:700;color:var(--ink)">Hook + Moment + Haltung + Einladung</div>
+    <div class="card-sub" style="margin-top:6px">Nicht Produkte zeigen — Menschen zeigen. Das ist der Unterschied zwischen scrollen und stoppen.</div>
+  </div>
+</div>
+
+<!-- ══ FAVORITEN ══ -->
+<div class="screen" id="screen-favs">
+  <div class="card">
+    <div class="card-tag">Gespeicherte Favoriten</div>
+    <div class="card-title">Deine besten Texte auf einen Blick.</div>
+  </div>
+  <div id="fav-list-wrap"></div>
+</div>
+
+</div><!-- /phone -->
+
 <script>
-const state = {
-  anlass:null, fokus:null, zielgruppe:null, ziel:null,
-  lernmittel:new Set(), kanaele:new Set(),
+// ── STATE ──
+const S = {
+  hookziel:'neugier', postton:'nahbar', postwer:'kundinnen',
+  storymood:'emotional', storyziel:'vertrauen',
   foto:null, fotoFormat:'post'
 };
 
-function pick(el, group) {
-  document.querySelectorAll('#chips-'+group+' .chip').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  state[group]=el.dataset.val;
-  if(group==='anlass') document.getElementById('ausb-extra').classList.toggle('visible', state.anlass==='ausbildung');
-  updateProgress();
+// ── TABS ──
+const TAB_MAP = {hook:0,post:1,story:2,ideen:3,favs:null};
+function showTab(name) {
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('screen-'+name).classList.add('active');
+  const idx = TAB_MAP[name];
+  if(idx!=null) document.querySelectorAll('.tab')[idx].classList.add('active');
+  if(name==='favs') renderFavs();
+  window.scrollTo(0,0);
 }
-function tog(el, group) {
-  const key = group==='kanaele'?'kanaele':'lernmittel';
-  if(el.classList.contains('on')){el.classList.remove('on');state[key].delete(el.dataset.val);}
-  else{el.classList.add('on');state[key].add(el.dataset.val);}
-  updateProgress();
-}
+
+// ── CHIPS ──
+document.querySelectorAll('[id^=chips-]').forEach(wrap=>{
+  const group = wrap.id.replace('chips-','');
+  wrap.querySelectorAll('.chip').forEach(chip=>{
+    chip.addEventListener('click',()=>{
+      wrap.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
+      chip.classList.add('on');
+      S[group] = chip.dataset.val;
+    });
+  });
+});
+
+// ── FOTO ──
 function handleFoto(input) {
   const file=input.files[0]; if(!file) return;
   const r=new FileReader();
-  r.onload=e=>{state.foto=e.target.result; renderFotoPreview();};
+  r.onload=e=>{S.foto=e.target.result;renderFotoArea();};
   r.readAsDataURL(file);
 }
-function renderFotoPreview() {
-  const area=document.getElementById('foto-area');
-  if(!state.foto){
-    area.innerHTML='<button class="foto-upload-btn" onclick="document.getElementById(\'foto-input\').click()"><span style="font-size:28px">&#128247;</span><span>Foto hochladen</span><span class="sub">Erscheint dann in der Post-Vorschau</span></button>';
+function renderFotoArea() {
+  const a=document.getElementById('foto-area');
+  if(!S.foto){
+    a.innerHTML='<button class="foto-upload" onclick="document.getElementById(\'foto-input\').click()"><span style="font-size:26px">&#128247;</span><span>Foto hochladen</span><span style="font-size:11px;color:#A8A49E">Erscheint in der Post-Vorschau</span></button>';
     return;
   }
-  area.innerHTML='<div class="foto-preview"><img src="'+state.foto+'" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;border-radius:12px"><button class="foto-remove" onclick="removeFoto()">&#x2715;</button></div><div class="format-btns"><button class="format-btn'+(state.fotoFormat==='post'?' on':'')+'" onclick="setFormat(\'post\',this)">Post (1:1)</button><button class="format-btn'+(state.fotoFormat==='story'?' on':'')+'" onclick="setFormat(\'story\',this)">Story (9:16)</button></div>';
+  a.innerHTML=`<div class="foto-preview-wrap"><img src="${S.foto}" style="width:100%;aspect-ratio:1/1;object-fit:cover;display:block;border-radius:12px"><button class="foto-remove" onclick="removeFoto()">&#x2715;</button></div><div class="format-btns"><button class="format-btn${S.fotoFormat==='post'?' on':''}" onclick="setFmt('post',this)">Post 1:1</button><button class="format-btn${S.fotoFormat==='story'?' on':''}" onclick="setFmt('story',this)">Story 9:16</button></div>`;
 }
-function removeFoto(){state.foto=null;document.getElementById('foto-input').value='';renderFotoPreview();}
-function setFormat(fmt,el){state.fotoFormat=fmt;document.querySelectorAll('.format-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
-
-function updateProgress() {
-  const req=['anlass','fokus','zielgruppe','ziel'].filter(k=>state[k]).length;
-  const hasText=document.getElementById('moment-text').value.trim().length>2;
-  const hasKanal=state.kanaele.size>0;
-  const done=req+(hasText?1:0)+(hasKanal?1:0);
-  document.getElementById('prog-fill').style.width=Math.round(done/6*100)+'%';
-  document.getElementById('prog-label').textContent=done+' von 6 Angaben';
-  document.getElementById('btn-gen').disabled=!(req===4&&hasText&&hasKanal);
-}
-
-// ── OUTPUT LOGIC ──────────────────────────────────────────────
-
-function getContent() {
-  const a=state.anlass, f=state.fokus, z=state.zielgruppe, ziel=state.ziel;
-  const text=document.getElementById('moment-text').value.trim();
-  const lm=[...state.lernmittel];
-  const kanaele=[...state.kanaele];
-  const hasQuiz=lm.includes('quiz');
-  const hasFoto=!!state.foto;
-
-  // ── AUSBILDUNG ──
-  if(a==='ausbildung') {
-    const quizLine = hasQuiz ? '\nWir nutzen dabei die Lernquiz-App \u2014 nicht weil es modern klingt, sondern weil es funktioniert.' : '';
-    const quizStory = hasQuiz ? 'Zeig kurz die Lernquiz-App auf dem Bildschirm \u2014 30 Sekunden, ohne Kommentar.' : 'Ein Clip vom Arbeitsplatz, wie dein Lehrling konzentriert arbeitet.';
-
-    return {
-      winkel: 'Ausbildung, die wirklich formt \u2014 nicht nur mitlaufen l\u00E4sst.',
-      kanal: z==='lehrlinge' ? 'Instagram Post' : 'Instagram Story zuerst',
-      kanalGrund: z==='lehrlinge' ? 'Lehrlinge entscheiden per Feed \u2014 ein starker Post bleibt l\u00E4nger sichtbar als eine Story.' : 'Echte Ausbildungsmomente wirken in der Story unmittelbarer. Den Feed-Post kannst du einen Tag sp\u00E4ter setzen.',
-      feedHook: text.length>8 ? '\u201E'+text.slice(0,70)+(text.length>70?'...':'')+'\u201C' : '\u201ESie hat es heute zum ersten Mal alleine gemacht.\u201C',
-      feedBody: (text||'Heute war so ein Moment, den man nicht vergisst.')+'\n\nBei uns bedeutet Ausbildung: Vertrauen bekommen, bevor man fertig ist.\nNicht erst d\u00FCrfen, wenn alles perfekt sitzt \u2014 sondern lernen, indem man es wirklich tut.'+quizLine+'\n\n#Ausbildung #Friseur #Lehrling #Wien #HandwerkMitZukunft',
-      feedBild: hasFoto ? 'Dein Foto passt gut \u2014 zeig den Moment, nicht das Ergebnis.' : 'Bildidee: Dein Lehrling bei der Arbeit, Blick auf die H\u00E4nde oder den Spiegel. Kein Studiofoto n\u00F6tig.',
-      story: [
-        {num:1, title:'Aufh\u00E4nger', text:'\u201EWas macht Ausbildung wirklich gut?\u201C \u2014 Text auf ruhigem Hintergrund, keine Ablenkung.', note:'Format: 9:16, Text zentriert'},
-        {num:2, title:'Der Moment', text:text.length>5?'\u201E'+text.slice(0,60)+'\u201C':'Ein kurzes Foto oder 3-Sekunden-Clip vom heutigen Tag.', note:'Dein eigenes Bild'},
-        {num:3, title:'Deine Haltung', text:'Ein Satz von dir: Was glaubst du, was Lehrlinge wirklich brauchen?', note:'Kamera an, 10 Sekunden sprechen reicht'},
-        {num:4, title:hasQuiz?'Womit wir arbeiten':'Wie wir lernen', text:hasQuiz?'Kurz die Lernquiz-App zeigen \u2014 nicht erkl\u00E4ren, einfach zeigen.':'Praktisches K\u00F6nnen entsteht durch Wiederholung \u2014 nicht durch Zuschauen.', note:'Organisch einbetten, nicht als Werbung'},
-        {num:5, title:'Einladung', text:z==='lehrlinge'?'Ausbildungsplatz noch frei? Link in Bio oder direkt schreiben.':'Neugierig auf unsere Ausbildung? Schreib uns.', note:'Klarer Call to Action'}
-      ],
-      videoFormat: '30\u201345 Sek. Reel oder Short',
-      videoBody: 'Aufh\u00E4nger: Der Moment, bevor dein Lehrling das Ergebnis zum ersten Mal sieht.\n\n'+quizStory+'\n\nDein Off-Ton \u2014 einmal, ruhig: \u201E'+( text.slice(0,50)||'Das ist der Moment, f\u00FCr den wir ausbilden.')+'\u201C\n\nKein Schnitt, kein Skript. Einfach echt.',
-      google: 'Ausbildung bei uns hei\u00DFt: echte Verantwortung von Anfang an. '+(text?text+' ':'')+( hasQuiz?'Wir arbeiten mit modernen Lernmethoden, damit Theorie und Praxis zusammenpassen. ':'')+'\n\nNoch Fragen zum Ausbildungsplatz? Wir sind erreichbar.',
-      alternativen: [
-        {
-          winkel: 'Ruhige Zeiten sinnvoll nutzen',
-          desc: 'Wenn der Salon ruhiger ist, ist das kein Leerlauf \u2014 sondern die beste Zeit f\u00FCr Entwicklung.',
-          hook: '\u201EWeniger Andrang, mehr Tiefe. Heute haben wir die Zeit genutzt.\u201C'
-        },
-        {
-          winkel: 'Moderne Ausbildung sichtbar machen',
-          desc: 'Ausbildung 2025 sieht anders aus als vor 20 Jahren \u2014 das k\u00F6nnen andere Betriebe von dir lernen.',
-          hook: '\u201ELernen im Salon darf Struktur haben, Spa\u00DF machen und digital sein.\u201C'
-        }
-      ]
-    };
-  }
-
-  // ── TEAM ──
-  if(a==='team') {
-    return {
-      winkel: 'Ein Team, dem man ansieht, dass es mehr ist als Kolleg:innen.',
-      kanal: 'Instagram Story zuerst, Feed-Post danach',
-      kanalGrund: 'Team-Momente wirken in der Story echt. Der Feed-Post gibt dem Moment Bestand.',
-      feedHook: text.length>8 ? '\u201E'+text.slice(0,70)+(text.length>70?'...':'')+'\u201C' : '\u201EGute Arbeit braucht gute Menschen dahinter.\u201C',
-      feedBody: (text||'Was heute passiert ist, bleibt.')+'\n\nEin Salon ist nur so gut wie sein Team. Bei uns arbeiten Menschen, die f\u00FCreinander einspringen, mitdenken und ihren Job wirklich m\u00F6gen.\n\nDas sieht man. Und unsere Kund:innen sp\u00FCren es.\n\n#Team #Salon #Wien #ZusammenStark',
-      feedBild: 'Bildidee: Echte Situation aus dem Salonalltag \u2014 kein gestelltes Gruppenfoto.',
-      story: [
-        {num:1, title:'Einstieg', text:'\u201EWas passiert hinter den Kulissen, wenn der Salon voll ist?\u201C', note:'Neugier wecken'},
-        {num:2, title:'Der Moment', text:text.length>5?text.slice(0,80):'Ein kurzes Bild oder Clip aus dem heutigen Tag.', note:'Authentisch, ungeplant'},
-        {num:3, title:'Was dahinter steckt', text:'Ein Satz von dir: Was macht dein Team besonders?', note:'Deine Stimme, direkt in die Kamera'},
-        {num:4, title:'Menschlich bleiben', text:'Ein Detail \u2014 ein Lachen, eine Geste, ein gemeinsamer Moment.', note:'Kein Text n\u00F6tig'}
-      ],
-      videoFormat: '20\u201330 Sek. Reel',
-      videoBody: 'Keine Erkl\u00E4rung, keine Moderation.\n\nSchnelle Montage aus dem heutigen Tag: H\u00E4nde bei der Arbeit, Blicke, Bewegung.\n\nMusik unterlegen, Schnitt im Rhythmus.\n\nLetztes Bild: Das Team kurz zusammen \u2014 kein Posieren, einfach wie es war.',
-      google: 'Hinter jedem Besuch bei uns steckt ein Team, das seinen Job liebt. '+(text?text+' ':'')+'Wer sich bei uns wohlfohlen m\u00F6chte, ist herzlich willkommen.',
-      alternativen: [
-        {
-          winkel: 'Verlasslichkeit zeigen',
-          desc: 'Kund:innen kommen wieder, weil sie wissen: Das Team ist immer da, immer gut.',
-          hook: '\u201EMan kommt wegen der Frisur. Man bleibt wegen der Menschen.\u201C'
-        },
-        {
-          winkel: 'Arbeiten, wo man sich auskennt',
-          desc: 'Jedes Teammitglied hat Staerken \u2014 und die werden bei uns eingesetzt, nicht verwaltet.',
-          hook: '\u201EJede Person in diesem Team weiss, was sie kann.\u201C'
-        }
-      ]
-    };
-  }
-
-  // ── VERTRAUEN ──
-  if(a==='vertrauen') {
-    return {
-      winkel: 'Vertrauen entsteht nicht durch Versprechen, sondern durch wiederholte Verl\u00E4sslichkeit.',
-      kanal: z==='kundinnen' ? 'Feed-Post' : 'Instagram Story',
-      kanalGrund: 'Vertrauen braucht Sichtbarkeit \u2014 der Feed-Post bleibt l\u00E4nger auffindbar als eine Story.',
-      feedHook: text.length>8 ? '\u201E'+text.slice(0,70)+(text.length>70?'...':'')+'\u201C' : '\u201ESie kommt seit Jahren. Nicht wegen des Rabatts.\u201C',
-      feedBody: (text||'Manche Kund:innen kommen nicht einfach zum Haareschneiden.')+'\n\nSie kommen, weil sie wissen: Hier wird zugehört. Hier wird ehrlich beraten. Hier muss ich nicht erkl\u00E4ren, was ich meine.\n\nDieses Vertrauen ist nichts, das man sich kaufen kann. Es entsteht. Langsam. Durch jeden einzelnen Termin.\n\n#Vertrauen #Salon #Wien #Stammkunde',
-      feedBild: 'Bildidee: Detail aus dem Salon \u2014 H\u00E4nde, Spiegel, ruhige Situation. Kein Vorher-Nachher.',
-      story: [
-        {num:1, title:'Frage stellen', text:'\u201EWarum kommen Menschen seit Jahren zu uns?\u201C', note:'Schlichte Typografie reicht'},
-        {num:2, title:'Antwort geben', text:text.length>5?text.slice(0,80):'Weil sie wissen, was sie erwartet \u2014 und weil es immer stimmt.', note:'Dein Ton, deine Worte'},
-        {num:3, title:'Konkretes Detail', text:'Ein kleines Beispiel aus dem heutigen Tag.', note:'Je konkreter, desto glaubw\u00FCrdiger'},
-        {num:4, title:'Abschluss', text:'Termin vereinbaren \u2014 und selbst erleben.', note:'Link in Bio oder DM-Einladung'}
-      ],
-      videoFormat: '30 Sek. Reel',
-      videoBody: 'Du sprichst direkt in die Kamera \u2014 keine Vorbereitung n\u00F6tig.\n\nEin Satz: Was bedeutet Vertrauen f\u00FCr dich im Salon?\n\nDann: Ein ruhiges Bild aus dem Salon, Musik drunter.\n\nKein Schnitt, keine Perfektion. Der Inhalt z\u00E4hlt.',
-      google: 'Wer einmal zu uns kommt, kommt wieder. '+(text?text+' ':'')+'Wir legen Wert auf ehrliche Beratung und ein gutes Ergebnis \u2014 bei jedem Termin. Termin vereinbaren: direkt hier oder per Anruf.',
-      alternativen: [
-        {
-          winkel: 'Ehrliche Beratung als Wert',
-          desc: 'Nicht alles ist m\u00F6glich \u2014 und das zu sagen ist respektvoller als es trotzdem zu versuchen.',
-          hook: '\u201EWir sagen auch mal Nein. Weil das ehrlicher ist.\u201C'
-        },
-        {
-          winkel: 'Langj\u00E4hrige Beziehungen zeigen',
-          desc: 'Stammkund:innen sind kein Zufall \u2014 sie entstehen durch Haltung, nicht durch Marketing.',
-          hook: '\u201ESeit Jahren. Nicht weil wir g\u00FCnstig sind.\u201C'
-        }
-      ]
-    };
-  }
-
-  // ── SALON ──
-  if(a==='salon') {
-    return {
-      winkel: 'Was deinen Salon besonders macht \u2014 sichtbar gemacht.',
-      kanal: kanaele.includes('ig-post') ? 'Feed-Post' : 'Instagram Story',
-      kanalGrund: 'Besonderheiten im Salon verdienen einen bleibenden Post im Feed.',
-      feedHook: text.length>8 ? '\u201E'+text.slice(0,70)+(text.length>70?'...':'')+'\u201C' : '\u201EEs sind die kleinen Dinge, die einen Salon ausmachen.\u201C',
-      feedBody: (text||'Heute war ein Moment, der zeigt, warum wir diesen Beruf lieben.')+'\n\nNicht alles, was im Salon passiert, l\u00E4sst sich erkl\u00E4ren. Manches muss man einfach erleben.\n\nKomm vorbei \u2014 und sieh selbst.\n\n#Salon #Wien #Friseur #Handwerk',
-      feedBild: 'Bildidee: Das Detail, das heute aufgefallen ist \u2014 Licht, Farbe, Atmosphaere.',
-      story: [
-        {num:1, title:'Blick hinter die Kulissen', text:'\u201EWas passiert bei uns, das man so nicht erwartet?\u201C', note:'Neugier als Einstieg'},
-        {num:2, title:'Der Moment', text:text.length>5?text.slice(0,80):'Ein konkreter Moment aus dem heutigen Tag.', note:'Foto oder kurzer Clip'},
-        {num:3, title:'Dein Satz dazu', text:'Warum ist dir das aufgefallen? Was bedeutet es dir?', note:'10 Sekunden, direkt und ehrlich'},
-        {num:4, title:'Einladung', text:'Selbst erleben \u2014 Termin in der Bio oder per DM.', note:''}
-      ],
-      videoFormat: '30 Sek. Reel',
-      videoBody: 'Zeig den Moment so, wie er war \u2014 ungeplant.\n\n'+(text?'\u201E'+text.slice(0,60)+'\u201C als Off-Ton.\n\n':'')+'Ruhige Kameraf\u00FChrung durch den Salon, ein echter Augenblick.\n\nKein Effekt n\u00F6tig.',
-      google: 'Kleiner Einblick aus unserem Salonalltag: '+(text||'Heute war wieder so ein Moment, der zeigt, warum wir diesen Beruf gerne machen.')+' Schau vorbei \u2014 wir freuen uns auf dich.',
-      alternativen: [
-        {
-          winkel: 'Atmosph\u00E4re als Argument',
-          desc: 'Kund:innen kommen auch wegen dem Gef\u00FChl \u2014 nicht nur wegen dem Ergebnis.',
-          hook: '\u201EHier f\u00FChlt sich eine Stunde Pause manchmal nach einem halben Tag an.\u201C'
-        },
-        {
-          winkel: 'Handwerk sichtbar machen',
-          desc: 'Was hinter einem guten Haarschnitt steckt, sieht man nicht \u2014 aber man sp\u00FCrt es.',
-          hook: '\u201EWas wir tun, erkl\u00E4rt sich am besten durch das Ergebnis.\u201C'
-        }
-      ]
-    };
-  }
-
-  // ── ALLTAG ──
-  return {
-    winkel: 'Ein echter Moment \u2014 kein Marketing, kein Hochglanz.',
-    kanal: 'Instagram Story zuerst',
-    kanalGrund: 'Alltagsmomente wirken in der Story am natuerlichsten \u2014 spontan, nicht inszeniert.',
-    feedHook: text.length>8 ? '\u201E'+text.slice(0,70)+(text.length>70?'...':'')+'\u201C' : '\u201ESo sieht unser Alltag aus. Und wir stehen dazu.\u201C',
-    feedBody: (text||'Heute war ein ganz normaler Tag. Und genau das ist es, was wir gerne teilen.')+'\n\nNicht jeder Post muss perfekt sein. Manche Momente zeigen einfach, wer wir sind.\n\n#Salon #Wien #Alltag #Einblick',
-    feedBild: 'Bildidee: Ungeplanter Moment \u2014 wie er war, ohne Nachbereitung.',
-    story: [
-      {num:1, title:'Direkt einsteigen', text:text.length>5?'\u201E'+text.slice(0,60)+'\u201C':'Ein kurzes Bild oder Clip, der den Moment zeigt.', note:'Kein Intro n\u00F6tig'},
-      {num:2, title:'Kontext', text:'Ein Satz: Was war das Besondere an diesem Moment?', note:'Deine Stimme, ohne Skript'},
-      {num:3, title:'Abschluss', text:'Einfach: \u201EWir freuen uns auf deinen Besuch.\u201C oder ein Link in Bio.', note:''}
-    ],
-    videoFormat: '15\u201325 Sek. Reel',
-    videoBody: 'Kein Plan, kein Skript.\n\nHalte drauf, was gerade passiert. '+(text?'\u201E'+text.slice(0,50)+'\u201C als Caption oder Off-Ton.\n\n':'')+'Musik drunter, fertig.\n\nWer authentisch ist, braucht keine Perfektion.',
-    google: (text||'Kleiner Einblick aus unserem Salon-Alltag \u2014 so wie er wirklich ist.')+' Wir freuen uns auf deinen n\u00E4chsten Besuch. Termin gerne direkt hier buchen.',
-    alternativen: [
-      {
-        winkel: 'Ehrlichkeit als Stil',
-        desc: 'Nicht jeder Tag ist ein Highlight \u2014 und genau das zeigt, dass du authentisch bist.',
-        hook: '\u201EKein Highlight. Nur ein echter Tag bei uns.\u201C'
-      },
-      {
-        winkel: 'Das Handwerk im Vordergrund',
-        desc: 'Was t\u00E4glich selbstverst\u00E4ndlich wirkt, ist eigentlich Können.',
-        hook: '\u201EWas wir jeden Tag tun, klingt einfach. Ist es aber nicht.\u201C'
-      }
-    ]
-  };
-}
-
-function generate() {
-  const c = getContent();
-  const kanaele = [...state.kanaele];
-
-  document.getElementById('out-winkel').textContent = c.winkel;
-  document.getElementById('out-kanal-badge').textContent = '\u2192 ' + c.kanal;
-  document.getElementById('out-kanal-reason').textContent = c.kanalGrund;
-
-  // Foto
-  if(state.foto) {
-    const img=document.getElementById('post-foto-img');
-    img.src=state.foto;
-    img.className='post-foto '+(state.fotoFormat==='story'?'story':'square');
-    document.getElementById('post-hook-prev').textContent=c.feedHook;
-    document.getElementById('post-body-prev').textContent=c.feedBody;
-    document.getElementById('post-preview').style.display='block';
+function removeFoto(){S.foto=null;document.getElementById('foto-input').value='';renderFotoArea();}
+function setFmt(fmt,el){S.fotoFormat=fmt;document.querySelectorAll('.format-btn').forEach(b=>b.classList.remove('on'));el.classList.add('on');}
+function updateFotoSlot(){
+  const slot=document.getElementById('post-foto-slot');
+  const ph=document.getElementById('post-placeholder');
+  if(S.foto){
+    ph&&ph.remove();
+    let img=slot.querySelector('img.post-photo');
+    if(!img){img=document.createElement('img');img.className='post-photo';slot.appendChild(img);}
+    img.src=S.foto;
+    img.className='post-photo '+(S.fotoFormat==='story'?'st':'sq');
   } else {
-    document.getElementById('post-preview').style.display='none';
+    slot.querySelector('img.post-photo')&&slot.querySelector('img.post-photo').remove();
+    if(!slot.querySelector('.post-photo-placeholder')){
+      slot.innerHTML='<div class="post-photo-placeholder" id="post-placeholder">&#128247; Dein Foto erscheint hier</div>';
+    }
   }
-
-  document.getElementById('feed-hook').textContent=c.feedHook;
-  document.getElementById('feed-body').textContent=c.feedBody;
-  document.getElementById('feed-bild').textContent=c.feedBild;
-
-  // Story frames
-  const fe=document.getElementById('story-frames');
-  fe.innerHTML=c.story.map(fr=>
-    '<div class="frame"><div class="frame-num">Frame '+fr.num+'</div><div class="frame-title">'+fr.title+'</div><div class="frame-text">'+fr.text+'</div>'+(fr.note?'<div class="frame-note">'+fr.note+'</div>':'')+'</div>'
-  ).join('');
-
-  document.getElementById('video-format').textContent=c.videoFormat;
-  document.getElementById('video-body').textContent=c.videoBody;
-
-  document.getElementById('google-body').textContent=c.google;
-  document.getElementById('google-card').style.display=kanaele.includes('google')?'flex':'none';
-
-  // Alternativen
-  const ai=document.getElementById('alt-items');
-  ai.innerHTML=c.alternativen.map(alt=>
-    '<div class="alt-item"><div class="alt-winkel">'+alt.winkel+'</div><div class="alt-desc">'+alt.desc+'</div><div class="alt-hook">'+alt.hook+'</div></div>'
-  ).join('');
-
-  document.getElementById('screen-main').classList.remove('active');
-  document.getElementById('screen-output').classList.add('active');
-  document.getElementById('cta-main').style.display='none';
-  document.getElementById('cta-out').style.display='block';
-  document.getElementById('prog-wrap').style.display='none';
-  window.scrollTo(0,0);
 }
 
-function copyAll() {
-  const c=getContent();
-  const text=c.feedHook+'\n\n'+c.feedBody+'\n\n---\nGoogle Business:\n'+c.google+'\n\n---\nAlternative Blickwinkel:\n'+c.alternativen.map(a=>'- '+a.winkel+': '+a.hook).join('\n');
+// ── POST CHECK ──
+function postCheck(){document.getElementById('btn-post').disabled=document.getElementById('post-moment').value.trim().length<5;}
+function storyCheck(){document.getElementById('btn-story').disabled=document.getElementById('story-moment').value.trim().length<5;}
+
+// ── HOOKS ──
+const HOOKS={
+  neugier:[
+    t=>`Was glaubst du, warum ${t} bei uns so anders ist als woanders?`,
+    t=>`Ich werde oft gefragt, was das Geheimnis hinter ${t} ist. Hier ist meine ehrliche Antwort.`,
+    t=>`Das, was bei ${t} wirklich passiert, sieht man von außen nicht.`,
+    t=>`Ich habe über 30 Jahre gebraucht, um zu verstehen, was ${t} wirklich bedeutet.`,
+    t=>`3 Dinge über ${t}, die ich gerne früher gewusst hätte.`,
+    t=>`Was haben ${t} und echtes Vertrauen gemeinsam? Mehr als du denkst.`,
+  ],
+  emotion:[
+    t=>`Heute ist etwas passiert, das uns an ${t} erinnert hat, warum wir diesen Job lieben.`,
+    t=>`${t} hat uns heute kurz sprachlos gemacht. Im besten Sinne.`,
+    t=>`Es gibt Momente, die bleiben. ${t} war heute so einer.`,
+    t=>`33 Jahre im Salon. Und ${t} berührt mich heute noch genauso wie am ersten Tag.`,
+    t=>`Manchmal braucht es einen Moment wie ${t}, um zu merken, wofür das alles da ist.`,
+    t=>`Heute hat ${t} gezeigt, dass es im Friseurhandwerk um viel mehr geht als Haare.`,
+  ],
+  diskussion:[
+    t=>`Ehrliche Frage: Was erwartest du dir wirklich von ${t}?`,
+    t=>`${t} — wird das überschätzt oder unterschätzt? Ich bin gespannt.`,
+    t=>`Unpopular Opinion: Bei ${t} machen die meisten einen entscheidenden Fehler.`,
+    t=>`Bei ${t} gehen die Meinungen auseinander. Wie seht ihr das?`,
+    t=>`Muss ${t} wirklich so kompliziert sein? Meine Meinung — und eure?`,
+    t=>`${t}: Was würdet ihr anders machen? Ich bin wirklich neugierig.`,
+  ],
+  expertise:[
+    t=>`3 Dinge, die die meisten über ${t} nicht wissen — obwohl sie es sollten.`,
+    t=>`Was ich nach 33 Jahren über ${t} sagen kann: Es ist einfacher als du denkst.`,
+    t=>`Der häufigste Irrtum bei ${t} — und wie du ihn vermeidest.`,
+    t=>`${t}: Was wirklich dahinter steckt. Ohne Marketingsprache.`,
+    t=>`Warum ${t} bei uns anders funktioniert — und was du daraus mitnehmen kannst.`,
+    t=>`${t} richtig gemacht sieht so aus. Alles andere ist Kompromiss.`,
+  ],
+  provokativ:[
+    t=>`Ich sage es direkt: ${t} wird in unserer Branche meistens falsch gemacht.`,
+    t=>`${t} klingt einfach. Ist es aber nicht. Und wer das behauptet, lügt.`,
+    t=>`Nein — ${t} braucht kein Marketing. Es braucht Haltung.`,
+    t=>`Ich habe einen Kunden abgelehnt. Wegen ${t}. Und ich würde es wieder tun.`,
+    t=>`${t} ist nicht für jeden. Das ist kein Fehler — das ist unser Anspruch.`,
+    t=>`Wer denkt, ${t} ist selbstverständlich, hat noch nicht wirklich hingeschaut.`,
+  ]
+};
+const WHY={
+  neugier:'Weckt Neugier ohne zu viel zu verraten — Menschen lesen weiter um die Antwort zu finden.',
+  emotion:'Emotionale Einstiege werden 3× häufiger gespeichert als informative Posts.',
+  diskussion:'Fragen erzeugen Kommentare — Kommentare schieben den Post im Algorithmus nach oben.',
+  expertise:'Positioniert dich als Expertin. Wer Wissen teilt, wird als vertrauenswürdig wahrgenommen.',
+  provokativ:'Starke Meinungen polarisieren. Wer nicht polarisiert, bleibt unsichtbar.'
+};
+
+function generateHooks(){
+  const t=document.getElementById('hook-thema').value.trim()||'Ausbildung';
+  const z=S.hookziel||'neugier';
+  const pool=[...(HOOKS[z]||HOOKS.neugier)].sort(()=>Math.random()-.5).slice(0,5);
+  const list=document.getElementById('hook-list');
+  list.innerHTML=pool.map((fn,i)=>{
+    const txt=fn(t);
+    return `<div class="result-item">
+      <div class="result-top">
+        <div class="result-num">Hook ${i+1} &middot; ${z.charAt(0).toUpperCase()+z.slice(1)}</div>
+        <button class="fav-star" title="Speichern" onclick="saveFav('hook',\`${txt.replace(/`/g,"'")}\`)">&#x2606;</button>
+      </div>
+      <div class="result-text">&bdquo;${txt}&ldquo;</div>
+      <div class="result-why">${WHY[z]}</div>
+      <div class="result-actions">
+        <button class="copy-btn" onclick="copyText(this,\`${txt.replace(/`/g,"'")}\`)">Kopieren</button>
+        <button class="copy-btn" onclick="useAsPost(\`${txt.replace(/`/g,"'")}\`)">Als Post verwenden</button>
+      </div>
+    </div>`;
+  }).join('');
+  const wrap=document.getElementById('hook-results');
+  wrap.style.display='flex';
+  wrap.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function useAsPost(txt){
+  document.getElementById('post-moment').value=txt;
+  postCheck();
+  showTab('post');
+  document.getElementById('post-moment').focus();
+}
+
+// ── POST ──
+const POST={
+  nahbar:{
+    kundinnen:m=>({
+      hook:m.length>10?`\u201E${m.slice(0,65)}${m.length>65?'...':''}\u201C`:`Heute war so ein Moment, den man nicht vergisst.`,
+      body:`${m}\n\nGenau das ist es, was ich nach 33 Jahren noch genauso spüre wie am ersten Tag.\n\nEs geht nicht um Haare. Es geht darum, dass du herausgehst und dich wirklich wohlfühlst — in deiner Haut, mit dir selbst.\n\nDas ist unser Job. Das ist unser Anspruch.\n\n#GreatHairDay #Wien #Friseur #Stammkunden #Vertrauen`,
+      cta:`📍 Rechte Wienzeile 47, 1050 Wien\nTermin: Link in Bio`,
+      bild:`Echter Moment aus dem Salon — keine Inszenierung. Das Ergebnis so wie es war.`
+    }),
+    neu:m=>({
+      hook:`Was passiert, wenn du zum ersten Mal zu uns kommst?`,
+      body:`${m}\n\nBei uns musst du dich nicht erklären. Nicht beim ersten Besuch, nicht beim zehnten.\n\nWir hören zu. Wir beraten ehrlich. Und wir sagen auch, wenn etwas nicht zu dir passt.\n\nSeit 33 Jahren in Wien. Nicht trotz unserer Haltung — wegen ihr.\n\n#GreatHairDay #Wien #Friseur #ErstesGespräch`,
+      cta:`Erster Termin? Einfach schreiben oder den Link in der Bio nutzen.`,
+      bild:`Der erste Eindruck zählt — warmes Bild vom Salon, echte Atmosphäre, keine Perfektion.`
+    }),
+    lehrlinge:m=>({
+      hook:`Was bedeutet Ausbildung wirklich?`,
+      body:`${m}\n\nBei uns lernt man nicht nur Frisieren. Man lernt zuzuhören, Verantwortung zu übernehmen, mit Menschen umzugehen.\n\nRonya ist seit 4 Monaten dabei. Und sie wächst mit jedem Tag.\n\nAusbildungsplatz noch frei. Wir suchen jemanden, der wirklich will.\n\n#Ausbildung #Lehrling #Friseur #Wien #HandwerkMitZukunft`,
+      cta:`Interesse? Schreib uns direkt.`,
+      bild:`Ronya oder ein Lehrlings-Moment — beim Arbeiten, nicht beim Posieren.`
+    }),
+    branche:m=>({
+      hook:`Was ich nach 33 Jahren über unseren Beruf gelernt habe.`,
+      body:`${m}\n\nDie Lehrlingszahlen in Österreich sind von 2.500 auf 500 gesunken. In sechs Jahren.\n\nDas ist kein Zufall. Das ist eine Konsequenz davon, wie wir als Branche ausbilden — und wie wir darüber reden.\n\nWir können das ändern. Aber nicht durch Jammern.\n\n#Friseurbranche #Ausbildung #Handwerk #Österreich`,
+      cta:`Was denkst du? Ich bin gespannt auf eure Erfahrungen.`,
+      bild:`Starkes Bild aus dem Salon — Meisterin bei der Arbeit.`
+    }),
+  },
+  stolz:{
+    kundinnen:m=>({
+      hook:`Müssen kurz über etwas reden, das uns heute wirklich gefreut hat.`,
+      body:`${m}\n\nSolche Momente passieren nicht zufällig. Sie entstehen, wenn man jahrelang zuhört, ehrlich arbeitet und den Menschen wirklich sieht — nicht nur die Haare.\n\nDafür sind wir hier. Jeden Tag.\n\n#GreatHairDay #Wien #Meisterin #Qualität #Vertrauen`,
+      cta:`Rechte Wienzeile 47, 1050 Wien. Termin: Link in Bio.`,
+      bild:`Das Ergebnis der Arbeit — würdevoll, kein Überfilter.`
+    }),
+    lehrlinge:m=>({
+      hook:`Heute sind wir stolz. Sehr.`,
+      body:`${m}\n\nDas ist kein kleines Ding. Wir bilden seit Jahrzehnten aus — und dieser Moment gehört zu den schönsten.\n\nGute Ausbildung bedeutet: Vertrauen geben, bevor jemand fertig ist.\n\n#Ausbildung #Lehrling #GreatHairDay #Wien`,
+      cta:`Ausbildungsplatz frei. Anfragen willkommen.`,
+      bild:`Lehrling und Inhaberin — echter Moment, keine Pose.`
+    }),
+    neu:m=>({
+      hook:`Was uns heute besonders gefreut hat.`,
+      body:`${m}\n\nJeder neue Mensch, der zu uns kommt, bringt eine Geschichte mit. Wir hören sie uns an — ohne zu urteilen, ohne zu eilen.\n\nBei uns musst du dich nicht erklären.\n\n#GreatHairDay #Wien #Friseur #Willkommen`,
+      cta:`Ersten Termin buchen: Link in Bio.`,
+      bild:`Einladende Atmosphäre im Salon — Licht, Wärme, Echt.`
+    }),
+    branche:m=>({
+      hook:`Heute dürfen wir stolz sein. Und das sagen wir selten.`,
+      body:`${m}\n\nIn einer Branche, die gerade kämpft, braucht es Momente wie diesen. Um zu sehen, was möglich ist — wenn man konsequent ausbildet.\n\n#Friseurbranche #Ausbildung #Handwerk`,
+      cta:`Deine Erfahrungen? Schreib mir.`,
+      bild:`Meisterin oder Team — stark und geerdet.`
+    }),
+  },
+  nachdenklich:{
+    kundinnen:m=>({
+      hook:`Ich denke oft darüber nach, warum manche Dinge so bleiben wie sie sind.`,
+      body:`${m}\n\nUnsere ältesten Stammkund:innen kommen seit über 20 Jahren. Manche seit 30.\n\nNicht wegen der Haare. Wegen dem Gefühl, das bleibt.\n\nIch glaube, das ist das Einzige, was wirklich zählt.\n\n#GreatHairDay #Vertrauen #Wien #Nachdenklich`,
+      cta:`Was macht für euch einen guten Salon aus? Ich bin ehrlich neugierig.`,
+      bild:`Ruhige Stimmung — Licht, Detail, Atmosphäre. Kein Aktionsbild.`
+    }),
+    neu:m=>({
+      hook:`Manchmal frage ich mich, was Menschen wirklich suchen.`,
+      body:`${m}\n\nNicht immer ist es der perfekte Schnitt. Oft ist es das Gefühl, gesehen zu werden.\n\nWir arbeiten seit 33 Jahren daran, genau das zu geben.\n\n#GreatHairDay #Wien #Friseur`,
+      cta:`Termin: Link in Bio.`,
+      bild:`Details aus dem Salon — warm und einladend.`
+    }),
+    lehrlinge:m=>({
+      hook:`Was bleibt, wenn man 33 Jahre ausgebildet hat?`,
+      body:`${m}\n\nNicht die Techniken. Die Menschen.\n\nJeder Lehrling, der durch diesen Salon gegangen ist, trägt ein Stück davon mit sich. Das ist das Schönste an diesem Beruf.\n\n#Ausbildung #Lehrling #Friseur #Wien`,
+      cta:`Ausbildungsplatz frei — melde dich.`,
+      bild:`Hände bei der Arbeit — konzentriert, ehrlich.`
+    }),
+    branche:m=>({
+      hook:`Unsere Branche verändert sich. Die Frage ist, wie wir darauf antworten.`,
+      body:`${m}\n\nIch habe in 33 Jahren viel kommen und gehen sehen. Was bleibt: Wer sich weiterbildet und ausbildet, bleibt relevant.\n\n#Friseurbranche #Handwerk #Österreich`,
+      cta:`Was denkst du? Ich freue mich auf den Austausch.`,
+      bild:`Meisterin nachdenklich — authentisch, kein Lächeln nötig.`
+    }),
+  },
+  direkt:{
+    kundinnen:m=>({
+      hook:`Direkt gesagt:`,
+      body:`${m}\n\nBei uns gibt es keine leeren Versprechen. Keine Rabattaktionen die unter der Hand finanziert werden.\n\nWir arbeiten ehrlich. Wir beraten ehrlich. Und wir sagen, wenn etwas nicht passt.\n\nDas ist kein Anspruch. Das ist unser Alltag.\n\n#GreatHairDay #Wien #Ehrlichkeit #Handwerk`,
+      cta:`Termin: Link in Bio oder direkt anrufen.`,
+      bild:`Hands-on — Arbeit an den Haaren, klar und nah.`
+    }),
+    neu:m=>({
+      hook:`Was du bei uns bekommst — und was nicht.`,
+      body:`${m}\n\nKeine Versprechen die wir nicht halten können. Keine Technik die nicht zu dir passt nur weil sie gerade im Trend ist.\n\nDafür: ehrliche Beratung, verlässliche Qualität, und das Gefühl dass du richtig bist.\n\n#GreatHairDay #Wien #Friseur #Ehrlich`,
+      cta:`Erster Termin: Link in Bio.`,
+      bild:`Klares, direktes Bild — Salon, Produkte oder Arbeit an den Haaren.`
+    }),
+    lehrlinge:m=>({
+      hook:`Was dich bei uns erwartet — ohne Beschönigung.`,
+      body:`${m}\n\nAusbildung bei uns ist nicht einfach. Es wird erwartet, dass du pünktlich bist, lernbereit und freundlich.\n\nDafür bekommst du echte Verantwortung, ehrliches Feedback und eine Ausbildung die trägt.\n\n#Ausbildung #Lehrling #Friseur #Wien`,
+      cta:`Ausbildungsplatz frei. Anfragen direkt an uns.`,
+      bild:`Lehrling bei echter Arbeit — konzentriert, nicht inszeniert.`
+    }),
+    branche:m=>({
+      hook:`Ich sage es, wie es ist.`,
+      body:`${m}\n\nDie Branche hat ein Imageproblem. Das löst sich nicht durch bessere Instagram-Filter.\n\nEs löst sich, wenn wir besser ausbilden, fairer bezahlen und aufhören zu jammern.\n\nAnfangen kann jeder bei sich.\n\n#Friseurbranche #Handwerk #Klartext`,
+      cta:`Deine Meinung? Kommentiere oder schreib mir direkt.`,
+      bild:`Meisterin — direkt, geerdet, keine Pose.`
+    }),
+  }
+};
+
+let lastPost=null;
+function generatePost(){
+  const m=document.getElementById('post-moment').value.trim();
+  if(!m) return;
+  const ton=S.postton||'nahbar';
+  const wer=S.postwer||'kundinnen';
+  const tpl=(POST[ton]&&POST[ton][wer])||POST.nahbar.kundinnen;
+  lastPost=tpl(m);
+  document.getElementById('res-hook').textContent=lastPost.hook;
+  document.getElementById('res-body').textContent=lastPost.body;
+  document.getElementById('res-cta').textContent=lastPost.cta;
+  document.getElementById('res-bild').textContent=lastPost.bild;
+  updateFotoSlot();
+  const r=document.getElementById('post-result');
+  r.style.display='flex';r.style.flexDirection='column';r.style.gap='12px';
+  r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+function copyPost(){
+  if(!lastPost) return;
+  const t=lastPost.hook+'\n\n'+lastPost.body+'\n\n'+lastPost.cta;
+  navigator.clipboard&&navigator.clipboard.writeText(t);
+  alert('Post kopiert \u2713');
+}
+function favPost(){
+  if(!lastPost) return;
+  saveFav('post',lastPost.hook+'\n\n'+lastPost.body);
+}
+
+// ── STORY ──
+const BGS=['dark','green','dark','green','gold-bg'];
+const STORY={
+  emotional:{
+    vertrauen:m=>[
+      {label:'Hook',name:'Frame 1',text:`\u201E${m.slice(0,60)||'Heute war so ein Moment.'}\u201C`,tip:'Text auf dunklem Hintergrund. Keine Erklärung.'},
+      {label:'Kontext',name:'Frame 2',text:'Solche Momente passieren nicht jeden Tag. Aber wenn sie passieren, merkt man wofür man das alles macht.',tip:'Ruhiges Bild vom Salon oder von den Händen.'},
+      {label:'Persönlich',name:'Frame 3',text:'Ich bin seit 33 Jahren in diesem Beruf. Und das bewegt mich immer noch.',tip:'Du sprichst kurz in die Kamera. 5–8 Sekunden reicht.'},
+      {label:'Wert',name:'Frame 4',text:'Vertrauen entsteht nicht in einem Termin. Es entsteht in hundert kleinen Momenten.',tip:'Schlicht. Gold auf dunkelgrünem Hintergrund.'},
+      {label:'Einladung',name:'Frame 5',text:'Wie sieht dein Lieblingsmoment im Salon aus? Schreib mir \u2014 ich bin neugierig \u2193',tip:'Umfrage oder DM-Einladung. Klarer Call to Action.'},
+    ],
+    lehrling:m=>[
+      {label:'Hook',name:'Frame 1',text:'Was macht gute Ausbildung wirklich aus?',tip:'Frage als Text-Frame. Keine Antwort, nur die Frage.'},
+      {label:'Moment',name:'Frame 2',text:`${m.slice(0,80)||'Heute ist genau das passiert, was Ausbildung lebendig macht.'}`,tip:'Foto oder kurzer Clip vom Moment.'},
+      {label:'Haltung',name:'Frame 3',text:'Wir geben Vertrauen, bevor jemand fertig ist. Das ist der Unterschied.',tip:'Du, kurz in die Kamera. Echt und ruhig.'},
+      {label:'Kontext',name:'Frame 4',text:'Österreich hat heute ca. 500 Lehrlinge im Friseurbereich. 2020 waren es 2.500.',tip:'Fakten-Frame. Stark und knapp.'},
+      {label:'CTA',name:'Frame 5',text:'Ausbildungsplatz noch frei. Melde dich direkt bei uns.',tip:'Link oder DM-Button. Klar, kurz, direkt.'},
+    ],
+  },
+  neugier:{
+    vertrauen:m=>[
+      {label:'Hook',name:'Frame 1',text:'Was glaubst du, warum manche Frisör:innen Kund:innen seit 30 Jahren haben?',tip:'Frage-Frame. Keine Antwort geben.'},
+      {label:'Aufbau',name:'Frame 2',text:`${m.slice(0,70)||'Heute hat uns jemand etwas gesagt, das wir nicht vergessen werden.'}`,tip:'Foto oder Text. Spannung halten.'},
+      {label:'Twist',name:'Frame 3',text:'Es hat nichts mit Technik zu tun. Und auch nichts mit Preisen.',tip:'Kurzer Text, großer Impact.'},
+      {label:'Antwort',name:'Frame 4',text:'Es hat damit zu tun, dass du dich nicht erklären musst. Einfach du sein kannst.',tip:'Ruhiges Bild, ruhiger Text.'},
+      {label:'Einladung',name:'Frame 5',text:'Wann hast du das zuletzt gespürt? Schreib mir. \ud83d\udc9a',tip:'DM-Einladung, kein harter Verkauf.'},
+    ],
+    reichweite:m=>[
+      {label:'Hook',name:'Frame 1',text:`Was würdest du tun, wenn ${m.slice(0,40)||'das'} morgen passiert?`,tip:'Frage die zum Nachdenken zwingt.'},
+      {label:'Setup',name:'Frame 2',text:'Viele denken, das hat nichts mit ihnen zu tun. Aber dann passiert es.',tip:'Spannung aufbauen.'},
+      {label:'Moment',name:'Frame 3',text:`${m||'Und heute war genau so ein Tag bei uns.'}`,tip:'Der echte Moment.'},
+      {label:'Insight',name:'Frame 4',text:'Was wir daraus mitgenommen haben: Kleinigkeiten entscheiden.',tip:'Deine Haltung, dein Ton.'},
+      {label:'Diskussion',name:'Frame 5',text:'Was würdest du in dieser Situation tun? 👇',tip:'Kommentar-Frage für Reichweite.'},
+    ],
+  },
+  behind:{
+    vertrauen:m=>[
+      {label:'Teaser',name:'Frame 1',text:'Was passiert eigentlich hinter den Kulissen?',tip:'Neugier wecken. Keine Antwort.'},
+      {label:'Behind',name:'Frame 2',text:`${m.slice(0,80)||'Heute haben wir etwas getan, das man von außen nicht sieht.'}`,tip:'Echter Moment, ungeplant.'},
+      {label:'Warum',name:'Frame 3',text:'Weil der Unterschied selten sichtbar ist. Aber immer spürbar.',tip:'Text-Frame. Schlicht und stark.'},
+      {label:'Team',name:'Frame 4',text:'Mazen, Alina, Hassan, Ronya \u2014 das sind die Menschen hinter jedem Termin.',tip:'Team-Foto oder Clip. Echt, nicht gestellt.'},
+      {label:'CTA',name:'Frame 5',text:'Termin buchen? Link in Bio \u2014 oder einfach schreiben.',tip:'Klar, freundlich, einladend.'},
+    ],
+  },
+  haltung:{
+    vertrauen:m=>[
+      {label:'Statement',name:'Frame 1',text:'Wir haben einmal einen Kunden abgelehnt. Und es war richtig so.',tip:'Provokanter Einstieg. Kein Kontext.'},
+      {label:'Erklärung',name:'Frame 2',text:`${m.slice(0,80)||'Weil Haltung mehr zählt als Umsatz.'}`,tip:'Ruhige Erklärung. Keine Entschuldigung.'},
+      {label:'Wert',name:'Frame 3',text:'Wer sich hier wohlfühlen will, muss auch bereit sein, andere zu respektieren. Das ist keine Bedingung \u2014 das ist Grundlage.',tip:'Deine Stimme, direkt in die Kamera.'},
+      {label:'Pointe',name:'Frame 4',text:'Dieser Kunde ist heute noch bei uns. Und er hat sich entschuldigt.',tip:'Die Pointe. Einfach stehen lassen.'},
+      {label:'Diskussion',name:'Frame 5',text:'Haltung im Arbeitsalltag \u2014 wo zieht ihr eure Grenze? 👇',tip:'Diskussion einladen. Keine Antwort vorgeben.'},
+    ],
+  }
+};
+
+function generateStory(){
+  const m=document.getElementById('story-moment').value.trim();
+  if(!m) return;
+  const mood=S.storymood||'emotional';
+  const ziel=S.storyziel||'vertrauen';
+  const pool=(STORY[mood]&&STORY[mood][ziel])||(STORY[mood]&&STORY[mood][Object.keys(STORY[mood])[0]])||STORY.emotional.vertrauen;
+  const frames=pool(m);
+  const list=document.getElementById('story-list');
+  list.innerHTML=frames.map((fr,i)=>{
+    const bg=BGS[i]||'dark';
+    const txt=fr.text.replace(/`/g,"'");
+    return `<div class="story-card">
+      <div class="story-card-header${bg==='gold-bg'?' gold':''}">
+        <div>
+          <div class="story-frame-label">${fr.label}</div>
+          <div class="story-frame-name">${fr.name}</div>
+        </div>
+        <button class="fav-star" onclick="saveFav('story',\`${txt}\`)" style="color:#fff;font-size:18px">&#x2606;</button>
+      </div>
+      <div class="story-card-body">
+        <div class="story-visual ${bg}" style="margin-bottom:12px">
+          <div class="story-visual-num">${fr.name}</div>
+          <div class="story-visual-label">${fr.label}</div>
+          <div class="story-visual-text">${fr.text}</div>
+          <div class="story-visual-tip">${fr.tip}</div>
+        </div>
+        <div class="story-frame-actions">
+          <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
+          <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+  const r=document.getElementById('story-result');
+  r.style.display='flex';
+  r.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+// ── FAVORITES ──
+function getFavs(){try{return JSON.parse(localStorage.getItem('ghd_favs')||'[]');}catch{return[];}}
+function saveFav(type,text){
+  const favs=getFavs();
+  if(favs.some(f=>f.text===text)){alert('Bereits gespeichert.');return;}
+  favs.unshift({type,text,date:new Date().toLocaleDateString('de-AT')});
+  localStorage.setItem('ghd_favs',JSON.stringify(favs.slice(0,50)));
+  alert('Gespeichert \u2B50');
+}
+function renderFavs(){
+  const favs=getFavs();
+  const wrap=document.getElementById('fav-list-wrap');
+  if(!favs.length){
+    wrap.innerHTML='<div class="card"><div class="card-sub">Noch keine Favoriten gespeichert. Tippe \u2B50 bei einem Hook, Post oder Story-Frame.</div></div>';
+    return;
+  }
+  wrap.innerHTML=`<div class="fav-list">${favs.map((f,i)=>
+    `<div class="fav-item">
+      <div style="flex:1">
+        <div class="fav-item-meta">${f.type.toUpperCase()} &middot; ${f.date}</div>
+        <div class="fav-item-text">${f.text.slice(0,150)}${f.text.length>150?'...':''}</div>
+        <div style="display:flex;gap:8px;margin-top:8px">
+          <button class="copy-btn" onclick="copyText(this,\`${f.text.replace(/`/g,"'")}\`)">Kopieren</button>
+          <button class="copy-btn" onclick="deleteFav(${i})">L\u00F6schen</button>
+        </div>
+      </div>
+    </div>`
+  ).join('')}</div>`;
+}
+function deleteFav(i){
+  const favs=getFavs();
+  favs.splice(i,1);
+  localStorage.setItem('ghd_favs',JSON.stringify(favs));
+  renderFavs();
+}
+
+// ── COPY ──
+function copyText(btn,text){
   navigator.clipboard&&navigator.clipboard.writeText(text);
-  const btn=document.getElementById('btn-copy');
+  const old=btn.textContent;
   btn.textContent='Kopiert \u2713';
-  setTimeout(()=>btn.textContent='Texte kopieren',2000);
+  btn.classList.add('done');
+  setTimeout(()=>{btn.textContent=old;btn.classList.remove('done');},2000);
 }
 
-function resetApp() {
-  state.anlass=null;state.fokus=null;state.zielgruppe=null;state.ziel=null;
-  state.lernmittel=new Set();state.kanaele=new Set();state.foto=null;state.fotoFormat='post';
-  document.querySelectorAll('.chip').forEach(c=>c.classList.remove('on'));
-  document.getElementById('moment-text').value='';
-  document.getElementById('ausb-extra').classList.remove('visible');
-  document.getElementById('foto-input').value='';
-  renderFotoPreview();
-  document.getElementById('screen-output').classList.remove('active');
-  document.getElementById('screen-main').classList.add('active');
-  document.getElementById('cta-main').style.display='block';
-  document.getElementById('cta-out').style.display='none';
-  document.getElementById('prog-wrap').style.display='block';
-  document.getElementById('btn-gen').disabled=true;
-  updateProgress();
-  window.scrollTo(0,0);
-}
+// ── IDEAS ──
+const IDEAS=[
+  {icon:'❤️',label:'Stammkunden-Moment',desc:'Eine Kundin kommt seit Jahren. Was macht das mit dir?',ziel:'Emotion + Vertrauen'},
+  {icon:'💪',label:'Haltung zeigen',desc:'Etwas wofür du eingestanden bist. Ruhig und klar.',ziel:'Authentizität'},
+  {icon:'🎓',label:'Ausbildungs-Einblick',desc:'Ronya lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
+  {icon:'🤔',label:'Branchenfrage',desc:'Was läuft falsch? Was könnte besser sein?',ziel:'Diskussion + Reichweite'},
+  {icon:'💡',label:'Expertentipp',desc:'Ein Fehler den fast alle machen. Deine Antwort.',ziel:'Expertise'},
+  {icon:'🤝',label:'Team-Moment',desc:'Mazen, Alina oder Hassan — was macht euch aus?',ziel:'Vertrauen + Menschlichkeit'},
+  {icon:'🌿',label:'Wohlbefinden-Thema',desc:'Haare, Ernährung, Bewegung — wie hängt das zusammen?',ziel:'Differenzierung'},
+  {icon:'🕐',label:'33 Jahre Salon',desc:'Was hat sich verändert? Was bleibt?',ziel:'Geschichte + Vertrauen'},
+];
+document.getElementById('idea-grid').innerHTML=IDEAS.map(idea=>
+  `<div class="idea-card" onclick="useIdea('${idea.label}')">
+    <div class="idea-icon">${idea.icon}</div>
+    <div class="idea-label">${idea.label}</div>
+    <div class="idea-desc">${idea.desc}</div>
+    <div class="idea-ziel">${idea.ziel}</div>
+  </div>`
+).join('');
 
-updateProgress();
+function useIdea(label){
+  document.getElementById('hook-thema').value=label;
+  showTab('hook');
+  document.getElementById('hook-thema').focus();
+}
 </script>
 </body>
 </html>

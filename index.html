@@ -97,8 +97,8 @@ textarea{resize:none;}
 /* Story Frames */
 .story-frames-wrap{display:flex;flex-direction:column;gap:10px;}
 .story-card{background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);}
-.story-card-header{background:var(--accent);padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
-.story-card-header.gold{background:var(--gold);}
+.story-card-header{background:#C8A96E;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.story-card-header.gold{background:#C8A96E;}
 .story-frame-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;}
 .story-frame-name{font-size:13px;font-weight:700;color:#fff;}
 .story-card-body{padding:14px;}
@@ -817,7 +817,6 @@ function generateStory(){
             <img class="story-visual-logo-m" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-m.png" alt="M">
             <div class="story-visual-text" style="font-size:22px">&bdquo;${f.text}&ldquo;</div>
             <img class="story-visual-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta">
-            <div class="story-visual-num">${num} &middot; Abschluss</div>
           </div>
           <div class="story-frame-actions">
             <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
@@ -844,8 +843,6 @@ function generateStory(){
           <img class="story-visual-logo-m" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-m.png" alt="M">
           <div class="story-visual-text">&bdquo;${fr.text}&ldquo;</div>
           <img class="story-visual-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta">
-          <div class="story-visual-num">${num}</div>
-          <div class="story-visual-label">${fr.label}</div>
         </div>
         <div class="story-frame-actions">
           <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>

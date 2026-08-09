@@ -8,14 +8,17 @@
 <meta name="apple-mobile-web-app-title" content="Reichweite">
 <meta name="theme-color" content="#2E5D4B">
 <title>Reichweite — A great hair day</title>
-<style>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Ms+Madi&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+
 :root{
   --bg:#F5F3EF;--surface:#fff;--ink:#1C1C1C;--sub:#6B6B6B;
-  --line:#E3E0D9;--accent:#2E5D4B;--gold:#C8A96E;--chip:#ECEAE5;
+  --line:#E3E0D9;--accent:#2E5D4B;--gold:#816a3c;--chip:#ECEAE5;
+  --f:'Poppins',system-ui,sans-serif;--script:'Ms Madi',cursive;
   --r:14px;--f:system-ui,sans-serif;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
-body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;overscroll-behavior:none;}
+body{font-family:'Poppins',system-ui,sans-serif;background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;overscroll-behavior:none;}
 .phone{width:100%;max-width:390px;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;position:relative;}
 
 /* Topbar */
@@ -97,8 +100,8 @@ textarea{resize:none;}
 /* Story Frames */
 .story-frames-wrap{display:flex;flex-direction:column;gap:10px;}
 .story-card{background:var(--surface);border-radius:12px;overflow:hidden;box-shadow:0 1px 8px rgba(0,0,0,.06);}
-.story-card-header{background:#C8A96E;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
-.story-card-header.gold{background:#C8A96E;}
+.story-card-header{background:#816a3c;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;}
+.story-card-header.gold{background:#816a3c;}
 .story-frame-label{font-size:10px;font-weight:700;color:rgba(255,255,255,.8);text-transform:uppercase;letter-spacing:.5px;}
 .story-frame-name{font-size:13px;font-weight:700;color:#fff;}
 .story-card-body{padding:14px;}
@@ -110,7 +113,7 @@ textarea{resize:none;}
 .story-visual{width:100%;aspect-ratio:9/16;max-height:480px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 24px 24px;text-align:center;background:#FFFFFF;border:1px solid #E3E0D9;}
 .story-visual.dark,.story-visual.green,.story-visual.gold-bg{background:#FFFFFF;}
 .story-visual-logo-m{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto;}
-.story-visual-text{font-size:20px;font-weight:700;color:#1C1C1C;line-height:1.45;letter-spacing:-.2px;position:relative;z-index:2;padding:0 8px;flex:1;display:flex;align-items:center;justify-content:center;}
+.story-visual-text{font-size:26px;font-weight:400;color:#1C1C1C;line-height:1.4;font-family:'Ms Madi',cursive;position:relative;z-index:2;padding:0 8px;}
 .story-visual-sig{width:160px;object-fit:contain;display:block;margin:0 auto;opacity:.85;}
 .story-visual-num{position:absolute;bottom:10px;left:14px;font-size:9px;font-weight:700;color:rgba(0,0,0,.25);text-transform:uppercase;letter-spacing:.5px;}
 .story-visual-label{position:absolute;bottom:10px;right:14px;font-size:9px;font-weight:700;color:rgba(0,0,0,.25);text-transform:uppercase;}

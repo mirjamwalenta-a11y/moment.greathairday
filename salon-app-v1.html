@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>Moment — V1 Prototyp</title>
+<style>
+  /* ── Tokens ── */
+  :root {
+    --c-bg:       #F5F3EF;
+    --c-surface:  #FFFFFF;
+    --c-ink:      #1C1C1C;
+    --c-sub:      #6B6B6B;
+    --c-line:     #E3E0D9;
+    --c-accent:   #2E5D4B;   /* deep sage green */
+    --c-accent2:  #C8A96E;   /* warm gold */
+    --c-chip-off: #ECEAE5;
+    --c-chip-on:  #2E5D4B;
+    --c-chip-on-t:#FFFFFF;
+    --r-chip:     24px;
+    --r-card:     16px;
+    --f-body:     'Inter', system-ui, sans-serif;
+    --shadow:     0 2px 12px rgba(0,0,0,.07);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: var(--f-body);
+    background: var(--c-bg);
+    color: var(--c-ink);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 0 0 40px;
+  }
+
+  /* phone shell */
+  .phone {
+    width: 100%;
+    max-width: 390px;
+    min-height: 100vh;
+    background: var(--c-bg);
+    display: flex;
+    flex-direction: column;
+    position: relative;
+  }
+
+  /* ── Topbar ── */
+  .topbar {
+    background: var(--c-surface);
+    padding: 18px 20px 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid var(--c-line);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+  .topbar-wordmark {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.4px;
+    color: var(--c-accent);
+  }
+  .topbar-sub {
+    font-size: 11px;
+    color: var(--c-sub);
+    letter-spacing: .3px;
+  }
+
+  /* ── Progress bar ── */
+  .progress-wrap {
+    background: var(--c-surface);
+    padding: 10px 20px 14px;
+    border-bottom: 1px solid var(--c-line);
+  }
+  .progress-track {
+    height: 3px;
+    background: var(--c-line);
+    border-radius: 2px;
+    overflow: hidden;
+  }
+  .progress-fill {
+    height: 100%;
+    background: var(--c-accent);
+    border-radius: 2px;
+    transition: width .35s ease;
+  }
+  .progress-label {
+    font-size: 11px;
+    color: var(--c-sub);
+    margin-top: 7px;
+    letter-spacing: .2px;
+  }
+
+  /* ── Screen ── */
+  .screen {
+    display: none;
+    flex-direction: column;
+    flex: 1;
+    padding: 24px 20px 32px;
+    gap: 28px;
+    animation: fadeUp .25s ease;
+  }
+  .screen.active { display: flex; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Section block ── */
+  .section { display: flex; flex-direction: column; gap: 10px; }
+
+  .section-label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--c-sub);
+    letter-spacing: .4px;
+    text-transform: uppercase;
+  }
+
+  .section-q {
+    font-size: 17px;
+    font-weight: 600;
+    color: var(--c-ink);
+    line-height: 1.35;
+    letter-spacing: -.2px;
+  }
+
+  .hint {
+    font-size: 13px;
+    color: var(--c-sub);
+    line-height: 1.5;
+  }
+
+  /* ── Chip grid ── */
+  .chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 2px;
+  }
+
+  .chip {
+    padding: 9px 16px;
+    border-radius: var(--r-chip);
+    background: var(--c-chip-off);
+    color: var(--c-ink);
+    font-size: 14px;
+    font-weight: 500;
+    border: none;
+    cursor: pointer;
+    transition: background .15s, color .15s, box-shadow .15s;
+    -webkit-tap-highlight-color: transparent;
+    letter-spacing: -.1px;
+  }
+  .chip:hover { background: #E0DDD6; }
+  .chip.on {
+    background: var(--c-chip-on);
+    color: var(--c-chip-on-t);
+    box-shadow: 0 2px 8px rgba(46,93,75,.25);
+  }
+  .chip.multi.on {
+    background: var(--c-accent);
+    color: #fff;
+  }
+
+  /* ── Textarea ── */
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  textarea {
+    background: var(--c-surface);
+    border: 1.5px solid var(--c-line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    font-family: var(--f-body);
+    font-size: 15px;
+    color: var(--c-ink);
+    resize: none;
+    min-height: 90px;
+    outline: none;
+    transition: border-color .15s;
+    line-height: 1.5;
+  }
+  textarea::placeholder { color: #A8A49E; }
+  textarea:focus { border-color: var(--c-accent); }
+
+  /* ── Ausbildung extra ── */
+  .ausbildung-extra {
+    display: none;
+    flex-direction: column;
+    gap: 10px;
+    background: #EEF4F1;
+    border-left: 3px solid var(--c-accent);
+    border-radius: 12px;
+    padding: 16px;
+    margin-top: -8px;
+  }
+  .ausbildung-extra.visible { display: flex; }
+  .extra-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--c-accent);
+    letter-spacing: .5px;
+    text-transform: uppercase;
+  }
+  .extra-q {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--c-ink);
+    line-height: 1.35;
+  }
+
+  /* ── CTA ── */
+  .cta-wrap {
+    padding: 0 20px 24px;
+    position: sticky;
+    bottom: 0;
+    background: linear-gradient(to top, var(--c-bg) 80%, transparent);
+    padding-top: 16px;
+  }
+  .btn-primary {
+    width: 100%;
+    padding: 17px;
+    background: var(--c-accent);
+    color: #fff;
+    font-family: var(--f-body);
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 14px;
+    cursor: pointer;
+    letter-spacing: -.1px;
+    box-shadow: 0 4px 16px rgba(46,93,75,.3);
+    transition: transform .1s, box-shadow .1s;
+    -webkit-tap-highlight-color: transparent;
+  }
+  .btn-primary:active { transform: scale(.98); box-shadow: 0 2px 8px rgba(46,93,75,.2); }
+  .btn-primary:disabled {
+    background: #B0B0B0;
+    box-shadow: none;
+    cursor: default;
+  }
+
+  .btn-ghost {
+    background: none;
+    border: 1.5px solid var(--c-line);
+    border-radius: 14px;
+    padding: 13px;
+    width: 100%;
+    font-size: 14px;
+    font-weight: 500;
+    color: var(--c-sub);
+    cursor: pointer;
+    margin-top: 8px;
+    font-family: var(--f-body);
+  }
+
+  /* ── OUTPUT SCREEN ── */
+  #screen-output { gap: 20px; }
+
+  .out-header {
+    background: var(--c-accent);
+    color: #fff;
+    border-radius: var(--r-card);
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .out-header-eyebrow {
+    font-size: 11px;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    opacity: .75;
+    font-weight: 600;
+  }
+  .out-header-title {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -.3px;
+  }
+  .out-header-sub {
+    font-size: 13px;
+    opacity: .8;
+    margin-top: 2px;
+    line-height: 1.4;
+  }
+
+  .out-card {
+    background: var(--c-surface);
+    border-radius: var(--r-card);
+    padding: 20px;
+    box-shadow: var(--shadow);
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .out-card-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--c-accent);
+  }
+  .out-card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--c-ink);
+    letter-spacing: -.2px;
+    line-height: 1.3;
+  }
+  .out-card-body {
+    font-size: 14px;
+    color: var(--c-ink);
+    line-height: 1.6;
+  }
+  .out-card-divider {
+    height: 1px;
+    background: var(--c-line);
+  }
+
+  /* story frames */
+  .story-frames {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+  }
+  .story-frames::-webkit-scrollbar { display: none; }
+  .story-frame {
+    flex-shrink: 0;
+    width: 96px;
+    background: var(--c-bg);
+    border: 1.5px solid var(--c-line);
+    border-radius: 10px;
+    padding: 12px 10px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  .frame-num {
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--c-accent);
+    letter-spacing: .3px;
+  }
+  .frame-title {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--c-ink);
+    line-height: 1.35;
+  }
+  .frame-note {
+    font-size: 10px;
+    color: var(--c-sub);
+    line-height: 1.4;
+  }
+
+  /* video idea */
+  .video-idea {
+    background: #F9F5EE;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--c-ink);
+    line-height: 1.55;
+    border-left: 3px solid var(--c-accent2);
+  }
+
+  /* google post */
+  .google-post {
+    background: #F2F5FF;
+    border-radius: 10px;
+    padding: 14px;
+    font-size: 13px;
+    color: var(--c-ink);
+    line-height: 1.55;
+    border-left: 3px solid #4A6FD4;
+  }
+  .google-post-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #4A6FD4;
+    margin-bottom: 6px;
+  }
+
+  .copy-hint {
+    font-size: 12px;
+    color: var(--c-sub);
+    text-align: center;
+    padding: 4px 0 0;
+  }
+
+  /* ── Divider between screen sections ── */
+  .section-divider {
+    height: 1px;
+    background: var(--c-line);
+    margin: 0 -4px;
+  }
+
+  @media (min-width: 420px) {
+    body { padding-top: 24px; }
+    .phone {
+      border-radius: 40px;
+      min-height: auto;
+      box-shadow: 0 8px 48px rgba(0,0,0,.15);
+      overflow: hidden;
+    }
+  }
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <!-- TOPBAR -->
+  <div class="topbar">
+    <div>
+      <div class="topbar-wordmark">Moment</div>
+    </div>
+    <div class="topbar-sub">Sichtbarkeit für deinen Salon</div>
+  </div>
+
+  <!-- PROGRESS -->
+  <div class="progress-wrap" id="progress-wrap">
+    <div class="progress-track">
+      <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+    </div>
+    <div class="progress-label" id="progress-label">Schritt 1 von 6</div>
+  </div>
+
+  <!-- ═══════════════════════════════ MAIN SCREEN ═══════════════════════════════ -->
+  <div class="screen active" id="screen-main">
+
+    <!-- 1. Anlass -->
+    <div class="section">
+      <div class="section-label">1 · Anlass</div>
+      <div class="section-q">Worum geht es heute?</div>
+      <div class="chips" id="chips-anlass">
+        <button class="chip" data-val="ausbildung" onclick="selectChip(this,'anlass')">Ausbildung</button>
+        <button class="chip" data-val="team" onclick="selectChip(this,'anlass')">Team</button>
+        <button class="chip" data-val="vertrauen" onclick="selectChip(this,'anlass')">Vertrauen</button>
+        <button class="chip" data-val="salon" onclick="selectChip(this,'anlass')">Besonderes im Salon</button>
+        <button class="chip" data-val="alltag" onclick="selectChip(this,'anlass')">Einblick in den Alltag</button>
+      </div>
+    </div>
+
+    <!-- AUSBILDUNG EXTRA (conditional) -->
+    <div class="ausbildung-extra" id="ausbildung-extra">
+      <div class="extra-label">Nur für Ausbildung</div>
+      <div class="extra-q">Was hat euch heute beim Lernen unterstützt?</div>
+      <div class="chips" id="chips-lernmittel">
+        <button class="chip multi" data-val="quiz" onclick="toggleChip(this,'lernmittel')">Lernquiz-App</button>
+        <button class="chip multi" data-val="uebung" onclick="toggleChip(this,'lernmittel')">Praktische Übung</button>
+        <button class="chip multi" data-val="englisch" onclick="toggleChip(this,'lernmittel')">Englisch im Salon</button>
+        <button class="chip multi" data-val="gespraech" onclick="toggleChip(this,'lernmittel')">Gespräch im Team</button>
+        <button class="chip multi" data-val="checkliste" onclick="toggleChip(this,'lernmittel')">Checkliste</button>
+        <button class="chip multi" data-val="anderes" onclick="toggleChip(this,'lernmittel')">Anderes</button>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 2. Fokus -->
+    <div class="section">
+      <div class="section-label">2 · Fokus</div>
+      <div class="section-q">Wer steht im Mittelpunkt?</div>
+      <div class="chips" id="chips-fokus">
+        <button class="chip" data-val="salon" onclick="selectChip(this,'fokus')">Salon</button>
+        <button class="chip" data-val="mitarbeiterin" onclick="selectChip(this,'fokus')">Mitarbeiter:in</button>
+        <button class="chip" data-val="kundin" onclick="selectChip(this,'fokus')">Kund:in</button>
+        <button class="chip" data-val="ich" onclick="selectChip(this,'fokus')">Ich als Inhaberin</button>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 3. Zielgruppe -->
+    <div class="section">
+      <div class="section-label">3 · Zielgruppe</div>
+      <div class="section-q">Wen wollen wir erreichen?</div>
+      <div class="chips" id="chips-zielgruppe">
+        <button class="chip" data-val="kundinnen" onclick="selectChip(this,'zielgruppe')">Kund:innen</button>
+        <button class="chip" data-val="lehrlinge" onclick="selectChip(this,'zielgruppe')">Lehrlinge</button>
+        <button class="chip" data-val="topstylistinnen" onclick="selectChip(this,'zielgruppe')">Topstylist:innen</button>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 4. Ziel -->
+    <div class="section">
+      <div class="section-label">4 · Ziel</div>
+      <div class="section-q">Was soll es bewirken?</div>
+      <div class="chips" id="chips-ziel">
+        <button class="chip" data-val="vertrauen" onclick="selectChip(this,'ziel')">Vertrauen aufbauen</button>
+        <button class="chip" data-val="interesse" onclick="selectChip(this,'ziel')">Interesse wecken</button>
+        <button class="chip" data-val="anfrage" onclick="selectChip(this,'ziel')">Anfrage auslösen</button>
+        <button class="chip" data-val="einblick" onclick="selectChip(this,'ziel')">Einblick geben</button>
+      </div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 5. Moment -->
+    <div class="section field">
+      <div class="section-label">5 · Der Moment</div>
+      <div class="section-q">Was ist heute konkret passiert?</div>
+      <textarea id="moment-text" placeholder="Kurz und ehrlich reicht völlig." rows="3" oninput="updateProgress()"></textarea>
+      <div class="hint">Zum Beispiel: Lehrling hat etwas Neues gemeistert · Kundin war begeistert · Team hat gemeinsam etwas geschafft · freier Termin entstanden</div>
+    </div>
+
+    <div class="section-divider"></div>
+
+    <!-- 6. Kanäle -->
+    <div class="section">
+      <div class="section-label">6 · Kanäle</div>
+      <div class="section-q">Wo soll es hin?</div>
+      <div class="chips" id="chips-kanaele">
+        <button class="chip multi" data-val="ig-post" onclick="toggleChip(this,'kanaele')">Instagram Post</button>
+        <button class="chip multi" data-val="ig-story" onclick="toggleChip(this,'kanaele')">Instagram Story</button>
+        <button class="chip multi" data-val="facebook" onclick="toggleChip(this,'kanaele')">Facebook</button>
+        <button class="chip multi" data-val="yt-short" onclick="toggleChip(this,'kanaele')">YouTube Short</button>
+        <button class="chip multi" data-val="google" onclick="toggleChip(this,'kanaele')">Google Business</button>
+      </div>
+    </div>
+
+  </div><!-- /screen-main -->
+
+  <!-- ═══════════════════════════════ OUTPUT SCREEN ═══════════════════════════════ -->
+  <div class="screen" id="screen-output">
+
+    <div class="out-header">
+      <div class="out-header-eyebrow">Dein Content-Entwurf</div>
+      <div class="out-header-title" id="out-title">Ausbildung · Instagram</div>
+      <div class="out-header-sub" id="out-sub">Empfohlener Hauptkanal: Instagram Post</div>
+    </div>
+
+    <!-- Feed-Entwurf -->
+    <div class="out-card">
+      <div class="out-card-label">Feed-Entwurf</div>
+      <div class="out-card-title" id="out-feed-hook">„Heute hat sie's selbst gemacht."</div>
+      <div class="out-card-divider"></div>
+      <div class="out-card-body" id="out-feed-body">
+        Unser Lehrling hat heute zum ersten Mal eine Coloration von A bis Z eigenständig durchgeführt – und das Ergebnis spricht für sich. ✨<br><br>
+        Genau das meinen wir, wenn wir sagen: Ausbildung bei uns ist nicht Zuschauen, sondern Machen.<br><br>
+        #Ausbildung #Salon #Friseur #Lehrling #HandwerkMitHerz
+      </div>
+      <div class="out-card-divider"></div>
+      <div class="hint">Bildidee: Stolzes Lächeln, Ergebnis sichtbar — kein perfektes Studio-Foto nötig.</div>
+    </div>
+
+    <!-- Story-Abfolge -->
+    <div class="out-card">
+      <div class="out-card-label">Story-Abfolge</div>
+      <div class="story-frames" id="out-story-frames">
+        <div class="story-frame">
+          <div class="frame-num">Frame 1</div>
+          <div class="frame-title">Neugier wecken</div>
+          <div class="frame-note">Frage oder kurze Aussage, die zum Weiterklicken einlädt</div>
+        </div>
+        <div class="story-frame">
+          <div class="frame-num">Frame 2</div>
+          <div class="frame-title">Der Moment</div>
+          <div class="frame-note">Foto oder kurzes Video vom Geschehen</div>
+        </div>
+        <div class="story-frame">
+          <div class="frame-num">Frame 3</div>
+          <div class="frame-title">Was dahinter steckt</div>
+          <div class="frame-note">Kurzer persönlicher Satz dazu</div>
+        </div>
+        <div class="story-frame">
+          <div class="frame-num">Frame 4</div>
+          <div class="frame-title">Call to Action</div>
+          <div class="frame-note">Link, Frage oder Einladung</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Kurzvideo-Idee -->
+    <div class="out-card">
+      <div class="out-card-label">Kurzvideo-Idee</div>
+      <div class="video-idea" id="out-video">
+        <strong>Format: 30–45 Sek. Reel oder Short</strong><br><br>
+        Zeig den Moment, wie dein Lehrling das Ergebnis zum ersten Mal selbst sieht – Reaktion pur. Kurzer Off-Ton von dir: „Das ist es, wofür wir ausbilden." Kein Skript nötig. Kein Schnitt. Einfach echt.
+      </div>
+    </div>
+
+    <!-- Google Business -->
+    <div class="out-card" id="out-google-card">
+      <div class="out-card-label">Google-Beitragsentwurf</div>
+      <div class="google-post">
+        <div class="google-post-label">Google Business · Aktuelles</div>
+        <span id="out-google-body">Wir bilden aus – mit echtem Engagement und modernen Lernmethoden. Heute hat unser Nachwuchs wieder etwas Neues gemeistert. Wenn du Freude am Handwerk hast und Teil unseres Teams werden möchtest: Wir freuen uns auf deine Nachricht.</span>
+      </div>
+    </div>
+
+    <div class="copy-hint">Alle Texte sind Entwürfe — pass sie einfach an deine Stimme an.</div>
+
+  </div><!-- /screen-output -->
+
+  <!-- CTA sticky -->
+  <div class="cta-wrap" id="cta-wrap">
+    <button class="btn-primary" id="btn-generate" onclick="generateOutput()" disabled>
+      Entwurf erstellen →
+    </button>
+  </div>
+
+  <!-- Output CTA -->
+  <div class="cta-wrap" id="cta-output-wrap" style="display:none;">
+    <button class="btn-primary" onclick="copyAll()">Texte kopieren</button>
+    <button class="btn-ghost" onclick="resetFlow()">Neuer Moment</button>
+  </div>
+
+</div><!-- /phone -->
+
+<script>
+  // ── State ──
+  const state = {
+    anlass: null,
+    fokus: null,
+    zielgruppe: null,
+    ziel: null,
+    lernmittel: new Set(),
+    kanaele: new Set(),
+  };
+
+  // ── Single-select chip ──
+  function selectChip(el, group) {
+    document.querySelectorAll(`#chips-${group} .chip`).forEach(c => c.classList.remove('on'));
+    el.classList.add('on');
+    state[group] = el.dataset.val;
+
+    if (group === 'anlass') {
+      const extra = document.getElementById('ausbildung-extra');
+      if (state.anlass === 'ausbildung') extra.classList.add('visible');
+      else extra.classList.remove('visible');
+    }
+    updateProgress();
+  }
+
+  // ── Multi-select chip ──
+  function toggleChip(el, group) {
+    const key = group === 'kanaele' ? 'kanaele' : 'lernmittel';
+    if (el.classList.contains('on')) {
+      el.classList.remove('on');
+      state[key].delete(el.dataset.val);
+    } else {
+      el.classList.add('on');
+      state[key].add(el.dataset.val);
+    }
+    updateProgress();
+  }
+
+  // ── Progress ──
+  function updateProgress() {
+    const required = ['anlass','fokus','zielgruppe','ziel'];
+    const filled = required.filter(k => state[k]).length;
+    const hasText = document.getElementById('moment-text').value.trim().length > 2;
+    const hasKanal = state.kanaele.size > 0;
+    const total = 6;
+    const done = filled + (hasText ? 1 : 0) + (hasKanal ? 1 : 0);
+    const pct = Math.round((done / total) * 100);
+
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `${done} von ${total} Angaben`;
+
+    const allDone = filled === 4 && hasText && hasKanal;
+    document.getElementById('btn-generate').disabled = !allDone;
+  }
+
+  // ── Generate output ──
+  function generateOutput() {
+    buildOutput();
+    document.getElementById('screen-main').classList.remove('active');
+    document.getElementById('screen-output').classList.add('active');
+    document.getElementById('cta-wrap').style.display = 'none';
+    document.getElementById('cta-output-wrap').style.display = 'block';
+    document.getElementById('progress-wrap').style.display = 'none';
+    window.scrollTo(0,0);
+  }
+
+  // ── Build output content ──
+  function buildOutput() {
+    const a = state.anlass;
+    const f = state.fokus;
+    const z = state.zielgruppe;
+    const ziel = state.ziel;
+    const text = document.getElementById('moment-text').value.trim();
+    const kanaele = [...state.kanaele];
+    const lernmittel = [...state.lernmittel];
+
+    // Recommend main channel
+    let hauptkanal = 'Instagram Post';
+    if (kanaele.includes('ig-story') && !kanaele.includes('ig-post')) hauptkanal = 'Instagram Story';
+    if (z === 'lehrlinge') hauptkanal = 'Instagram Post';
+    if (z === 'kundinnen' && kanaele.includes('google')) hauptkanal = 'Google Business';
+
+    // Title
+    const anlassLabel = {
+      ausbildung: 'Ausbildung', team: 'Team', vertrauen: 'Vertrauen',
+      salon: 'Salon', alltag: 'Alltagsmoment'
+    };
+    document.getElementById('out-title').textContent = `${anlassLabel[a] || 'Salon'} · Content-Entwurf`;
+    document.getElementById('out-sub').textContent = `Empfohlener Hauptkanal: ${hauptkanal}`;
+
+    // Feed content
+    const feedData = buildFeed(a, f, z, ziel, text, lernmittel);
+    document.getElementById('out-feed-hook').textContent = feedData.hook;
+    document.getElementById('out-feed-body').innerHTML = feedData.body;
+
+    // Story frames
+    const frames = buildStoryFrames(a, f, z, text, lernmittel);
+    const framesEl = document.getElementById('out-story-frames');
+    framesEl.innerHTML = frames.map((fr, i) =>
+      `<div class="story-frame">
+        <div class="frame-num">Frame ${i+1}</div>
+        <div class="frame-title">${fr.title}</div>
+        <div class="frame-note">${fr.note}</div>
+      </div>`
+    ).join('');
+
+    // Video
+    document.getElementById('out-video').innerHTML = buildVideo(a, f, text, lernmittel);
+
+    // Google
+    document.getElementById('out-google-body').textContent = buildGoogle(a, z, text, lernmittel);
+
+    // Hide google card if not selected
+    document.getElementById('out-google-card').style.display = kanaele.includes('google') ? 'flex' : 'none';
+  }
+
+  function buildFeed(a, f, z, ziel, text, lernmittel) {
+    const hasQuiz = lernmittel.includes('quiz');
+
+    if (a === 'ausbildung') {
+      const quizHint = hasQuiz ? ' Wir nutzen moderne Tools, damit Lernen auch wirklich Spaß macht.' : '';
+      return {
+        hook: text.length > 10 ? `„${text.slice(0,60)}${text.length>60?'…':''}"` : '„Heute hat sie's selbst gemacht."',
+        body: `${text || 'Unser Lehrling hat heute etwas Neues selbstständig gemeistert – und das sieht man ihr an.'} ✨<br><br>Genau das verstehen wir unter Ausbildung: nicht Zuschauen, sondern Machen.${quizHint}<br><br>#Ausbildung #Friseur #Lehrling #HandwerkMitZukunft`
+      };
+    }
+    if (a === 'team') {
+      return {
+        hook: '„Das Team macht den Unterschied."',
+        body: `${text || 'Heute haben wir gemeinsam angepackt – und das Ergebnis zeigt, was möglich ist, wenn man füreinander da ist.'}<br><br>Wir sind stolz auf das, was wir hier zusammen aufgebaut haben. 💚<br><br>#TeamWork #Salon #Zusammenhalt`
+      };
+    }
+    if (a === 'vertrauen') {
+      return {
+        hook: '„Vertrauen entsteht nicht durch Worte."',
+        body: `${text || 'Eine Kundin kommt seit Jahren zu uns – nicht weil wir günstig sind, sondern weil sie weiß, dass sie sich auf uns verlassen kann.'}<br><br>Das ist es, wofür wir jeden Tag arbeiten.<br><br>#Vertrauen #Salon #Stammkunde`
+      };
+    }
+    return {
+      hook: '„Ein Moment, der bleibt."',
+      body: `${text || 'Kleine Momente machen den Unterschied. Heute war so einer.'}<br><br>#Salon #Alltag #Handwerk`
+    };
+  }
+
+  function buildStoryFrames(a, f, z, text, lernmittel) {
+    if (a === 'ausbildung') {
+      return [
+        { title: 'Hook', note: 'Frage: „Was macht gute Ausbildung aus?" — weiß auf tiefgrünem Hintergrund' },
+        { title: 'Der Moment', note: 'Dein Foto oder kurzer Clip vom heutigen Tag' },
+        { title: 'Dein Satz dazu', note: `„${text.slice(0,50)||'Heute hat unser Lehrling etwas Neues gemeistert.'}"` },
+        { title: 'Was dahinter steckt', note: lernmittel.includes('quiz') ? 'Wir arbeiten mit modernen Tools – auch App-gestützt.' : 'Lernen durch Tun – das ist unser Ansatz.' },
+        { title: 'Call to Action', note: 'Ausbildungsplatz verfügbar? Link in Bio oder Swipe Up.' }
+      ];
+    }
+    if (a === 'team') {
+      return [
+        { title: 'Teaser', note: '„Schau mal, was heute passiert ist…"' },
+        { title: 'Der Moment', note: 'Foto oder Clip vom Team-Moment' },
+        { title: 'Persönlicher Ton', note: `„${text.slice(0,50)||'Wir haben heute gemeinsam angepackt.'}"` },
+        { title: 'Abschluss', note: 'Team-Foto oder persönliche Aussage' }
+      ];
+    }
+    return [
+      { title: 'Aufmerksamkeit', note: 'Starke Eröffnung — eine Frage oder Aussage' },
+      { title: 'Der Moment', note: 'Foto oder kurzer Clip' },
+      { title: 'Kontext', note: `„${text.slice(0,50)||'Das ist unser Alltag.'}"` },
+      { title: 'Einladung', note: 'Kommentiere, frage, schreib uns.' }
+    ];
+  }
+
+  function buildVideo(a, f, text, lernmittel) {
+    if (a === 'ausbildung') {
+      const quizPart = lernmittel.includes('quiz') ? ' Du kannst kurz zeigen, wie ihr mit der Lernquiz-App gearbeitet habt – natürlich, nicht wie Werbung.' : '';
+      return `<strong>Format: 30–45 Sek. Reel</strong><br><br>Zeig den Moment pur – wie dein Lehrling das Ergebnis das erste Mal sieht.${quizPart} Dein Off-Ton: „${text.slice(0,60)||'Das ist es, wofür wir ausbilden.'}" Kein Skript, kein Schnitt. Einfach echt.`;
+    }
+    if (a === 'team') {
+      return `<strong>Format: 20–30 Sek. Reel</strong><br><br>Kurze Montage aus dem heutigen Tag – Gesten, Lachen, echte Momente. Kein Kommentar nötig. Musik reicht.`;
+    }
+    return `<strong>Format: 30 Sek. Reel</strong><br><br>${text ? `Dreh kurz, was du gerade beschrieben hast: „${text.slice(0,60)}". ` : ''}Ein echtes Bild, dein echter Ton. Mehr braucht es nicht.`;
+  }
+
+  function buildGoogle(a, z, text, lernmittel) {
+    if (a === 'ausbildung') {
+      const quiz = lernmittel.includes('quiz') ? ' Wir setzen auf moderne Lernmethoden – digital und praktisch.' : '';
+      return `Wir bilden aus – mit echtem Engagement und Freude am Handwerk.${quiz} ${text ? text + ' ' : ''}Interesse an einem Ausbildungsplatz? Wir freuen uns auf deine Nachricht.`;
+    }
+    return `${text || 'Kleiner Einblick aus unserem Salon-Alltag.'} Du möchtest mehr erfahren oder einen Termin vereinbaren? Ruf uns an oder schreib uns – wir freuen uns.`;
+  }
+
+  // ── Copy all ──
+  function copyAll() {
+    const feed = document.getElementById('out-feed-hook').textContent + '\n\n' + document.getElementById('out-feed-body').innerText;
+    const google = document.getElementById('out-google-body').textContent;
+    navigator.clipboard?.writeText(feed + '\n\n---\nGoogle Business:\n' + google);
+
+    const btn = document.querySelector('#cta-output-wrap .btn-primary');
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => btn.textContent = 'Texte kopieren', 2000);
+  }
+
+  // ── Reset ──
+  function resetFlow() {
+    // reset state
+    state.anlass = null; state.fokus = null; state.zielgruppe = null; state.ziel = null;
+    state.lernmittel = new Set(); state.kanaele = new Set();
+    document.querySelectorAll('.chip').forEach(c => c.classList.remove('on'));
+    document.getElementById('moment-text').value = '';
+    document.getElementById('ausbildung-extra').classList.remove('visible');
+
+    document.getElementById('screen-output').classList.remove('active');
+    document.getElementById('screen-main').classList.add('active');
+    document.getElementById('cta-wrap').style.display = 'block';
+    document.getElementById('cta-output-wrap').style.display = 'none';
+    document.getElementById('progress-wrap').style.display = 'block';
+    document.getElementById('btn-generate').disabled = true;
+    updateProgress();
+    window.scrollTo(0,0);
+  }
+
+  updateProgress();
+</script>
+</body>
+</html>

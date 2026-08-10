@@ -143,6 +143,14 @@ textarea{resize:none;}
 .divider{height:1px;background:var(--line);}
 .sec-head{font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;}
 
+/* Video Checkliste */
+.video-shot{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-bottom:1px solid var(--line);}
+.video-shot:last-child{border-bottom:none;}
+.video-shot-num{background:#816a3c;color:#fff;font-size:10px;font-weight:700;border-radius:50%;width:20px;height:20px;display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:1px;}
+.video-shot-text{font-size:13px;color:var(--ink);line-height:1.5;}
+.video-shot-time{font-size:10px;color:#816a3c;font-weight:700;}
+.video-tip{font-size:12px;color:var(--sub);margin-top:8px;padding-top:8px;border-top:1px solid var(--line);font-style:italic;line-height:1.5;}
+
 /* Wochenplan */
 .week-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:5px;}
 .day-col{display:flex;flex-direction:column;gap:4px;align-items:center;}
@@ -309,9 +317,23 @@ textarea{resize:none;}
       <div class="card-sub">Di–Fr zwischen 11–12 Uhr oder 19–20 Uhr. Nie am Montag.</div>
     </div>
 
+    <div class="card" id="res-hashtag-card">
+      <div class="card-tag">Hashtags</div>
+      <div id="res-hashtags" style="font-size:13px;color:var(--accent);line-height:1.8;margin-top:4px;"></div>
+      <div style="display:flex;gap:8px;margin-top:10px;">
+        <button class="copy-btn" id="btn-copy-hashtags" onclick="copyHashtags()">&#x1F4CB; Hashtags kopieren</button>
+        <button class="share-btn" onclick="shareHashtags()">&#x1F4CB; + Instagram</button>
+      </div>
+    </div>
+
+    <div class="card" id="res-video-card" style="background:#F5F3EF;border-left:3px solid #816a3c;">
+      <div class="card-tag" style="color:#816a3c;">🎬 Video-Idee für Reels</div>
+      <div id="res-video" style="margin-top:6px;"></div>
+    </div>
+
     <div style="display:flex;gap:8px;">
       <button class="btn" style="flex:1" onclick="copyPost()">&#x1F4CB; Kopieren</button>
-      <button class="btn" style="flex:1;background:#1C1C1C;" onclick="sharePost()">&#x1F4E4; Teilen#x1F4CB; + Instagram</button>
+      <button class="btn" style="flex:1;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);" onclick="sharePost()">&#x1F4CB; + Instagram</button>
       <button class="btn-ghost" style="flex:1" onclick="favPost()">&#x2B50; Speichern</button>
     </div>
     <button class="btn-ghost" onclick="generatePost()">&#x21BA; Neue Variante</button>
@@ -750,6 +772,7 @@ const POST={
 };
 
 let lastPost=null;
+let lastHashtags='';
 function generatePost(){
   const m=document.getElementById('post-moment').value.trim();
   if(!m) return;
@@ -762,6 +785,12 @@ function generatePost(){
   document.getElementById('res-cta').textContent=lastPost.cta;
   document.getElementById('res-bild').textContent=lastPost.bild;
   updateFotoSlot();
+  // Hashtags & Video generieren
+  lastHashtags = generateHashtags(m, ton, wer);
+  document.getElementById('res-hashtags').innerHTML = lastHashtags.split(' ').map(h=>
+    `<span style="color:var(--accent);margin-right:4px;">${h}</span>`
+  ).join('');
+  renderVideoChecklist(m, wer);
   const r=document.getElementById('post-result');
   r.style.display='flex';r.style.flexDirection='column';r.style.gap='12px';
   r.scrollIntoView({behavior:'smooth',block:'start'});
@@ -780,6 +809,116 @@ function sharePost(){
   if(!lastPost) return;
   const t=lastPost.hook+'\n\n'+lastPost.body+'\n\n'+lastPost.cta;
   shareOrCopyText('Mein Instagram-Post', t);
+}
+function copyHashtags(){
+  if(!lastHashtags) return;
+  const btn=document.getElementById('btn-copy-hashtags');
+  navigator.clipboard&&navigator.clipboard.writeText(lastHashtags);
+  btn.textContent='Kopiert ✓'; btn.classList.add('done');
+  setTimeout(()=>{btn.textContent='📋 Hashtags kopieren';btn.classList.remove('done');},2000);
+}
+function shareHashtags(){
+  if(!lastHashtags) return;
+  shareOrCopyText('Hashtags', lastHashtags);
+}
+
+// ── HASHTAGS ──
+function generateHashtags(moment, ton, wer) {
+  // Basis-Tags immer dabei
+  const basis = ['#GreatHairDay', '#greathairday_at', '#MirjamWalenta'];
+
+  // Wien & Lokal
+  const wien = ['#Wien', '#Wien1050', '#Margareten', '#FriseurWien', '#HairstylistWien', '#SalonWien'];
+
+  // Nischen nach Zielgruppe
+  const nischeMap = {
+    kundinnen: ['#Stammkunden', '#Vertrauen', '#FriseurDesVertrauens', '#HairCare', '#EchterMoment'],
+    neu:       ['#NeueKunden', '#FriseurTermin', '#HairstyleVienna', '#HairTransformation', '#JetztTerminBuchen'],
+    lehrlinge: ['#Ausbildung', '#Lehrling', '#FriseurLehrling', '#HandwerkMitZukunft', '#AusbildungWien', '#Nachwuchs'],
+    branche:   ['#Friseurbranche', '#Handwerk', '#Meisterin', '#Friseurmeisterin', '#Österreich', '#HairPro'],
+  };
+
+  // Tonalitäts-Tags
+  const tonMap = {
+    nahbar:      ['#EchterMoment', '#Authentisch', '#MenschenHinterDenHaaren'],
+    stolz:       ['#ProudMoment', '#Qualität', '#HandwerkMitHerz'],
+    nachdenklich:['#Nachdenklich', '#MehrAlsNurHaare', '#Haltung'],
+    direkt:      ['#Klartext', '#EhrlicheBeratung', '#KeinMarketing'],
+  };
+
+  // Keyword-Tags aus dem Moment ableiten
+  const keywordTags = [];
+  const m = moment.toLowerCase();
+  if(m.includes('balayage'))   keywordTags.push('#Balayage', '#BalayageWien');
+  if(m.includes('schnitt'))    keywordTags.push('#Haarschnitt', '#Haircut');
+  if(m.includes('farbe') || m.includes('färb')) keywordTags.push('#Haarfarbe', '#HairColor', '#ColorMelt');
+  if(m.includes('ronya'))      keywordTags.push('#Lehrlingsstolz', '#NächsteGeneration');
+  if(m.includes('mazen'))      keywordTags.push('#TeamWork', '#SalonTeam');
+  if(m.includes('kundin') || m.includes('kunde')) keywordTags.push('#Kundenzufriedenheit', '#HappyClient');
+  if(m.includes('locken'))     keywordTags.push('#Locken', '#CurlyHair', '#CurlyGirl');
+  if(m.includes('pflege'))     keywordTags.push('#Haarpflege', '#HealthyHair');
+  if(m.includes('hochzeit') || m.includes('braut')) keywordTags.push('#Hochzeitsfrisur', '#BridalHair', '#Braut');
+
+  // Zusammenbauen: Basis + Wien (3) + Nische (4) + Ton (2) + Keywords (max 3) = ~14–17 Tags
+  const nische = (nischeMap[wer] || nischeMap.kundinnen).slice(0,4);
+  const tonTags = (tonMap[ton] || tonMap.nahbar).slice(0,2);
+  const wienSel = wien.slice(0,3);
+  const kwSel = keywordTags.slice(0,3);
+
+  const all = [...basis, ...wienSel, ...nische, ...tonTags, ...kwSel];
+  // Duplikate entfernen
+  return [...new Set(all)].join(' ');
+}
+
+// ── VIDEO CHECKLISTE ──
+const VIDEO_SHOTS = {
+  kundinnen: m => [
+    {sek:'3 Sek', text:'Nahaufnahme der Hände bei der Arbeit — von oben, warmes Licht'},
+    {sek:'5 Sek', text: m.length > 20 ? `Dein Gesicht während: "${m.slice(0,40)}..." — ruhig, nichts sagen` : 'Dein Gesicht beim Arbeiten — authentisch, keine Pose'},
+    {sek:'4 Sek', text:'Das fertige Ergebnis am Haar — Licht von der Seite, kein Filter nötig'},
+    {sek:'3 Sek', text:'Kundin im Spiegel — ihr echtes Gesicht, wenn sie sich sieht'},
+  ],
+  neu: m => [
+    {sek:'3 Sek', text:'Eingang oder Empfang des Salons — einladend, Licht an'},
+    {sek:'4 Sek', text:'Du beim Beratungsgespräch — zuhören, Blickkontakt'},
+    {sek:'5 Sek', text:'Hände bei der Arbeit — Nahaufnahme, langsame Bewegung'},
+    {sek:'3 Sek', text:'Fertig — Kundin lächelt, kein Wort nötig'},
+  ],
+  lehrlinge: m => [
+    {sek:'3 Sek', text:'Lehrling bei der Arbeit — konzentriertes Gesicht, nah'},
+    {sek:'4 Sek', text:'Deine Hand neben der Lehrlings-Hand — zeigen, nicht korrigieren'},
+    {sek:'5 Sek', text: m.length > 20 ? `Der Moment: "${m.slice(0,45)}..." — echt, ungeplant` : 'Der echte Moment — nicht neu inszenieren'},
+    {sek:'3 Sek', text:'Lehrling schaut in den Spiegel auf das Ergebnis — Stolz sichtbar machen'},
+  ],
+  branche: m => [
+    {sek:'5 Sek', text:'Du sprichst direkt in die Kamera — ruhig, ohne Skript, 1 Satz'},
+    {sek:'4 Sek', text:'Salon-Atmosphäre: Team bei der Arbeit, Totale'},
+    {sek:'3 Sek', text:'Detail-Shot: Werkzeug, Produkte, Hände — was Handwerk bedeutet'},
+    {sek:'4 Sek', text:'Abschluss: Du nochmal, Blick in die Kamera, kurze Pause — dann Schnitt'},
+  ],
+};
+const VIDEO_TIPS = {
+  nahbar:      'Kein Musik-Trend. Stille oder Salon-Geräusche — das wirkt echter als jeder Beat.',
+  stolz:       'Kein Kommentar beim Filmen. Der Moment spricht für sich — Text kommt in die Caption.',
+  nachdenklich:'Langsame Schnitte. Lieber 3 ruhige Shots als 10 hektische.',
+  direkt:      'Erste Sekunde entscheidet. Fang mit dem stärksten Bild an, nicht mit dem Intro.',
+};
+
+function renderVideoChecklist(moment, wer) {
+  const ton = S.postton || 'nahbar';
+  const shots = (VIDEO_SHOTS[wer] || VIDEO_SHOTS.kundinnen)(moment);
+  const tip = VIDEO_TIPS[ton] || VIDEO_TIPS.nahbar;
+  document.getElementById('res-video').innerHTML =
+    shots.map((s,i) => `
+      <div class="video-shot">
+        <div class="video-shot-num">${i+1}</div>
+        <div>
+          <div class="video-shot-time">${s.sek}</div>
+          <div class="video-shot-text">${s.text}</div>
+        </div>
+      </div>`
+    ).join('') +
+    `<div class="video-tip">💡 ${tip}</div>`;
 }
 
 // ── STORY ──

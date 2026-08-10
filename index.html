@@ -288,6 +288,11 @@ textarea{resize:none;}
   <div id="post-result" style="display:none;flex-direction:column;gap:12px;">
     <div class="sec-head">Dein Instagram-Post</div>
 
+    <div id="post-erlebnis-badge" style="display:none;background:#EEF4F1;border-radius:10px;padding:10px 14px;border-left:3px solid var(--accent);">
+      <div style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">✨ Erlebnis erkannt</div>
+      <div style="font-size:13px;color:var(--sub);margin-top:3px;line-height:1.4;">Text klingt nach einem persönlichen Moment — die App hat automatisch ein passendes Erlebnis-Template gewählt.</div>
+    </div>
+
     <div class="post-preview-card">
       <div class="post-ig-bar">
         <div class="post-avatar">M</div>
@@ -771,26 +776,83 @@ const POST={
   }
 };
 
+// ── ERLEBNIS-ERKENNUNG ──
+const ERLEBNIS_KEYWORDS = [
+  'museum','ausflug','urlaub','reise','wandern','essen','restaurant','café','cafe',
+  'kino','theater','konzert','markt','messe','spaziergang','strand','see','berg',
+  'wien','wochenende','freizeit','hobby','yoga','pilates','sport','training',
+  'freundin','familie','tochter','sohn','hund','garten','kochen','backen',
+  'illusion','natur','park','festival','event','veranstaltung','besuch','trip'
+];
+
+function detectErlebnis(text) {
+  const lower = text.toLowerCase();
+  return ERLEBNIS_KEYWORDS.some(kw => lower.includes(kw));
+}
+
+// ── ERLEBNIS POST TEMPLATES ──
+const ERLEBNIS_POST = {
+  nahbar: m => ({
+    hook: `Manchmal braucht man einfach einen Moment nur für sich.`,
+    body: `${m}\n\nIch glaube, das ist auch das Geheimnis hinter guter Arbeit: Man muss selbst auftanken, um anderen Energie geben zu können.\n\nNach ${m.split(' ').slice(0,4).join(' ')}... bin ich einfach ausgeglichener. Und das spüren auch meine Kund:innen.\n\nWas tut euch gut um den Kopf freizubekommen? Ich bin neugierig. 👇\n\n#GreatHairDay #MirjamWalenta #Wien #Ausgleich #MehrAlsNurHaare`,
+    cta: `Termin buchen wenn ihr einen Moment für euch braucht: Link in Bio.`,
+    bild: `Du im Moment — echt, entspannt, kein Salon-Kontext nötig.`
+  }),
+  stolz: m => ({
+    hook: `Außerhalb des Salons bin ich auch einfach nur Mensch.`,
+    body: `${m}\n\nNach 33 Jahren im Beruf weiß ich: Die besten Ideen kommen nicht im Salon. Sie kommen wenn man rausgeht, erlebt, staunt.\n\nDas bringt man dann mit — in die Arbeit, in die Gespräche, in den Salon.\n\n#GreatHairDay #MirjamWalenta #Wien #Leben #Inspiration`,
+    cta: `Rechte Wienzeile 47, 1050 Wien.`,
+    bild: `Du im Erlebnis — natürlich, ungestellt.`
+  }),
+  nachdenklich: m => ({
+    hook: `Was man außerhalb der Arbeit erlebt, bringt man mit hinein.`,
+    body: `${m}\n\nIch finde, das macht einen guten Friseur aus — nicht nur Technik. Auch Neugier. Offenheit. Das Interesse an der Welt.\n\nMeine Kund:innen spüren das. Und ich glaube, genau das ist der Unterschied zwischen einem Termin und einem Erlebnis.\n\n#GreatHairDay #MirjamWalenta #Nachdenklich #Wien`,
+    cta: `Was erlebt ihr gerade? Schreibt mir.`,
+    bild: `Moment aus dem Erlebnis — Stimmung einfangen, nicht inszenieren.`
+  }),
+  direkt: m => ({
+    hook: `Auch ich lebe nicht nur im Salon.`,
+    body: `${m}\n\nWer denkt, Handwerk bedeutet nur arbeiten — irrt sich. Gute Arbeit braucht Abstand. Erlebnisse. Momente die nichts mit Scheren und Farben zu tun haben.\n\nDas macht mich zu einer besseren Friseurin. Ehrlich.\n\n#GreatHairDay #MirjamWalenta #Wien #Klartext`,
+    cta: `Termin: Link in Bio.`,
+    bild: `Du — direkt, echt, im Moment.`
+  }),
+};
+
 let lastPost=null;
 let lastHashtags='';
+let lastIsErlebnis=false;
+
 function generatePost(){
   const m=document.getElementById('post-moment').value.trim();
   if(!m) return;
   const ton=S.postton||'nahbar';
   const wer=S.postwer||'kundinnen';
-  const tpl=(POST[ton]&&POST[ton][wer])||POST.nahbar.kundinnen;
-  lastPost=tpl(m);
+
+  // Erlebnis erkennen
+  lastIsErlebnis = detectErlebnis(m);
+
+  if(lastIsErlebnis) {
+    // Erlebnis-Modus: Zielgruppe ignorieren, Erlebnis-Template nehmen
+    const tpl = ERLEBNIS_POST[ton] || ERLEBNIS_POST.nahbar;
+    lastPost = tpl(m);
+    // Erlebnis-Badge zeigen
+    document.getElementById('post-erlebnis-badge').style.display='block';
+  } else {
+    document.getElementById('post-erlebnis-badge').style.display='none';
+    const tpl=(POST[ton]&&POST[ton][wer])||POST.nahbar.kundinnen;
+    lastPost=tpl(m);
+  }
+
   document.getElementById('res-hook').textContent=lastPost.hook;
   document.getElementById('res-body').textContent=lastPost.body;
   document.getElementById('res-cta').textContent=lastPost.cta;
   document.getElementById('res-bild').textContent=lastPost.bild;
   updateFotoSlot();
-  // Hashtags & Video generieren
-  lastHashtags = generateHashtags(m, ton, wer);
+  lastHashtags = generateHashtags(m, ton, lastIsErlebnis ? 'erlebnis' : wer);
   document.getElementById('res-hashtags').innerHTML = lastHashtags.split(' ').map(h=>
     `<span style="color:var(--accent);margin-right:4px;">${h}</span>`
   ).join('');
-  renderVideoChecklist(m, wer);
+  renderVideoChecklist(m, lastIsErlebnis ? 'erlebnis' : wer);
   const r=document.getElementById('post-result');
   r.style.display='flex';r.style.flexDirection='column';r.style.gap='12px';
   r.scrollIntoView({behavior:'smooth',block:'start'});
@@ -836,6 +898,7 @@ function generateHashtags(moment, ton, wer) {
     neu:       ['#NeueKunden', '#FriseurTermin', '#HairstyleVienna', '#HairTransformation', '#JetztTerminBuchen'],
     lehrlinge: ['#Ausbildung', '#Lehrling', '#FriseurLehrling', '#HandwerkMitZukunft', '#AusbildungWien', '#Nachwuchs'],
     branche:   ['#Friseurbranche', '#Handwerk', '#Meisterin', '#Friseurmeisterin', '#Österreich', '#HairPro'],
+    erlebnis:  ['#MehrAlsNurHaare', '#AuchNurMensch', '#Ausgleich', '#Inspiration', '#LebenUndArbeit'],
   };
 
   // Tonalitäts-Tags
@@ -858,6 +921,14 @@ function generateHashtags(moment, ton, wer) {
   if(m.includes('locken'))     keywordTags.push('#Locken', '#CurlyHair', '#CurlyGirl');
   if(m.includes('pflege'))     keywordTags.push('#Haarpflege', '#HealthyHair');
   if(m.includes('hochzeit') || m.includes('braut')) keywordTags.push('#Hochzeitsfrisur', '#BridalHair', '#Braut');
+  // Erlebnis-Keywords
+  if(wer === 'erlebnis') {
+    if(m.includes('museum'))   keywordTags.push('#Wien', '#MuseumWien', '#WienerLeben');
+    if(m.includes('essen') || m.includes('restaurant')) keywordTags.push('#EssenGehen', '#WienerKüche', '#FoodVienna');
+    if(m.includes('wandern') || m.includes('natur')) keywordTags.push('#Wandern', '#Österreich', '#Natur');
+    if(m.includes('yoga') || m.includes('pilates') || m.includes('sport')) keywordTags.push('#Pilates', '#Wohlbefinden', '#MindBody');
+    if(m.includes('urlaub') || m.includes('reise')) keywordTags.push('#Urlaub', '#Reisen', '#Auszeit');
+  }
 
   // Zusammenbauen: Basis + Wien (3) + Nische (4) + Ton (2) + Keywords (max 3) = ~14–17 Tags
   const nische = (nischeMap[wer] || nischeMap.kundinnen).slice(0,4);
@@ -895,6 +966,12 @@ const VIDEO_SHOTS = {
     {sek:'4 Sek', text:'Salon-Atmosphäre: Team bei der Arbeit, Totale'},
     {sek:'3 Sek', text:'Detail-Shot: Werkzeug, Produkte, Hände — was Handwerk bedeutet'},
     {sek:'4 Sek', text:'Abschluss: Du nochmal, Blick in die Kamera, kurze Pause — dann Schnitt'},
+  ],
+  erlebnis: m => [
+    {sek:'3 Sek', text:'Du im Erlebnis — echt, entspannt, kein Salon-Kontext'},
+    {sek:'4 Sek', text:'Ein Detail das dich beeindruckt hat — nah, langsam'},
+    {sek:'3 Sek', text:'Du schaust in die Kamera, sagst nichts — der Moment spricht'},
+    {sek:'4 Sek', text:'Abschluss: Totale oder Umgebung — zeig wo du bist'},
   ],
 };
 const VIDEO_TIPS = {

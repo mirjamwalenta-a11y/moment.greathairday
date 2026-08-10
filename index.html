@@ -184,6 +184,13 @@ textarea{resize:none;}
   body{padding-top:20px;}
   .phone{border-radius:36px;min-height:auto;box-shadow:0 8px 40px rgba(0,0,0,.13);overflow:hidden;}
 }
+
+/* ── HEUTE / GROWTH DASHBOARD ── */
+.today-hero{background:var(--accent);color:#fff;border-radius:18px;padding:20px;box-shadow:0 5px 18px rgba(46,93,75,.22);}
+.today-hero .card-tag{color:#DDEBE4;margin-bottom:8px}.today-hero .card-title{color:#fff;font-size:21px}.today-hero .card-sub{color:#E8F0EC}
+.today-date{font-size:11px;font-weight:600;opacity:.8;margin-bottom:7px;text-transform:uppercase;letter-spacing:.5px}
+.goal-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.goal-card{background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:14px;cursor:pointer;transition:all .15s}.goal-card:active{transform:scale(.98);border-color:var(--accent)}.goal-icon{font-size:22px;margin-bottom:8px}.goal-title{font-size:13px;font-weight:700;line-height:1.3}.goal-sub{font-size:10px;color:var(--sub);line-height:1.4;margin-top:4px}
+.today-task{display:flex;gap:11px;align-items:flex-start;padding:12px 0;border-bottom:1px solid var(--line)}.today-task:last-child{border-bottom:none}.task-num{width:24px;height:24px;border-radius:50%;background:var(--chip);color:var(--accent);font-size:11px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0}.task-title{font-size:13px;font-weight:700}.task-sub{font-size:11px;color:var(--sub);line-height:1.45;margin-top:3px}.today-kpi{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.kpi{background:var(--surface);border-radius:12px;padding:12px;text-align:center}.kpi-num{font-size:18px;font-weight:700;color:var(--accent)}.kpi-label{font-size:9px;color:var(--sub);margin-top:2px;text-transform:uppercase;letter-spacing:.3px}.goal-badge{display:inline-block;margin-top:10px;background:#EEF4F1;color:var(--accent);font-size:10px;font-weight:700;padding:5px 8px;border-radius:20px}
 </style>
 </head>
 <body>
@@ -198,15 +205,96 @@ textarea{resize:none;}
 </div>
 
 <div class="tabnav">
-  <button class="tab active" onclick="showTab('hook')">&#x1F3AF; Hook</button>
-  <button class="tab" onclick="showTab('post')">&#x270D; Post</button>
-  <button class="tab" onclick="showTab('story')">&#x1F4F1; Story</button>
-  <button class="tab" onclick="showTab('ideen')">&#x1F4A1; Ideen</button>
+  <button class="tab active" onclick="showTab('heute')">&#x2600;&#xFE0F; Heute</button>
+  <button class="tab" onclick="showTab('ziele')">&#x1F3AF; Ziele</button>
+  <button class="tab" onclick="showTab('inhalte')">&#x2728; Inhalte</button>
   <button class="tab" onclick="showTab('plan')">&#x1F4C5; Plan</button>
+  <button class="tab" onclick="showTab('ideen')">&#x1F4A1; Mehr</button>
+</div>
+
+<!-- ══ HEUTE ══ -->
+<div class="screen active" id="screen-heute">
+  <div class="today-hero">
+    <div class="today-date" id="today-date"></div>
+    <div class="card-tag">Dein Salon heute</div>
+    <div class="card-title">Was möchtest du heute erreichen?</div>
+    <div class="card-sub">Wähle ein Ziel. Reichweite macht daraus konkrete Schritte statt nur einen weiteren Post.</div>
+    <div class="goal-badge" id="today-goal-badge" style="display:none"></div>
+  </div>
+
+  <div class="sec-head">Schnellstart</div>
+  <div class="goal-grid">
+    <div class="goal-card" onclick="selectTodayGoal('neukunden')"><div class="goal-icon">&#x1F465;</div><div class="goal-title">Neue Kund:innen</div><div class="goal-sub">Mehr Anfragen von Menschen, die euch noch nicht kennen.</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('termine')"><div class="goal-icon">&#x1F4C5;</div><div class="goal-title">Freie Termine</div><div class="goal-sub">Kurzfristige Lücken sichtbar machen und füllen.</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('stammkunden')"><div class="goal-icon">&#x2764;&#xFE0F;</div><div class="goal-title">Stammkund:innen</div><div class="goal-sub">Menschen zurückholen und Beziehungen stärken.</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('leistung')"><div class="goal-icon">&#x1F4B0;</div><div class="goal-title">Leistung pushen</div><div class="goal-sub">Eine Behandlung gezielt sichtbar machen.</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('ausbildung')"><div class="goal-icon">&#x1F393;</div><div class="goal-title">Lehrling gewinnen</div><div class="goal-sub">Ausbildung zeigen und passende Menschen erreichen.</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('bekanntheit')"><div class="goal-icon">&#x2728;</div><div class="goal-title">Bekannter werden</div><div class="goal-sub">Vertrauen, Haltung und Expertise aufbauen.</div></div>
+  </div>
+
+  <div class="card" id="today-plan-card">
+    <div class="card-tag">Dein nächster Schritt</div>
+    <div class="card-title" id="today-plan-title">Noch kein Ziel gewählt</div>
+    <div class="card-sub" id="today-plan-sub">Wähle oben ein Ziel. Danach bekommst du einen kleinen Tagesplan.</div>
+    <div id="today-tasks" style="margin-top:8px"></div>
+  </div>
+
+  <div class="sec-head">Schnellzugriff</div>
+  <div style="display:flex;gap:10px;">
+    <button class="btn-ghost" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;" onclick="showTab('termine')">
+      <span style="font-size:20px">📅</span>
+      <span style="font-size:12px;font-weight:700;">Freier Termin</span>
+    </button>
+    <button class="btn-ghost" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;" onclick="showTab('kampagne')">
+      <span style="font-size:20px">🚀</span>
+      <span style="font-size:12px;font-weight:700;">7-Tage-Plan</span>
+    </button>
+    <button class="btn-ghost" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;padding:14px 8px;" onclick="showTab('inhalte')">
+      <span style="font-size:20px">✍️</span>
+      <span style="font-size:12px;font-weight:700;">Inhalte</span>
+    </button>
+  </div>
+
+  <div class="sec-head">Dein Fortschritt</div>
+  <div class="today-kpi">
+    <div class="kpi"><div class="kpi-num" id="kpi-favs">0</div><div class="kpi-label">Ideen</div></div>
+    <div class="kpi"><div class="kpi-num" id="kpi-plan">0</div><div class="kpi-label">geplant</div></div>
+    <div class="kpi"><div class="kpi-num">1</div><div class="kpi-label">Ziel</div></div>
+  </div>
+</div>
+
+<!-- ══ ZIELE ══ -->
+<div class="screen" id="screen-ziele">
+  <div class="card"><div class="card-tag">Ziel</div><div class="card-title">Nicht einfach posten. Etwas erreichen.</div><div class="card-sub">Wähle dein wichtigstes Ziel für diese Woche. Die vorhandenen Content-Werkzeuge arbeiten danach für dieses Ziel.</div></div>
+  <div class="goal-grid">
+    <div class="goal-card" onclick="selectTodayGoal('neukunden');showTab('heute')"><div class="goal-icon">&#x1F465;</div><div class="goal-title">Neue Kund:innen</div><div class="goal-sub">Vertrauen + konkrete Anfrage</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('termine');showTab('heute')"><div class="goal-icon">&#x1F4C5;</div><div class="goal-title">Freie Termine</div><div class="goal-sub">Lücken schnell sichtbar machen</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('stammkunden');showTab('heute')"><div class="goal-icon">&#x2764;&#xFE0F;</div><div class="goal-title">Stammkund:innen</div><div class="goal-sub">Bindung + Rückkehr</div></div>
+    <div class="goal-card" onclick="selectTodayGoal('leistung');showTab('heute')"><div class="goal-icon">&#x1F4B0;</div><div class="goal-title">Leistung pushen</div><div class="goal-sub">Gezielte Nachfrage erzeugen</div></div>
+  </div>
+</div>
+
+<!-- ══ INHALTE ══ -->
+<div class="screen" id="screen-inhalte">
+  <div class="card" id="inhalte-ziel-card" style="background:#EEF4F1;border-left:3px solid var(--accent);display:none;">
+    <div class="card-tag">Aktives Ziel</div>
+    <div class="card-title" id="inhalte-ziel-title"></div>
+    <div class="card-sub" id="inhalte-ziel-sub" style="margin-top:4px"></div>
+  </div>
+  <div class="card" id="inhalte-kein-ziel-card">
+    <div class="card-tag">Kein Ziel gewählt</div>
+    <div class="card-title">Zuerst ein Ziel wählen?</div>
+    <div class="card-sub">Wenn du ein Ziel wählst, werden Hook, Post und Story automatisch darauf ausgerichtet.</div>
+    <button class="btn-ghost" style="margin-top:10px" onclick="showTab('heute')">↩ Ziel wählen</button>
+  </div>
+  <button class="btn" onclick="openWithGoal('hook')">&#x1F3AF; Hook erstellen</button>
+  <button class="btn" onclick="openWithGoal('post')">&#x270D;&#xFE0F; Post erstellen</button>
+  <button class="btn" onclick="openWithGoal('story')">&#x1F4F1; Story erstellen</button>
+  <button class="btn-ghost" onclick="showTab('ideen')">&#x1F4A1; Ideen ansehen</button>
 </div>
 
 <!-- ══ HOOK ══ -->
-<div class="screen active" id="screen-hook">
+<div class="screen" id="screen-hook">
   <div class="card">
     <div class="card-tag">Hook-Generator</div>
     <div class="card-title">Welches Thema willst du heute zeigen?</div>
@@ -458,6 +546,102 @@ textarea{resize:none;}
   </div>
 </div>
 
+<!-- ══ FREIE TERMINE ══ -->
+<div class="screen" id="screen-termine">
+  <div class="today-hero">
+    <div class="card-tag" style="color:#DDEBE4;">Freie Termine</div>
+    <div class="card-title" style="color:#fff;font-size:19px;">Terminlücke füllen</div>
+    <div class="card-sub" style="color:#E8F0EC;">Trag deinen freien Termin ein — du bekommst sofort Story, Post und CTA.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Wann ist der Termin frei?</div>
+    <div class="chips" id="chips-terminwann">
+      <button class="chip on" data-val="heute">Heute</button>
+      <button class="chip" data-val="morgen">Morgen</button>
+      <button class="chip" data-val="diese_woche">Diese Woche</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Uhrzeit (optional)</div>
+    <input type="text" id="termin-uhrzeit" placeholder="z.B. 14:30">
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Geeignet für welche Leistung?</div>
+    <div class="chips" id="chips-terminleistung">
+      <button class="chip on" data-val="Balayage">Balayage</button>
+      <button class="chip" data-val="Farbe">Farbe</button>
+      <button class="chip" data-val="Schnitt">Schnitt</button>
+      <button class="chip" data-val="Pflege">Pflege</button>
+      <button class="chip" data-val="Herrenschnitt">Herrenschnitt</button>
+    </div>
+  </div>
+
+  <button class="btn" onclick="generateTerminContent()">&#x26A1; Inhalte sofort erstellen</button>
+
+  <div id="termin-result" style="display:none;flex-direction:column;gap:12px;">
+    <div class="sec-head">Deine Inhalte für diesen Termin</div>
+
+    <div class="card" style="border-left:3px solid var(--accent);background:#EEF4F1;">
+      <div class="card-tag">📱 Instagram Story</div>
+      <div class="result-text" id="termin-story" style="margin-top:6px;"></div>
+      <button class="copy-btn" style="margin-top:10px" onclick="copyTermin('termin-story')">📋 Kopieren</button>
+    </div>
+
+    <div class="card" style="border-left:3px solid #816a3c;background:#F9F7F3;">
+      <div class="card-tag" style="color:#816a3c;">✍️ Instagram Post</div>
+      <div class="result-text" id="termin-post" style="margin-top:6px;"></div>
+      <button class="copy-btn" style="margin-top:10px" onclick="copyTermin('termin-post')">📋 Kopieren</button>
+    </div>
+
+    <div class="card" style="background:#1C1C1C;">
+      <div class="card-tag" style="color:#DDEBE4;">💬 WhatsApp-Status</div>
+      <div class="result-text" id="termin-wa" style="margin-top:6px;color:#fff;"></div>
+      <button class="copy-btn" style="margin-top:10px;background:rgba(255,255,255,.1);color:#fff;" onclick="copyTermin('termin-wa')">📋 Kopieren</button>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">🎯 Call-to-Action</div>
+      <div class="result-text" id="termin-cta" style="margin-top:6px;font-weight:700;color:var(--accent);"></div>
+    </div>
+
+    <button class="btn-ghost" onclick="generateTerminContent()">↺ Neue Variante</button>
+  </div>
+</div>
+
+<!-- ══ 7-TAGE-KAMPAGNE ══ -->
+<div class="screen" id="screen-kampagne">
+  <div class="today-hero">
+    <div class="card-tag" style="color:#DDEBE4;">7-Tage-Kampagne</div>
+    <div class="card-title" style="color:#fff;font-size:19px;">Ein Ziel. Eine Woche. Konkreter Plan.</div>
+    <div class="card-sub" style="color:#E8F0EC;">Wähle ein Ziel — du bekommst für jeden Tag eine Aufgabe, einen Content-Typ und einen CTA.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Kampagnenziel</div>
+    <div class="goal-grid" id="kampagne-ziel-grid">
+      <div class="goal-card" onclick="selectKampagneZiel('neukunden',this)"><div class="goal-icon">👥</div><div class="goal-title">Neue Kund:innen</div></div>
+      <div class="goal-card" onclick="selectKampagneZiel('balayage',this)"><div class="goal-icon">✨</div><div class="goal-title">Balayage pushen</div></div>
+      <div class="goal-card" onclick="selectKampagneZiel('stammkunden',this)"><div class="goal-icon">❤️</div><div class="goal-title">Stammkund:innen</div></div>
+      <div class="goal-card" onclick="selectKampagneZiel('ausbildung',this)"><div class="goal-icon">🎓</div><div class="goal-title">Lehrling gewinnen</div></div>
+    </div>
+  </div>
+
+  <button class="btn" id="btn-kampagne" onclick="generateKampagne()" disabled>📅 Wochenplan erstellen</button>
+
+  <div id="kampagne-result" style="display:none;flex-direction:column;gap:10px;">
+    <div class="card" style="background:#EEF4F1;border-left:3px solid var(--accent);">
+      <div class="card-tag">Deine Kampagne</div>
+      <div class="card-title" id="kampagne-titel"></div>
+      <div class="card-sub" id="kampagne-sub" style="margin-top:4px;"></div>
+    </div>
+    <div id="kampagne-tage"></div>
+    <button class="btn-ghost" onclick="generateKampagne()">↺ Neue Variante</button>
+  </div>
+</div>
+
 <!-- ══ STIL-MODAL ══ -->
 <div class="stil-modal" id="stil-modal" style="display:none;">
   <div class="stil-sheet">
@@ -510,7 +694,7 @@ const S = {
 };
 
 // ── TABS ──
-const TAB_MAP = {hook:0,post:1,story:2,ideen:3,plan:4,favs:null};
+const TAB_MAP = {heute:0,ziele:1,inhalte:2,plan:3,ideen:4,hook:null,post:null,story:null,favs:null,termine:null,kampagne:null};
 function showTab(name) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1545,6 +1729,334 @@ function deleteWeekPost(idx) {
   saveWeekPosts(posts);
   renderWeekPlan();
 }
+
+// ── HEUTE / ZIELE ──
+const TODAY_GOALS = {
+  neukunden:{title:'3 neue Anfragen erzeugen',sub:'Heute zeigen wir Vertrauen, Ergebnis und einen klaren nächsten Schritt.',tasks:[['1','Zeige ein echtes Ergebnis','Nutze ein Vorher/Nachher oder einen echten Kund:innen-Moment.'],['2','Mach Expertise sichtbar','Erstelle einen Hook zu einer Frage, die Neukund:innen wirklich beschäftigt.'],['3','Gib eine klare Einladung','Nutze einen einfachen CTA: Nachricht schreiben oder Termin anfragen.']]},
+  termine:{title:'Eine freie Terminlücke füllen',sub:'Heute geht es nicht um Reichweite um jeden Preis, sondern um eine konkrete Buchung.',tasks:[['1','Termin kommunizieren','Sag klar, wann die Lücke ist und für welche Leistung sie geeignet ist.'],['2','Story statt Hochglanz','Zeig den echten Salonalltag und mach die Verfügbarkeit persönlich.'],['3','Direkt einladen','CTA: „Schreib uns direkt – wir schauen, ob es für dich passt.“']]},
+  stammkunden:{title:'Stammkund:innen aktivieren',sub:'Beziehung vor Werbung: Zeig, warum Menschen gerne wiederkommen.',tasks:[['1','Erinnerung schaffen','Teile einen echten Stammkunden-Moment oder eine Geschichte.'],['2','Dankbarkeit zeigen','Mach sichtbar, was langjährige Kund:innen für den Salon bedeuten.'],['3','Rückkehr erleichtern','Lade freundlich zu einem nächsten Termin oder einer Nachricht ein.']]},
+  leistung:{title:'Eine Leistung gezielt sichtbar machen',sub:'Ein Thema, ein Nutzen, eine klare Einladung.',tasks:[['1','Problem zeigen','Welche Situation löst diese Leistung für Kund:innen?'],['2','Ergebnis zeigen','Nutze Foto, Video oder ein konkretes Ergebnis.'],['3','CTA setzen','Sag klar, wer sich melden sollte und wie.']]},
+  ausbildung:{title:'Ausbildung sichtbar machen',sub:'Zeig nicht nur den Beruf – zeig, wie sich Ausbildung bei euch anfühlt.',tasks:[['1','Echten Lernmoment zeigen','Ein kleiner Moment aus dem Alltag reicht.'],['2','Haltung erklären','Was macht eure Ausbildung anders?'],['3','Kontakt öffnen','Lade Interessierte zu einer direkten Nachricht ein.']]},
+  bekanntheit:{title:'Vertrauen und Expertise aufbauen',sub:'Nicht lauter werden. Klarer zeigen, wofür ihr steht.',tasks:[['1','Haltung zeigen','Teile eine Überzeugung aus eurem Salonalltag.'],['2','Wissen geben','Ein konkreter Tipp statt allgemeiner Werbung.'],['3','Gesicht zeigen','Sprich selbst oder zeige dein Team.']]},
+};
+const GOAL_TASK_TOOLS = {
+  neukunden: ['post','story','hook'],
+  termine:   ['termine','story','post'],
+  stammkunden:['story','post','hook'],
+  leistung:  ['hook','post','story'],
+  ausbildung:['story','post','hook'],
+  bekanntheit:['hook','post','story'],
+};
+const TOOL_LABEL = { post:'✍️ Post erstellen', story:'📱 Story erstellen', hook:'🎯 Hook erstellen', termine:'📅 Termin-Content' };
+
+function selectTodayGoal(key){
+  const g=TODAY_GOALS[key]; if(!g)return;
+  localStorage.setItem('ghd_today_goal',key);
+  document.getElementById('today-plan-title').textContent=g.title;
+  document.getElementById('today-plan-sub').textContent=g.sub;
+  document.getElementById('today-goal-badge').textContent='Ziel: '+g.title;
+  document.getElementById('today-goal-badge').style.display='inline-block';
+  const tools = GOAL_TASK_TOOLS[key] || ['post','story','hook'];
+  document.getElementById('today-tasks').innerHTML=g.tasks.map((t,i)=>`
+    <div class="today-task">
+      <div class="task-num">${t[0]}</div>
+      <div style="flex:1;">
+        <div class="task-title">${t[1]}</div>
+        <div class="task-sub">${t[2]}</div>
+        ${tools[i] ? `<button class="copy-btn" style="margin-top:8px;" onclick="openWithGoal('${tools[i]}')">${TOOL_LABEL[tools[i]] || '→ Erstellen'}</button>` : ''}
+      </div>
+    </div>`).join('');
+  localStorage.setItem('ghd_today_goal_date',new Date().toISOString().slice(0,10));
+}
+// ── ZIEL-KONTEXT FÜR GENERATOREN ──
+const GOAL_CONTEXT = {
+  neukunden: {
+    label:'Neue Kund:innen gewinnen',
+    sub:'Zeig Vertrauen, Ergebnis und lade klar ein.',
+    hookThema:'Erstkontakt, Vertrauen, warum Menschen zu uns kommen',
+    hookZiel:'emotion',
+    postTon:'nahbar',
+    postWer:'neu',
+    storyMood:'emotional',
+    storyZiel:'vertrauen',
+  },
+  termine: {
+    label:'Freie Termine füllen',
+    sub:'Direkt, konkret, mit klarem CTA.',
+    hookThema:'freier Termin, kurzfristig, noch verfügbar',
+    hookZiel:'provokativ',
+    postTon:'direkt',
+    postWer:'kundinnen',
+    storyMood:'behind',
+    storyZiel:'vertrauen',
+  },
+  stammkunden: {
+    label:'Stammkund:innen aktivieren',
+    sub:'Beziehung vor Werbung — zeig warum Menschen bleiben.',
+    hookThema:'Treue, Wiederkommen, langjährige Kunden',
+    hookZiel:'emotion',
+    postTon:'nahbar',
+    postWer:'kundinnen',
+    storyMood:'emotional',
+    storyZiel:'vertrauen',
+  },
+  leistung: {
+    label:'Leistung sichtbar machen',
+    sub:'Ein Thema, ein Nutzen, ein klarer CTA.',
+    hookThema:'Balayage, Färben, Ergebnis zeigen',
+    hookZiel:'expertise',
+    postTon:'stolz',
+    postWer:'neu',
+    storyMood:'neugier',
+    storyZiel:'reichweite',
+  },
+  ausbildung: {
+    label:'Ausbildung zeigen',
+    sub:'Echte Momente — was Ausbildung bei euch bedeutet.',
+    hookThema:'Lehrling, Ausbildung, Ronya, lernen',
+    hookZiel:'emotion',
+    postTon:'stolz',
+    postWer:'lehrlinge',
+    storyMood:'emotional',
+    storyZiel:'lehrling',
+  },
+  bekanntheit: {
+    label:'Vertrauen aufbauen',
+    sub:'Haltung zeigen, Wissen teilen, Gesicht zeigen.',
+    hookThema:'Haltung, Werte, 33 Jahre Erfahrung',
+    hookZiel:'expertise',
+    postTon:'nachdenklich',
+    postWer:'branche',
+    storyMood:'haltung',
+    storyZiel:'vertrauen',
+  },
+};
+
+function openWithGoal(tab) {
+  const key = localStorage.getItem('ghd_today_goal') || '';
+  const ctx = GOAL_CONTEXT[key];
+  if (ctx) {
+    if (tab === 'hook') {
+      document.getElementById('hook-thema').value = ctx.hookThema;
+      // Chip setzen
+      const hookChips = document.querySelectorAll('#chips-hookziel .chip');
+      hookChips.forEach(c => {
+        c.classList.toggle('on', c.dataset.val === ctx.hookZiel);
+        if (c.dataset.val === ctx.hookZiel) S.hookziel = ctx.hookZiel;
+      });
+    }
+    if (tab === 'post') {
+      // Ton-Chip
+      document.querySelectorAll('#chips-postton .chip').forEach(c => {
+        c.classList.toggle('on', c.dataset.val === ctx.postTon);
+        if (c.dataset.val === ctx.postTon) S.postton = ctx.postTon;
+      });
+      // Wer-Chip
+      document.querySelectorAll('#chips-postwer .chip').forEach(c => {
+        c.classList.toggle('on', c.dataset.val === ctx.postWer);
+        if (c.dataset.val === ctx.postWer) S.postwer = ctx.postWer;
+      });
+    }
+    if (tab === 'story') {
+      document.querySelectorAll('#chips-storymood .chip').forEach(c => {
+        c.classList.toggle('on', c.dataset.val === ctx.storyMood);
+        if (c.dataset.val === ctx.storyMood) S.storymood = ctx.storyMood;
+      });
+      document.querySelectorAll('#chips-storyziel .chip').forEach(c => {
+        c.classList.toggle('on', c.dataset.val === ctx.storyZiel);
+        if (c.dataset.val === ctx.storyZiel) S.storyziel = ctx.storyZiel;
+      });
+    }
+  }
+  showTab(tab);
+}
+
+function updateInhalteZielCard() {
+  const key = localStorage.getItem('ghd_today_goal') || '';
+  const ctx = GOAL_CONTEXT[key];
+  const card = document.getElementById('inhalte-ziel-card');
+  const noCard = document.getElementById('inhalte-kein-ziel-card');
+  if (ctx) {
+    document.getElementById('inhalte-ziel-title').textContent = ctx.label;
+    document.getElementById('inhalte-ziel-sub').textContent = ctx.sub;
+    card.style.display = 'block';
+    noCard.style.display = 'none';
+  } else {
+    card.style.display = 'none';
+    noCard.style.display = 'block';
+  }
+}
+
+// Überschreibe showTab um Inhalte-Card zu updaten
+const _origShowTab = showTab;
+showTab = function(name) {
+  _origShowTab(name);
+  if (name === 'inhalte') updateInhalteZielCard();
+};
+
+// ── FREIE TERMINE ──
+const S_termin = { wann: 'heute', leistung: 'Balayage' };
+document.querySelectorAll('#chips-terminwann .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('#chips-terminwann .chip').forEach(x => x.classList.remove('on'));
+    c.classList.add('on');
+    S_termin.wann = c.dataset.val;
+  });
+});
+document.querySelectorAll('#chips-terminleistung .chip').forEach(c => {
+  c.addEventListener('click', () => {
+    document.querySelectorAll('#chips-terminleistung .chip').forEach(x => x.classList.remove('on'));
+    c.classList.add('on');
+    S_termin.leistung = c.dataset.val;
+  });
+});
+
+const TERMIN_TEMPLATES = [
+  (wann, uhr, leistung) => ({
+    story: `📅 ${wann === 'heute' ? 'Heute' : wann === 'morgen' ? 'Morgen' : 'Diese Woche'} ist ${uhr ? `um ${uhr} Uhr ` : ''}noch ein Platz frei.\n\n✂️ Geeignet für: ${leistung}\n\n👇 Schreib uns direkt — wir schauen ob es passt.`,
+    post: `Kurzfristig frei.\n\n${wann === 'heute' ? 'Heute' : wann === 'morgen' ? 'Morgen' : 'Diese Woche'}${uhr ? ` um ${uhr} Uhr` : ''} ist ein Termin frei geworden — ideal für ${leistung}.\n\nWenn du schon lange drüber nachgedacht hast: Das ist dein Zeichen.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n✉️ Einfach schreiben — wir antworten schnell.\n\n#GreatHairDay #Wien #FriseurWien #KurzfristigFrei #${leistung.replace(/[^a-zA-Z]/g,'')}`,
+    wa: `${wann === 'heute' ? 'Heute' : wann === 'morgen' ? 'Morgen' : 'Diese Woche'}${uhr ? ` ${uhr}` : ''} noch frei — ${leistung}. Interesse? → 01 586 31 30`,
+    cta: `„Schreib uns direkt — wir schauen ob es für dich passt."`
+  }),
+  (wann, uhr, leistung) => ({
+    story: `Ein Termin ist gerade frei geworden. 🪄\n\n${wann === 'heute' ? 'Heute' : wann === 'morgen' ? 'Morgen' : 'Noch diese Woche'}${uhr ? ` · ${uhr} Uhr` : ''}\n✂️ ${leistung}\n\nWer sich meldet, bekommt ihn. 👇`,
+    post: `Ein Platz ist frei. Vielleicht für dich?\n\n${leistung} — ${wann === 'heute' ? 'heute' : wann === 'morgen' ? 'morgen' : 'diese Woche'}${uhr ? ` um ${uhr} Uhr` : ''}.\n\nBei uns musst du dich nicht erklären. Einfach schreiben und wir schauen gemeinsam ob es passt.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n\n#GreatHairDay #FriseurWien #FreierTermin #Wien #${leistung.replace(/[^a-zA-Z]/g,'')}`,
+    wa: `💇 Freier Platz: ${leistung}, ${wann === 'heute' ? 'heute' : 'morgen'}${uhr ? ` ${uhr} Uhr` : ''}. Meld dich: 01 586 31 30`,
+    cta: `„Noch ${uhr ? `1 Platz um ${uhr} Uhr` : 'ein Platz'} — wer zuerst schreibt, bekommt ihn."`
+  }),
+];
+
+function generateTerminContent() {
+  const wann = S_termin.wann || 'heute';
+  const uhr = document.getElementById('termin-uhrzeit').value.trim();
+  const leistung = S_termin.leistung || 'Balayage';
+  const tpl = TERMIN_TEMPLATES[Math.floor(Math.random() * TERMIN_TEMPLATES.length)](wann, uhr, leistung);
+
+  document.getElementById('termin-story').textContent = tpl.story;
+  document.getElementById('termin-post').textContent = tpl.post;
+  document.getElementById('termin-wa').textContent = tpl.wa;
+  document.getElementById('termin-cta').textContent = tpl.cta;
+
+  const r = document.getElementById('termin-result');
+  r.style.display = 'flex';
+  r.style.flexDirection = 'column';
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function copyTermin(id) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  const btn = el.parentElement.querySelector('.copy-btn');
+  navigator.clipboard && navigator.clipboard.writeText(el.textContent).then(() => {
+    if (btn) { btn.textContent = '✓ Kopiert!'; setTimeout(() => btn.textContent = '📋 Kopieren', 2000); }
+  });
+}
+
+// ── 7-TAGE-KAMPAGNE ──
+let activeKampagneZiel = null;
+
+const KAMPAGNEN = {
+  neukunden: {
+    titel: '7 Tage — Neue Kund:innen gewinnen',
+    sub: 'Ziel: 3 neue Anfragen bis Sonntag.',
+    tage: [
+      { tag:'Mo', icon:'🧠', typ:'Keine Pflicht', aufgabe:'Plane die Woche. Was möchtest du zeigen?', cta:'Kein Post nötig.', tool:null },
+      { tag:'Di', icon:'📸', typ:'Story', aufgabe:'Zeig einen echten Salon-Moment. Menschen. Ergebnis. Atmosphäre.', cta:'„Was macht unseren Salon aus?" → DM einladen.', tool:'story' },
+      { tag:'Mi', icon:'✍️', typ:'Post', aufgabe:'Erzähl warum Kund:innen seit Jahren kommen — ohne Werbung.', cta:'„Bei uns musst du dich nicht erklären."', tool:'post' },
+      { tag:'Do', icon:'🎬', typ:'Reel / Video', aufgabe:'Vorher/Nachher — echtes Ergebnis, kein Filter.', cta:'„Schreib uns BALAYAGE" oder „Termin anfragen."', tool:'hook' },
+      { tag:'Fr', icon:'📅', typ:'Story + CTA', aufgabe:'Freie Termine diese Woche sichtbar machen.', cta:'Direkt-Link oder „Schreib uns direkt."', tool:'termine' },
+      { tag:'Sa', icon:'🤝', typ:'Behind the Scenes', aufgabe:'Zeig dein Team bei echter Arbeit. Ronya, Mazen, Alina, Hassan.', cta:'„Das sind die Menschen hinter jedem Termin."', tool:'story' },
+      { tag:'So', icon:'📊', typ:'Rückblick', aufgabe:'Wie viele Anfragen? Was hat funktioniert? Trag die Ergebnisse ein.', cta:'Kein Post. Lernen für nächste Woche.', tool:null },
+    ]
+  },
+  balayage: {
+    titel: '7 Tage — Balayage-Anfragen generieren',
+    sub: 'Ziel: 3–5 neue Balayage-Buchungen.',
+    tage: [
+      { tag:'Mo', icon:'🎨', typ:'Vorbereitung', aufgabe:'Suche 2–3 echte Vorher/Nachher-Fotos aus deiner Galerie.', cta:'Noch kein Post.', tool:null },
+      { tag:'Di', icon:'✨', typ:'Story', aufgabe:'„Was ist Balayage wirklich?" — erkläre es ohne Fachjargon.', cta:'„DM mit BALAYAGE wenn du mehr wissen willst."', tool:'story' },
+      { tag:'Mi', icon:'📸', typ:'Reel', aufgabe:'Vorher/Nachher zeigen. Das stärkste Bild zuerst.', cta:'„Schreib uns BALAYAGE — noch 2 Plätze diese Woche."', tool:'hook' },
+      { tag:'Do', icon:'💬', typ:'Post', aufgabe:'Kundenstimme oder Moment aus dem Beratungsgespräch.', cta:'„Was wünscht du dir? Schreib uns direkt."', tool:'post' },
+      { tag:'Fr', icon:'⏰', typ:'Story Dringlichkeit', aufgabe:'Freie Balayage-Termine zeigen. Konkret und knapp.', cta:'„Letzter Platz heute Nachmittag."', tool:'termine' },
+      { tag:'Sa', icon:'🪄', typ:'Behind the Scenes', aufgabe:'Der Prozess — Technik zeigen, nicht erklären.', cta:'„Magst du dabei sein? Schreib uns."', tool:'story' },
+      { tag:'So', icon:'📊', typ:'Auswertung', aufgabe:'Wie viele Anfragen kamen? Was hat am besten gewirkt?', cta:'Notieren für die nächste Kampagne.', tool:null },
+    ]
+  },
+  stammkunden: {
+    titel: '7 Tage — Stammkund:innen zurückholen',
+    sub: 'Ziel: 5+ Rückkehrer aus dem bestehenden Kundenstamm.',
+    tage: [
+      { tag:'Mo', icon:'❤️', typ:'Einstimmung', aufgabe:'Denk an 3 Stammkund:innen die länger nicht da waren. Was würde sie ansprechen?', cta:'Noch kein Post.', tool:null },
+      { tag:'Di', icon:'💌', typ:'Story', aufgabe:'„Wann warst du das letzte Mal bei uns?" — persönlich, nicht werbend.', cta:'„Wir freuen uns auf dich."', tool:'story' },
+      { tag:'Mi', icon:'🌿', typ:'Post', aufgabe:'Was sich verändert hat — neues Angebot, Alpha-Cooling, Ronya ist jetzt dabei.', cta:'„Schau vorbei und lass dich überraschen."', tool:'post' },
+      { tag:'Do', icon:'🙏', typ:'Dankbarkeit', aufgabe:'Zeig echte Stammkunden-Momente — ohne Namen, nur Gefühl.', cta:'„Danke dass ihr seit Jahren Teil unseres Salons seid."', tool:'story' },
+      { tag:'Fr', icon:'📅', typ:'Einladung', aufgabe:'Freie Plätze für Stammkund:innen zuerst. Exklusiv formulieren.', cta:'„Für unsere Stammkund:innen: noch 2 Plätze frei."', tool:'termine' },
+      { tag:'Sa', icon:'🎁', typ:'Erinnerung', aufgabe:'Kleine Freude — z.B. ein Tipp, eine Pflegeidee, ein ehrlicher Satz.', cta:'„Einfach mal vorbeikommen."', tool:'hook' },
+      { tag:'So', icon:'📊', typ:'Auswertung', aufgabe:'Wie viele Stammkunden haben sich gemeldet oder gebucht?', cta:'Für nächste Woche festhalten.', tool:null },
+    ]
+  },
+  ausbildung: {
+    titel: '7 Tage — Lehrling gewinnen',
+    sub: 'Ziel: Sichtbarkeit aufbauen und Kontakt ermöglichen.',
+    tage: [
+      { tag:'Mo', icon:'🎓', typ:'Vorbereitung', aufgabe:'Was macht eure Ausbildung besonders? 3 ehrliche Sätze aufschreiben.', cta:'Kein Post.', tool:null },
+      { tag:'Di', icon:'📸', typ:'Story', aufgabe:'Ronya bei echter Arbeit — konzentriert, nicht inszeniert.', cta:'„Das ist Ausbildung bei uns."', tool:'story' },
+      { tag:'Mi', icon:'✍️', typ:'Post', aufgabe:'Was du von einem Lehrling erwartest — ehrlich und direkt.', cta:'„Ausbildungsplatz noch frei. Schreib uns direkt."', tool:'post' },
+      { tag:'Do', icon:'💡', typ:'Story', aufgabe:'Ein Lernmoment aus dem Alltag. Was Ronya diese Woche zum ersten Mal gemacht hat.', cta:'„Lust auf sowas? Meld dich."', tool:'story' },
+      { tag:'Fr', icon:'🏆', typ:'Hook / Reel', aufgabe:'„3 Dinge die du bei uns lernst — die kein Schulbuch lehrt."', cta:'„Noch ein Platz. Schreib uns AUSBILDUNG."', tool:'hook' },
+      { tag:'Sa', icon:'🤝', typ:'Team', aufgabe:'Das Team vorstellen — wer bildet aus, wer begleitet.', cta:'„Wir bilden Menschen aus, nicht nur Friseur:innen."', tool:'story' },
+      { tag:'So', icon:'📊', typ:'Auswertung', aufgabe:'Anfragen eingegangen? Was hat Interesse geweckt?', cta:'Festhalten und nächste Woche anpassen.', tool:null },
+    ]
+  },
+};
+
+function selectKampagneZiel(key, el) {
+  activeKampagneZiel = key;
+  document.querySelectorAll('#kampagne-ziel-grid .goal-card').forEach(c => c.style.borderColor = '');
+  el.style.borderColor = 'var(--accent)';
+  document.getElementById('btn-kampagne').disabled = false;
+}
+
+function generateKampagne() {
+  if (!activeKampagneZiel) return;
+  const k = KAMPAGNEN[activeKampagneZiel];
+  document.getElementById('kampagne-titel').textContent = k.titel;
+  document.getElementById('kampagne-sub').textContent = k.sub;
+
+  document.getElementById('kampagne-tage').innerHTML = k.tage.map((t, i) => `
+    <div class="card" style="padding:14px;">
+      <div style="display:flex;align-items:flex-start;gap:12px;">
+        <div style="min-width:36px;height:36px;border-radius:50%;background:${i === new Date().getDay()-1 ? 'var(--accent)' : 'var(--chip)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${i === new Date().getDay()-1 ? '#fff' : 'var(--sub)'};">${t.tag}</div>
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:6px;margin-bottom:4px;">
+            <span style="font-size:16px">${t.icon}</span>
+            <span style="font-size:11px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;">${t.typ}</span>
+          </div>
+          <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:4px;">${t.aufgabe}</div>
+          <div style="font-size:12px;color:var(--sub);line-height:1.4;margin-bottom:8px;">${t.cta}</div>
+          ${t.tool ? `<button class="copy-btn" onclick="openWithGoal('${t.tool}')">→ ${t.tool === 'termine' ? 'Termin-Content' : t.tool === 'story' ? 'Story erstellen' : t.tool === 'post' ? 'Post erstellen' : 'Hook erstellen'}</button>` : ''}
+        </div>
+      </div>
+    </div>
+  `).join('');
+
+  const r = document.getElementById('kampagne-result');
+  r.style.display = 'flex';
+  r.style.flexDirection = 'column';
+  r.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  localStorage.setItem('ghd_campaign', JSON.stringify({ ziel: activeKampagneZiel, date: new Date().toISOString().slice(0,10) }));
+}
+
+// ── INIT HEUTE ──
+function initToday(){
+  const d=new Date();
+  document.getElementById('today-date').textContent=d.toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});
+  const key=localStorage.getItem('ghd_today_goal')||'neukunden';
+  selectTodayGoal(key);
+  document.getElementById('kpi-favs').textContent=getFavs().length;
+  document.getElementById('kpi-plan').textContent=getWeekPosts().length;
+}
+initToday();
 </script>
 </body>
 </html>

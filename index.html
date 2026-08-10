@@ -170,7 +170,7 @@ textarea{resize:none;}
 .stil-badge{display:inline-block;background:#EEF4F1;color:var(--accent);font-size:10px;font-weight:700;padding:3px 8px;border-radius:20px;letter-spacing:.3px;margin-left:6px;}
 
 /* Share btn */
-.share-btn{background:var(--accent);border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--f);}
+.share-btn{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--f);}
 
 @media(min-width:420px){
   body{padding-top:20px;}
@@ -311,7 +311,7 @@ textarea{resize:none;}
 
     <div style="display:flex;gap:8px;">
       <button class="btn" style="flex:1" onclick="copyPost()">&#x1F4CB; Kopieren</button>
-      <button class="btn" style="flex:1;background:#1C1C1C;" onclick="sharePost()">&#x1F4E4; Teilen</button>
+      <button class="btn" style="flex:1;background:#1C1C1C;" onclick="sharePost()">&#x1F4E4; Teilen#x1F4CB; + Instagram</button>
       <button class="btn-ghost" style="flex:1" onclick="favPost()">&#x2B50; Speichern</button>
     </div>
     <button class="btn-ghost" onclick="generatePost()">&#x21BA; Neue Variante</button>
@@ -624,7 +624,7 @@ function generateHooks(){
       <div class="result-why">${WHY[z]}</div>
       <div class="result-actions">
         <button class="copy-btn" onclick="copyText(this,\`${txt.replace(/`/g,"'")}\`)">Kopieren</button>
-        <button class="share-btn" onclick="shareOrCopyText('Hook',\`${txt.replace(/`/g,"'")}\`)">&#x1F4E4; Teilen</button>
+        <button class="share-btn" onclick="shareOrCopyText('Hook',\`${txt.replace(/`/g,"'")}\`)">&#x1F4E4; Teilen#x1F4CB; + Instagram</button>
         <button class="copy-btn" onclick="useAsPost(\`${txt.replace(/`/g,"'")}\`)">Als Post</button>
       </div>
     </div>`;
@@ -939,7 +939,7 @@ function generateStory(){
           </div>
           <div class="story-frame-actions">
             <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
-            <button class="share-btn" onclick="shareOrCopyText('Story',\`${txt}\`)">&#x1F4E4; Teilen</button>
+            <button class="share-btn" onclick="shareOrCopyText('Story',\`${txt}\`)">&#x1F4E4; Teilen#x1F4CB; + Instagram</button>
             <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
           </div>
         </div>
@@ -966,7 +966,7 @@ function generateStory(){
         </div>
         <div class="story-frame-actions">
           <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
-          <button class="share-btn" onclick="shareOrCopyText('Story-Frame',\`${txt}\`)">&#x1F4E4; Teilen</button>
+          <button class="share-btn" onclick="shareOrCopyText('Story-Frame',\`${txt}\`)">&#x1F4E4; Teilen#x1F4CB; + Instagram</button>
           <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
         </div>
       </div>
@@ -1092,13 +1092,18 @@ window.addEventListener('DOMContentLoaded', () => {
   }
 });
 
-// ── NATIVE SHARE ──
+// ── KOPIEREN + INSTAGRAM ÖFFNEN ──
 function shareOrCopyText(title, text) {
-  if(navigator.share) {
-    navigator.share({ title, text }).catch(() => {});
+  if(navigator.clipboard) {
+    navigator.clipboard.writeText(text).then(() => {
+      const toast = document.createElement('div');
+      toast.textContent = '✓ Text kopiert — Instagram öffnet sich …';
+      toast.style.cssText = 'position:fixed;bottom:90px;left:50%;transform:translateX(-50%);background:#1C1C1C;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;font-family:Poppins,sans-serif;z-index:999;white-space:nowrap;box-shadow:0 4px 16px rgba(0,0,0,.3);';
+      document.body.appendChild(toast);
+      setTimeout(() => { toast.remove(); window.location.href = 'instagram://'; }, 1200);
+    }).catch(() => { window.location.href = 'instagram://'; });
   } else {
-    navigator.clipboard && navigator.clipboard.writeText(text);
-    alert('In die Zwischenablage kopiert ✓');
+    window.location.href = 'instagram://';
   }
 }
 

@@ -112,7 +112,7 @@ textarea{resize:none;}
 .story-frame-actions{display:flex;gap:8px;margin-top:10px;}
 
 /* Story visual preview (9:16) */
-.story-visual{width:100%;aspect-ratio:9/16;max-height:480px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 24px 24px;text-align:center;background:#FFFFFF;border:1px solid #E3E0D9;}
+.story-visual{width:100%;aspect-ratio:9/16;max-height:560px;border-radius:12px;overflow:hidden;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:28px 24px 24px;text-align:center;background:#FFFFFF;border:1px solid #E3E0D9;}
 .story-visual.dark,.story-visual.green,.story-visual.gold-bg{background:#FFFFFF;}
 .story-visual-logo-m{width:80px;height:80px;object-fit:contain;display:block;margin:0 auto;}
 .story-visual-text{font-size:18px;font-weight:600;color:#1C1C1C;line-height:1.5;font-family:'Poppins',system-ui,sans-serif;letter-spacing:1px;position:relative;z-index:2;padding:0 16px;}
@@ -247,18 +247,6 @@ textarea{resize:none;}
   </div>
 
   <div class="input-wrap">
-    <div class="input-label">Foto (optional)</div>
-    <input type="file" id="foto-input" accept="image/*" style="display:none" onchange="handleFoto(this)">
-    <div id="foto-area">
-      <button class="foto-upload" onclick="document.getElementById('foto-input').click()">
-        <span style="font-size:26px">&#128247;</span>
-        <span>Foto hochladen</span>
-        <span style="font-size:11px;color:#6B6B6B">Erscheint in der Post-Vorschau</span>
-      </button>
-    </div>
-  </div>
-
-  <div class="input-wrap">
     <div class="input-label">Was ist passiert?</div>
     <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht. Die Kundin war so begeistert, sie hat fast geweint." rows="4" oninput="postCheck()"></textarea>
   </div>
@@ -301,20 +289,23 @@ textarea{resize:none;}
           <div class="post-ig-loc">Wien, 1050</div>
         </div>
       </div>
-      <div id="post-foto-slot">
-        <div class="post-photo-placeholder" id="post-placeholder">&#128247; Dein Foto erscheint hier</div>
-      </div>
       <div class="post-caption">
         <div class="post-hook-text" id="res-hook"></div>
         <div class="post-body-text" id="res-body"></div>
         <div class="post-cta-text" id="res-cta"></div>
       </div>
-      <div class="screenshot-hint">&#128247; Screenshot dieser Vorschau &rarr; direkt posten</div>
     </div>
 
-    <div class="card">
-      <div class="card-tag">Bildidee</div>
-      <div class="card-sub" id="res-bild"></div>
+    <div class="card" style="background:#1C1C1C;border-radius:var(--r);">
+      <div style="font-size:12px;font-weight:700;color:#fff;text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;">📋 Alles kopieren — Text + Hashtags</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.7);line-height:1.5;margin-bottom:12px;">Kopiert den kompletten Post-Text und die Hashtags zusammen. Dann Instagram öffnen → + → Beitrag oder Story → lang drücken → <strong style="color:#fff;">Einfügen</strong>.</div>
+      <button class="btn" id="btn-alles-kopieren" onclick="allesKopieren()" style="background:var(--accent);">📋 Text + Hashtags kopieren</button>
+    </div>
+
+    <div class="card" style="background:#EEF4F1;border-left:3px solid var(--accent);">
+      <div class="card-tag">📸 Foto-Idee</div>
+      <div class="card-sub" id="res-bild" style="margin-top:4px;"></div>
+      <div style="font-size:12px;color:var(--sub);margin-top:8px;line-height:1.5;">→ Foto direkt in Instagram aufnehmen oder aus der Galerie wählen, dann den kopierten Text einfügen.</div>
     </div>
 
     <div class="card">
@@ -324,11 +315,7 @@ textarea{resize:none;}
 
     <div class="card" id="res-hashtag-card">
       <div class="card-tag">Hashtags</div>
-      <div id="res-hashtags" style="font-size:13px;color:var(--accent);line-height:1.8;margin-top:4px;"></div>
-      <div style="display:flex;gap:8px;margin-top:10px;">
-        <button class="copy-btn" id="btn-copy-hashtags" onclick="copyHashtags()">&#x1F4CB; Hashtags kopieren</button>
-        <button class="share-btn" onclick="shareHashtags()">&#x1F4CB; + Instagram</button>
-      </div>
+      <div id="res-hashtags" style="font-size:13px;color:var(--accent);line-height:1.8;margin-top:4px;word-break:break-word;"></div>
     </div>
 
     <div class="card" id="res-video-card" style="background:#F5F3EF;border-left:3px solid #816a3c;">
@@ -337,11 +324,9 @@ textarea{resize:none;}
     </div>
 
     <div style="display:flex;gap:8px;">
-      <button class="btn" style="flex:1" onclick="copyPost()">&#x1F4CB; Kopieren</button>
-      <button class="btn" style="flex:1;background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);" onclick="sharePost()">&#x1F4CB; + Instagram</button>
       <button class="btn-ghost" style="flex:1" onclick="favPost()">&#x2B50; Speichern</button>
+      <button class="btn-ghost" style="flex:1" onclick="generatePost()">&#x21BA; Neue Variante</button>
     </div>
-    <button class="btn-ghost" onclick="generatePost()">&#x21BA; Neue Variante</button>
   </div>
 </div>
 
@@ -349,8 +334,8 @@ textarea{resize:none;}
 <div class="screen" id="screen-story">
   <div class="card">
     <div class="card-tag">Story-Maker</div>
-    <div class="card-title">Textframes + Fotos abwechselnd — wie eine echte Story.</div>
-    <div class="card-sub">Bis zu 3 Fotos hochladen. Die App baut daraus eine abwechselnde Abfolge: Text &rarr; Foto &rarr; Text &rarr; Foto &rarr; Abschluss.</div>
+    <div class="card-title">Dein Branding — fertig zum Screenshot.</div>
+    <div class="card-sub">Text eingeben → Story-Frames mit deinem <strong>M-Logo + Unterschrift</strong> werden generiert → Screenshot je Frame → direkt in Instagram posten.</div>
   </div>
 
   <div class="input-wrap">
@@ -399,7 +384,10 @@ textarea{resize:none;}
   <button class="btn" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
 
   <div id="story-result" style="display:none;flex-direction:column;gap:14px;">
-    <div class="sec-head">Deine Story-Frames — Screenshot je Frame</div>
+    <div class="card" style="background:#1C1C1C;">
+      <div style="font-size:13px;font-weight:700;color:#fff;margin-bottom:4px;">📸 So verwendest du die Frames:</div>
+      <div style="font-size:13px;color:rgba(255,255,255,.75);line-height:1.6;">Scrolle zu einem Frame → <strong style="color:#fff;">Screenshot</strong> machen → Instagram öffnen → Story → Foto aus Galerie wählen → fertig posten.</div>
+    </div>
     <div class="story-frames-wrap" id="story-list"></div>
     <button class="btn-ghost" onclick="generateStory()">&#x21BA; Neue Variante</button>
   </div>
@@ -847,7 +835,6 @@ function generatePost(){
   document.getElementById('res-body').textContent=lastPost.body;
   document.getElementById('res-cta').textContent=lastPost.cta;
   document.getElementById('res-bild').textContent=lastPost.bild;
-  updateFotoSlot();
   lastHashtags = generateHashtags(m, ton, lastIsErlebnis ? 'erlebnis' : wer);
   document.getElementById('res-hashtags').innerHTML = lastHashtags.split(' ').map(h=>
     `<span style="color:var(--accent);margin-right:4px;">${h}</span>`
@@ -861,7 +848,19 @@ function copyPost(){
   if(!lastPost) return;
   const t=lastPost.hook+'\n\n'+lastPost.body+'\n\n'+lastPost.cta;
   navigator.clipboard&&navigator.clipboard.writeText(t);
-  alert('Post kopiert \u2713');
+}
+function allesKopieren(){
+  if(!lastPost) return;
+  const t=lastPost.hook+'\n\n'+lastPost.body+'\n\n'+lastPost.cta+(lastHashtags?'\n\n'+lastHashtags:'');
+  navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{
+    const btn=document.getElementById('btn-alles-kopieren');
+    btn.textContent='✓ Kopiert! Jetzt Instagram öffnen → + → Einfügen';
+    btn.style.background='#2E5D4B';
+    setTimeout(()=>{
+      btn.textContent='📋 Text + Hashtags kopieren';
+      btn.style.background='var(--accent)';
+    },3000);
+  });
 }
 function favPost(){
   if(!lastPost) return;
@@ -1148,14 +1147,16 @@ function generateStory(){
           <button class="fav-star" onclick="saveFav('story',\`${txt}\`)" style="color:#fff;font-size:18px">&#x2606;</button>
         </div>
         <div class="story-card-body">
+          <div style="background:#1C1C1C;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#fff;text-align:center;">
+            📸 Screenshot dieses Rahmens → als Story posten
+          </div>
           <div class="story-visual gold-bg" style="margin-bottom:12px">
             <img class="story-visual-logo-m" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-m.png" alt="M">
             <div class="story-visual-text" style="font-size:22px">&bdquo;${f.text}&ldquo;</div>
             <img class="story-visual-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta">
           </div>
           <div class="story-frame-actions">
-            <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
-            <button class="share-btn" onclick="shareOrCopyText('Story',\`${txt}\`)">📋 + Instagram</button>
+            <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Text kopieren</button>
             <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
           </div>
         </div>
@@ -1175,14 +1176,17 @@ function generateStory(){
         <button class="fav-star" onclick="saveFav('story',\`${txt}\`)" style="color:#fff;font-size:18px">&#x2606;</button>
       </div>
       <div class="story-card-body">
+        <div style="background:#1C1C1C;border-radius:8px;padding:8px 12px;margin-bottom:10px;font-size:12px;color:#fff;text-align:center;">
+          📸 Screenshot dieses Rahmens → als Story posten
+        </div>
         <div class="story-visual ${bg}" style="margin-bottom:12px">
           <img class="story-visual-logo-m" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-m.png" alt="M">
           <div class="story-visual-text">&bdquo;${fr.text}&ldquo;</div>
           <img class="story-visual-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta">
         </div>
+        <div style="font-size:12px;color:var(--sub);font-style:italic;margin-bottom:8px;line-height:1.4;">💡 ${fr.tip}</div>
         <div class="story-frame-actions">
-          <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Kopieren</button>
-          <button class="share-btn" onclick="shareOrCopyText('Story-Frame',\`${txt}\`)">📋 + Instagram</button>
+          <button class="copy-btn" onclick="copyText(this,\`${txt}\`)">&#x1F4CB; Text kopieren</button>
           <button class="copy-btn" onclick="saveFav('story',\`${txt}\`)">&#x2B50; Speichern</button>
         </div>
       </div>

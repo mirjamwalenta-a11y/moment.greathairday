@@ -409,8 +409,13 @@ textarea{resize:none;}
 
   <!-- SCHRITT 1: Situation -->
   <div id="post-step-1">
-    <div style="font-size:18px;font-weight:700;color:var(--ink);line-height:1.35;">Was war heute eher los?</div>
-    <div style="font-size:13px;color:var(--sub);margin-top:4px;">Einfach antippen — du musst noch nichts formulieren.</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+      <div>
+        <div style="font-size:18px;font-weight:700;color:var(--ink);line-height:1.35;">Was war heute eher los?</div>
+        <div style="font-size:13px;color:var(--sub);margin-top:4px;">Einfach antippen — du musst noch nichts formulieren.</div>
+      </div>
+      <button onclick="openEditModal('situationen')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);white-space:nowrap;padding-top:3px;">✏️ Bearbeiten</button>
+    </div>
     <div id="situation-list" style="display:flex;flex-direction:column;gap:8px;margin-top:4px;"></div>
   </div>
 
@@ -669,15 +674,25 @@ const DEFAULT_LEISTUNG = [
   {val:'Herrenschnitt', label:'Herrenschnitt'},
   {val:'Alpha-Cooling', label:'Alpha-Cooling'},
 ];
+const DEFAULT_SITUATIONEN = [
+  {val:'kundin_beruehrt', label:'Eine Kundin war besonders berührt', ton:'nahbar', wer:'kundinnen'},
+  {val:'ergebnis_schoen', label:'Ein Ergebnis war schön', ton:'stolz', wer:'neu'},
+  {val:'team_moment', label:'Im Team war ein guter Moment', ton:'nahbar', wer:'kundinnen'},
+  {val:'lernmoment', label:'Mit dem Lehrling gab es einen Lernmoment', ton:'nahbar', wer:'lehrlinge'},
+  {val:'produkt_behandlung', label:'Ein Produkt oder eine Behandlung war auffällig', ton:'stolz', wer:'neu'},
+  {val:'freier_termin', label:'Ein freier Termin soll sichtbar werden', ton:'direkt', wer:'neu'},
+  {val:'alltag', label:'Ein kleiner Blick in den Alltag passt heute', ton:'nahbar', wer:'kundinnen'},
+  {val:'nichts_besonderes', label:'Heute war nichts Besonderes, aber ich will trotzdem etwas posten', ton:'nachdenklich', wer:'kundinnen'},
+];
 const DEFAULT_SPRUECHE = [
-  {val:'s0', label:'Bei uns musst du dich nicht erklären.'},
-  {val:'s1', label:'Vertrauen wächst still. Seit über 30 Jahren.'},
+  {val:'s0', label:'Bei uns musst du dich nicht erklaeren.'},
+  {val:'s1', label:'Vertrauen waechst still. Seit ueber 30 Jahren.'},
   {val:'s2', label:'Schneide die Vergangenheit ab. Entdecke deinen neuen Stil.'},
-  {val:'s3', label:'Wer aufhört zu lernen, hört auf zu wachsen.'},
-  {val:'s4', label:'Qualität ist keine Entscheidung. Sie ist eine Haltung.'},
-  {val:'s5', label:'Äußeres und inneres Wohlbefinden gehören zusammen.'},
+  {val:'s3', label:'Wer aufhoert zu lernen, hoert auf zu wachsen.'},
+  {val:'s4', label:'Qualitaet ist keine Entscheidung. Sie ist eine Haltung.'},
+  {val:'s5', label:'Aeusseres und inneres Wohlbefinden gehoeren zusammen.'},
   {val:'s6', label:'Eine Stunde bei uns — und du gehst anders raus.'},
-  {val:'s7', label:'Manche Kund:innen kommen seit 30 Jahren. Das sagt mehr als jede Werbung.'},
+  {val:'s7', label:'Manche Kundinnen kommen seit 30 Jahren. Das sagt mehr als jede Werbung.'},
 ];
 
 function loadChipData(key, defaults) {
@@ -705,6 +720,7 @@ function saveEditModal() {
   if(editModalKey==='postton' || editModalKey==='postwer') renderPostChips();
   if(editModalKey==='terminleistung') renderLeistungChips();
   if(editModalKey==='sprueche') initRahmenSprueche();
+  if(editModalKey==='situationen') initPostFlow();
   closeEditModal();
 }
 
@@ -713,8 +729,9 @@ function openEditModal(key) {
   const defaults = key==='postton' ? DEFAULT_TON
     : key==='postwer' ? DEFAULT_WER
     : key==='terminleistung' ? DEFAULT_LEISTUNG
+    : key==='situationen' ? DEFAULT_SITUATIONEN
     : DEFAULT_SPRUECHE;
-  const titles = {postton:'Tonalität bearbeiten', postwer:'Zielgruppen bearbeiten', terminleistung:'Leistungen bearbeiten', sprueche:'Sprüche bearbeiten'};
+  const titles = {postton:'Tonalität bearbeiten', postwer:'Zielgruppen bearbeiten', terminleistung:'Leistungen bearbeiten', sprueche:'Sprüche bearbeiten', situationen:'Situationen bearbeiten'};
   editModalData = JSON.parse(JSON.stringify(loadChipData(key, defaults)));
   document.getElementById('edit-modal-title').textContent = titles[key] || 'Bearbeiten';
   renderEditList();
@@ -1219,20 +1236,19 @@ const ZIELE = [
 let postFlow = { situation: null, ziel: null };
 
 function initPostFlow() {
-  // Situationen rendern
-  document.getElementById('situation-list').innerHTML = SITUATIONEN.map(s => `
-    <div onclick="selectSituation('${s.val}')" style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--ink);line-height:1.4;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${s.label}</div>
+  const situationen = loadChipData('situationen', DEFAULT_SITUATIONEN);
+  document.getElementById('situation-list').innerHTML = situationen.map(s => `
+    <div onclick="selectSituation('${s.val}','${(s.ton||'nahbar')}','${(s.wer||'kundinnen')}')" style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--ink);line-height:1.4;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${s.label}</div>
   `).join('');
-
-  // Ziele rendern
   document.getElementById('ziel-list').innerHTML = ZIELE.map(z => `
-    <div onclick="selectZiel('${z.val}')" style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--ink);line-height:1.4;transition:all .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${z.label}</div>
+    <div onclick="selectZiel('${z.val}')" style="background:var(--surface);border:1.5px solid var(--line);border-radius:14px;padding:15px 16px;cursor:pointer;font-size:14px;font-weight:500;color:var(--ink);line-height:1.4;transition:border-color .15s;" onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">${z.label}</div>
   `).join('');
 }
 
-function selectSituation(val) {
+function selectSituation(val, ton, wer) {
   postFlow.situation = val;
-  // Freier Termin → direkt zu Termine Tab
+  postFlow.ton = ton || 'nahbar';
+  postFlow.wer = wer || 'kundinnen';
   if(val === 'freier_termin') { showTab('termine'); return; }
   postStepGo(2);
 }
@@ -1296,8 +1312,8 @@ async function generatePost() {
   const freitext = document.getElementById('post-moment')?.value.trim() || '';
 
   // Tonalität und Zielgruppe aus Situation ableiten
-  const ton = situation?.ton || 'nahbar';
-  const wer = situation?.wer || 'kundinnen';
+  const ton = postFlow.ton || situation?.ton || 'nahbar';
+  const wer = postFlow.wer || situation?.wer || 'kundinnen';
 
   // Empfehlung
   const empfehlungMap = {

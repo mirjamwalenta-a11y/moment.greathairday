@@ -379,7 +379,7 @@ textarea{resize:none;}
 
   <!-- Aktionen -->
   <div class="rahmen-action-row">
-    <button class="btn-gold" style="flex:1;" onclick="speichereRahmen()">📸 Screenshot-Anleitung</button>
+    <button class="btn-gold" style="flex:1;" onclick="speichereRahmen()">Story speichern</button>
   </div>
 
   <div class="card" style="background:var(--gold-light);border-left:3px solid var(--gold);">
@@ -392,7 +392,7 @@ textarea{resize:none;}
   </div>
 
   <div class="card" style="background:#F9F7F3;">
-    <div class="card-sub" style="font-size:12px;"><strong>Screenshot für Story:</strong> Rahmen fertig gestalten → Screenshot machen (Seitentaste + Lauter bei Android, Seitentaste + Lautlos bei iPhone) → direkt in Instagram als Story posten.</div>
+    <div class="card-sub" style="font-size:12px;">Funktioniert der Download nicht? Mach einen Screenshot: iPhone — Seitentaste + Lautlos, Android — Seitentaste + Lauter.</div>
   </div>
 </div>
 
@@ -457,7 +457,7 @@ textarea{resize:none;}
     <div class="card" style="background:#1C1C1C;">
       <div style="font-size:12px;font-weight:700;color:#fff;margin-bottom:6px;">📋 Text + Hashtags kopieren</div>
       <div style="font-size:12px;color:rgba(255,255,255,.65);margin-bottom:10px;line-height:1.5;">Instagram öffnen → + → Beitrag → lang drücken → <strong style="color:#fff;">Einfügen</strong></div>
-      <button class="btn" id="btn-alles-kopieren" onclick="allesKopieren()" style="background:var(--accent);">📋 Alles kopieren</button>
+      <button class="btn" id="btn-alles-kopieren" onclick="allesKopieren()" style="background:var(--accent);">Alles kopieren</button>
     </div>
 
     <div class="card" style="background:#EEF4F1;border-left:3px solid var(--accent);">
@@ -1404,11 +1404,52 @@ function removeRahmenFoto() {
   document.getElementById('rahmen-placeholder').style.display = 'flex';
 }
 
+// ── RAHMEN DOWNLOAD ──
+let html2canvasLoaded = false;
+
+function ladeHtml2Canvas(cb) {
+  if (html2canvasLoaded) { cb(); return; }
+  const s = document.createElement('script');
+  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  s.onload = () => { html2canvasLoaded = true; cb(); };
+  s.onerror = () => cb(new Error('Laden fehlgeschlagen'));
+  document.head.appendChild(s);
+}
+
 function speichereRahmen() {
-  // Try html2canvas approach via canvas
-  const el = document.getElementById('rahmen-story-el');
-  // Fallback: instruct user to screenshot
-  alert('📸 Mach jetzt einen Screenshot!\n\nAndroid: Seitentaste + Lauter\niPhone: Seitentaste + Lautlos\n\nDann direkt in Instagram oder CapCut einfügen.');
+  const btn = document.querySelector('.rahmen-action-row .btn-gold');
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
+
+  ladeHtml2Canvas((err) => {
+    if (err) {
+      if (btn) { btn.textContent = origText; btn.disabled = false; }
+      alert('📸 Bitte Screenshot machen:\n\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
+      return;
+    }
+    const el = document.getElementById('rahmen-story-el');
+    html2canvas(el, {
+      scale: 3,               // 3× → ~1080px breit, Story-Qualität
+      useCORS: true,
+      allowTaint: false,
+      backgroundColor: null,
+      logging: false,
+    }).then(canvas => {
+      // Download
+      const link = document.createElement('a');
+      link.download = 'greathairday-story.png';
+      link.href = canvas.toDataURL('image/png');
+      link.click();
+
+      if (btn) { btn.textContent = '✓ Gespeichert'; }
+      setTimeout(() => {
+        if (btn) { btn.textContent = origText; btn.disabled = false; }
+      }, 2500);
+    }).catch(() => {
+      if (btn) { btn.textContent = origText; btn.disabled = false; }
+      alert('📸 Bitte Screenshot machen:\n\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
+    });
+  });
 }
 
 // ── KPI ──
@@ -1615,15 +1656,50 @@ function localPostFallback(moment, ton, wer) {
   };
 }
 
+// ── TEILEN & KOPIEREN ──
+async function shareOrCopy(text, btn) {
+  if (navigator.share) {
+    try {
+      await navigator.share({ title: 'A great hair day', text });
+      return;
+    } catch(e) {
+      if (e.name === 'AbortError') return; // Nutzer hat abgebrochen
+    }
+  }
+  // Fallback: Clipboard
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text; ta.style.cssText = 'position:fixed;opacity:0';
+    document.body.appendChild(ta); ta.select();
+    document.execCommand('copy'); document.body.removeChild(ta);
+  }
+  if (btn) {
+    const orig = btn.textContent;
+    btn.textContent = '✓ Kopiert';
+    btn.style.cssText = 'background:var(--accent);color:#fff';
+    setTimeout(() => { btn.textContent = orig; btn.style.cssText = ''; }, 1800);
+  }
+}
+
+function copyFromId(id, btn) {
+  const el = document.getElementById(id);
+  if (!el) return;
+  shareOrCopy(el.innerText || el.textContent, btn);
+}
+
 function allesKopieren() {
-  if(!lastPost) return;
+  if (!lastPost) return;
   const t = lastPost.hook+'\n\n'+lastPost.body+'\n\n'+lastPost.cta+(lastHashtags?'\n\n'+lastHashtags:'');
-  navigator.clipboard&&navigator.clipboard.writeText(t).then(()=>{
-    const btn = document.getElementById('btn-alles-kopieren');
+  const btn = document.getElementById('btn-alles-kopieren');
+  shareOrCopy(t, null);
+  if (navigator.share) return; // Share API übernimmt, kein Button-Feedback nötig
+  if (btn) {
     btn.textContent = '✓ Kopiert! Jetzt Instagram öffnen';
     btn.style.background = '#1a3d2e';
-    setTimeout(()=>{btn.textContent='📋 Alles kopieren';btn.style.background='var(--accent)';},3000);
-  });
+    setTimeout(() => { btn.textContent = 'Alles kopieren'; btn.style.background = 'var(--accent)'; }, 3000);
+  }
 }
 
 function favPost() {
@@ -1631,16 +1707,22 @@ function favPost() {
   saveFav('post', lastPost.hook+'\n\n'+lastPost.body);
 }
 
+// ── WIEN-HASHTAGS (dezent, rotierend) ──
+const WIEN_TAGS = ['#wien1050','#margareten','#wienfriseur','#1050wien','#friseurwien','#friseurmargareten','#wieninsider','#agreathairday'];
+function pickTags(n = 4) {
+  return [...WIEN_TAGS].sort(() => Math.random() - .5).slice(0, n).join(' ');
+}
+
 // ── FREIE TERMINE ──
 const TERMIN_TPL = [
   (w,u,l) => ({
     story:`📅 ${w==='heute'?'Heute':w==='morgen'?'Morgen':'Diese Woche'}${u?` · ${u} Uhr`:''} ist noch ein Platz frei.\n\n✂️ ${l}\n\n👇 Einfach schreiben — wir schauen ob es passt.`,
-    post:`Kurzfristig frei.\n\n${w==='heute'?'Heute':w==='morgen'?'Morgen':'Diese Woche'}${u?` um ${u} Uhr`:''} — ein Termin für ${l} ist frei geworden.\n\nWenn du schon lange nachdenkst: Das ist dein Zeichen.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n✉️ Einfach schreiben — wir antworten schnell.\n\n#GreatHairDay #FriseurWien #FreierTermin #Wien #${l.replace(/[^a-zA-Z]/g,'')}`,
+    post:`Kurzfristig frei.\n\n${w==='heute'?'Heute':w==='morgen'?'Morgen':'Diese Woche'}${u?` um ${u} Uhr`:''} — ein Termin für ${l} ist frei geworden.\n\nWenn du schon lange nachdenkst: Das ist dein Zeichen.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n✉️ Einfach schreiben — wir antworten schnell.\n\n${pickTags()}`,
     wa:`${w==='heute'?'Heute':w==='morgen'?'Morgen':'Diese Woche'}${u?` ${u}`:''} noch frei — ${l}. Meld dich: +43 1 586 31 30`
   }),
   (w,u,l) => ({
     story:`Ein Termin ist gerade frei. 🪄\n\n${w==='heute'?'Heute':w==='morgen'?'Morgen':'Noch diese Woche'}${u?` · ${u} Uhr`:''}\n✂️ ${l}\n\nWer sich meldet, bekommt ihn. 👇`,
-    post:`Ein Platz ist frei. Vielleicht für dich?\n\n${l} — ${w==='heute'?'heute':w==='morgen'?'morgen':'diese Woche'}${u?` um ${u} Uhr`:''}.\n\nBei uns musst du dich nicht erklären. Einfach schreiben und wir schauen gemeinsam.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n\n#GreatHairDay #FreierTermin #Wien #FriseurWien`,
+    post:`Ein Platz ist frei. Vielleicht für dich?\n\n${l} — ${w==='heute'?'heute':w==='morgen'?'morgen':'diese Woche'}${u?` um ${u} Uhr`:''}.\n\nBei uns musst du dich nicht erklären. Einfach schreiben und wir schauen gemeinsam.\n\n📍 Rechte Wienzeile 47, 1050 Wien\n\n${pickTags()}`,
     wa:`💇 Freier Platz: ${l}${u?`, ${u} Uhr`:''}, ${w==='heute'?'heute':'morgen'}. Meld dich: +43 1 586 31 30`
   }),
 ];
@@ -1658,13 +1740,9 @@ function generateTerminContent() {
   r.scrollIntoView({behavior:'smooth',block:'start'});
 }
 
-function copyFromId(id, btn) {
-  const txt = document.getElementById(id).textContent;
-  navigator.clipboard&&navigator.clipboard.writeText(txt).then(()=>{
-    btn.textContent='✓ Kopiert!';btn.classList.add('done');
-    setTimeout(()=>{btn.textContent='📋 Kopieren';btn.classList.remove('done');},2000);
-  });
-}
+
+
+
 
 
 

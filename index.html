@@ -95,7 +95,7 @@ textarea{resize:none;}
 .rahmen-canvas-wrap{position:relative;width:100%;border-radius:16px;overflow:hidden;box-shadow:0 4px 20px rgba(129,106,60,.25);}
 
 /* Story 9:16 */
-.rahmen-story{width:100%;aspect-ratio:9/16;background:#fff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0;position:relative;overflow:hidden;}
+.rahmen-story{width:100%;aspect-ratio:9/16;background:#ffffff;display:flex;flex-direction:column;align-items:center;justify-content:space-between;padding:0;position:relative;overflow:hidden;}
 
 /* Gold border frame */
 .rahmen-border{position:absolute;inset:0;border:6px solid var(--gold);border-radius:0;z-index:10;pointer-events:none;}
@@ -303,6 +303,11 @@ textarea{resize:none;}
         <span>🎬</span><span>Für Video</span>
       </button>
     </div>
+    <!-- Hintergrund wählen -->
+    <div style="display:flex;gap:8px;margin-top:2px;">
+      <button id="bg-btn-hell" onclick="setRahmenBg('hell')" style="flex:1;padding:9px;border-radius:10px;border:2px solid var(--gold);background:var(--gold-light);font-family:var(--f);font-size:12px;font-weight:700;color:var(--gold);cursor:pointer;">☀️ Hell</button>
+      <button id="bg-btn-dunkel" onclick="setRahmenBg('dunkel')" style="flex:1;padding:9px;border-radius:10px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--f);font-size:12px;font-weight:700;color:var(--sub);cursor:pointer;">🌙 Dunkel</button>
+    </div>
   </div>
 
   <!-- Text-Input -->
@@ -372,7 +377,10 @@ textarea{resize:none;}
 
       <!-- Bottom: Signature -->
       <div class="rahmen-bot">
-        <img class="rahmen-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:12px;font-weight:600;color:var(--gold);letter-spacing:1px;\'>Mirjam Walenta</div>'">
+        <div id="rahmen-sig-text" style="font-size:13px;font-weight:700;color:var(--gold);letter-spacing:1.5px;font-family:var(--f);text-align:center;line-height:1.6;">
+          Mirjam Walenta
+          <div style="font-size:10px;font-weight:500;letter-spacing:2px;opacity:.8;">A GREAT HAIR DAY</div>
+        </div>
       </div>
     </div>
   </div>
@@ -1362,6 +1370,54 @@ function setRahmenMode(mode) {
     document.getElementById('rahmen-text-display').style.display = 'none';
     document.getElementById('rahmen-placeholder').style.display = 'none';
   }
+}
+
+// Hell / Dunkel Hintergrund
+const RAHMEN_BG = {
+  hell: {
+    bg: '#FFFFFF',
+    textColor: '#1C1C1C',
+    placeholderColor: '#6B6560',
+    photoOverlay: 'linear-gradient(transparent, rgba(255,255,255,.95))',
+    btnAktiv: { border:'2px solid var(--gold)', background:'var(--gold-light)', color:'var(--gold)' },
+    btnInaktiv: { border:'1.5px solid var(--line)', background:'var(--surface)', color:'var(--sub)' },
+  },
+  dunkel: {
+    bg: '#1A2E25',
+    textColor: '#F5F3EF',
+    placeholderColor: '#9DB5A8',
+    photoOverlay: 'linear-gradient(transparent, rgba(26,46,37,.95))',
+    btnAktiv: { border:'2px solid var(--gold)', background:'rgba(212,175,55,.15)', color:'var(--gold)' },
+    btnInaktiv: { border:'1.5px solid rgba(255,255,255,.12)', background:'rgba(255,255,255,.06)', color:'#9DB5A8' },
+  },
+};
+
+let currentRahmenBg = 'hell';
+
+function setRahmenBg(mode) {
+  currentRahmenBg = mode;
+  const cfg = RAHMEN_BG[mode];
+  const story = document.getElementById('rahmen-story-el');
+  story.style.background = cfg.bg;
+
+  // Textfarbe
+  const textDisplay = document.getElementById('rahmen-text-display');
+  if (textDisplay) textDisplay.style.color = cfg.textColor;
+  const placeholder = document.getElementById('rahmen-placeholder');
+  if (placeholder) placeholder.style.color = cfg.placeholderColor;
+
+  // Foto-Overlay
+  const overlay = story.querySelector('.rahmen-photo-overlay');
+  if (overlay) overlay.style.background = cfg.photoOverlay;
+
+  // Button-Zustände
+  const btnHell = document.getElementById('bg-btn-hell');
+  const btnDunkel = document.getElementById('bg-btn-dunkel');
+  const aktiv = mode === 'hell' ? btnHell : btnDunkel;
+  const inaktiv = mode === 'hell' ? btnDunkel : btnHell;
+  Object.assign(aktiv.style, cfg.btnAktiv);
+  const inaktivCfg = RAHMEN_BG[mode === 'hell' ? 'dunkel' : 'hell'].btnInaktiv;
+  Object.assign(inaktiv.style, inaktivCfg);
 }
 
 function updateRahmenText() {

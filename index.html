@@ -107,7 +107,7 @@ textarea{resize:none;}
 
 /* Top area: logo */
 .rahmen-top{padding:22px 24px 12px;text-align:center;z-index:5;position:relative;}
-.rahmen-logo-m{width:64px;height:64px;object-fit:contain;}
+.rahmen-logo-m{width:64px;height:64px;object-fit:contain;mix-blend-mode:screen;}
 
 /* Middle: content area */
 .rahmen-content{flex:1;display:flex;align-items:center;justify-content:center;width:100%;position:relative;z-index:5;padding:8px 24px;}
@@ -123,7 +123,7 @@ textarea{resize:none;}
 
 /* Bottom: signature */
 .rahmen-bot{padding:10px 24px 20px;text-align:center;z-index:5;position:relative;}
-.rahmen-sig{width:140px;object-fit:contain;opacity:.9;}
+.rahmen-sig{width:140px;object-fit:contain;opacity:.9;mix-blend-mode:screen;}
 
 /* Placeholder state */
 .rahmen-placeholder{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;color:var(--sub);text-align:center;padding:20px;}
@@ -377,10 +377,7 @@ textarea{resize:none;}
 
       <!-- Bottom: Signature -->
       <div class="rahmen-bot">
-        <div id="rahmen-sig-text" style="font-size:13px;font-weight:700;color:var(--gold);letter-spacing:1.5px;font-family:var(--f);text-align:center;line-height:1.6;">
-          Mirjam Walenta
-          <div style="font-size:10px;font-weight:500;letter-spacing:2px;opacity:.8;">A GREAT HAIR DAY</div>
-        </div>
+        <img class="rahmen-sig" src="https://mirjamwalenta-a11y.github.io/moment.greathairday/logo-name.png" alt="Mirjam Walenta" onerror="this.style.display='none';this.parentElement.innerHTML='<div style=\'font-size:12px;font-weight:600;color:#816a3c;letter-spacing:1px;\'>Mirjam Walenta</div>'">
       </div>
     </div>
   </div>
@@ -1924,6 +1921,7 @@ async function syncFromSupabase() {
   if(planData) localStorage.setItem('ghd_week_posts', JSON.stringify(planData.map(p=>({day:p.day,text:p.text,id:p.id}))));
   // UI updaten
   renderPostChips(); renderLeistungChips(); initRahmenSprueche(); renderKampagneGrid();
+  setRahmenBg('hell');
   document.getElementById('kpi-favs').textContent=getFavs().length;
   document.getElementById('kpi-plan').textContent=getWeekPosts().length;
 }

@@ -258,35 +258,27 @@ textarea{resize:none;}
 
 <!-- ══ HEUTE ══ -->
 <div class="screen active" id="screen-heute">
-  <div class="hero">
-    <div class="today-date" id="today-date"></div>
-    <div class="card-title">Was kannst du heute zeigen?</div>
-    <div class="card-sub" style="margin-top:6px;">Wähle einen Impuls — du bekommst sofort einen Reel-Plan, Story-Frame und Caption.</div>
+
+  <!-- Kopfbereich -->
+  <div style="padding:4px 0 8px;">
+    <div style="font-size:11px;font-weight:600;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;" id="today-date"></div>
+    <div style="font-size:20px;font-weight:700;color:var(--ink);line-height:1.25;">Was war heute eher los?</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;">Wähle einen Anlass. Ich mache daraus sofort etwas, das du posten kannst.</div>
   </div>
 
-  <div class="sec-head">Tagesimpulse</div>
-  <div id="impulse-list" style="display:flex;flex-direction:column;gap:10px;"></div>
+  <!-- Anlass-Karten -->
+  <div id="anlass-list" style="display:flex;flex-direction:column;gap:10px;"></div>
 
-  <button class="btn-ghost" onclick="refreshImpulse()">↺ Andere Impulse</button>
-
-  <div class="sec-head">Schnellzugriff</div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;">
-    <button class="btn-ghost" style="padding:13px 8px;font-size:12px;" onclick="showTab('rahmen')">🖼️ Goldrahmen</button>
-    <button class="btn-ghost" style="padding:13px 8px;font-size:12px;" onclick="showTab('termine')">📅 Freier Termin</button>
-    <button class="btn-ghost" style="padding:13px 8px;font-size:12px;" onclick="showTab('post')">✍️ Post erstellen</button>
-    <button class="btn-ghost" style="padding:13px 8px;font-size:12px;" onclick="showTab('kampagne')">🚀 7-Tage-Plan</button>
+  <!-- Sekundäre Option: nur wenn wirklich nichts passt -->
+  <div style="text-align:center;padding:4px 0;">
+    <button onclick="anlassNichtsDavon()" style="background:none;border:none;font-size:12px;color:var(--sub);cursor:pointer;font-family:var(--f);text-decoration:underline;">Heute passt nichts davon</button>
   </div>
 
-  <div class="today-kpi">
-    <div class="kpi"><div class="kpi-num" id="kpi-favs">0</div><div class="kpi-label">Gespeichert</div></div>
-    <div class="kpi"><div class="kpi-num" id="kpi-plan">0</div><div class="kpi-label">Geplant</div></div>
-    <div class="kpi"><div class="kpi-num" id="kpi-streak">0</div><div class="kpi-label">Tage aktiv</div></div>
-  </div>
 </div>
 
-<!-- ══ IMPULS DETAIL ══ -->
-<div class="screen" id="screen-impuls">
-  <div id="impuls-detail-content"></div>
+<!-- ══ ANLASS DETAIL ══ -->
+<div class="screen" id="screen-anlass">
+  <div id="anlass-detail-content"></div>
 </div>
 
 <!-- ══ GOLDRAHMEN ══ -->
@@ -492,94 +484,128 @@ textarea{resize:none;}
 
 <!-- ══ TERMINE ══ -->
 <div class="screen" id="screen-termine">
-  <div class="hero">
-    <div class="card-tag" style="color:#DDEBE4;">Freie Termine</div>
-    <div class="card-title">Terminlücke sofort füllen</div>
-    <div class="card-sub" style="margin-top:6px;">Trag ein was frei ist — Story, Post und WhatsApp-Text sind sofort fertig.</div>
+
+  <!-- Kopfbereich -->
+  <div style="padding:4px 0 8px;">
+    <div style="font-size:20px;font-weight:700;color:var(--ink);line-height:1.25;">Freie Termine sichtbar machen</div>
+    <div style="font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;">Trag nur das Nötigste ein. Ich mache dir sofort etwas daraus.</div>
   </div>
 
+  <!-- Wann -->
   <div class="input-wrap">
-    <div class="input-label">Wann?</div>
+    <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">Wann ist der Termin frei?</div>
     <div class="chips" id="chips-terminwann">
       <button class="chip on" data-val="heute">Heute</button>
       <button class="chip" data-val="morgen">Morgen</button>
       <button class="chip" data-val="diese_woche">Diese Woche</button>
     </div>
+    <input type="text" id="termin-uhrzeit" placeholder="Uhrzeit optional, z. B. 14:30" style="margin-top:10px;font-size:14px;">
   </div>
 
+  <!-- Wofür -->
   <div class="input-wrap">
-    <div class="input-label">Uhrzeit (optional)</div>
-    <input type="text" id="termin-uhrzeit" placeholder="z.B. 14:30">
-  </div>
-
-  <div class="input-wrap">
-    <div class="input-label" style="display:flex;justify-content:space-between;align-items:center;">
-      <span>Geeignet für</span>
-      <button onclick="openEditModal('terminleistung')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);">✏️ Bearbeiten</button>
-    </div>
+    <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:8px;">Wofür passt der Termin?</div>
     <div class="chips" id="chips-terminleistung"></div>
   </div>
 
-  <button class="btn" onclick="generateTerminContent()">⚡ Inhalte sofort erstellen</button>
+  <button class="btn" onclick="generateTerminContent()">Inhalte sofort erstellen</button>
 
+  <!-- Output -->
   <div id="termin-result" style="display:none;flex-direction:column;gap:10px;">
-    <div class="sec-head">Fertige Texte — antippen zum Kopieren</div>
+
+    <div style="font-size:11px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;">Das kannst du jetzt posten</div>
 
     <div class="termin-result-card">
-      <div class="card-tag">📱 Instagram Story</div>
+      <div class="card-tag">Instagram Story</div>
       <div style="font-size:13px;color:var(--ink);line-height:1.6;margin-top:6px;white-space:pre-line;" id="termin-story"></div>
-      <button class="copy-btn" style="margin-top:10px;" onclick="copyFromId('termin-story',this)">📋 Kopieren</button>
+      <button class="copy-btn" style="margin-top:10px;" onclick="copyFromId('termin-story',this)">Kopieren</button>
     </div>
 
     <div class="card" style="border-left:3px solid var(--gold);background:var(--gold-light);">
-      <div class="card-tag" style="color:var(--gold);">✍️ Instagram Post</div>
+      <div class="card-tag" style="color:var(--gold);">Instagram Post</div>
       <div style="font-size:13px;color:var(--ink);line-height:1.6;margin-top:6px;white-space:pre-line;" id="termin-post"></div>
-      <button class="copy-btn" style="margin-top:10px;" onclick="copyFromId('termin-post',this)">📋 Kopieren</button>
+      <button class="copy-btn" style="margin-top:10px;" onclick="copyFromId('termin-post',this)">Kopieren</button>
     </div>
 
     <div class="card" style="background:#1C1C1C;">
-      <div class="card-tag" style="color:#DDEBE4;">💬 WhatsApp-Status</div>
+      <div class="card-tag" style="color:#DDEBE4;">WhatsApp</div>
       <div style="font-size:13px;color:rgba(255,255,255,.85);line-height:1.6;margin-top:6px;white-space:pre-line;" id="termin-wa"></div>
-      <button class="copy-btn" style="margin-top:10px;background:rgba(255,255,255,.1);color:#fff;" onclick="copyFromId('termin-wa',this)">📋 Kopieren</button>
+      <button class="copy-btn" style="margin-top:10px;background:rgba(255,255,255,.1);color:#fff;" onclick="copyFromId('termin-wa',this)">Kopieren</button>
     </div>
 
-    <button class="btn-ghost" onclick="generateTerminContent()">↺ Neue Variante</button>
+    <button class="btn-ghost" onclick="generateTerminContent()">↺ Andere Variante</button>
   </div>
 </div>
 
 <!-- ══ KAMPAGNE ══ -->
 <div class="screen" id="screen-kampagne">
-  <div class="hero">
-    <div class="card-tag" style="color:#DDEBE4;">7-Tage-Kampagne</div>
-    <div class="card-title">Deine Kampagne. Deine Regeln.</div>
-    <div class="card-sub" style="margin-top:6px;">Wähle ein Ziel oder erstelle ein eigenes — alles ist bearbeitbar.</div>
-  </div>
 
-  <div style="display:flex;justify-content:space-between;align-items:center;">
-    <div class="sec-head">Deine Ziele</div>
-    <button onclick="addKampagneZiel()" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);">+ Neues Ziel</button>
-  </div>
-
-  <div class="goal-grid" id="kampagne-ziel-grid"></div>
-
-  <button class="btn" id="btn-kampagne" onclick="openKampagneEditor()" disabled>📝 Kampagne bearbeiten & starten</button>
-
-  <div id="kampagne-result" style="display:none;flex-direction:column;gap:10px;"></div>
-</div>
-
-<!-- ══ KAMPAGNE EDITOR MODAL ══ -->
-<div id="modal-kampagne" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;overflow-y:auto;">
-  <div style="background:var(--bg);min-height:100vh;padding:20px 18px 100px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:700;" id="kampagne-editor-title">Kampagne bearbeiten</div>
-      <button onclick="closeKampagneEditor()" style="background:none;border:none;font-size:22px;cursor:pointer;">✕</button>
+  <!-- SCREEN A: Ziel wählen -->
+  <div id="kamp-screen-a">
+    <div class="hero">
+      <div class="card-tag" style="color:#DDEBE4;">7-Tage-Kampagne</div>
+      <div class="card-title">Was willst du in den nächsten 7 Tagen gezielt sichtbar machen?</div>
+      <div class="card-sub" style="margin-top:6px;">Wähle ein Ziel. Ich führe dich dann Tag für Tag mit einfachen, echten Inhalten.</div>
     </div>
-    <div id="kampagne-editor-days" style="display:flex;flex-direction:column;gap:12px;"></div>
-    <div style="margin-top:16px;display:flex;flex-direction:column;gap:8px;">
-      <button class="btn" onclick="saveAndStartKampagne()">✅ Speichern & starten</button>
-      <button class="btn-ghost" onclick="closeKampagneEditor()">Abbrechen</button>
-    </div>
+
+    <div class="goal-grid" id="kampagne-ziel-grid"></div>
+
+    <button class="btn" id="btn-kampagne-start" onclick="startKampagne()" disabled>Kampagne starten →</button>
   </div>
+
+  <!-- SCREEN B: Tagesführung -->
+  <div id="kamp-screen-b" style="display:none;flex-direction:column;gap:14px;">
+
+    <!-- Zurück -->
+    <button onclick="kampScreenA()" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:left;padding:0;">← Anderes Ziel wählen</button>
+
+    <!-- Fortschritt -->
+    <div class="card" style="background:var(--accent);">
+      <div style="color:#DDEBE4;font-size:10px;font-weight:700;letter-spacing:.7px;text-transform:uppercase;margin-bottom:6px;" id="kamp-ziel-label"></div>
+      <div style="color:#fff;font-size:18px;font-weight:700;margin-bottom:4px;" id="kamp-tag-headline"></div>
+      <div style="color:#E8F0EC;font-size:13px;" id="kamp-fortschritt"></div>
+      <!-- Fortschrittsbalken -->
+      <div style="margin-top:12px;background:rgba(255,255,255,.2);border-radius:4px;height:4px;">
+        <div id="kamp-progress-bar" style="background:#fff;border-radius:4px;height:4px;transition:width .3s;"></div>
+      </div>
+    </div>
+
+    <!-- Heute: die drei Dinge -->
+    <div class="card" style="border-left:3px solid var(--accent);">
+      <div class="card-tag">Heute zeigen</div>
+      <div class="card-title" id="kamp-heute-aufgabe" style="margin-top:4px;"></div>
+    </div>
+
+    <div class="card" style="background:#EEF4F1;">
+      <div class="card-tag">Empfohlenes Format</div>
+      <div style="font-size:14px;font-weight:600;color:var(--ink);margin-top:4px;" id="kamp-heute-format"></div>
+    </div>
+
+    <div class="card" style="background:var(--gold-light);border-left:3px solid var(--gold);">
+      <div class="card-tag" style="color:var(--gold);">So kommst du ins Tun</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.55;margin-top:4px;" id="kamp-heute-tun"></div>
+    </div>
+
+    <!-- Hauptbutton -->
+    <button class="btn" id="kamp-heute-btn" onclick="kampHeuteAktion()"></button>
+
+    <!-- Optionen -->
+    <div style="display:flex;gap:8px;">
+      <button class="btn-ghost" style="flex:1;font-size:12px;" onclick="kampRahmen()">🖼️ Goldrahmen</button>
+      <button class="btn-ghost" style="flex:1;font-size:12px;" id="kamp-skip-btn" onclick="kamp7Skip()">Überspringen</button>
+    </div>
+
+    <!-- Woche optional einblenden -->
+    <button id="kamp-show-week-btn" onclick="kamp7ToggleWeek()" style="background:none;border:none;font-size:12px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:center;padding:6px 0;text-decoration:underline;">Gesamte Woche ansehen</button>
+
+    <div id="kamp-week-detail" style="display:none;flex-direction:column;gap:8px;">
+      <div class="sec-head">Alle 7 Tage</div>
+      <div id="kamp-week-list"></div>
+      <button onclick="kamp7ToggleWeek()" style="background:none;border:none;font-size:12px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:center;padding:4px 0;text-decoration:underline;">Schließen</button>
+    </div>
+
+  </div>
+
 </div>
 
 <!-- ══ EDIT CHIPS MODAL ══ -->
@@ -598,25 +624,7 @@ textarea{resize:none;}
   </div>
 </div>
 
-<!-- ══ NEUES ZIEL MODAL ══ -->
-<div id="modal-neuziel" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:100;overflow-y:auto;">
-  <div style="background:var(--bg);min-height:100vh;padding:20px 18px 100px;">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;">
-      <div style="font-size:16px;font-weight:700;">Neues Kampagnenziel</div>
-      <button onclick="closeNeuZiel()" style="background:none;border:none;font-size:22px;cursor:pointer;">✕</button>
-    </div>
-    <div class="input-wrap">
-      <div class="input-label">Icon (Emoji)</div>
-      <input type="text" id="neuziel-icon" placeholder="z.B. 💇" maxlength="2">
-    </div>
-    <div class="input-wrap" style="margin-top:12px;">
-      <div class="input-label">Name des Ziels</div>
-      <input type="text" id="neuziel-name" placeholder="z.B. Sommer-Aktion">
-    </div>
-    <button class="btn" style="margin-top:16px;" onclick="saveNeuZiel()">✅ Ziel erstellen</button>
-    <button class="btn-ghost" style="margin-top:8px;" onclick="closeNeuZiel()">Abbrechen</button>
-  </div>
-</div>
+
 
 <!-- ══ PLAN ══ -->
 <div class="screen" id="screen-plan">
@@ -780,165 +788,262 @@ function selectChip(el, group) {
   if(group==='postwer') localStorage.setItem('ghd_sel_wer', el.dataset.val);
 }
 
-// ── EDITIERBARE KAMPAGNEN ──
-const DEFAULT_KAMPAGNEN = {
-  neukunden:{icon:'👥', titel:'Neue Kund:innen', tage:[
-    {tag:'Mo',typ:'Vorbereitung',aufgabe:'Plane die Woche. Welche 3 Momente willst du zeigen?',cta:'Noch kein Post.',tool:null},
-    {tag:'Di',typ:'Story',aufgabe:'Zeig einen echten Salon-Moment. Menschen, Ergebnis, Atmosphäre.',cta:'DM einladen.',tool:'rahmen'},
-    {tag:'Mi',typ:'Post',aufgabe:'Warum kommen Kund:innen seit Jahren? Ohne Werbung.',cta:'„Bei uns musst du dich nicht erklären."',tool:'post'},
-    {tag:'Do',typ:'Reel',aufgabe:'Vorher/Nachher — echtes Ergebnis, kein Filter.',cta:'Termin anfragen.',tool:'post'},
-    {tag:'Fr',typ:'Story + CTA',aufgabe:'Freie Termine sichtbar machen.',cta:'Link oder direkt schreiben.',tool:'termine'},
-    {tag:'Sa',typ:'Behind the Scenes',aufgabe:'Team bei echter Arbeit.',cta:'„Das sind die Menschen hinter jedem Termin."',tool:'rahmen'},
-    {tag:'So',typ:'Rückblick',aufgabe:'Wie viele Anfragen? Was hat funktioniert?',cta:'Kein Post. Lernen.',tool:null},
-  ]},
-  balayage:{icon:'✨', titel:'Balayage pushen', tage:[
-    {tag:'Mo',typ:'Vorbereitung',aufgabe:'Suche 2–3 echte Vorher/Nachher-Fotos.',cta:'Noch kein Post.',tool:null},
-    {tag:'Di',typ:'Story',aufgabe:'Was ist Balayage wirklich? Ohne Fachjargon.',cta:'DM mit BALAYAGE.',tool:'rahmen'},
-    {tag:'Mi',typ:'Reel',aufgabe:'Vorher/Nachher — stärkstes Bild zuerst.',cta:'Noch 2 Plätze diese Woche.',tool:'post'},
-    {tag:'Do',typ:'Post',aufgabe:'Kundenstimme oder Beratungs-Moment.',cta:'Schreib uns direkt.',tool:'post'},
-    {tag:'Fr',typ:'Story Dringlichkeit',aufgabe:'Freie Balayage-Termine zeigen.',cta:'Letzter Platz heute.',tool:'termine'},
-    {tag:'Sa',typ:'Behind the Scenes',aufgabe:'Den Prozess zeigen.',cta:'Magst du dabei sein?',tool:'rahmen'},
-    {tag:'So',typ:'Auswertung',aufgabe:'Anfragen gezählt.',cta:'Für nächste Kampagne.',tool:null},
-  ]},
-  stammkunden:{icon:'❤️', titel:'Stammkund:innen', tage:[
-    {tag:'Mo',typ:'Einstimmung',aufgabe:'Denk an 3 Stammkund:innen die länger nicht da waren.',cta:'Noch kein Post.',tool:null},
-    {tag:'Di',typ:'Story',aufgabe:'„Wann warst du das letzte Mal bei uns?"',cta:'Wir freuen uns auf dich.',tool:'rahmen'},
-    {tag:'Mi',typ:'Post',aufgabe:'Was neu ist — Alpha-Cooling, Ronya.',cta:'Schau vorbei.',tool:'post'},
-    {tag:'Do',typ:'Dankbarkeit',aufgabe:'Echte Stammkunden-Momente zeigen.',cta:'Danke dass ihr dabei seid.',tool:'rahmen'},
-    {tag:'Fr',typ:'Einladung',aufgabe:'Freie Plätze — exklusiv formulieren.',cta:'Für unsere Stammkund:innen.',tool:'termine'},
-    {tag:'Sa',typ:'Erinnerung',aufgabe:'Kleiner Tipp oder ehrlicher Satz.',cta:'Einfach vorbeikommen.',tool:'post'},
-    {tag:'So',typ:'Auswertung',aufgabe:'Wie viele Stammkunden gemeldet?',cta:'Festhalten.',tool:null},
-  ]},
-  ausbildung:{icon:'🎓', titel:'Lehrling gewinnen', tage:[
-    {tag:'Mo',typ:'Vorbereitung',aufgabe:'Was macht eure Ausbildung besonders? 3 Sätze.',cta:'Kein Post.',tool:null},
-    {tag:'Di',typ:'Story',aufgabe:'Ronya bei echter Arbeit.',cta:'Das ist Ausbildung bei uns.',tool:'rahmen'},
-    {tag:'Mi',typ:'Post',aufgabe:'Was du von einem Lehrling erwartest.',cta:'Ausbildungsplatz frei.',tool:'post'},
-    {tag:'Do',typ:'Story',aufgabe:'Was Ronya diese Woche zum ersten Mal gemacht hat.',cta:'Lust auf sowas?',tool:'rahmen'},
-    {tag:'Fr',typ:'Post',aufgabe:'3 Dinge die du lernst die kein Schulbuch lehrt.',cta:'Noch ein Platz.',tool:'post'},
-    {tag:'Sa',typ:'Team',aufgabe:'Das Team vorstellen.',cta:'Wir bilden Menschen aus.',tool:'rahmen'},
-    {tag:'So',typ:'Auswertung',aufgabe:'Anfragen eingegangen?',cta:'Anpassen.',tool:null},
-  ]},
+// ── KAMPAGNEN-DATEN ──
+const KAMPAGNEN_ZIELE = {
+  vertrauen: {
+    icon:'🤝', titel:'Vertrauen aufbauen',
+    sub:'Zeig echte Momente, damit Menschen ein Gefühl für euren Salon bekommen.',
+    tage:[
+      {aufgabe:'Zeig einen echten Moment, der Vertrauen aufbaut.', format:'Story', tun:'Filme 10 Sekunden aus dem Salonalltag oder zeig ein ruhiges Bild von einem echten Arbeitsmoment.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig ein schönes, echtes Ergebnis.', format:'Post oder Story', tun:'Ein klares Vorher/Nachher oder einfach das fertige Haar — ohne Filter, echtes Licht.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Warum kommen Kund:innen immer wieder?', format:'Post', tun:'Schreib einen echten Satz aus dem Alltag. Was sagt jemand, wenn er geht? Was macht ihr anders?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig einen Teammoment.', format:'Story', tun:'Jemand bei echter Arbeit — konzentriert, nicht gestellt. Kein Lächeln in die Kamera nötig.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Gib einen Einblick in eure Haltung oder euren Service.', format:'Post', tun:'Was lehnst du ab? Was machst du immer? Ein Satz genügt.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig freie Termine oder einen Anlass zum Kommen.', format:'Story', tun:'Einfach und direkt: wann ist noch Platz? Was ist diese Woche möglich?', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Rückblick oder ruhiger Wochenabschluss.', format:'Story', tun:'Ein echtes Bild von heute — kein Text nötig. Oder ein ruhiger Satz, was die Woche bedeutet hat.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  termine: {
+    icon:'📅', titel:'Freie Termine füllen',
+    sub:'Mach sichtbar, was kurzfristig möglich ist.',
+    tage:[
+      {aufgabe:'Mach Lust auf einen Termin — ohne Druck.', format:'Story', tun:'Ein schönes Bild aus dem Salon. Atmosphäre. Kein Aufruf, nur Einblick.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig ein konkretes Ergebnis von dieser Woche.', format:'Post', tun:'Was hast du heute gemacht, das sich sehen lassen kann? Echte Fotos, keine Inszenierung.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig einen freien Termin — direkt und klar.', format:'Story', tun:'Wann ist noch Platz? Wie lang dauert es? Was kostet es ungefähr? Ein Satz reicht.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Erkläre eine Leistung, die viele nicht kennen.', format:'Post', tun:'Alpha-Cooling, Balayage, Farbe — was machst du, das besonders ist? Ohne Fachjargon.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig noch offene Slots mit echtem Anlass.', format:'Story', tun:'Heute Nachmittag frei? Morgen früh? Konkret und persönlich ansprechen.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Behind the Scenes — der Salon, wie er wirklich ist.', format:'Story', tun:'Werkzeug. Produkte. Hände bei der Arbeit. Was du täglich siehst — andere noch nie.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Wochenabschluss: was war schön?', format:'Story oder Post', tun:'Ein Moment aus der Woche — echte Reaktion, echtes Bild. Ohne Werbung.', tool:'post', btn:'Post erstellen'},
+    ]
+  },
+  balayage: {
+    icon:'✨', titel:'Balayage sichtbar machen',
+    sub:'Zeig Ergebnisse, Atmosphäre und warum Menschen genau dafür kommen.',
+    tage:[
+      {aufgabe:'Was ist Balayage wirklich? Erkläre es ohne Fachjargon.', format:'Story', tun:'Ein Satz, der zeigt was es ist — und was es nicht ist. Kein Technik-Vortrag.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig ein Vorher/Nachher — dein stärkstes Bild zuerst.', format:'Post oder Reel', tun:'Echtes Ergebnis, echte Kundin (mit Erlaubnis), echtes Licht. Kein Filter.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig den Prozess — Technik ohne Erklärung.', format:'Story', tun:'Hände bei der Arbeit. Pinsel. Farbe. Das sieht jemand sonst nie — das ist dein Alleinstellungsmerkmal.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Eine Stimme einer Kundin oder ein Beratungsmoment.', format:'Post', tun:'Was hat jemand gesagt als er das Ergebnis gesehen hat? Oder wie läuft eine Beratung ab?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig freie Balayage-Termine.', format:'Story', tun:'Wie lange dauert es? Wann ist noch ein Platz? Direkt und klar — kein Druck.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Was macht deinen Balayage besonders?', format:'Post', tun:'Was machst du anders? Was lehnst du ab? Ein ehrlicher Satz über deine Haltung zur Technik.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Rückblick: was hat diese Woche funktioniert?', format:'Story', tun:'Kein Post nötig. Oder ein ruhiges Bild — ein schönes Ergebnis ohne Kommentar.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  farbe: {
+    icon:'🎨', titel:'Farbe sichtbar machen',
+    sub:'Mach Farbgefühl, Veredelung und echte Ergebnisse sichtbar.',
+    tage:[
+      {aufgabe:'Ein Ergebnis, das für sich spricht.', format:'Post', tun:'Dein bestes Farb-Ergebnis diese Woche — echtes Foto, klares Licht, kein Filter.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Was ist der Unterschied zwischen Farbe und Tönung?', format:'Story', tun:'Kurz und ohne Fachjargon erklären. Was empfiehlst du wem?', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig den Vorher/Nachher-Moment.', format:'Post oder Reel', tun:'Beide Bilder nebeneinander oder hintereinander. Echte Reaktion wenn möglich.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig die Farbmuster oder das Beratungsgespräch.', format:'Story', tun:'Womit arbeitest du? Wie wählst du eine Farbe aus? Das interessiert mehr als man denkt.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Freie Termine für Farbe oder Tönung zeigen.', format:'Story', tun:'Wann ist noch Platz? Wie lange dauert es? Direkt und einladend.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Was du bei Farbe nie machst — deine Haltung.', format:'Post', tun:'Was lehnst du ab? Was empfiehlst du stattdessen? Ehrlichkeit schlägt Werbung.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Wochenabschluss mit Farbe.', format:'Story', tun:'Das schönste Ergebnis der Woche — einfach zeigen, kein langer Text.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  alphacooling: {
+    icon:'❄️', titel:'Alpha Cooling sichtbar machen',
+    sub:'Zeig Einblick, Wirkung und warum diese Behandlung besonders ist.',
+    tage:[
+      {aufgabe:'Was ist Alpha Cooling überhaupt?', format:'Story', tun:'Ein Satz der erklärt was es ist — ohne Fachbegriffe. Was spürt jemand? Was bewirkt es?', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig die Anwendung live.', format:'Reel oder Story', tun:'Die Behandlung — wie es aussieht, wie es klingt. Kein Kommentar nötig, einfach zeigen.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Was sagen Kund:innen nach der Anwendung?', format:'Post', tun:'Eine echte Reaktion oder ein Satz der bleibt. Ohne Namen, mit Erlaubnis.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Für wen ist Alpha Cooling gemacht?', format:'Post', tun:'Wer profitiert davon? Wann empfiehlst du es? Was ist es nicht? Klar und ehrlich.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Freie Alpha-Cooling-Termine zeigen.', format:'Story', tun:'Wie lange dauert eine Session? Was kostet es? Wann ist Platz? Direkt.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Warum bietet ihr das an?', format:'Post', tun:'Was hat dich bewogen, Alpha Cooling einzuführen? Was überzeugt dich selbst daran?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Rückblick: wer hat diese Woche Alpha Cooling ausprobiert?', format:'Story', tun:'Kein Post nötig. Oder ein ruhiges Bild — Atmosphäre, Moment, kein Text.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  stammkunden: {
+    icon:'❤️', titel:'Stammkund:innen aktivieren',
+    sub:'Erinnere sichtbar daran, warum Menschen gern wiederkommen.',
+    tage:[
+      {aufgabe:'Zeig, was Stammkund:innen so besonders macht.', format:'Story', tun:'Ein Satz der ausdrückt wie viel dir diese Beziehungen bedeuten — ohne Namen, ohne Kitsch.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Was gibt es Neues, das Stammkund:innen interessieren könnte?', format:'Post', tun:'Alpha Cooling, Ronya ist jetzt dabei, neue Öffnungszeiten — was hat sich verändert?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig echte Dankbarkeit.', format:'Story', tun:'Wie lange kommen manche schon? Was bedeutet das? Ein ehrlicher Satz genügt.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Exklusiver Hinweis auf freie Plätze.', format:'Story', tun:'Nicht für alle — für eure Stammkund:innen. Einladend, nicht werbend.', tool:'termine', btn:'Termin-Content erstellen'},
+      {aufgabe:'Ein Moment mit einem Stammgast — anonym.', format:'Post', tun:'Was macht jemand, der seit 20 Jahren kommt, anders? Was hat sich verändert? Was ist geblieben?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Kleiner Tipp oder ehrlicher Satz für zuhause.', format:'Story oder Post', tun:'Pflege, Styling, was du selbst täglich machst — ein konkreter Hinweis den nur du geben kannst.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Wochenabschluss: Danke.', format:'Story', tun:'Ein Bild aus dem Salon. Kein Text nötig. Oder ein einfaches „Danke" in deiner eigenen Sprache.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  lehrling: {
+    icon:'🎓', titel:'Lehrling gewinnen',
+    sub:'Zeig ehrlich, wie Lernen und Begleitung bei euch aussehen.',
+    tage:[
+      {aufgabe:'Zeig Ronya bei echter Arbeit.', format:'Story', tun:'Konzentriert, nicht inszeniert. Hände, Werkzeug, Moment. Kein Kamerablick nötig.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Was macht die Ausbildung bei euch besonders?', format:'Post', tun:'Was lernst du hier, das kein Schulbuch lehrt? Drei echte Dinge — ohne Hochglanz-Sprache.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Was hat Ronya diese Woche zum ersten Mal gemacht?', format:'Story', tun:'Ein konkreter Moment — auch wenn er klein ist. Lernschritte sind interessant.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Was erwartest du von einem Lehrling — ehrlich.', format:'Post', tun:'Nicht die schöne Version. Was wünschst du dir wirklich? Was ist dir wichtig?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig das Team — wer bildet aus?', format:'Story', tun:'Alle gemeinsam oder einzeln — wer ist dabei? Was macht jede Person aus?', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Einladung zum Kennenlernen.', format:'Post', tun:'Der Ausbildungsplatz ist frei. Direkt, ohne Floskeln — was soll jemand tun wenn er Interesse hat?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Rückblick oder echtes Lehrlings-Zitat.', format:'Story', tun:'Was würde Ronya sagen über die ersten Monate? Oder ein ruhiges Bild vom Ende der Woche.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
+  mitarbeiter: {
+    icon:'🏠', titel:'Mitarbeiter:innen ansprechen',
+    sub:'Gib einen echten Einblick, wie Arbeit und Miteinander bei euch wirken.',
+    tage:[
+      {aufgabe:'Zeig die Teamatmosphäre — wie sie wirklich ist.', format:'Story', tun:'Ein echter Moment im Salon. Zusammenarbeit, Stimmung, Alltag. Keine Pose.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Zeig einen echten Arbeitsalltag.', format:'Post oder Reel', tun:'Was passiert bei euch an einem normalen Tag? Was macht ihr anders als andere Salons?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Warum arbeitet jemand gern bei euch?', format:'Post', tun:'Was sagen Mazen, Alina oder Hassan — in eigenen Worten, anonym wenn nötig.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Zeig Entwicklung — was jemand gelernt hat.', format:'Story', tun:'Wie hat sich jemand im Team entwickelt? Ein Moment, der zeigt wie ihr Weiterentwicklung lebt.', tool:'rahmen', btn:'Story erstellen'},
+      {aufgabe:'Gib Einblick in Führung oder eure Standards.', format:'Post', tun:'Wie führst du? Was ist euch als Team wichtig? Was gilt bei euch, auch wenn es unbequem ist?', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Freie Stelle oder Einladung.', format:'Post', tun:'Sucht ihr jemanden? Direkt, ehrlich, ohne Floskeln. Was bietet ihr — und was nicht.', tool:'post', btn:'Post erstellen'},
+      {aufgabe:'Ruhiger Rückblick.', format:'Story', tun:'Ein Bild von der Woche. Das Team. Der Salon. Kein langer Text. Einfach zeigen was war.', tool:'rahmen', btn:'Story erstellen'},
+    ]
+  },
 };
 
-function loadKampagnen() {
-  try { return JSON.parse(localStorage.getItem('ghd_kampagnen')) || DEFAULT_KAMPAGNEN; } catch { return DEFAULT_KAMPAGNEN; }
+// Kampagne State
+let kampagneState = {
+  aktiv: null,      // key des aktiven Ziels
+  startTag: null,   // ISO-Datum des Starts
+};
+
+function loadKampagneState() {
+  try { return JSON.parse(localStorage.getItem('ghd_kamp_state')) || {aktiv:null,startTag:null}; } catch { return {aktiv:null,startTag:null}; }
 }
-function saveKampagnen(data) {
-  localStorage.setItem('ghd_kampagnen', JSON.stringify(data));
+function saveKampagneState(state) {
+  localStorage.setItem('ghd_kamp_state', JSON.stringify(state));
 }
 
 function renderKampagneGrid() {
-  const kampagnen = loadKampagnen();
   const grid = document.getElementById('kampagne-ziel-grid');
-  grid.innerHTML = Object.entries(kampagnen).map(([key, k]) => `
-    <div class="goal-card" id="kziel-${key}" onclick="selectKampagneZiel('${key}',this)">
-      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
-        <div class="goal-icon">${k.icon||'📅'}</div>
-        <button onclick="event.stopPropagation();deleteKampagneZiel('${key}')" style="background:none;border:none;font-size:14px;color:var(--sub);cursor:pointer;">✕</button>
-      </div>
+  const state = loadKampagneState();
+  // Feste Reihenfolge: häufige/alltagsnahe Ziele zuerst
+  const ORDER = ['vertrauen','termine','stammkunden','lehrling','mitarbeiter','balayage','farbe','alphacooling'];
+  const entries = ORDER.map(k => [k, KAMPAGNEN_ZIELE[k]]).filter(([,v]) => v);
+  grid.innerHTML = entries.map(([key, k]) => {
+    const isAktiv = state.aktiv === key && state.startTag;
+    return `
+    <div class="goal-card ${activeKampagneZiel===key?'on':''}" id="kziel-${key}" onclick="selectKampagneZiel('${key}',this)">
+      <div class="goal-icon">${k.icon}</div>
       <div class="goal-title">${k.titel}</div>
-    </div>
-  `).join('');
+      <div class="goal-sub">${k.sub}</div>
+      ${isAktiv?`<div style="margin-top:6px;font-size:10px;font-weight:700;color:var(--accent);">● Läuft gerade</div>`:''}
+    </div>`;
+  }).join('');
 }
 
 function selectKampagneZiel(key, el) {
   activeKampagneZiel = key;
   document.querySelectorAll('#kampagne-ziel-grid .goal-card').forEach(c=>c.classList.remove('on'));
   el.classList.add('on');
-  document.getElementById('btn-kampagne').disabled = false;
+  document.getElementById('btn-kampagne-start').disabled = false;
 }
 
-function deleteKampagneZiel(key) {
-  const kampagnen = loadKampagnen();
-  delete kampagnen[key];
-  saveKampagnen(kampagnen);
-  activeKampagneZiel = null;
-  document.getElementById('btn-kampagne').disabled = true;
-  renderKampagneGrid();
-}
-
-function addKampagneZiel() {
-  document.getElementById('neuziel-icon').value = '';
-  document.getElementById('neuziel-name').value = '';
-  document.getElementById('modal-neuziel').style.display = 'block';
-}
-
-function saveNeuZiel() {
-  const icon = document.getElementById('neuziel-icon').value.trim() || '📅';
-  const name = document.getElementById('neuziel-name').value.trim();
-  if(!name) return;
-  const kampagnen = loadKampagnen();
-  const key = 'custom_'+Date.now();
-  kampagnen[key] = {
-    icon, titel: name,
-    tage: ['Mo','Di','Mi','Do','Fr','Sa','So'].map(tag => ({
-      tag, typ:'Aufgabe', aufgabe:'Tippe hier um die Aufgabe zu bearbeiten.', cta:'', tool:null
-    }))
-  };
-  saveKampagnen(kampagnen);
-  closeNeuZiel();
-  renderKampagneGrid();
-}
-
-function closeNeuZiel() {
-  document.getElementById('modal-neuziel').style.display = 'none';
-}
-
-// Kampagne Editor
-let editingKampagne = null;
-
-function openKampagneEditor() {
+function startKampagne() {
   if(!activeKampagneZiel) return;
-  const kampagnen = loadKampagnen();
-  editingKampagne = JSON.parse(JSON.stringify(kampagnen[activeKampagneZiel]));
-  document.getElementById('kampagne-editor-title').textContent = editingKampagne.titel + ' — bearbeiten';
-  renderKampagneEditorDays();
-  document.getElementById('modal-kampagne').style.display = 'block';
+  const state = {aktiv: activeKampagneZiel, startTag: new Date().toISOString().slice(0,10)};
+  saveKampagneState(state);
+  kampScreenB(state);
 }
 
-function renderKampagneEditorDays() {
-  const TOOL_OPTIONS = [
-    {val:'', label:'Kein Tool'},
-    {val:'post', label:'✍️ Post erstellen'},
-    {val:'rahmen', label:'🖼️ Goldrahmen'},
-    {val:'termine', label:'📅 Termin-Content'},
-  ];
-  document.getElementById('kampagne-editor-days').innerHTML = editingKampagne.tage.map((t,i) => `
-    <div class="card" style="padding:14px;">
-      <div style="font-size:11px;font-weight:700;color:var(--accent);margin-bottom:8px;">${t.tag}</div>
-      <div class="input-wrap" style="margin-bottom:8px;">
-        <div class="input-label">Art des Inhalts</div>
-        <input type="text" value="${t.typ}" onchange="editingKampagne.tage[${i}].typ=this.value" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:13px;width:100%;">
-      </div>
-      <div class="input-wrap" style="margin-bottom:8px;">
-        <div class="input-label">Aufgabe</div>
-        <textarea rows="2" onchange="editingKampagne.tage[${i}].aufgabe=this.value" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:13px;width:100%;resize:none;">${t.aufgabe}</textarea>
-      </div>
-      <div class="input-wrap" style="margin-bottom:8px;">
-        <div class="input-label">CTA / Hinweis</div>
-        <input type="text" value="${t.cta}" onchange="editingKampagne.tage[${i}].cta=this.value" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:13px;width:100%;">
-      </div>
-      <div class="input-wrap">
-        <div class="input-label">Tool öffnen</div>
-        <select onchange="editingKampagne.tage[${i}].tool=this.value||null" style="padding:9px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:13px;width:100%;background:var(--surface);">
-          ${TOOL_OPTIONS.map(o=>`<option value="${o.val}" ${t.tool===o.val||(!t.tool&&o.val==='')?'selected':''}>${o.label}</option>`).join('')}
-        </select>
-      </div>
-    </div>
-  `).join('');
+function kampScreenA() {
+  document.getElementById('kamp-screen-a').style.display = '';
+  document.getElementById('kamp-screen-b').style.display = 'none';
 }
 
-function saveAndStartKampagne() {
-  const kampagnen = loadKampagnen();
-  kampagnen[activeKampagneZiel] = editingKampagne;
-  saveKampagnen(kampagnen);
-  closeKampagneEditor();
-  generateKampagne();
+function kampScreenB(state) {
+  if(!state) state = loadKampagneState();
+  if(!state.aktiv) { kampScreenA(); return; }
+  const k = KAMPAGNEN_ZIELE[state.aktiv];
+  if(!k) { kampScreenA(); return; }
+
+  // Welcher Tag?
+  const start = new Date(state.startTag);
+  const heute = new Date();
+  heute.setHours(0,0,0,0);
+  start.setHours(0,0,0,0);
+  const diff = Math.floor((heute - start) / 86400000);
+  const tagIdx = Math.min(diff, 6); // 0–6
+  const tagNum = tagIdx + 1;
+  const t = k.tage[tagIdx];
+
+  document.getElementById('kamp-screen-a').style.display = 'none';
+  const sb = document.getElementById('kamp-screen-b');
+  sb.style.display = 'flex';
+  sb.style.flexDirection = 'column';
+
+  document.getElementById('kamp-ziel-label').textContent = k.titel;
+  document.getElementById('kamp-tag-headline').textContent = `Tag ${tagNum} von 7 — Heutiger Fokus`;
+  document.getElementById('kamp-fortschritt').textContent = tagNum < 7 ? `Noch ${7-tagNum} ${7-tagNum===1?'Tag':'Tage'} nach heute.` : 'Das ist der letzte Tag — gut gemacht.';
+  document.getElementById('kamp-progress-bar').style.width = `${(tagNum/7)*100}%`;
+
+  document.getElementById('kamp-heute-aufgabe').textContent = t.aufgabe;
+  document.getElementById('kamp-heute-format').textContent = '📱 ' + t.format;
+  document.getElementById('kamp-heute-tun').textContent = t.tun;
+
+  const hauptBtn = document.getElementById('kamp-heute-btn');
+  hauptBtn.textContent = t.btn;
+  hauptBtn.dataset.tool = t.tool || '';
+
+  // Wochenübersicht vorbereiten (versteckt)
+  document.getElementById('kamp-week-detail').style.display = 'none';
+  document.getElementById('kamp-show-week-btn').textContent = 'Gesamte Woche ansehen';
+  document.getElementById('kamp-week-list').innerHTML = k.tage.map((tg, i) => {
+    const isCurrent = i === tagIdx;
+    const isPast = i < tagIdx;
+    return `<div class="card" style="${isCurrent?'border:2px solid var(--accent);':''}${isPast?'opacity:.5;':''}">
+      <div style="display:flex;gap:10px;align-items:flex-start;">
+        <div style="min-width:28px;height:28px;border-radius:50%;background:${isCurrent?'var(--accent)':isPast?'var(--chip)':'var(--chip)'};display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;color:${isCurrent?'#fff':'var(--sub)'};">${i+1}</div>
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;color:${isCurrent?'var(--accent)':'var(--sub)'};text-transform:uppercase;margin-bottom:2px;">${isCurrent?'Heute':isPast?'Erledigt':'Tag '+(i+1)}</div>
+          <div style="font-size:13px;font-weight:${isCurrent?'700':'500'};color:var(--ink);">${tg.aufgabe}</div>
+          <div style="font-size:11px;color:var(--sub);margin-top:2px;">📱 ${tg.format}</div>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+
+  window.scrollTo(0,0);
 }
 
-function closeKampagneEditor() {
-  document.getElementById('modal-kampagne').style.display = 'none';
+function kampHeuteAktion() {
+  const tool = document.getElementById('kamp-heute-btn').dataset.tool;
+  if(tool) showTab(tool);
 }
+
+function kampRahmen() {
+  showTab('rahmen');
+}
+
+function kamp7Skip() {
+  // Nächsten Tag vorspulen (nur in State anpassen)
+  const state = loadKampagneState();
+  if(!state.startTag) return;
+  const start = new Date(state.startTag);
+  start.setDate(start.getDate() - 1);
+  state.startTag = start.toISOString().slice(0,10);
+  saveKampagneState(state);
+  kampScreenB(state);
+}
+
+function kamp7ToggleWeek() {
+  const wd = document.getElementById('kamp-week-detail');
+  const btn = document.getElementById('kamp-show-week-btn');
+  const visible = wd.style.display === 'flex';
+  wd.style.display = visible ? 'none' : 'flex';
+  wd.style.flexDirection = 'column';
+  btn.textContent = visible ? 'Gesamte Woche ansehen' : 'Woche ausblenden';
+}
+
+// Kampagne bei Tab-Öffnung prüfen
+function initKampagneTab() {
+  const state = loadKampagneState();
+  if(state.aktiv && state.startTag) {
+    activeKampagneZiel = state.aktiv;
+    kampScreenB(state);
+  } else {
+    kampScreenA();
+  }
+}
+
+// Dummy für Supabase-Kompatibilität (saveKampagnen wird noch von Supabase-Wrapper referenziert)
+function saveKampagnen(data) { /* nicht mehr genutzt */ }
+function loadKampagnen() { return {}; }
 
 // ── TEXT PERSISTENZ ──
 function initTextPersistenz() {
@@ -954,7 +1059,7 @@ function initTextPersistenz() {
 }
 
 // ── TABS ──
-const TAB_MAP = {heute:0,rahmen:1,post:2,termine:3,kampagne:4,plan:null,favs:null,impuls:null};
+const TAB_MAP = {heute:0,rahmen:1,post:2,termine:3,kampagne:4,plan:null,favs:null,anlass:null};
 function showTab(name) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -964,6 +1069,7 @@ function showTab(name) {
   if(name==='favs') renderFavs();
   if(name==='plan') renderWeekPlan();
   if(name==='post') { resetPostFlow(); }
+  if(name==='kampagne') { initKampagneTab(); }
   window.scrollTo(0,0);
 }
 
@@ -979,101 +1085,195 @@ document.querySelectorAll('[id^=chips-]').forEach(wrap=>{
   });
 });
 
-// ── TAGESIMPULSE ──
-const IMPULSE = [
-  { typ:'🎬 Reel-Idee', title:'Zeig einen echten Salon-Moment', sub:'Was passiert gerade bei euch? Einfach Handy raus — 30 Sekunden reicht.', icon:'🎬' },
-  { typ:'📸 Story', title:'Ronya bei der Arbeit', sub:'Konzentriertes Gesicht. Hände bei der Arbeit. Kein Text nötig.', icon:'📸' },
-  { typ:'✍️ Post', title:'Warum kommen Kunden seit 20 Jahren?', sub:'Nicht die Technik. Das Gefühl. Schreib einen echten Moment.', icon:'✍️' },
-  { typ:'🎬 Reel-Idee', title:'Vorher / Nachher ohne Fake', sub:'Echtes Ergebnis. Echte Reaktion. Das ist stärker als jede Inszenierung.', icon:'🎬' },
-  { typ:'📸 Story', title:'Ein Detail aus dem Salon', sub:'Produkte. Werkzeug. Licht. Was du jeden Tag siehst — andere noch nie.', icon:'📸' },
-  { typ:'✍️ Post', title:'Was Ausbildung wirklich bedeutet', sub:'Ein Moment mit Ronya. Was sie gelernt hat. Was dich das gelehrt hat.', icon:'✍️' },
-  { typ:'🎬 Reel-Idee', title:'Du — direkt in die Kamera', sub:'1 Satz. Kein Skript. Was du heute wirklich denkst. Das geht am besten viral.', icon:'🎬' },
-  { typ:'📸 Story', title:'Das Team bei echter Arbeit', sub:'Mazen, Alina, Hassan — was jede:r gerade macht. Keine Pose.', icon:'📸' },
-  { typ:'✍️ Post', title:'Haltung zeigen', sub:'Wann hast du etwas abgelehnt das nicht zu euch passte? Schreib es auf.', icon:'✍️' },
-  { typ:'🎬 Reel-Idee', title:'Alpha-Cooling — was ist das?', sub:'Zeig es. Erkläre es in 20 Sekunden. Keine Werbung, nur Einblick.', icon:'🎬' },
-  { typ:'📸 Story', title:'Dein Mantra heute', sub:'„Bei uns musst du dich nicht erklären." — golden, mit Rahmen, fertig.', icon:'📸' },
-  { typ:'✍️ Post', title:'33 Jahre — was bleibt', sub:'Was hast du in 33 Jahren gelernt das dir heute noch hilft?', icon:'✍️' },
+// ── ANLASS-KARTEN (Heute-Screen) — fester Produktkern ──
+// Reihenfolge: häufige/leicht nutzbare Anlässe zuerst, abstraktere weiter unten
+const ANLAESSE = [
+  {
+    id: 'ergebnis_schoen',
+    titel: 'Ein Ergebnis hat heute richtig gut ausgeschaut',
+    sub: 'Zeig, was am Ende sichtbar geworden ist.',
+    format: 'Post',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Foto vom fertigen Ergebnis — möglichst nah, gutes Licht. Vorher/Nachher wenn vorhanden.',
+    situation: 'ergebnis_schoen', ton: 'stolz', wer: 'neu'
+  },
+  {
+    id: 'freier_termin',
+    titel: 'Ein freier Termin soll sichtbar werden',
+    sub: 'Mach spontan sichtbar, was kurzfristig möglich ist.',
+    format: 'Story',
+    tool: 'termine',
+    btn: 'Termin sichtbar machen',
+    tun: 'Einfach eintragen wann und wofür — fertige Texte für Story, Post und WhatsApp sind sofort da.',
+    situation: 'freier_termin', ton: 'direkt', wer: 'neu'
+  },
+  {
+    id: 'kundin_beruehrt',
+    titel: 'Eine Kundin war besonders berührt',
+    sub: 'Wenn ein Moment nachgewirkt hat, darf er sichtbar werden.',
+    format: 'Story',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Schreib kurz auf, was passiert ist. Die KI macht daraus einen echten Post in deiner Stimme.',
+    situation: 'kundin_beruehrt', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'team_moment',
+    titel: 'Im Team war ein guter Moment',
+    sub: 'Ein echter Augenblick im Miteinander sagt oft mehr als viele Worte.',
+    format: 'Story',
+    tool: 'rahmen',
+    btn: 'Story erstellen',
+    tun: 'Foto von jemandem bei echter Arbeit oder ein kurzes Bild das den Moment einfängt.',
+    situation: 'team_moment', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'lernmoment',
+    titel: 'Mit dem Lehrling gab es einen Lernmoment',
+    sub: 'Zeig Entwicklung, Begleitung und echtes Lernen im Alltag.',
+    format: 'Story',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Was ist passiert? Ein Satz reicht — die KI schreibt den Rest.',
+    situation: 'lernmoment', ton: 'nahbar', wer: 'lehrlinge'
+  },
+  {
+    id: 'alltag_blick',
+    titel: 'Ein ruhiger Blick in den Alltag passt heute',
+    sub: 'Nicht jeder Post braucht ein Ereignis. Manchmal reicht ein echter Eindruck.',
+    format: 'Story',
+    tool: 'rahmen',
+    btn: 'Story erstellen',
+    tun: 'Produkte, Werkzeug, Hände, Licht — einfach das Handy hinhalten und fotografieren.',
+    situation: 'alltag', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'produkt_behandlung',
+    titel: 'Eine Behandlung oder ein Produkt war heute auffällig',
+    sub: 'Wenn etwas heute oft gefragt war oder besonders gut gepasst hat.',
+    format: 'Reel',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Was war das? Warum war es heute besonders? Ein Satz genügt — die KI macht daraus einen Einblick.',
+    situation: 'produkt_behandlung', ton: 'nahbar', wer: 'neu'
+  },
+  {
+    id: 'was_uns_ausmacht',
+    titel: 'Ich will zeigen, was uns ausmacht',
+    sub: 'Zeig Haltung, Atmosphäre oder etwas, das man bei euch spürt.',
+    format: 'Post',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Was ist euch wichtig, das man nicht auf der Website liest? Was würde eine Stammkundin sagen?',
+    situation: 'nichts_besonderes', ton: 'direkt', wer: 'kundinnen'
+  },
+  {
+    id: 'neue_mitarbeiter',
+    titel: 'Ich will heute neue Mitarbeiter:innen ansprechen',
+    sub: 'Gib einen ehrlichen Einblick, wie Arbeit bei euch wirkt.',
+    format: 'Post',
+    tool: 'post',
+    btn: 'Post erstellen',
+    tun: 'Was macht den Alltag hier aus? Was würde jemand sagen, der gern hier arbeitet?',
+    situation: 'team_moment', ton: 'nahbar', wer: 'lehrlinge'
+  },
+  {
+    id: 'stiller_tag',
+    titel: 'Heute war ruhig, ich will trotzdem etwas zeigen',
+    sub: 'Auch ein stiller Tag kann sichtbar werden, wenn er echt ist.',
+    format: 'Story',
+    tool: 'rahmen',
+    btn: 'Story erstellen',
+    tun: 'Ein Bild aus dem Salon wie er heute war — kein Text nötig. Stille hat ihren eigenen Wert.',
+    situation: 'nichts_besonderes', ton: 'nachdenklich', wer: 'kundinnen'
+  },
 ];
 
-let currentImpulseIdx = [];
-function refreshImpulse() {
-  const shuffled = [...IMPULSE].sort(()=>Math.random()-.5);
-  currentImpulseIdx = shuffled.slice(0,3);
-  const list = document.getElementById('impulse-list');
-  list.innerHTML = currentImpulseIdx.map((imp,i) => `
-    <div class="impuls-card" onclick="openImpuls(${i})">
-      <div class="impuls-type">${imp.typ}</div>
-      <div class="impuls-title">${imp.title}</div>
-      <div class="impuls-sub">${imp.sub}</div>
-      <div class="impuls-arrow">→</div>
+let currentAnlassPool = [];
+
+function refreshAnlaesse() {
+  currentAnlassPool = [...ANLAESSE];
+  const list = document.getElementById('anlass-list');
+  list.innerHTML = currentAnlassPool.map((a, i) => `
+    <div onclick="openAnlass(${i})" style="
+      background:var(--surface);
+      border:1.5px solid var(--line);
+      border-radius:14px;
+      padding:16px;
+      cursor:pointer;
+      transition:border-color .15s;
+      display:flex;
+      flex-direction:column;
+      gap:4px;
+    " onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='var(--line)'">
+      <div style="font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;">${a.titel}</div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.45;">${a.sub}</div>
+      <div style="font-size:10px;font-weight:600;color:var(--accent);margin-top:4px;text-transform:uppercase;letter-spacing:.4px;">${a.format} →</div>
     </div>
   `).join('');
 }
 
-function openImpuls(i) {
-  const imp = currentImpulseIdx[i];
-  const isReel = imp.typ.includes('Reel');
-  const isStory = imp.typ.includes('Story');
-  const isPost = imp.typ.includes('Post');
+function openAnlass(i) {
+  const a = currentAnlassPool[i];
 
-  let html = `
-    <div class="hero">
-      <div class="card-tag" style="color:#DDEBE4;">${imp.typ}</div>
-      <div class="card-title">${imp.title}</div>
-      <div class="card-sub" style="margin-top:6px;">${imp.sub}</div>
+  // Freier Termin direkt zu Termine weiterleiten
+  if(a.tool === 'termine') {
+    showTab('termine');
+    return;
+  }
+
+  // Für Post: postFlow vorbelegen und direkt zu Post
+  if(a.tool === 'post') {
+    postFlow.situation = a.situation;
+    postFlow.ton = a.ton;
+    postFlow.wer = a.wer;
+    // Detail-Screen zeigen mit Kontext + direktem Einstieg
+  }
+
+  const html = `
+    <button onclick="showTab('heute')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:left;padding:0 0 4px;">← Zurück</button>
+
+    <div style="margin-top:8px;">
+      <div style="font-size:19px;font-weight:700;color:var(--ink);line-height:1.3;margin-bottom:5px;">${a.titel}</div>
+      <div style="font-size:13px;color:var(--sub);line-height:1.5;">${a.sub}</div>
     </div>
+
+    <div class="card" style="border-left:3px solid var(--accent);margin-top:4px;">
+      <div style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px;">So kommst du ins Tun</div>
+      <div style="font-size:14px;color:var(--ink);line-height:1.6;">${a.tun}</div>
+    </div>
+
+    <div class="card" style="background:#EEF4F1;">
+      <div style="font-size:10px;font-weight:700;color:var(--sub);text-transform:uppercase;letter-spacing:.5px;margin-bottom:3px;">Am besten als</div>
+      <div style="font-size:14px;font-weight:600;color:var(--ink);">${a.format}</div>
+    </div>
+
+    <button class="btn" onclick="${a.tool === 'post' ? `anlassZuPost('${a.situation}','${a.ton}','${a.wer}')` : `showTab('${a.tool}')`}">${a.btn}</button>
+
+    ${a.tool === 'post' ? `<button class="btn-ghost" onclick="showTab('rahmen')">Lieber als Story mit Goldrahmen</button>` : ''}
+
+    <button class="btn-ghost" onclick="showTab('heute')" style="color:var(--sub);">Anderen Anlass wählen</button>
   `;
 
-  if(isReel) {
-    html += `
-      <div class="sec-head">So filmst du es — Schritt für Schritt</div>
-      <div class="card">
-        ${REEL_GUIDE[Math.floor(Math.random()*REEL_GUIDE.length)].map((s,i)=>`
-          <div class="reel-step">
-            <div class="reel-num">${i+1}</div>
-            <div>
-              <div class="reel-sek">${s.sek}</div>
-              <div class="reel-text">${s.text}</div>
-              ${s.tip?`<div class="reel-tip">${s.tip}</div>`:''}
-            </div>
-          </div>
-        `).join('')}
-      </div>
-      <div class="card" style="background:var(--gold-light);border-left:3px solid var(--gold);">
-        <div class="card-tag" style="color:var(--gold);">💡 Tipp</div>
-        <div class="card-sub">Keine Musik nötig. Salon-Geräusche oder Stille wirkt echter als jeder Beat.</div>
-      </div>
-    `;
-  }
+  document.getElementById('anlass-detail-content').innerHTML = html;
+  showTab('anlass');
+}
 
-  if(isStory) {
-    html += `
-      <div class="sec-head">Schritt für Schritt</div>
-      <div class="card">
-        <div style="display:flex;flex-direction:column;gap:10px;">
-          <div style="font-size:13px;color:var(--ink);">1. Foto machen oder wählen</div>
-          <div style="font-size:13px;color:var(--ink);">2. Tab „Rahmen" öffnen → Foto hochladen</div>
-          <div style="font-size:13px;color:var(--ink);">3. Screenshot → direkt in Instagram als Story posten</div>
-        </div>
-      </div>
-      <button class="btn-gold" onclick="showTab('rahmen')">🖼️ Goldrahmen öffnen</button>
-    `;
-  }
+function anlassNichtsDavon() {
+  showTab('post');
+}
 
-  if(isPost) {
-    html += `
-      <div class="sec-head">Post erstellen</div>
-      <div class="card">
-        <div class="card-sub">Tippe im Post-Generator deinen Moment ein — KI schreibt den Text in deiner Stimme.</div>
-      </div>
-      <button class="btn" onclick="showTab('post')">✍️ Post erstellen</button>
-    `;
-  }
-
-  html += `<button class="btn-ghost" onclick="showTab('heute')">← Zurück</button>`;
-
-  document.getElementById('impuls-detail-content').innerHTML = html;
-  showTab('impuls');
+function anlassZuPost(situation, ton, wer) {
+  postFlow.situation = situation;
+  postFlow.ton = ton;
+  postFlow.wer = wer;
+  // Direkt zu Schritt 3 (optionale Ergänzung) und dann generieren
+  showTab('post');
+  // Schritt 1+2 überspringen, direkt Schritt 3
+  setTimeout(() => {
+    postStepGo(3);
+  }, 50);
 }
 
 // ── REEL GUIDES ──
@@ -1100,9 +1300,11 @@ const REEL_GUIDE = [
 
 function renderLeistungChips() {
   const data = loadChipData('terminleistung', DEFAULT_LEISTUNG);
+  const allesOffen = {val:'alles', label:'Alles offen'};
+  const allData = [...data, allesOffen];
   const saved = localStorage.getItem('ghd_sel_leistung') || data[0]?.val;
   S.terminleistung = saved;
-  document.getElementById('chips-terminleistung').innerHTML = data.map(item =>
+  document.getElementById('chips-terminleistung').innerHTML = allData.map(item =>
     `<button class="chip ${item.val===saved?'on':''}" data-val="${item.val}" onclick="selectTerminChip(this,'terminleistung')">${item.label}</button>`
   ).join('');
 }
@@ -1463,101 +1665,7 @@ function copyFromId(id, btn) {
   });
 }
 
-// ── KAMPAGNE (legacy - replaced by editable system) ──
-const KAMPAGNEN_LEGACY = {
-  neukunden:{
-    titel:'7 Tage — Neue Kund:innen',
-    tage:[
-      {tag:'Mo',icon:'🧠',typ:'Vorbereitung',aufgabe:'Plane die Woche. Welche 3 Momente willst du zeigen?',cta:'Noch kein Post.',tool:null},
-      {tag:'Di',icon:'📸',typ:'Story',aufgabe:'Zeig einen echten Salon-Moment. Menschen, Ergebnis, Atmosphäre.',cta:'„Was macht unseren Salon aus?" → DM einladen.',tool:'rahmen'},
-      {tag:'Mi',icon:'✍️',typ:'Post',aufgabe:'Warum kommen Kund:innen seit Jahren? Ohne Werbung erzählen.',cta:'„Bei uns musst du dich nicht erklären."',tool:'post'},
-      {tag:'Do',icon:'🎬',typ:'Reel',aufgabe:'Vorher/Nachher — echtes Ergebnis, kein Filter.',cta:'„Termin anfragen — Link in Bio."',tool:'post'},
-      {tag:'Fr',icon:'📅',typ:'Story + CTA',aufgabe:'Freie Termine sichtbar machen.',cta:'Direkt-Link oder „Schreib uns direkt."',tool:'termine'},
-      {tag:'Sa',icon:'🤝',typ:'Behind the Scenes',aufgabe:'Team bei echter Arbeit — Ronya, Mazen, Alina, Hassan.',cta:'„Das sind die Menschen hinter jedem Termin."',tool:'rahmen'},
-      {tag:'So',icon:'📊',typ:'Rückblick',aufgabe:'Wie viele Anfragen? Was hat funktioniert?',cta:'Kein Post. Lernen.',tool:null},
-    ]
-  },
-  balayage:{
-    titel:'7 Tage — Balayage',
-    tage:[
-      {tag:'Mo',icon:'🎨',typ:'Vorbereitung',aufgabe:'Suche 2–3 echte Vorher/Nachher-Fotos.',cta:'Noch kein Post.',tool:null},
-      {tag:'Di',icon:'✨',typ:'Story',aufgabe:'Was ist Balayage wirklich? Ohne Fachjargon.',cta:'„DM mit BALAYAGE wenn du mehr wissen willst."',tool:'rahmen'},
-      {tag:'Mi',icon:'📸',typ:'Reel',aufgabe:'Vorher/Nachher — stärkstes Bild zuerst.',cta:'„Noch 2 Plätze diese Woche."',tool:'post'},
-      {tag:'Do',icon:'💬',typ:'Post',aufgabe:'Kundenstimme oder Beratungs-Moment.',cta:'„Schreib uns direkt."',tool:'post'},
-      {tag:'Fr',icon:'⏰',typ:'Story Dringlichkeit',aufgabe:'Freie Balayage-Termine zeigen.',cta:'„Letzter Platz heute Nachmittag."',tool:'termine'},
-      {tag:'Sa',icon:'🪄',typ:'Behind the Scenes',aufgabe:'Den Prozess zeigen — Technik, keine Erklärung.',cta:'„Magst du dabei sein?"',tool:'rahmen'},
-      {tag:'So',icon:'📊',typ:'Auswertung',aufgabe:'Anfragen gezählt. Was hat am besten gewirkt?',cta:'Für nächste Kampagne notieren.',tool:null},
-    ]
-  },
-  stammkunden:{
-    titel:'7 Tage — Stammkund:innen',
-    tage:[
-      {tag:'Mo',icon:'❤️',typ:'Einstimmung',aufgabe:'Denk an 3 Stammkund:innen die länger nicht da waren.',cta:'Noch kein Post.',tool:null},
-      {tag:'Di',icon:'💌',typ:'Story',aufgabe:'„Wann warst du das letzte Mal bei uns?" — persönlich.',cta:'„Wir freuen uns auf dich."',tool:'rahmen'},
-      {tag:'Mi',icon:'🌿',typ:'Post',aufgabe:'Was neu ist — Alpha-Cooling, Ronya ist jetzt dabei.',cta:'„Schau vorbei."',tool:'post'},
-      {tag:'Do',icon:'🙏',typ:'Dankbarkeit',aufgabe:'Echte Stammkunden-Momente zeigen — ohne Namen.',cta:'„Danke dass ihr seit Jahren dabei seid."',tool:'rahmen'},
-      {tag:'Fr',icon:'📅',typ:'Einladung',aufgabe:'Freie Plätze für Stammkund:innen — exklusiv.',cta:'„Für unsere Stammkund:innen: noch 2 Plätze."',tool:'termine'},
-      {tag:'Sa',icon:'🎁',typ:'Erinnerung',aufgabe:'Kleiner Tipp, Pflegeidee oder ehrlicher Satz.',cta:'„Einfach mal vorbeikommen."',tool:'post'},
-      {tag:'So',icon:'📊',typ:'Auswertung',aufgabe:'Wie viele Stammkunden gemeldet?',cta:'Festhalten.',tool:null},
-    ]
-  },
-  ausbildung:{
-    titel:'7 Tage — Lehrling gewinnen',
-    tage:[
-      {tag:'Mo',icon:'🎓',typ:'Vorbereitung',aufgabe:'Was macht eure Ausbildung besonders? 3 Sätze.',cta:'Kein Post.',tool:null},
-      {tag:'Di',icon:'📸',typ:'Story',aufgabe:'Ronya bei echter Arbeit — konzentriert, nicht inszeniert.',cta:'„Das ist Ausbildung bei uns."',tool:'rahmen'},
-      {tag:'Mi',icon:'✍️',typ:'Post',aufgabe:'Was du von einem Lehrling erwartest — ehrlich.',cta:'„Ausbildungsplatz frei. Schreib uns direkt."',tool:'post'},
-      {tag:'Do',icon:'💡',typ:'Story',aufgabe:'Was Ronya diese Woche zum ersten Mal gemacht hat.',cta:'„Lust auf sowas? Meld dich."',tool:'rahmen'},
-      {tag:'Fr',icon:'🏆',typ:'Post',aufgabe:'„3 Dinge die du bei uns lernst — die kein Schulbuch lehrt."',cta:'„Noch ein Platz. Schreib uns AUSBILDUNG."',tool:'post'},
-      {tag:'Sa',icon:'🤝',typ:'Team',aufgabe:'Das Team vorstellen — wer bildet aus.',cta:'„Wir bilden Menschen aus, nicht nur Friseur:innen."',tool:'rahmen'},
-      {tag:'So',icon:'📊',typ:'Auswertung',aufgabe:'Anfragen eingegangen?',cta:'Für nächste Woche anpassen.',tool:null},
-    ]
-  },
-};
 
-const TOOL_LABEL = {post:'✍️ Post erstellen', rahmen:'🖼️ Goldrahmen', termine:'📅 Termin-Content'};
-
-function selectKampagneZiel(key,el) {
-  activeKampagneZiel = key;
-  document.querySelectorAll('#kampagne-ziel-grid .goal-card').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('btn-kampagne').disabled = false;
-}
-
-function generateKampagne() {
-  if(!activeKampagneZiel) return;
-  const kampagnen = loadKampagnen();
-  const k = kampagnen[activeKampagneZiel];
-  const today = new Date().getDay(); // 0=So, 1=Mo...
-  document.getElementById('kampagne-result').innerHTML = `
-    <div class="card" style="background:#EEF4F1;border-left:3px solid var(--accent);">
-      <div class="card-tag">Deine Kampagne</div>
-      <div class="card-title">${k.titel}</div>
-    </div>
-    ${k.tage.map((t,i)=>{
-      const dayNum = [1,2,3,4,5,6,0][i];
-      const isToday = dayNum === today;
-      return `<div class="card" style="${isToday?'border:2px solid var(--accent);':''}">
-        <div style="display:flex;gap:12px;align-items:flex-start;">
-          <div style="min-width:36px;height:36px;border-radius:50%;background:${isToday?'var(--accent)':'var(--chip)'};display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:${isToday?'#fff':'var(--sub)'};">${t.tag}</div>
-          <div style="flex:1;">
-            <div style="display:flex;gap:6px;align-items:center;margin-bottom:3px;">
-              <span>${t.icon}</span>
-              <span style="font-size:10px;font-weight:700;color:var(--accent);text-transform:uppercase;">${t.typ}</span>
-            </div>
-            <div style="font-size:13px;font-weight:700;color:var(--ink);margin-bottom:3px;">${t.aufgabe}</div>
-            <div style="font-size:12px;color:var(--sub);line-height:1.4;margin-bottom:8px;">${t.cta}</div>
-            ${t.tool?`<button class="copy-btn" onclick="showTab('${t.tool}')">${TOOL_LABEL[t.tool]||'→'}</button>`:''}
-          </div>
-        </div>
-      </div>`;
-    }).join('')}
-    <button class="btn-ghost" onclick="generateKampagne()">↺ Neue Variante</button>
-  `;
-  const r = document.getElementById('kampagne-result');
-  r.style.display='flex';r.style.flexDirection='column';
-  r.scrollIntoView({behavior:'smooth',block:'start'});
-}
 
 // ── WOCHENPLAN ──
 function renderWeekPlan(){
@@ -1598,7 +1706,7 @@ function init(){
   else if(last===new Date(d-86400000).toISOString().slice(0,10)){streak++;localStorage.setItem('ghd_streak',streak);localStorage.setItem('ghd_last_active',today);}
   else{streak=1;localStorage.setItem('ghd_streak',streak);localStorage.setItem('ghd_last_active',today);}
   document.getElementById('kpi-streak').textContent=streak;
-  refreshImpulse();
+  refreshAnlaesse();
   initRahmenSprueche();
   renderPostChips();
   renderLeistungChips();
@@ -1698,8 +1806,7 @@ async function saveKampagnenToSupabase(data){
 const _origSaveChipData = saveChipData;
 saveChipData = function(key,data){ _origSaveChipData(key,data); saveSettingToSupabase(key,data); };
 
-const _origSaveKampagnen = saveKampagnen;
-saveKampagnen = function(data){ _origSaveKampagnen(data); saveKampagnenToSupabase(data); };
+// Kampagnen-State wird lokal gespeichert (kein Supabase-Sync nötig)
 
 const _origSaveFav = saveFav;
 saveFav = async function(type,text){

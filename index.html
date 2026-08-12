@@ -541,16 +541,12 @@ textarea{resize:none;}
 <div class="screen" id="screen-kampagne">
 
   <!-- SCREEN A: Ziel wählen -->
-  <div id="kamp-screen-a">
-    <div class="hero">
-      <div class="card-tag" style="color:#DDEBE4;">7-Tage-Kampagne</div>
-      <div class="card-title">Was willst du in den nächsten 7 Tagen gezielt sichtbar machen?</div>
-      <div class="card-sub" style="margin-top:6px;">Wähle ein Ziel. Ich führe dich dann Tag für Tag mit einfachen, echten Inhalten.</div>
+  <div id="kamp-screen-a" style="display:flex;flex-direction:column;gap:12px;">
+    <div style="padding:4px 0 8px;">
+      <div style="font-size:20px;font-weight:700;color:var(--ink);line-height:1.25;">Was willst du in den nächsten 7 Tagen gezielt sichtbar machen?</div>
+      <div style="font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;">Tippe ein Ziel an. Ich führe dich dann Tag für Tag.</div>
     </div>
-
-    <div class="goal-grid" id="kampagne-ziel-grid"></div>
-
-    <button class="btn" id="btn-kampagne-start" onclick="startKampagne()" disabled>Kampagne starten →</button>
+    <div id="kampagne-ziel-grid"></div>
   </div>
 
   <!-- SCREEN B: Tagesführung -->
@@ -912,38 +908,43 @@ function saveKampagneState(state) {
 function renderKampagneGrid() {
   const grid = document.getElementById('kampagne-ziel-grid');
   const state = loadKampagneState();
-  // Feste Reihenfolge: häufige/alltagsnahe Ziele zuerst
   const ORDER = ['vertrauen','termine','stammkunden','lehrling','mitarbeiter','balayage','farbe','alphacooling'];
   const entries = ORDER.map(k => [k, KAMPAGNEN_ZIELE[k]]).filter(([,v]) => v);
   grid.innerHTML = entries.map(([key, k]) => {
     const isAktiv = state.aktiv === key && state.startTag;
     return `
-    <div class="goal-card ${activeKampagneZiel===key?'on':''}" id="kziel-${key}" onclick="selectKampagneZiel('${key}',this)">
-      <div class="goal-icon">${k.icon}</div>
-      <div class="goal-title">${k.titel}</div>
-      <div class="goal-sub">${k.sub}</div>
-      ${isAktiv?`<div style="margin-top:6px;font-size:10px;font-weight:700;color:var(--accent);">● Läuft gerade</div>`:''}
+    <div onclick="selectKampagneZiel('${key}')" style="
+      background:var(--surface);
+      border:1.5px solid ${isAktiv ? 'var(--accent)' : 'var(--line)'};
+      border-radius:14px;
+      padding:16px;
+      cursor:pointer;
+      transition:border-color .15s;
+      display:flex;
+      flex-direction:column;
+      gap:3px;
+    " onmouseover="this.style.borderColor='var(--accent)'" onmouseout="this.style.borderColor='${isAktiv ? 'var(--accent)' : 'var(--line)'}'">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:20px;">${k.icon}</span>
+        <span style="font-size:15px;font-weight:700;color:var(--ink);">${k.titel}</span>
+        ${isAktiv ? `<span style="margin-left:auto;font-size:10px;font-weight:700;color:var(--accent);">● Läuft</span>` : ''}
+      </div>
+      <div style="font-size:12px;color:var(--sub);line-height:1.45;padding-left:28px;">${k.sub}</div>
     </div>`;
   }).join('');
 }
 
-function selectKampagneZiel(key, el) {
+function selectKampagneZiel(key) {
   activeKampagneZiel = key;
-  document.querySelectorAll('#kampagne-ziel-grid .goal-card').forEach(c=>c.classList.remove('on'));
-  el.classList.add('on');
-  document.getElementById('btn-kampagne-start').disabled = false;
-}
-
-function startKampagne() {
-  if(!activeKampagneZiel) return;
-  const state = {aktiv: activeKampagneZiel, startTag: new Date().toISOString().slice(0,10)};
+  const state = { aktiv: key, startTag: new Date().toISOString().slice(0,10) };
   saveKampagneState(state);
   kampScreenB(state);
 }
 
 function kampScreenA() {
-  document.getElementById('kamp-screen-a').style.display = '';
+  document.getElementById('kamp-screen-a').style.display = 'flex';
   document.getElementById('kamp-screen-b').style.display = 'none';
+  renderKampagneGrid();
 }
 
 function kampScreenB(state) {

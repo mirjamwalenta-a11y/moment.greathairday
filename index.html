@@ -2242,21 +2242,31 @@ function msExportWithMedia(img) {
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
 
-  // Weißen Hintergrund ZUERST zeichnen — verhindert schwarzen Hintergrund in Instagram
+  // Weißer Hintergrund — verhindert schwarzen Hintergrund in Instagram
   ctx.fillStyle = '#ffffff';
   ctx.fillRect(0, 0, W, H);
 
-  const ar = img.naturalWidth / img.naturalHeight, arC = W / H;
+  // Regler direkt auslesen (sicherer als globale Variablen)
+  const scaleVal  = parseInt(document.getElementById('ms-scale').value  || 100) / 100;
+  const offsetVal = parseInt(document.getElementById('ms-pos-y').value  || 0);
+
+  // Cover-Skalierung: Foto füllt den vollen 1080x1920 Canvas
+  const ar = img.naturalWidth / img.naturalHeight;
+  const arC = W / H;
   let baseW, baseH;
   if (ar > arC) { baseH = H; baseW = baseH * ar; }
   else           { baseW = W; baseH = baseW / ar; }
-  const finalW = baseW * msScaleV, finalH = baseH * msScaleV;
-  const shiftY = (msOffsetY / 100) * H;
-  ctx.drawImage(img, (W - finalW) / 2, (H - finalH) / 2 + shiftY, finalW, finalH);
+
+  const finalW = baseW * scaleVal;
+  const finalH = baseH * scaleVal;
+  const shiftY = (offsetVal / 100) * H;
+  const dx = (W - finalW) / 2;
+  const dy = (H - finalH) / 2 + shiftY;
+
+  ctx.drawImage(img, dx, dy, finalW, finalH);
 
   // Rahmen drüber
   msDrawFrame(ctx, W, H, () => {
-    // Als JPEG exportieren (kein Alpha-Kanal = kein Schwarz in Instagram)
     msDownload(c, 'mirjam-story.jpg', 'image/jpeg');
   });
 }

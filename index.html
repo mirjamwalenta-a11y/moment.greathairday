@@ -1648,8 +1648,8 @@ async function speichereRahmen() {
 
     // Download
     const link = document.createElement('a');
-    link.download = 'greathairday-story.png';
-    link.href = canvas.toDataURL('image/png');
+    link.download = 'greathairday-story.jpg';
+    link.href = canvas.toDataURL('image/jpeg', 0.97);
     link.click();
 
     if (btn) { btn.textContent = '✓ Gespeichert'; }
@@ -2241,7 +2241,10 @@ function msExportWithMedia(img) {
   const W = 1080, H = 1920;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
+
+  // Weißen Hintergrund ZUERST zeichnen — verhindert schwarzen Hintergrund in Instagram
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
 
   const ar = img.naturalWidth / img.naturalHeight, arC = W / H;
   let baseW, baseH;
@@ -2251,15 +2254,23 @@ function msExportWithMedia(img) {
   const shiftY = (msOffsetY / 100) * H;
   ctx.drawImage(img, (W - finalW) / 2, (H - finalH) / 2 + shiftY, finalW, finalH);
 
-  msDrawFrame(ctx, W, H, () => msDownload(c, 'mirjam-story.png'));
+  // Rahmen drüber
+  msDrawFrame(ctx, W, H, () => {
+    // Als JPEG exportieren (kein Alpha-Kanal = kein Schwarz in Instagram)
+    msDownload(c, 'mirjam-story.jpg', 'image/jpeg');
+  });
 }
 
 function msSaveFrame() {
   const W = 1080, H = 1920;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  ctx.clearRect(0, 0, W, H);
-  msDrawFrame(ctx, W, H, () => msDownload(c, 'mirjam-rahmen.png'));
+  // Weißer Hintergrund auch für den reinen Rahmen
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, W, H);
+  msDrawFrame(ctx, W, H, () => {
+    msDownload(c, 'mirjam-rahmen.jpg', 'image/jpeg');
+  });
 }
 
 function msDrawFrame(ctx, w, h, cb) {
@@ -2287,9 +2298,11 @@ function msDrawFrame(ctx, w, h, cb) {
   imgM.src = document.getElementById('ms-logo-m').src;
 }
 
-function msDownload(canvas, name) {
+function msDownload(canvas, name, mime) {
+  mime = mime || 'image/jpeg';
   const a = document.createElement('a'); a.download = name;
-  a.href = canvas.toDataURL('image/png'); a.click();
+  // JPEG: kein Alphakanal, weißer Hintergrund bleibt weiß in Instagram
+  a.href = canvas.toDataURL(mime, 0.97); a.click();
 }
 
 </script>

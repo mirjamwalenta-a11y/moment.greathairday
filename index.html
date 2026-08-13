@@ -251,6 +251,7 @@ textarea{resize:none;}
 <div class="tabnav">
   <button class="tab active" onclick="showTab('heute')">Heute</button>
   <button class="tab" onclick="showTab('rahmen')">Rahmen</button>
+      <button class="tab" onclick="showTab('mediastory')">Foto/Video</button>
   <button class="tab" onclick="showTab('post')">Post</button>
   <button class="tab" onclick="showTab('termine')">Termine</button>
   <button class="tab" onclick="showTab('kampagne')">Kampagne</button>
@@ -402,6 +403,66 @@ textarea{resize:none;}
 </div>
 
 <!-- ══ POST ══ -->
+<div class="screen" id="screen-mediastory">
+  <div class="card" style="background:var(--gold-light);border-left:3px solid var(--gold);">
+    <div class="card-tag" style="color:var(--gold);">Foto oder Video in den Rahmen</div>
+    <div class="card-sub">Wähle ein Foto oder Video. Passe Position und Größe an — dann speichern.</div>
+  </div>
+
+  <!-- Upload -->
+  <div id="ms-upload-zone" onclick="document.getElementById('ms-file-input').click()"
+    style="border:2px dashed var(--gold);border-radius:16px;padding:28px 16px;text-align:center;cursor:pointer;background:#fff;">
+    <div style="font-size:36px;margin-bottom:8px;">📷</div>
+    <div style="font-size:14px;color:#5a5a5a;font-weight:600;">Foto oder Video auswählen</div>
+    <div style="font-size:12px;color:#999;">JPG, PNG, MP4, MOV</div>
+    <input type="file" id="ms-file-input" accept="image/*,video/*" style="display:none"
+      onchange="msHandleFile(this.files[0])">
+  </div>
+
+  <!-- Vorschau -->
+  <div id="ms-preview-section" style="display:none;flex-direction:column;gap:12px;">
+    <div id="ms-story-wrap" style="position:relative;width:100%;aspect-ratio:9/16;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(129,106,60,0.25);background:#fff;">
+      <div id="ms-media-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;">
+        <img id="ms-media-img" style="position:absolute;display:none;" alt="">
+        <video id="ms-media-vid" autoplay muted loop playsinline style="position:absolute;display:none;"></video>
+      </div>
+      <!-- Overlay mit echten Logos -->
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
+        <div id="ms-rahmen-border" style="position:absolute;top:3%;left:3%;width:94%;height:94%;border:1.5px solid var(--gold);"></div>
+        <div style="position:absolute;top:5.5%;width:100%;display:flex;justify-content:center;">
+          <img id="ms-logo-m" class="rahmen-logo-m" src="" style="width:12%;object-fit:contain;" alt="M">
+        </div>
+        <div style="position:absolute;bottom:5.5%;width:100%;display:flex;justify-content:center;">
+          <div id="ms-sig-clip" style="width:52%;overflow:hidden;">
+            <img id="ms-logo-sig" class="rahmen-sig" src="" style="width:100%;display:block;" alt="Mirjam Walenta">
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card" style="padding:14px 16px;">
+      <div class="input-label" style="margin-bottom:6px;">Position (oben / unten)</div>
+      <input type="range" id="ms-pos-y" min="-100" max="100" value="0" oninput="msApplyTransform()" style="width:100%;accent-color:var(--gold);">
+    </div>
+    <div class="card" style="padding:14px 16px;">
+      <div class="input-label" style="margin-bottom:6px;">Größe</div>
+      <input type="range" id="ms-scale" min="50" max="200" value="100" oninput="msApplyTransform()" style="width:100%;accent-color:var(--gold);">
+    </div>
+
+    <div id="ms-video-tip" style="display:none;background:#fff8e8;border:1px solid #e0c070;border-radius:10px;padding:10px 14px;font-size:12px;color:#7a6020;">
+      <strong>Video-Tipp:</strong> Lade den Rahmen als PNG herunter und lege ihn in Instagram als Sticker über dein Video.
+    </div>
+
+    <div style="display:flex;gap:8px;">
+      <button class="btn-ghost" style="flex:1;" onclick="msReset()">↩ Anderes</button>
+      <button class="btn-gold" style="flex:1;" onclick="msSave()">⬇ Story speichern</button>
+    </div>
+    <div id="ms-frame-row" style="display:none;margin-top:-4px;">
+      <button class="btn-ghost" style="width:100%;border-color:var(--gold);color:var(--gold);" onclick="msSaveFrame()">Nur Rahmen als PNG</button>
+    </div>
+  </div>
+</div>
+
 <div class="screen" id="screen-post">
 
   <!-- SCHRITT 1: Situation -->
@@ -1065,7 +1126,7 @@ function initTextPersistenz() {
 }
 
 // ── TABS ──
-const TAB_MAP = {heute:0,rahmen:1,post:2,termine:3,kampagne:4,plan:null,favs:null,anlass:null};
+const TAB_MAP = {heute:0,rahmen:1,mediastory:2,post:3,termine:4,kampagne:5,plan:null,favs:null,anlass:null};
 function showTab(name) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1076,6 +1137,14 @@ function showTab(name) {
   if(name==='plan') renderWeekPlan();
   if(name==='post') { resetPostFlow(); }
   if(name==='kampagne') { initKampagneTab(); }
+  if(name==='mediastory') {
+    setTimeout(() => {
+      const logoM   = document.querySelector('.rahmen-logo-m');
+      const logoSig = document.querySelector('.rahmen-sig');
+      if (logoM)   document.getElementById('ms-logo-m').src   = logoM.src;
+      if (logoSig) { document.getElementById('ms-logo-sig').src = logoSig.src; setTimeout(msSigCrop, 50); }
+    }, 50);
+  }
   window.scrollTo(0,0);
 }
 
@@ -1559,7 +1628,7 @@ async function speichereRahmen() {
       const sig = new Image();
       sig.src = document.querySelector('.rahmen-sig')?.src || '';
       sig.onload = () => {
-        const cropStart = 0.67; // ab 67% = exakt unter dem M, nur Mirjam Walenta + A Great Hair Day
+        const cropStart = 0.58; // ab 58% = exakt unter dem M, nur Mirjam Walenta + A Great Hair Day
         const srcY = Math.floor(sig.height * cropStart);
         const srcH = sig.height - srcY;
         const sigW = 480;
@@ -2054,6 +2123,163 @@ function addLogoutBtn(){
 }
 
 checkAuth();
+
+// ══ MEDIA-STORY CREATOR ══
+const MS_SIG_CROP = 0.58;
+let msIsVideo = false, msOffsetY = 0, msScaleV = 1.0, msCurrentFile = null;
+
+function msSigCrop() {
+  const clip = document.getElementById('ms-sig-clip');
+  const img  = document.getElementById('ms-logo-sig');
+  if (!img || !img.naturalHeight || !clip) return;
+  const cw = clip.offsetWidth;
+  const fullH = cw * (img.naturalHeight / img.naturalWidth);
+  const cropPx = fullH * MS_SIG_CROP;
+  img.style.marginTop = (-cropPx) + 'px';
+  clip.style.height   = (fullH - cropPx) + 'px';
+}
+
+function msHandleFile(file) {
+  if (!file) return;
+  msCurrentFile = file;
+  msIsVideo = file.type.startsWith('video/');
+  msOffsetY = 0; msScaleV = 1.0;
+  document.getElementById('ms-pos-y').value = 0;
+  document.getElementById('ms-scale').value = 100;
+
+  const img = document.getElementById('ms-media-img');
+  const vid = document.getElementById('ms-media-vid');
+
+  if (msIsVideo) {
+    img.style.display = 'none';
+    vid.style.display = 'block';
+    vid.src = URL.createObjectURL(file);
+    document.getElementById('ms-video-tip').style.display = 'block';
+    document.getElementById('ms-frame-row').style.display = 'block';
+    vid.addEventListener('loadedmetadata', msApplyTransform, {once: true});
+  } else {
+    vid.style.display = 'none'; vid.src = '';
+    img.style.display = 'block';
+    img.src = URL.createObjectURL(file);
+    document.getElementById('ms-video-tip').style.display = 'none';
+    document.getElementById('ms-frame-row').style.display = 'none';
+    img.addEventListener('load', msApplyTransform, {once: true});
+  }
+
+  document.getElementById('ms-upload-zone').style.display = 'none';
+  const ps = document.getElementById('ms-preview-section');
+  ps.style.display = 'flex';
+
+  setTimeout(msSigCrop, 100);
+}
+
+function msApplyTransform() {
+  const el    = msIsVideo ? document.getElementById('ms-media-vid') : document.getElementById('ms-media-img');
+  const wrap  = document.getElementById('ms-story-wrap');
+  const wW    = wrap.offsetWidth, wH = wrap.offsetHeight;
+
+  let baseW, baseH;
+  const natW = msIsVideo ? (el.videoWidth || wW) : (el.naturalWidth || wW);
+  const natH = msIsVideo ? (el.videoHeight || wH) : (el.naturalHeight || wH);
+  const ar = natW / natH, arC = wW / wH;
+  if (ar > arC) { baseH = wH; baseW = baseH * ar; }
+  else           { baseW = wW; baseH = baseW / ar; }
+
+  const finalW = baseW * msScaleV, finalH = baseH * msScaleV;
+  const shiftY = (msOffsetY / 100) * wH;
+  el.style.left   = ((wW - finalW) / 2) + 'px';
+  el.style.top    = ((wH - finalH) / 2 + shiftY) + 'px';
+  el.style.width  = finalW + 'px';
+  el.style.height = finalH + 'px';
+  el.style.minWidth = 'unset'; el.style.minHeight = 'unset';
+  el.style.transform = 'none';
+}
+
+document.addEventListener('DOMContentLoaded', () => {
+  const py = document.getElementById('ms-pos-y');
+  const sc = document.getElementById('ms-scale');
+  if (py) py.addEventListener('input', () => { msOffsetY = parseInt(py.value); msApplyTransform(); });
+  if (sc) sc.addEventListener('input', () => { msScaleV  = parseInt(sc.value) / 100; msApplyTransform(); });
+  window.addEventListener('resize', () => { msApplyTransform(); msSigCrop(); });
+});
+
+function msReset() {
+  msCurrentFile = null; msIsVideo = false;
+  document.getElementById('ms-upload-zone').style.display = 'block';
+  document.getElementById('ms-preview-section').style.display = 'none';
+  document.getElementById('ms-file-input').value = '';
+}
+
+async function msSave() {
+  if (msIsVideo) { msSaveFrame(); return; }
+  if (!msCurrentFile) return;
+  const btn = document.querySelector('[onclick="msSave()"]');
+  if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
+  try {
+    const img = new Image();
+    img.onload = () => {
+      msExportWithMedia(img);
+      if (btn) setTimeout(() => { btn.textContent = '⬇ Story speichern'; btn.disabled = false; }, 2500);
+    };
+    img.src = URL.createObjectURL(msCurrentFile);
+  } catch(e) { if (btn) { btn.textContent = '⬇ Story speichern'; btn.disabled = false; } }
+}
+
+function msExportWithMedia(img) {
+  const W = 1080, H = 1920;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+
+  const ar = img.naturalWidth / img.naturalHeight, arC = W / H;
+  let baseW, baseH;
+  if (ar > arC) { baseH = H; baseW = baseH * ar; }
+  else           { baseW = W; baseH = baseW / ar; }
+  const finalW = baseW * msScaleV, finalH = baseH * msScaleV;
+  const shiftY = (msOffsetY / 100) * H;
+  ctx.drawImage(img, (W - finalW) / 2, (H - finalH) / 2 + shiftY, finalW, finalH);
+
+  msDrawFrame(ctx, W, H, () => msDownload(c, 'mirjam-story.png'));
+}
+
+function msSaveFrame() {
+  const W = 1080, H = 1920;
+  const c = document.createElement('canvas'); c.width = W; c.height = H;
+  const ctx = c.getContext('2d');
+  ctx.clearRect(0, 0, W, H);
+  msDrawFrame(ctx, W, H, () => msDownload(c, 'mirjam-rahmen.png'));
+}
+
+function msDrawFrame(ctx, w, h, cb) {
+  const inset = Math.round(w * 0.03);
+  ctx.strokeStyle = '#816a3c'; ctx.lineWidth = Math.max(1, Math.round(w * 0.0014));
+  ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+
+  const imgM   = new Image();
+  const imgSig = new Image();
+  imgM.onload = () => {
+    const mW = Math.round(w * 0.12), mH = Math.round(imgM.naturalHeight / imgM.naturalWidth * mW);
+    ctx.drawImage(imgM, Math.round(w / 2 - mW / 2), Math.round(h * 0.055), mW, mH);
+
+    imgSig.onload = () => {
+      const srcY = Math.round(imgSig.naturalHeight * MS_SIG_CROP);
+      const srcH = imgSig.naturalHeight - srcY;
+      const dstW = Math.round(w * 0.52);
+      const dstH = Math.round(srcH / imgSig.naturalWidth * dstW);
+      ctx.drawImage(imgSig, 0, srcY, imgSig.naturalWidth, srcH,
+        Math.round(w / 2 - dstW / 2), Math.round(h * 0.945) - dstH, dstW, dstH);
+      cb();
+    };
+    imgSig.src = document.getElementById('ms-logo-sig').src;
+  };
+  imgM.src = document.getElementById('ms-logo-m').src;
+}
+
+function msDownload(canvas, name) {
+  const a = document.createElement('a'); a.download = name;
+  a.href = canvas.toDataURL('image/png'); a.click();
+}
+
 </script>
 </body>
 </html>

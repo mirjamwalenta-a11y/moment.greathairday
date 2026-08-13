@@ -1457,52 +1457,137 @@ function removeRahmenFoto() {
   document.getElementById('rahmen-placeholder').style.display = 'flex';
 }
 
-// ── RAHMEN DOWNLOAD ──
-let html2canvasLoaded = false;
-
-function ladeHtml2Canvas(cb) {
-  if (html2canvasLoaded) { cb(); return; }
-  const s = document.createElement('script');
-  s.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
-  s.onload = () => { html2canvasLoaded = true; cb(); };
-  s.onerror = () => cb(new Error('Laden fehlgeschlagen'));
-  document.head.appendChild(s);
-}
-
-function speichereRahmen() {
-  const btn = document.querySelector('.rahmen-action-row .btn-gold');
-  const origText = btn ? btn.textContent : '';
+// ── RAHMEN CANVAS EXPORT 1080×1920 ──
+async function speichereRahmen() {
+  const btn = document.querySelector('[onclick="speichereRahmen()"]');
   if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
 
-  ladeHtml2Canvas((err) => {
-    if (err) {
-      if (btn) { btn.textContent = origText; btn.disabled = false; }
-      alert('📸 Bitte Screenshot machen:\n\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
-      return;
-    }
-    const el = document.getElementById('rahmen-story-el');
-    html2canvas(el, {
-      scale: 3,               // 3× → ~1080px breit, Story-Qualität
-      useCORS: true,
-      allowTaint: false,
-      backgroundColor: null,
-      logging: false,
-    }).then(canvas => {
-      // Download
-      const link = document.createElement('a');
-      link.download = 'greathairday-story.png';
-      link.href = canvas.toDataURL('image/png');
-      link.click();
+  try {
+    const W = 1080, H = 1920;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
 
-      if (btn) { btn.textContent = '✓ Gespeichert'; }
-      setTimeout(() => {
-        if (btn) { btn.textContent = origText; btn.disabled = false; }
-      }, 2500);
-    }).catch(() => {
-      if (btn) { btn.textContent = origText; btn.disabled = false; }
-      alert('📸 Bitte Screenshot machen:\n\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
+    // Hintergrund weiß
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Goldrahmen — äußerer
+    const gold = '#816a3c';
+    const border = 28;
+    ctx.strokeStyle = gold;
+    ctx.lineWidth = 3;
+    ctx.strokeRect(border, border, W - border*2, H - border*2);
+
+    // Goldrahmen — innerer (etwas enger)
+    const inner = border + 18;
+    ctx.lineWidth = 1;
+    ctx.strokeRect(inner, inner, W - inner*2, H - inner*2);
+
+    // Eckverzierungen (L-förmige Ecken)
+    const cLen = 60;
+    ctx.lineWidth = 2;
+    [[border,border],[W-border,border],[border,H-border],[W-border,H-border]].forEach(([x,y],i) => {
+      const dx = i%2===0?1:-1, dy = i<2?1:-1;
+      ctx.beginPath(); ctx.moveTo(x+dx*cLen,y); ctx.lineTo(x,y); ctx.lineTo(x,y+dy*cLen); ctx.stroke();
     });
-  });
+
+    // Trennlinie oben (unter Logo-Bereich)
+    ctx.lineWidth = .5; ctx.globalAlpha = .4;
+    ctx.beginPath(); ctx.moveTo(inner+20, 340); ctx.lineTo(W-inner-20, 340); ctx.stroke();
+    // Trennlinie unten (über Unterschrift)
+    ctx.beginPath(); ctx.moveTo(inner+20, H-280); ctx.lineTo(W-inner-20, H-280); ctx.stroke();
+    ctx.globalAlpha = 1;
+
+    // Logo M laden
+    await new Promise(resolve => {
+      const logoM = new Image();
+      logoM.crossOrigin = 'anonymous';
+      // Base64 src direkt aus dem DOM holen
+      logoM.src = document.querySelector('.rahmen-logo-m')?.src || '';
+      logoM.onload = () => {
+        const mW = 200, mH = (logoM.height / logoM.width) * mW;
+        ctx.drawImage(logoM, W/2 - mW/2, 100, mW, mH);
+        resolve();
+      };
+      logoM.onerror = () => resolve();
+      if (!logoM.src) resolve();
+    });
+
+    // Foto oder Text in der Mitte
+    const photoImg = document.getElementById('rahmen-photo-el');
+    const textEl = document.getElementById('rahmen-text-display');
+    const isPhoto = photoImg && photoImg.src && document.getElementById('rahmen-photo-wrap').style.display !== 'none';
+    const isText = textEl && textEl.style.display !== 'none' && textEl.textContent.trim();
+
+    if (isPhoto) {
+      await new Promise(resolve => {
+        const img = new Image();
+        img.crossOrigin = 'anonymous';
+        img.src = photoImg.src;
+        img.onload = () => {
+          // Cover-Fit im Mittelbereich
+          const areaTop = 360, areaBot = H - 300, areaH = areaBot - areaTop;
+          const scale = Math.max(W / img.width, areaH / img.height);
+          const dw = img.width * scale, dh = img.height * scale;
+          ctx.save();
+          ctx.beginPath(); ctx.rect(0, areaTop, W, areaH); ctx.clip();
+          ctx.drawImage(img, (W-dw)/2, areaTop+(areaH-dh)/2, dw, dh);
+          ctx.restore();
+          resolve();
+        };
+        img.onerror = () => resolve();
+      });
+    } else if (isText) {
+      // Text zentriert in Mittelbereich
+      const text = textEl.textContent.trim();
+      ctx.fillStyle = '#000000';
+      ctx.font = '500 48px Poppins, sans-serif';
+      ctx.textAlign = 'center';
+      const maxW = W - 160;
+      // Zeilenumbruch
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+      words.forEach(w => {
+        const test = line ? line+' '+w : w;
+        if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+        else line = test;
+      });
+      if (line) lines.push(line);
+      const lineH = 70;
+      const startY = H/2 - (lines.length * lineH)/2;
+      lines.forEach((l, i) => ctx.fillText(l, W/2, startY + i*lineH));
+    }
+
+    // Unterschrift laden
+    await new Promise(resolve => {
+      const sig = new Image();
+      sig.crossOrigin = 'anonymous';
+      sig.src = document.querySelector('.rahmen-sig')?.src || '';
+      sig.onload = () => {
+        const sigW = 400, sigH = (sig.height / sig.width) * sigW;
+        ctx.drawImage(sig, W/2 - sigW/2, H - 260, sigW, sigH);
+        resolve();
+      };
+      sig.onerror = () => resolve();
+      if (!sig.src) resolve();
+    });
+
+    // Download
+    const link = document.createElement('a');
+    link.download = 'greathairday-story.png';
+    link.href = canvas.toDataURL('image/png');
+    link.click();
+
+    if (btn) { btn.textContent = '✓ Gespeichert'; }
+    setTimeout(() => { if (btn) { btn.textContent = 'Story speichern'; btn.disabled = false; }}, 2500);
+
+  } catch(e) {
+    console.error(e);
+    if (btn) { btn.textContent = 'Story speichern'; btn.disabled = false; }
+    alert('Bitte Screenshot machen:\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
+  }
 }
 
 // ── KPI ──

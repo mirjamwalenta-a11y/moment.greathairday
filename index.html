@@ -422,7 +422,9 @@ textarea{resize:none;}
   <!-- Vorschau -->
   <div id="ms-preview-section" style="display:none;flex-direction:column;gap:12px;">
     <div id="ms-story-wrap" style="position:relative;width:100%;aspect-ratio:9/16;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(129,106,60,0.25);background:#fff;">
-      <div id="ms-media-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;overflow:hidden;">
+      <!-- Weißer Hintergrund-Layer -->
+      <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;"></div>
+      <div id="ms-media-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;">
         <img id="ms-media-img" style="position:absolute;display:none;" alt="">
         <video id="ms-media-vid" autoplay muted loop playsinline style="position:absolute;display:none;"></video>
       </div>
@@ -2174,25 +2176,35 @@ function msHandleFile(file) {
 }
 
 function msApplyTransform() {
-  const el    = msIsVideo ? document.getElementById('ms-media-vid') : document.getElementById('ms-media-img');
-  const wrap  = document.getElementById('ms-story-wrap');
-  const wW    = wrap.offsetWidth, wH = wrap.offsetHeight;
+  const el   = msIsVideo ? document.getElementById('ms-media-vid') : document.getElementById('ms-media-img');
+  const wrap = document.getElementById('ms-story-wrap');
+  if (!wrap || el.style.display === 'none') return;
+  const wW = wrap.offsetWidth, wH = wrap.offsetHeight;
+  if (!wW || !wH) return;
 
-  let baseW, baseH;
-  const natW = msIsVideo ? (el.videoWidth || wW) : (el.naturalWidth || wW);
+  const natW = msIsVideo ? (el.videoWidth  || wW) : (el.naturalWidth  || wW);
   const natH = msIsVideo ? (el.videoHeight || wH) : (el.naturalHeight || wH);
+  if (!natW || !natH) return;
+
+  // Cover: Bild füllt den Container immer vollständig
   const ar = natW / natH, arC = wW / wH;
+  let baseW, baseH;
   if (ar > arC) { baseH = wH; baseW = baseH * ar; }
   else           { baseW = wW; baseH = baseW / ar; }
 
-  const finalW = baseW * msScaleV, finalH = baseH * msScaleV;
+  const finalW = baseW * msScaleV;
+  const finalH = baseH * msScaleV;
   const shiftY = (msOffsetY / 100) * wH;
-  el.style.left   = ((wW - finalW) / 2) + 'px';
-  el.style.top    = ((wH - finalH) / 2 + shiftY) + 'px';
-  el.style.width  = finalW + 'px';
-  el.style.height = finalH + 'px';
-  el.style.minWidth = 'unset'; el.style.minHeight = 'unset';
+
+  el.style.left      = Math.round((wW - finalW) / 2) + 'px';
+  el.style.top       = Math.round((wH - finalH) / 2 + shiftY) + 'px';
+  el.style.width     = Math.round(finalW) + 'px';
+  el.style.height    = Math.round(finalH) + 'px';
+  el.style.minWidth  = 'unset';
+  el.style.minHeight = 'unset';
   el.style.transform = 'none';
+  el.style.maxWidth  = 'none';
+  el.style.maxHeight = 'none';
 }
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -2229,7 +2241,7 @@ function msExportWithMedia(img) {
   const W = 1080, H = 1920;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  ctx.fillStyle = '#fff'; ctx.fillRect(0, 0, W, H);
+  ctx.fillStyle = '#ffffff'; ctx.fillRect(0, 0, W, H);
 
   const ar = img.naturalWidth / img.naturalHeight, arC = W / H;
   let baseW, baseH;

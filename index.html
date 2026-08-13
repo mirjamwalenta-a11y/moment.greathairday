@@ -1492,22 +1492,15 @@ async function speichereRahmen() {
       ctx.beginPath(); ctx.moveTo(x+dx*cLen,y); ctx.lineTo(x,y); ctx.lineTo(x,y+dy*cLen); ctx.stroke();
     });
 
-    // Trennlinie oben (unter Logo-Bereich)
-    ctx.lineWidth = .5; ctx.globalAlpha = .4;
-    ctx.beginPath(); ctx.moveTo(inner+20, 340); ctx.lineTo(W-inner-20, 340); ctx.stroke();
-    // Trennlinie unten (über Unterschrift)
-    ctx.beginPath(); ctx.moveTo(inner+20, H-280); ctx.lineTo(W-inner-20, H-280); ctx.stroke();
-    ctx.globalAlpha = 1;
+    // Trennlinien entfernt
 
-    // Logo M laden
+    // Logo M oben
     await new Promise(resolve => {
       const logoM = new Image();
-      logoM.crossOrigin = 'anonymous';
-      // Base64 src direkt aus dem DOM holen
       logoM.src = document.querySelector('.rahmen-logo-m')?.src || '';
       logoM.onload = () => {
-        const mW = 200, mH = (logoM.height / logoM.width) * mW;
-        ctx.drawImage(logoM, W/2 - mW/2, 100, mW, mH);
+        const mW = 220, mH = (logoM.height / logoM.width) * mW;
+        ctx.drawImage(logoM, W/2 - mW/2, 80, mW, mH);
         resolve();
       };
       logoM.onerror = () => resolve();
@@ -1560,14 +1553,22 @@ async function speichereRahmen() {
       lines.forEach((l, i) => ctx.fillText(l, W/2, startY + i*lineH));
     }
 
-    // Unterschrift laden
+    // Unterschrift unten — logo-name.png enthält M + Mirjam Walenta + A Great Hair Day
+    // Wir zeichnen nur den unteren Teil (ab 42% = Mirjam Walenta + Slogan, ohne das M)
     await new Promise(resolve => {
       const sig = new Image();
-      sig.crossOrigin = 'anonymous';
       sig.src = document.querySelector('.rahmen-sig')?.src || '';
       sig.onload = () => {
-        const sigW = 400, sigH = (sig.height / sig.width) * sigW;
-        ctx.drawImage(sig, W/2 - sigW/2, H - 260, sigW, sigH);
+        const cropStart = 0.67; // ab 67% = exakt unter dem M, nur Mirjam Walenta + A Great Hair Day
+        const srcY = Math.floor(sig.height * cropStart);
+        const srcH = sig.height - srcY;
+        const sigW = 480;
+        const sigH = (srcH / sig.width) * sigW;
+        const sigY = H - border - 30 - sigH;
+        ctx.drawImage(sig,
+          0, srcY, sig.width, srcH,       // Quellbereich: ohne das M oben
+          W/2 - sigW/2, sigY, sigW, sigH  // Zielbereich: unten zentriert
+        );
         resolve();
       };
       sig.onerror = () => resolve();

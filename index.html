@@ -2321,17 +2321,20 @@ function msDownload(canvas, name, mime) {
 let msExporting = false;
 
 function msPickMimeType() {
-  // Nur echte H.264/AAC-MP4-Kombinationen akzeptieren — das ist das Format,
-  // das Instagram zuverlässig annimmt. Manche Browser melden ein generisches
-  // "video/mp4" fälschlich als unterstützt, liefern dann aber intern einen
-  // anderen Codec (z.B. VP9), was Instagram nicht immer annimmt. Deshalb
-  // prüfen wir gezielt auf den H.264-Codec-String.
+  // Priorität 1: H.264/AAC-MP4 — Instagram-optimal, Desktop-Chrome & iOS-Safari
+  // Priorität 2: WebM/VP9 oder VP8 — Android-Chrome kann kein MP4 aufnehmen,
+  //              liefert aber zuverlässig WebM. Instagram akzeptiert WebM.
   const candidates = [
     'video/mp4;codecs="avc1.640028,mp4a.40.2"',
     'video/mp4;codecs="avc1.4d002a,mp4a.40.2"',
     'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
     'video/mp4;codecs=avc1,mp4a.40.2',
-    'video/mp4;codecs=avc1'
+    'video/mp4;codecs=avc1',
+    'video/webm;codecs=vp9,opus',
+    'video/webm;codecs=vp8,opus',
+    'video/webm;codecs=vp9',
+    'video/webm;codecs=vp8',
+    'video/webm'
   ];
   for (const t of candidates) {
     if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) return t;
@@ -2472,9 +2475,10 @@ async function msExportVideoWithFrame() {
 
     const blob = new Blob(chunks, { type: mimeType });
     if (!blob.size) throw new Error('Leere Videodatei');
+    const ext = mimeType.startsWith('video/webm') ? 'webm' : 'mp4';
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
-    a.download = 'mirjam-story.mp4';
+    a.download = 'mirjam-story.' + ext;
     document.body.appendChild(a);
     a.click();
     a.remove();

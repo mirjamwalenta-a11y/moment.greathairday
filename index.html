@@ -452,15 +452,15 @@ textarea{resize:none;}
     </div>
 
     <div id="ms-video-tip" style="display:none;background:#fff8e8;border:1px solid #e0c070;border-radius:10px;padding:10px 14px;font-size:12px;color:#7a6020;">
-      <strong>Video-Tipp:</strong> Lade den Rahmen als PNG herunter und lege ihn in Instagram als Sticker über dein Video.
+      <strong>Video-Tipp:</strong> „Story speichern" versucht, ein fertiges Video mit eingebranntem Rahmen zu erstellen. Klappt das auf deinem Handy nicht, bekommst du stattdessen den durchsichtigen Rahmen als PNG — den legst du in Instagram als Sticker über dein Video.
     </div>
 
     <div style="display:flex;gap:8px;">
       <button class="btn-ghost" style="flex:1;" onclick="msReset()">↩ Anderes</button>
-      <button class="btn-gold" style="flex:1;" onclick="msSave()">⬇ Story speichern</button>
+      <button class="btn-gold" id="ms-save-btn" style="flex:1;" onclick="msSave()">⬇ Story speichern</button>
     </div>
     <div id="ms-frame-row" style="display:none;margin-top:-4px;">
-      <button class="btn-ghost" style="width:100%;border-color:var(--gold);color:var(--gold);" onclick="msSaveFrame()">Nur Rahmen als PNG</button>
+      <button class="btn-ghost" style="width:100%;border-color:var(--gold);color:var(--gold);" onclick="msSaveFrame()">Nur Rahmen als PNG (für CapCut/Sticker)</button>
     </div>
   </div>
 </div>
@@ -2223,9 +2223,9 @@ function msReset() {
 }
 
 async function msSave() {
-  if (msIsVideo) { msSaveFrame(); return; }
+  if (msIsVideo) { await msExportVideoWithFrame(); return; }
   if (!msCurrentFile) return;
-  const btn = document.querySelector('[onclick="msSave()"]');
+  const btn = document.getElementById('ms-save-btn');
   if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
   try {
     const img = new Image();
@@ -2312,6 +2312,183 @@ function msDownload(canvas, name, mime) {
   const a = document.createElement('a'); a.download = name;
   // JPEG: kein Alphakanal, weißer Hintergrund bleibt weiß in Instagram
   a.href = canvas.toDataURL(mime, 0.97); a.click();
+}
+
+// ══ VIDEO MIT EINGEBRANNTEM RAHMEN EXPORTIEREN ══
+// Erzeugt (wenn das Handy es kann) eine fertige Videodatei, bei der der
+// Goldrahmen direkt ins Video "eingebrannt" ist — kein manuelles
+// Sticker-Legen in Instagram mehr nötig.
+let msExporting = false;
+
+function msPickMimeType() {
+  // Nur echte H.264/AAC-MP4-Kombinationen akzeptieren — das ist das Format,
+  // das Instagram zuverlässig annimmt. Manche Browser melden ein generisches
+  // "video/mp4" fälschlich als unterstützt, liefern dann aber intern einen
+  // anderen Codec (z.B. VP9), was Instagram nicht immer annimmt. Deshalb
+  // prüfen wir gezielt auf den H.264-Codec-String.
+  const candidates = [
+    'video/mp4;codecs="avc1.640028,mp4a.40.2"',
+    'video/mp4;codecs="avc1.4d002a,mp4a.40.2"',
+    'video/mp4;codecs="avc1.42E01E,mp4a.40.2"',
+    'video/mp4;codecs=avc1,mp4a.40.2',
+    'video/mp4;codecs=avc1'
+  ];
+  for (const t of candidates) {
+    if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) return t;
+  }
+  return '';
+}
+
+function msSupportsVideoExport() {
+  const c = document.createElement('canvas');
+  return !!(c.captureStream && window.MediaRecorder && (window.AudioContext || window.webkitAudioContext) && msPickMimeType());
+}
+
+function msLoadImage(src) {
+  return new Promise((resolve) => {
+    if (!src) { resolve(null); return; }
+    const img = new Image();
+    img.onload = () => resolve(img);
+    img.onerror = () => resolve(null);
+    img.src = src;
+  });
+}
+
+function msDrawFrameSync(ctx, w, h, imgM, imgSig) {
+  const inset = Math.round(w * 0.03);
+  ctx.strokeStyle = '#816a3c';
+  ctx.lineWidth = Math.max(1, Math.round(w * 0.0014));
+  ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
+  if (imgM) {
+    const mW = Math.round(w * 0.12), mH = Math.round(imgM.naturalHeight / imgM.naturalWidth * mW);
+    ctx.drawImage(imgM, Math.round(w / 2 - mW / 2), Math.round(h * 0.055), mW, mH);
+  }
+  if (imgSig) {
+    const srcY = Math.round(imgSig.naturalHeight * MS_SIG_CROP);
+    const srcH = imgSig.naturalHeight - srcY;
+    const dstW = Math.round(w * 0.52);
+    const dstH = Math.round(srcH / imgSig.naturalWidth * dstW);
+    ctx.drawImage(imgSig, 0, srcY, imgSig.naturalWidth, srcH,
+      Math.round(w / 2 - dstW / 2), Math.round(h * 0.945) - dstH, dstW, dstH);
+  }
+}
+
+async function msExportVideoWithFrame() {
+  if (msExporting || !msCurrentFile || !msIsVideo) return;
+
+  if (!msSupportsVideoExport()) {
+    alert('Dein Handy/Browser kann leider kein fertiges Video erstellen. Ich lade dir stattdessen den durchsichtigen Rahmen herunter — den kannst du in Instagram als Sticker über dein Video legen, oder per Bildschirmaufnahme direkt aus der Vorschau hier speichern.');
+    msSaveFrame();
+    return;
+  }
+
+  msExporting = true;
+  const btn = document.getElementById('ms-save-btn');
+  const origText = btn ? btn.textContent : '';
+  if (btn) { btn.textContent = 'Video wird erstellt… Bildschirm an lassen'; btn.disabled = true; }
+
+  const cleanupFns = [];
+  try {
+    const W = 720, H = 1280;
+    const canvas = document.createElement('canvas');
+    canvas.width = W; canvas.height = H;
+    const ctx = canvas.getContext('2d');
+
+    const [imgM, imgSig] = await Promise.all([
+      msLoadImage(document.getElementById('ms-logo-m').src),
+      msLoadImage(document.getElementById('ms-logo-sig').src)
+    ]);
+
+    const vid = document.createElement('video');
+    vid.muted = false;
+    vid.playsInline = true;
+    vid.style.position = 'fixed';
+    vid.style.left = '-9999px';
+    vid.style.width = '2px';
+    vid.style.height = '2px';
+    document.body.appendChild(vid);
+    cleanupFns.push(() => vid.remove());
+    const srcUrl = URL.createObjectURL(msCurrentFile);
+    cleanupFns.push(() => URL.revokeObjectURL(srcUrl));
+    vid.src = srcUrl;
+
+    await new Promise((resolve, reject) => {
+      vid.addEventListener('loadedmetadata', resolve, { once: true });
+      vid.addEventListener('error', () => reject(new Error('Video konnte nicht geladen werden')), { once: true });
+    });
+
+    const scaleVal  = parseInt(document.getElementById('ms-scale').value || 100) / 100;
+    const offsetVal = parseInt(document.getElementById('ms-pos-y').value || 0);
+    const natW = vid.videoWidth, natH = vid.videoHeight;
+    const ar = natW / natH, arC = W / H;
+    let baseW, baseH;
+    if (ar > arC) { baseH = H; baseW = baseH * ar; } else { baseW = W; baseH = baseW / ar; }
+    const finalW = baseW * scaleVal, finalH = baseH * scaleVal;
+    const shiftY = (offsetVal / 100) * H;
+    const dx = (W - finalW) / 2, dy = (H - finalH) / 2 + shiftY;
+
+    let audioTrack = null;
+    try {
+      const AudioCtx = window.AudioContext || window.webkitAudioContext;
+      const audioCtx = new AudioCtx();
+      const source = audioCtx.createMediaElementSource(vid);
+      const dest = audioCtx.createMediaStreamDestination();
+      source.connect(dest);
+      if (audioCtx.resume) await audioCtx.resume();
+      audioTrack = dest.stream.getAudioTracks()[0] || null;
+      cleanupFns.push(() => audioCtx.close());
+    } catch (e) { /* Video ohne Ton oder Audio-Routing nicht möglich - ohne Ton weitermachen */ }
+
+    const canvasStream = canvas.captureStream(30);
+    const tracks = [...canvasStream.getVideoTracks()];
+    if (audioTrack) tracks.push(audioTrack);
+    const combined = new MediaStream(tracks);
+
+    const mimeType = msPickMimeType();
+    if (!mimeType) throw new Error('Kein passender Video-Codec verfügbar');
+    const recorder = new MediaRecorder(combined, { mimeType, videoBitsPerSecond: 4000000 });
+    const chunks = [];
+    recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+    const done = new Promise((resolve) => { recorder.onstop = resolve; });
+
+    let raf = null;
+    function drawLoop() {
+      ctx.fillStyle = '#ffffff';
+      ctx.fillRect(0, 0, W, H);
+      ctx.drawImage(vid, dx, dy, finalW, finalH);
+      msDrawFrameSync(ctx, W, H, imgM, imgSig);
+      if (!vid.paused && !vid.ended) raf = requestAnimationFrame(drawLoop);
+    }
+
+    recorder.start();
+    vid.currentTime = 0;
+    await vid.play();
+    drawLoop();
+
+    await new Promise((resolve) => { vid.addEventListener('ended', resolve, { once: true }); });
+    if (raf) cancelAnimationFrame(raf);
+    recorder.stop();
+    await done;
+
+    const blob = new Blob(chunks, { type: mimeType });
+    if (!blob.size) throw new Error('Leere Videodatei');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'mirjam-story.mp4';
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 30000);
+
+  } catch (err) {
+    console.error(err);
+    alert('Das Erstellen des fertigen Videos hat leider nicht geklappt. Ich lade dir stattdessen den durchsichtigen Rahmen herunter — den kannst du in Instagram als Sticker über dein Video legen, oder per Bildschirmaufnahme direkt aus der Vorschau hier speichern.');
+    msSaveFrame();
+  } finally {
+    cleanupFns.forEach(fn => { try { fn(); } catch(e){} });
+    msExporting = false;
+    if (btn) { btn.textContent = origText || '⬇ Story speichern'; btn.disabled = false; }
+  }
 }
 
 </script>

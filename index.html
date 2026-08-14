@@ -2275,11 +2275,10 @@ function msSaveFrame() {
   const W = 1080, H = 1920;
   const c = document.createElement('canvas'); c.width = W; c.height = H;
   const ctx = c.getContext('2d');
-  // Weißer Hintergrund auch für den reinen Rahmen
-  ctx.fillStyle = '#ffffff';
-  ctx.fillRect(0, 0, W, H);
+  // Kein weißer Hintergrund — Canvas bleibt durchsichtig, damit sich
+  // die PNG-Datei in Instagram/CapCut als Sticker über ein Video legen lässt.
   msDrawFrame(ctx, W, H, () => {
-    msDownload(c, 'mirjam-rahmen.jpg', 'image/jpeg');
+    msDownload(c, 'mirjam-rahmen.png', 'image/png');
   });
 }
 

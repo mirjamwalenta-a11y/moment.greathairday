@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Fit-Check">
+<meta name="theme-color" content="#2E5D4B">
+<title>Fit-Check — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F3EF;--surface:#fff;--ink:#1C1C1C;--sub:#6B6560;
+  --line:#E3E0D9;--accent:#2E5D4B;--gold:#816a3c;--gold-light:#f0e6d3;
+  --red:#a13a3a;--red-light:#f8ecec;
+  --chip:#ECEAE5;--f:'Poppins',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;padding-bottom:60px;}
+
+.topbar{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.wordmark{font-size:16px;font-weight:700;color:var(--accent);}
+.subtitle{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:64px;z-index:19;}
+.tab{flex:1;padding:12px 4px;font-size:12.5px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+
+.screen{display:none;flex-direction:column;padding:18px 18px 40px;gap:14px;}
+.screen.active{display:flex;}
+
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.card-title{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;}
+.card-sub{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;}
+
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
+
+.input-wrap{display:flex;flex-direction:column;gap:6px;}
+.input-label{font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;}
+textarea,input[type=text],input[type=date],select{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;line-height:1.5;}
+textarea:focus,input:focus,select:focus{border-color:var(--accent);}
+textarea{resize:none;min-height:70px;}
+
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{padding:8px 14px;border-radius:20px;background:var(--chip);color:var(--ink);font-size:13px;font-weight:500;border:none;cursor:pointer;font-family:var(--f);}
+.chip.on{background:var(--accent);color:#fff;}
+
+.btn{width:100%;padding:15px;background:var(--accent);color:#fff;font-family:var(--f);font-size:15px;font-weight:600;border:none;border-radius:12px;cursor:pointer;}
+.btn:disabled{background:#C0BCBA;}
+.btn-ghost{background:none;border:1.5px solid var(--line);border-radius:12px;padding:12px;width:100%;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;font-family:var(--f);}
+.btn-gold{width:100%;padding:14px;background:var(--gold);color:#fff;font-family:var(--f);font-size:14px;font-weight:600;border:none;border-radius:12px;cursor:pointer;}
+.btn-danger{background:none;border:1.5px solid var(--red);color:var(--red);border-radius:10px;padding:8px 12px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--f);}
+
+.frage{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line);}
+.frage:last-child{border-bottom:none;}
+.frage-nr{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.4px;}
+.frage-text{font-size:14px;font-weight:600;color:var(--ink);line-height:1.45;}
+.frage-warum{font-size:11px;color:var(--sub);font-style:italic;line-height:1.4;}
+
+.wert-row{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);}
+.wert-row:last-child{border-bottom:none;}
+.wert-label{font-size:13px;font-weight:600;color:var(--ink);}
+.sterne{display:flex;gap:6px;}
+.stern{font-size:26px;cursor:pointer;color:#D8D3CA;line-height:1;user-select:none;}
+.stern.on{color:var(--gold);}
+
+.flag-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+.flag-row:last-child{border-bottom:none;}
+.flag-box{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--line);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+.flag-box.on{background:var(--red);border-color:var(--red);}
+.flag-text{font-size:13px;color:var(--ink);line-height:1.45;}
+
+.entscheidung-row{display:flex;gap:8px;}
+.entscheidung-btn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--f);font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer;text-align:center;}
+.entscheidung-btn.on.ja{border-color:var(--accent);background:#EEF4F1;color:var(--accent);}
+.entscheidung-btn.on.vielleicht{border-color:var(--gold);background:var(--gold-light);color:var(--gold);}
+.entscheidung-btn.on.nein{border-color:var(--red);background:var(--red-light);color:var(--red);}
+
+.liste-item{background:var(--surface);border-radius:var(--r);padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;cursor:pointer;}
+.liste-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.liste-name{font-size:14px;font-weight:700;color:var(--ink);}
+.liste-meta{font-size:11px;color:var(--sub);margin-top:2px;}
+.badge{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.badge.ja{background:#EEF4F1;color:var(--accent);}
+.badge.vielleicht{background:var(--gold-light);color:var(--gold);}
+.badge.nein{background:var(--red-light);color:var(--red);}
+.badge.offen{background:var(--chip);color:var(--sub);}
+</style>
+</head>
+<body>
+<div class="phone">
+
+  <div class="topbar">
+    <div class="wordmark">✨ Fit-Check</div>
+    <div class="subtitle">Bei uns musst du dich nicht erklären. Aber wir schauen genau hin, wer zu uns passt.</div>
+  </div>
+
+  <div class="tabnav">
+    <button class="tab active" onclick="showTab('neu')">Neues Gespräch</button>
+    <button class="tab" onclick="showTab('liste')">Bisherige</button>
+  </div>
+
+  <!-- ══ NEUES GESPRÄCH ══ -->
+  <div class="screen active" id="screen-neu">
+
+    <div class="hinweis">
+      Für Lehrlinge nutzt du zusätzlich dein Schnuppertag-Tool für den fachlichen Teil (Wissen, Geschicklichkeit). Hier geht's um die Werte, die für <strong>alle</strong> gelten — egal ob Lehrling oder erfahrene Kraft.
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Wer sitzt dir gegenüber</div>
+      <div class="input-wrap" style="margin-top:8px;">
+        <label class="input-label">Name</label>
+        <input type="text" id="f-name" placeholder="Vorname reicht">
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Datum</label>
+        <input type="date" id="f-datum">
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Rolle</label>
+        <div class="chips" id="rolle-chips"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Gesprächsleitfaden</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Kein Verhör — ein Gespräch. Notier dir Stichworte, keine perfekten Sätze.</div>
+      <div id="fragen-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Werte-Einschätzung</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Nach dem Gespräch, aus dem Bauch heraus. 5 Sterne = trifft voll zu.</div>
+      <div id="werte-list"></div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--red);">
+      <div class="card-tag" style="color:var(--red);">Rotes Tuch</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Wenn eins davon zutrifft, ist das für dich meistens schon eine Antwort.</div>
+      <div id="flags-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Gesamteindruck</div>
+      <div class="input-wrap" style="margin-top:8px;">
+        <textarea id="f-eindruck" placeholder="Was bleibt hängen? Was war der Moment, an dem du gemerkt hast, wie jemand wirklich tickt?"></textarea>
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Entscheidung</label>
+        <div class="entscheidung-row" id="entscheidung-row">
+          <button class="entscheidung-btn ja" data-val="ja" onclick="waehleEntscheidung('ja')">Ja</button>
+          <button class="entscheidung-btn vielleicht" data-val="vielleicht" onclick="waehleEntscheidung('vielleicht')">Vielleicht</button>
+          <button class="entscheidung-btn nein" data-val="nein" onclick="waehleEntscheidung('nein')">Eher nicht</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-gold" onclick="speichernKandidat()">Speichern</button>
+    <div id="speicher-hinweis" style="display:none;text-align:center;font-size:12px;color:var(--accent);font-weight:600;">✓ Gespeichert — unter "Bisherige" zu finden</div>
+
+  </div>
+
+  <!-- ══ BISHERIGE ══ -->
+  <div class="screen" id="screen-liste">
+    <div style="font-size:13px;color:var(--sub);line-height:1.5;">Alle Gespräche bleiben nur auf diesem Gerät gespeichert (lokal im Browser) — nirgendwo sonst.</div>
+    <div id="kandidaten-liste" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+
+  <!-- ══ DETAIL ══ -->
+  <div class="screen" id="screen-detail">
+    <div id="detail-content"></div>
+  </div>
+
+</div>
+
+<script>
+// ── DATEN ──
+const ROLLEN = [
+  {val:'lehrling', label:'Lehrling'},
+  {val:'stylist', label:'Stylist:in'},
+  {val:'erfahren', label:'Erfahrene Kraft'},
+  {val:'sonstiges', label:'Sonstiges'},
+];
+
+// Situative Fragen, abgeleitet aus Mirjams eigenen Werten & ihrer Haltung
+// (u.a. der Geschichte von 2016, als sie sich klar gegen einen abwertenden
+// Stammkunden positioniert hat — "der Mensch zählt, nicht die Herkunft").
+const FRAGEN = [
+  {
+    id: 'kritik',
+    frage: 'Erzähl mir von einer Situation im Job, in der du eine Rückmeldung bekommen hast, die dir nicht gefallen hat. Wie bist du damit umgegangen?',
+    warum: 'Zeigt Umgang mit Kritik — reflektiert oder rechtfertigt sich die Person?'
+  },
+  {
+    id: 'lernen',
+    frage: 'Was war die letzte neue Technik oder Methode, die du dir angeeignet hast? Was hat dich daran interessiert?',
+    warum: 'Zeigt Wissensdurst — "Wer aufhört zu lernen, hört auf zu wachsen."'
+  },
+  {
+    id: 'schwierige_kundin',
+    frage: 'Wie gehst du mit jemandem um, der unzufrieden ist, obwohl du fachlich alles richtig gemacht hast?',
+    warum: 'Zeigt Freundlichkeit unter Druck, nicht nur wenn es leicht ist.'
+  },
+  {
+    id: 'team',
+    frage: 'Stell dir vor, eine neue Kollegin oder ein neuer Kollege macht am Anfang noch viele Fehler. Wie reagierst du?',
+    warum: 'Zeigt Teamgeist — wird ein schwächeres Teammitglied getragen oder abgewertet?'
+  },
+  {
+    id: 'verlaesslichkeit',
+    frage: 'Was bedeutet Pünktlichkeit und Verlässlichkeit für dich im Arbeitsalltag ganz konkret?',
+    warum: 'Zeigt, ob Verlässlichkeit als Selbstverständlichkeit oder als lästige Pflicht verstanden wird.'
+  },
+  {
+    id: 'warum_wir',
+    frage: 'Warum genau dieser Salon, warum jetzt?',
+    warum: 'Zeigt, ob es um den Ort und die Menschen geht — oder nur um irgendeinen Job.'
+  },
+];
+
+const WERTE = [
+  {id:'freundlichkeit', label:'Freundlichkeit'},
+  {id:'wissensdurst', label:'Wissensdurst / Lernbereitschaft'},
+  {id:'teamgeist', label:'Teamgeist'},
+  {id:'puenktlichkeit', label:'Pünktlichkeit / Verlässlichkeit'},
+  {id:'kritikfaehigkeit', label:'Umgang mit Kritik'},
+  {id:'offenheit', label:'Offenheit — der Mensch zählt, nicht die Herkunft'},
+];
+
+const FLAGS = [
+  {id:'jammert', text:'Jammert über die Branche, statt nach Lösungen zu suchen.'},
+  {id:'abwertend', text:'Äußert sich abwertend über andere — frühere Kolleg:innen, Chef:innen oder Kund:innen.'},
+  {id:'neues_ab', text:'Lehnt Neues oder Veränderung pauschal ab.'},
+  {id:'unehrlich', text:'Wirkt schon bei einfachen Fragen genervt, ausweichend oder unehrlich.'},
+];
+
+// ── STATE ──
+let current = leererKandidat();
+
+function leererKandidat() {
+  const notizen = {}; FRAGEN.forEach(f => notizen[f.id] = '');
+  const werte = {}; WERTE.forEach(w => werte[w.id] = 0);
+  const flags = {}; FLAGS.forEach(f => flags[f.id] = false);
+  return { rolle: 'lehrling', notizen, werte, flags, entscheidung: null };
+}
+
+// ── TABS ──
+function showTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const idx = {neu:0, liste:1}[name];
+  if (idx != null) document.querySelectorAll('.tab')[idx].classList.add('active');
+  if (name === 'liste') renderListe();
+  window.scrollTo(0,0);
+}
+
+// ── RENDER: ROLLE-CHIPS ──
+function renderRolleChips() {
+  const wrap = document.getElementById('rolle-chips');
+  wrap.innerHTML = ROLLEN.map(r => `<button class="chip ${current.rolle===r.val?'on':''}" onclick="setRolle('${r.val}')">${r.label}</button>`).join('');
+}
+function setRolle(val) {
+  current.rolle = val;
+  renderRolleChips();
+}
+
+// ── RENDER: FRAGEN ──
+function renderFragen() {
+  const wrap = document.getElementById('fragen-list');
+  wrap.innerHTML = FRAGEN.map((f, i) => `
+    <div class="frage">
+      <div class="frage-nr">Frage ${i+1}</div>
+      <div class="frage-text">${f.frage}</div>
+      <div class="frage-warum">${f.warum}</div>
+      <textarea placeholder="Stichworte zur Antwort..." oninput="current.notizen['${f.id}']=this.value">${current.notizen[f.id] || ''}</textarea>
+    </div>
+  `).join('');
+}
+
+// ── RENDER: WERTE (STERNE) ──
+function renderWerte() {
+  const wrap = document.getElementById('werte-list');
+  wrap.innerHTML = WERTE.map(w => `
+    <div class="wert-row">
+      <div class="wert-label">${w.label}</div>
+      <div class="sterne" id="sterne-${w.id}">
+        ${[1,2,3,4,5].map(n => `<span class="stern ${current.werte[w.id] >= n ? 'on' : ''}" onclick="setWert('${w.id}',${n})">★</span>`).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+function setWert(id, n) {
+  current.werte[id] = current.werte[id] === n ? n - 1 : n; // nochmal draufklicken = einen runter
+  renderWerte();
+}
+
+// ── RENDER: FLAGS ──
+function renderFlags() {
+  const wrap = document.getElementById('flags-list');
+  wrap.innerHTML = FLAGS.map(f => `
+    <div class="flag-row" onclick="toggleFlag('${f.id}')">
+      <div class="flag-box ${current.flags[f.id] ? 'on' : ''}" id="flag-${f.id}">${current.flags[f.id] ? '✕' : ''}</div>
+      <div class="flag-text">${f.text}</div>
+    </div>
+  `).join('');
+}
+function toggleFlag(id) {
+  current.flags[id] = !current.flags[id];
+  renderFlags();
+}
+
+// ── ENTSCHEIDUNG ──
+function waehleEntscheidung(val) {
+  current.entscheidung = val;
+  document.querySelectorAll('.entscheidung-btn').forEach(b => b.classList.toggle('on', b.dataset.val === val));
+}
+
+// ── SPEICHERN ──
+function getKandidaten() {
+  try { return JSON.parse(localStorage.getItem('fitcheck_kandidaten')) || []; }
+  catch { return []; }
+}
+function saveKandidaten(list) {
+  localStorage.setItem('fitcheck_kandidaten', JSON.stringify(list));
+}
+
+function speichernKandidat() {
+  const name = document.getElementById('f-name').value.trim();
+  if (!name) { document.getElementById('f-name').focus(); return; }
+  const datum = document.getElementById('f-datum').value || new Date().toISOString().slice(0,10);
+
+  const eintrag = {
+    id: 'k_' + name.toLowerCase().replace(/\s+/g,'_') + '_' + datum,
+    name, datum,
+    rolle: current.rolle,
+    notizen: {...current.notizen},
+    werte: {...current.werte},
+    flags: {...current.flags},
+    eindruck: document.getElementById('f-eindruck').value.trim(),
+    entscheidung: current.entscheidung,
+  };
+
+  const list = getKandidaten();
+  list.unshift(eintrag);
+  saveKandidaten(list);
+
+  document.getElementById('speicher-hinweis').style.display = 'block';
+  setTimeout(() => { document.getElementById('speicher-hinweis').style.display = 'none'; }, 2500);
+
+  // Formular zurücksetzen
+  current = leererKandidat();
+  document.getElementById('f-name').value = '';
+  document.getElementById('f-datum').value = '';
+  document.getElementById('f-eindruck').value = '';
+  document.querySelectorAll('.entscheidung-btn').forEach(b => b.classList.remove('on'));
+  renderRolleChips(); renderFragen(); renderWerte(); renderFlags();
+}
+
+// ── AUSWERTUNG (bewusst grob, keine falsche Genauigkeit) ──
+function werteSchnitt(werte) {
+  const vals = Object.values(werte);
+  const gesetzt = vals.filter(v => v > 0);
+  if (!gesetzt.length) return 0;
+  return gesetzt.reduce((a,b) => a+b, 0) / gesetzt.length;
+}
+function anzahlFlags(flags) {
+  return Object.values(flags).filter(Boolean).length;
+}
+function einschaetzung(k) {
+  const schnitt = werteSchnitt(k.werte);
+  const flagCount = anzahlFlags(k.flags);
+  if (flagCount >= 2) return {label:'Rotes Tuch', badge:'nein'};
+  if (flagCount === 1) return {label: schnitt >= 4 ? 'Starker Fit, eine Sache klären' : 'Genauer hinschauen', badge:'vielleicht'};
+  if (schnitt >= 4) return {label:'Starker Fit', badge:'ja'};
+  if (schnitt >= 2.5) return {label:'Teilweiser Fit', badge:'vielleicht'};
+  return {label:'Eher kein Fit', badge:'nein'};
+}
+
+// ── RENDER: LISTE ──
+function renderListe() {
+  const list = getKandidaten();
+  const wrap = document.getElementById('kandidaten-liste');
+  if (!list.length) {
+    wrap.innerHTML = '<div class="card"><div class="card-sub">Noch keine Gespräche gespeichert.</div></div>';
+    return;
+  }
+  wrap.innerHTML = list.map((k, i) => {
+    const badge = k.entscheidung ? k.entscheidung : 'offen';
+    const badgeLabel = {ja:'Ja', vielleicht:'Vielleicht', nein:'Eher nicht', offen:'Offen'}[badge];
+    const rolleLabel = (ROLLEN.find(r => r.val === k.rolle) || {}).label || '';
+    return `
+      <div class="liste-item" onclick="zeigeDetail(${i})">
+        <div class="liste-top">
+          <div>
+            <div class="liste-name">${k.name}</div>
+            <div class="liste-meta">${k.datum} · ${rolleLabel}</div>
+          </div>
+          <div class="badge ${badge}">${badgeLabel}</div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ── DETAIL ──
+function zeigeDetail(i) {
+  const list = getKandidaten();
+  const k = list[i];
+  if (!k) return;
+  const einsch = einschaetzung(k);
+  const rolleLabel = (ROLLEN.find(r => r.val === k.rolle) || {}).label || '';
+
+  const fragenHtml = FRAGEN.map(f => `
+    <div class="frage">
+      <div class="frage-nr">${f.frage}</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.5;">${(k.notizen[f.id] || '—').replace(/</g,'&lt;')}</div>
+    </div>
+  `).join('');
+
+  const werteHtml = WERTE.map(w => `
+    <div class="wert-row">
+      <div class="wert-label">${w.label}</div>
+      <div class="sterne">${[1,2,3,4,5].map(n => `<span class="stern ${k.werte[w.id] >= n ? 'on' : ''}">★</span>`).join('')}</div>
+    </div>
+  `).join('');
+
+  const flagsAn = FLAGS.filter(f => k.flags[f.id]);
+  const flagsHtml = flagsAn.length
+    ? flagsAn.map(f => `<div class="flag-text" style="color:var(--red);padding:4px 0;">⚑ ${f.text}</div>`).join('')
+    : '<div class="card-sub">Keine roten Flaggen notiert.</div>';
+
+  document.getElementById('detail-content').innerHTML = `
+    <button onclick="showTab('liste')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);padding:0 0 8px;text-align:left;">← Zurück</button>
+
+    <div class="card" style="border-left:3px solid var(--gold);background:var(--gold-light);">
+      <div class="card-tag" style="color:var(--gold);">${einsch.label}</div>
+      <div class="card-title">${k.name}</div>
+      <div class="card-sub">${k.datum} · ${rolleLabel}</div>
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-tag">Gesprächsleitfaden</div>
+      ${fragenHtml}
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-tag">Werte-Einschätzung</div>
+      ${werteHtml}
+    </div>
+
+    <div class="card" style="margin-top:12px;border-left:3px solid var(--red);">
+      <div class="card-tag" style="color:var(--red);">Rotes Tuch</div>
+      ${flagsHtml}
+    </div>
+
+    <div class="card" style="margin-top:12px;">
+      <div class="card-tag">Gesamteindruck</div>
+      <div class="card-sub">${(k.eindruck || '—').replace(/</g,'&lt;')}</div>
+    </div>
+
+    <button class="btn-danger" style="margin-top:14px;" onclick="loeschenKandidat(${i})">Eintrag löschen</button>
+  `;
+  showTab('detail');
+}
+
+function loeschenKandidat(i) {
+  const list = getKandidaten();
+  list.splice(i, 1);
+  saveKandidaten(list);
+  showTab('liste');
+}
+
+// showTab overwrite braucht Sonderfall 'detail' (kein Tab in der Navigation)
+const _origShowTab = showTab;
+showTab = function(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('screen-' + name).classList.add('active');
+  const idx = {neu:0, liste:1}[name];
+  if (idx != null) document.querySelectorAll('.tab')[idx].classList.add('active');
+  if (name === 'liste') renderListe();
+  window.scrollTo(0,0);
+};
+
+// ── INIT ──
+function init() {
+  renderRolleChips();
+  renderFragen();
+  renderWerte();
+  renderFlags();
+}
+init();
+</script>
+</body>
+</html>

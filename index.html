@@ -1256,11 +1256,11 @@ const ANLAESSE = [
   {
     id: 'neue_mitarbeiter',
     titel: 'Ich will heute neue Mitarbeiter:innen ansprechen',
-    sub: 'Gib einen ehrlichen Einblick, wie Arbeit bei euch wirkt.',
+    sub: 'Zeig, was bei euch wirklich zählt — nicht nur Skills, sondern Haltung.',
     format: 'Post',
     tool: 'post',
     btn: 'Post erstellen',
-    tun: 'Was macht den Alltag hier aus? Was würde jemand sagen, der gern hier arbeitet?',
+    tun: 'Was würde eine Kollegin über die Arbeit bei euch sagen? Ein ehrlicher Satz reicht — kein Stellenanzeigen-Ton. Meldet sich jemand darauf: dein Fit-Check-Tool hilft dir danach einzuschätzen, ob es wirklich passt.',
     situation: 'team_moment', ton: 'nahbar', wer: 'lehrlinge'
   },
   {
@@ -1314,8 +1314,31 @@ const SEASONAL_ANLAESSE = [
   },
 ];
 
+// ── RECRUITING-IMPULSE ──
+// Zusätzliche Kandidaten fürs Team-Sucht-Verstärkung-Thema, ergänzend zur
+// festen Anlass-Karte "neue_mitarbeiter" — genau wie die saisonalen Impulse
+// nur in der Content-Director-Empfehlung, nicht im festen 10er-Grid.
+const RECRUITING_ANLAESSE = [
+  {
+    id: 'recruiting_team_alltag',
+    titel: 'Zeig einen echten Moment aus dem Teamalltag',
+    sub: 'Menschen, die zu euch passen, erkennen sich eher in einem echten Moment als in einer Stellenanzeige.',
+    format: 'Story', tool: 'rahmen', btn: 'Story erstellen',
+    tun: 'Was ist heute im Team passiert, das zeigt, wie bei euch gearbeitet wird? Foto reicht, kein Text nötig.',
+    situation: 'team_moment', ton: 'nahbar', wer: 'lehrlinge'
+  },
+  {
+    id: 'recruiting_werte',
+    titel: 'Zeig, welche Werte bei euch wirklich zählen',
+    sub: 'Nicht behaupten, dass ihr besonders seid — zeigen, woran man das merkt.',
+    format: 'Post', tool: 'post', btn: 'Post erstellen',
+    tun: 'Was würdest du jemandem sagen, der überlegt, bei euch zu arbeiten? Ein ehrlicher Gedanke reicht.',
+    situation: 'nichts_besonderes', ton: 'direkt', wer: 'lehrlinge'
+  },
+];
+
 const ANLASS_BY_ID = {};
-[...ANLAESSE, ...SEASONAL_ANLAESSE].forEach(a => { ANLASS_BY_ID[a.id] = a; });
+[...ANLAESSE, ...SEASONAL_ANLAESSE, ...RECRUITING_ANLAESSE].forEach(a => { ANLASS_BY_ID[a.id] = a; });
 
 let currentAnlassPool = [];
 
@@ -1359,6 +1382,8 @@ const DIRECTOR_PRIORITY = {
   saison_winter: 6,
   produkt_behandlung: 7,
   neue_mitarbeiter: 7,
+  recruiting_team_alltag: 7,
+  recruiting_werte: 7,
   freier_termin: 8,
 };
 
@@ -1374,6 +1399,8 @@ const DIRECTOR_KATEGORIE = {
   was_uns_ausmacht: 'team',
   produkt_behandlung: 'werbung',
   neue_mitarbeiter: 'werbung',
+  recruiting_team_alltag: 'werbung',
+  recruiting_werte: 'werbung',
   freier_termin: 'werbung',
   saison_fruehling: 'werbung',
   saison_sommer: 'werbung',
@@ -1392,6 +1419,8 @@ const DIRECTOR_WARUM = {
   was_uns_ausmacht: 'Guter Moment, um Haltung statt Werbung zu zeigen — was euch wirklich ausmacht.',
   produkt_behandlung: 'Wenn heute etwas oft gefragt war, ist das ein hilfreicher Einblick für andere.',
   neue_mitarbeiter: 'Guter Zeitpunkt, ehrlich zu zeigen, wie Arbeit bei euch aussieht — für alle, die noch nicht wissen, dass ihr sucht.',
+  recruiting_team_alltag: 'Menschen, die zu euch passen würden, erkennen sich eher in einem echten Moment als in einer Anzeige.',
+  recruiting_werte: 'Zeigen statt behaupten, was euch ausmacht — das erreicht die Richtigen zuverlässiger als eine Stellenanzeige.',
   freier_termin: 'Ein freier Termin ist zeitkritisch. Wenn du einen hast, mach ihn zuerst sichtbar.',
 };
 
@@ -1435,7 +1464,7 @@ function getBalanceHinweis(hist) {
 function computeDirectorEmpfehlung() {
   const hist = getDirectorHistory();
   const zuletztGenutzt = [...new Set(hist)].slice(0, DIRECTOR_AUSSCHLUSS);
-  const pool = [...ANLAESSE.filter(a => a.id !== 'freier_termin'), ...getAktiveSaisonAnlaesse()];
+  const pool = [...ANLAESSE.filter(a => a.id !== 'freier_termin'), ...getAktiveSaisonAnlaesse(), ...RECRUITING_ANLAESSE];
   let kandidaten = pool.filter(a => !zuletztGenutzt.includes(a.id));
   if (kandidaten.length === 0) kandidaten = pool; // wenn schon alles kürzlich dran war, Sperre aufheben
 

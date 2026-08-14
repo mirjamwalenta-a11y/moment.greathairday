@@ -267,6 +267,9 @@ textarea{resize:none;}
     <div style="font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;">Wähle einen Anlass. Ich mache daraus sofort etwas, das du posten kannst.</div>
   </div>
 
+  <!-- Content Director: eine Empfehlung, bevor die volle Auswahl kommt -->
+  <div id="director-empfehlung"></div>
+
   <!-- Anlass-Karten -->
   <div id="anlass-list" style="display:flex;flex-direction:column;gap:10px;"></div>
 
@@ -542,6 +545,8 @@ textarea{resize:none;}
       <div class="card-tag">#Hashtags</div>
       <div id="res-hashtags" style="font-size:13px;color:var(--accent);line-height:1.9;margin-top:4px;word-break:break-word;"></div>
     </div>
+
+    <button class="btn-ghost" onclick="momentAlsStory()">🖼️ Denselben Moment auch als Story</button>
 
     <div style="display:flex;gap:8px;">
       <button class="btn-ghost" style="flex:1;" onclick="favPost()">⭐ Speichern</button>
@@ -835,10 +840,12 @@ function renderPostChips() {
   const savedWer = localStorage.getItem('ghd_sel_wer') || werData[0]?.val;
   S.postton = savedTon;
   S.postwer = savedWer;
-  document.getElementById('chips-postton').innerHTML = tonData.map(item =>
+  const chipsPostton = document.getElementById('chips-postton');
+  if (chipsPostton) chipsPostton.innerHTML = tonData.map(item =>
     `<button class="chip ${item.val===savedTon?'on':''}" data-val="${item.val}" onclick="selectChip(this,'postton')">${item.label}</button>`
   ).join('');
-  document.getElementById('chips-postwer').innerHTML = werData.map(item =>
+  const chipsPostwer = document.getElementById('chips-postwer');
+  if (chipsPostwer) chipsPostwer.innerHTML = werData.map(item =>
     `<button class="chip ${item.val===savedWer?'on':''}" data-val="${item.val}" onclick="selectChip(this,'postwer')">${item.label}</button>`
   ).join('');
 }
@@ -1137,6 +1144,7 @@ function showTab(name) {
   if(idx!=null) document.querySelectorAll('.tab')[idx].classList.add('active');
   if(name==='favs') renderFavs();
   if(name==='plan') renderWeekPlan();
+  if(name==='heute') renderDirectorEmpfehlung();
   if(name==='post') { resetPostFlow(); }
   if(name==='kampagne') { initKampagneTab(); }
   if(name==='mediastory') {
@@ -1267,6 +1275,48 @@ const ANLAESSE = [
   },
 ];
 
+// ── SAISONALE IMPULSE ──
+// Kein Live-Trend, sondern zeitlose, jahreszeitlich passende Themen. Erscheinen
+// nur als zusätzliche Kandidaten in der Content-Director-Empfehlung — nicht im
+// festen Anlass-Grid, das bleibt unverändert.
+const SEASONAL_ANLAESSE = [
+  {
+    id: 'saison_fruehling', months: [2, 3, 4],
+    titel: 'Frühling: Lust auf einen neuen Look nach dem Winter',
+    sub: 'Viele wollen jetzt wieder heller, leichter, frischer aussehen.',
+    format: 'Post', tool: 'post', btn: 'Post erstellen',
+    tun: 'Was hast du diese Woche an neuen Wünschen gehört? Ein Satz reicht.',
+    situation: 'produkt_behandlung', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'saison_sommer', months: [5, 6, 7],
+    titel: 'Sommer: Sonne, Hitze und Frizz sind gerade ein Thema',
+    sub: 'Viele fragen jetzt nach Pflege gegen Trockenheit und für Glanz in der Sonne.',
+    format: 'Post', tool: 'post', btn: 'Post erstellen',
+    tun: 'Was empfiehlst du gerade oft bei Sommerhaar? Ein Satz reicht.',
+    situation: 'produkt_behandlung', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'saison_herbst', months: [8, 9, 10],
+    titel: 'Herbst: Viele frischen jetzt ihre Sommerfarbe auf',
+    sub: 'Nach dem Sommer verblasst Farbe oft — im Herbst kommen viele deswegen wieder.',
+    format: 'Post', tool: 'post', btn: 'Post erstellen',
+    tun: 'Worum ging es zuletzt oft in der Farbberatung? Ein Satz reicht.',
+    situation: 'produkt_behandlung', ton: 'nahbar', wer: 'kundinnen'
+  },
+  {
+    id: 'saison_winter', months: [11, 0, 1],
+    titel: 'Winter: Heizungsluft trocknet Haar und Kopfhaut aus',
+    sub: 'Ein Thema, das jetzt viele betrifft, auch wenn kaum jemand von selbst danach fragt.',
+    format: 'Post', tool: 'post', btn: 'Post erstellen',
+    tun: 'Was rätst du Kundinnen gerade zur Kopfhautpflege im Winter? Ein Satz reicht.',
+    situation: 'produkt_behandlung', ton: 'nahbar', wer: 'kundinnen'
+  },
+];
+
+const ANLASS_BY_ID = {};
+[...ANLAESSE, ...SEASONAL_ANLAESSE].forEach(a => { ANLASS_BY_ID[a.id] = a; });
+
 let currentAnlassPool = [];
 
 function refreshAnlaesse() {
@@ -1291,8 +1341,152 @@ function refreshAnlaesse() {
   `).join('');
 }
 
+// ── CONTENT DIRECTOR: eine Empfehlung statt zehn gleichwertige Karten ──
+// Reihenfolge folgt der Priorität aus dem Content-Cockpit: echte Geschichte /
+// Kund:innenmoment vor Ergebnis vor Team vor Tipp vor Werbung. "freier_termin"
+// bleibt außen vor — der ist zeitkritisch und braucht ohnehin eine Eingabe.
+const DIRECTOR_PRIORITY = {
+  kundin_beruehrt: 1,
+  lernmoment: 2,
+  ergebnis_schoen: 3,
+  team_moment: 4,
+  alltag_blick: 5,
+  stiller_tag: 5,
+  was_uns_ausmacht: 6,
+  saison_fruehling: 6,
+  saison_sommer: 6,
+  saison_herbst: 6,
+  saison_winter: 6,
+  produkt_behandlung: 7,
+  neue_mitarbeiter: 7,
+  freier_termin: 8,
+};
+
+// Content-Balance: grobe Kategorie je Anlass, für den leisen Ausgleichs-Hinweis
+// (angelehnt an Content-Cockpit: Geschichte vor Ergebnis vor Team vor Werbung).
+const DIRECTOR_KATEGORIE = {
+  kundin_beruehrt: 'geschichte',
+  lernmoment: 'geschichte',
+  ergebnis_schoen: 'ergebnis',
+  team_moment: 'team',
+  alltag_blick: 'team',
+  stiller_tag: 'team',
+  was_uns_ausmacht: 'team',
+  produkt_behandlung: 'werbung',
+  neue_mitarbeiter: 'werbung',
+  freier_termin: 'werbung',
+  saison_fruehling: 'werbung',
+  saison_sommer: 'werbung',
+  saison_herbst: 'werbung',
+  saison_winter: 'werbung',
+};
+const DIRECTOR_KATEGORIE_LABEL = { werbung: 'Werbung/Akquise', ergebnis: 'Ergebnisse', team: 'Team/Persönlichkeit', geschichte: 'Geschichten' };
+
+const DIRECTOR_WARUM = {
+  kundin_beruehrt: 'Ein echter Moment mit einer Kundin ist die stärkste Geschichte, die es gibt — stärker als jede geplante Idee.',
+  lernmoment: 'Lernmomente mit Ronya zeigen, wie bei euch gearbeitet wird — das schafft Vertrauen und spricht auch künftige Lehrlinge an.',
+  ergebnis_schoen: 'Ein sichtbares Ergebnis überzeugt neue Kund:innen am schnellsten — und ist leicht in ein Foto zu übersetzen.',
+  team_moment: 'Ein guter Team-Moment zeigt das Miteinander hinter dem Handwerk — das sieht man selten bei anderen Salons.',
+  alltag_blick: 'Nicht jeder Tag braucht ein Ereignis. Ein ruhiger Blick in den Alltag ist ehrlich und schnell gemacht.',
+  stiller_tag: 'Auch ein stiller Tag darf sichtbar werden, wenn er echt ist — kein Text nötig, nur ein Bild.',
+  was_uns_ausmacht: 'Guter Moment, um Haltung statt Werbung zu zeigen — was euch wirklich ausmacht.',
+  produkt_behandlung: 'Wenn heute etwas oft gefragt war, ist das ein hilfreicher Einblick für andere.',
+  neue_mitarbeiter: 'Guter Zeitpunkt, ehrlich zu zeigen, wie Arbeit bei euch aussieht — für alle, die noch nicht wissen, dass ihr sucht.',
+  freier_termin: 'Ein freier Termin ist zeitkritisch. Wenn du einen hast, mach ihn zuerst sichtbar.',
+};
+
+const DIRECTOR_AUFWAND = { Story: '⭐', Post: '⭐⭐', Reel: '⭐⭐⭐' };
+const DIRECTOR_HISTORY_KEY = 'ghd_director_history';
+const DIRECTOR_HISTORY_MAX = 8;
+const DIRECTOR_AUSSCHLUSS = 3; // die letzten 3 genutzten Anlässe werden heute nicht empfohlen
+
+function getDirectorHistory() {
+  try { return JSON.parse(localStorage.getItem(DIRECTOR_HISTORY_KEY)) || []; }
+  catch { return []; }
+}
+function recordDirectorHistory(id) {
+  const hist = getDirectorHistory();
+  hist.unshift(id);
+  localStorage.setItem(DIRECTOR_HISTORY_KEY, JSON.stringify(hist.slice(0, DIRECTOR_HISTORY_MAX)));
+}
+
+function getAktiveSaisonAnlaesse() {
+  const monat = new Date().getMonth(); // 0=Jan .. 11=Dez
+  return SEASONAL_ANLAESSE.filter(a => a.months.includes(monat));
+}
+
+// Leiser Ausgleichs-Hinweis: wenn die letzten Anlässe stark in eine Richtung
+// gehen (v.a. Richtung Werbung/Akquise), einen kurzen Satz dazu einblenden.
+// Kein Dashboard, keine KPIs — nur ein Satz zur richtigen Zeit.
+function getBalanceHinweis(hist) {
+  const letzte = hist.slice(0, 4);
+  if (letzte.length < 3) return null;
+  const counts = {};
+  letzte.forEach(id => {
+    const kat = DIRECTOR_KATEGORIE[id];
+    if (kat) counts[kat] = (counts[kat] || 0) + 1;
+  });
+  const [topKat, topCount] = Object.entries(counts).sort((a, b) => b[1] - a[1])[0] || [];
+  if (!topKat || topCount < Math.ceil(letzte.length * 0.6)) return null;
+  if (topKat === 'geschichte') return null; // Geschichten dürfen sich häufen, das ist der Kern der Marke
+  return `Zuletzt viel ${DIRECTOR_KATEGORIE_LABEL[topKat]} — heute wäre eine echte Geschichte ein guter Ausgleich.`;
+}
+
+function computeDirectorEmpfehlung() {
+  const hist = getDirectorHistory();
+  const zuletztGenutzt = [...new Set(hist)].slice(0, DIRECTOR_AUSSCHLUSS);
+  const pool = [...ANLAESSE.filter(a => a.id !== 'freier_termin'), ...getAktiveSaisonAnlaesse()];
+  let kandidaten = pool.filter(a => !zuletztGenutzt.includes(a.id));
+  if (kandidaten.length === 0) kandidaten = pool; // wenn schon alles kürzlich dran war, Sperre aufheben
+
+  kandidaten = [...kandidaten].sort((a, b) => {
+    const prio = (DIRECTOR_PRIORITY[a.id] || 9) - (DIRECTOR_PRIORITY[b.id] || 9);
+    if (prio !== 0) return prio;
+    // bei Gleichstand: wer am längsten nicht dran war, zuerst
+    return hist.lastIndexOf(b.id) - hist.lastIndexOf(a.id);
+  });
+
+  const empfehlung = kandidaten[0];
+  const alternative = kandidaten.find(a => a.id !== empfehlung.id) || null;
+  const nieGezeigt = !hist.includes(empfehlung.id);
+  const balanceHinweis = getBalanceHinweis(hist);
+  return { empfehlung, alternative, nieGezeigt, balanceHinweis };
+}
+
+function renderDirectorEmpfehlung() {
+  const wrap = document.getElementById('director-empfehlung');
+  if (!wrap) return;
+  const { empfehlung: a, alternative, nieGezeigt, balanceHinweis } = computeDirectorEmpfehlung();
+
+  wrap.innerHTML = `
+    ${balanceHinweis ? `<div style="font-size:12px;color:var(--sub);line-height:1.5;padding:2px 2px 4px;">⚖️ ${balanceHinweis}</div>` : ''}
+    <div class="card" style="border-left:3px solid var(--gold);background:var(--gold-light);margin-bottom:2px;">
+      <div style="font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin-bottom:6px;">🏆 Meine Empfehlung für heute</div>
+      <div style="font-size:16px;font-weight:700;color:var(--ink);line-height:1.3;">${a.titel}</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.5;margin-top:6px;">${DIRECTOR_WARUM[a.id] || a.sub}${nieGezeigt ? ' Das hast du zuletzt noch nicht gezeigt.' : ''}</div>
+      <div style="display:flex;gap:14px;margin-top:10px;font-size:11px;color:var(--sub);">
+        <span>Format: <b style="color:var(--ink);">${a.format}</b></span>
+        <span>Aufwand: <b style="color:var(--ink);">${DIRECTOR_AUFWAND[a.format] || '⭐⭐'}</b></span>
+      </div>
+      <button class="btn-gold" style="margin-top:12px;" onclick="openAnlassById('${a.id}')">Los geht's</button>
+      ${alternative ? `<button class="btn-ghost" style="margin-top:8px;" onclick="openAnlassById('${alternative.id}')">Wenn das heute nicht passt: „${alternative.titel}"</button>` : ''}
+    </div>
+  `;
+}
+
 function openAnlass(i) {
-  const a = currentAnlassPool[i];
+  openAnlassObj(currentAnlassPool[i]);
+}
+
+// Aufruf über ID (statt Index) — nötig für Karten, die nicht im festen
+// Anlass-Grid stehen (z.B. saisonale Empfehlungen des Content Directors).
+function openAnlassById(id) {
+  const a = ANLASS_BY_ID[id];
+  if (a) openAnlassObj(a);
+}
+
+function openAnlassObj(a) {
+  recordDirectorHistory(a.id);
 
   // Freier Termin direkt zu Termine weiterleiten
   if(a.tool === 'termine') {
@@ -1415,6 +1609,17 @@ function initRahmenSprueche() {
 
 function useSpruche(text) {
   document.getElementById('rahmen-text-input').value = text;
+  updateRahmenText();
+}
+
+// Content-Cockpit-Prinzip "1 Moment → mehrere Formate": denselben Moment,
+// der gerade als Post geschrieben wurde, ohne erneutes Eintippen als
+// Goldrahmen-Story weiterverwenden.
+function momentAlsStory() {
+  if (!lastPost) return;
+  showTab('rahmen');
+  setRahmenMode('text');
+  document.getElementById('rahmen-text-input').value = lastPost.hook || '';
   updateRahmenText();
 }
 
@@ -1986,16 +2191,17 @@ function deleteFav(i){const favs=getFavs();favs.splice(i,1);localStorage.setItem
 function init(){
   const d=new Date();
   document.getElementById('today-date').textContent=d.toLocaleDateString('de-AT',{weekday:'long',day:'numeric',month:'long'});
-  document.getElementById('kpi-favs').textContent=getFavs().length;
-  document.getElementById('kpi-plan').textContent=getWeekPosts().length;
+  const kpiFavsEl=document.getElementById('kpi-favs'); if(kpiFavsEl) kpiFavsEl.textContent=getFavs().length;
+  const kpiPlanEl=document.getElementById('kpi-plan'); if(kpiPlanEl) kpiPlanEl.textContent=getWeekPosts().length;
   const last=localStorage.getItem('ghd_last_active');
   const today=d.toISOString().slice(0,10);
   let streak=parseInt(localStorage.getItem('ghd_streak')||'0');
   if(last===today){/* same day */}
   else if(last===new Date(d-86400000).toISOString().slice(0,10)){streak++;localStorage.setItem('ghd_streak',streak);localStorage.setItem('ghd_last_active',today);}
   else{streak=1;localStorage.setItem('ghd_streak',streak);localStorage.setItem('ghd_last_active',today);}
-  document.getElementById('kpi-streak').textContent=streak;
+  const kpiStreakEl=document.getElementById('kpi-streak'); if(kpiStreakEl) kpiStreakEl.textContent=streak;
   refreshAnlaesse();
+  renderDirectorEmpfehlung();
   initRahmenSprueche();
   renderPostChips();
   renderLeistungChips();
@@ -2079,8 +2285,8 @@ async function syncFromSupabase() {
   // UI updaten
   renderPostChips(); renderLeistungChips(); initRahmenSprueche(); renderKampagneGrid();
   setRahmenBg('hell');
-  document.getElementById('kpi-favs').textContent=getFavs().length;
-  document.getElementById('kpi-plan').textContent=getWeekPosts().length;
+  const syncKpiFavsEl=document.getElementById('kpi-favs'); if(syncKpiFavsEl) syncKpiFavsEl.textContent=getFavs().length;
+  const syncKpiPlanEl=document.getElementById('kpi-plan'); if(syncKpiPlanEl) syncKpiPlanEl.textContent=getWeekPosts().length;
 }
 
 async function saveSettingToSupabase(key,value){

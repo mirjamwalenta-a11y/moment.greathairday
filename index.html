@@ -732,7 +732,7 @@ textarea{resize:none;}
       <button onclick="closeEditModal()" style="background:none;border:none;font-size:22px;cursor:pointer;">✕</button>
     </div>
     <div class="card" style="margin-bottom:12px;">
-      <div class="card-sub">Tippe auf einen Eintrag um ihn zu ändern. Halte ihn gedrückt um ihn zu löschen.</div>
+      <div class="card-sub">Tippe auf einen Eintrag um ihn zu ändern. Zum Löschen auf das ✕ tippen.</div>
     </div>
     <div id="edit-modal-list" style="display:flex;flex-direction:column;gap:8px;"></div>
     <button class="btn-ghost" style="margin-top:12px;" onclick="addEditItem()">+ Neuen Eintrag hinzufügen</button>
@@ -808,7 +808,10 @@ textarea{resize:none;}
     <div class="card">
       <div class="card-tag">Wen sucht ihr?</div>
       <div class="input-wrap" style="margin-top:8px;">
-        <label class="input-label">Rolle</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label class="input-label">Rolle</label>
+          <button onclick="openEditModal('inserat_rollen')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);">✏️ Bearbeiten</button>
+        </div>
         <div class="chips" id="inserat-rolle-chips"></div>
       </div>
       <div class="input-wrap" style="margin-top:10px;">
@@ -846,25 +849,37 @@ textarea{resize:none;}
         <input type="date" id="fc-datum">
       </div>
       <div class="input-wrap" style="margin-top:10px;">
-        <label class="input-label">Rolle</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label class="input-label">Rolle</label>
+          <button onclick="openEditModal('fc_rollen')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);">✏️ Bearbeiten</button>
+        </div>
         <div class="chips" id="fc-rolle-chips"></div>
       </div>
     </div>
 
     <div class="card">
-      <div class="card-tag">Gesprächsleitfaden</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="card-tag">Gesprächsleitfaden</div>
+        <button onclick="openEditModal('fc_fragen')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);white-space:nowrap;">✏️ Bearbeiten</button>
+      </div>
       <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Kein Verhör — ein Gespräch. Notier dir Stichworte, keine perfekten Sätze.</div>
       <div id="fc-fragen-list"></div>
     </div>
 
     <div class="card">
-      <div class="card-tag">Werte-Einschätzung</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="card-tag">Werte-Einschätzung</div>
+        <button onclick="openEditModal('fc_werte')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);white-space:nowrap;">✏️ Bearbeiten</button>
+      </div>
       <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Nach dem Gespräch, aus dem Bauch heraus. 5 Sterne = trifft voll zu.</div>
       <div id="fc-werte-list"></div>
     </div>
 
     <div class="card" style="border-left:3px solid var(--red,#a13a3a);">
-      <div class="card-tag" style="color:var(--red,#a13a3a);">Rotes Tuch</div>
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+        <div class="card-tag" style="color:var(--red,#a13a3a);">Rotes Tuch</div>
+        <button onclick="openEditModal('fc_flags')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);white-space:nowrap;">✏️ Bearbeiten</button>
+      </div>
       <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Wenn eins davon zutrifft, ist das für dich meistens schon eine Antwort.</div>
       <div id="fc-flags-list"></div>
     </div>
@@ -908,7 +923,10 @@ textarea{resize:none;}
     <div class="card">
       <div class="card-tag">Neue Stimme festhalten</div>
       <div class="input-wrap" style="margin-top:8px;">
-        <label class="input-label">Wer sagt das?</label>
+        <div style="display:flex;justify-content:space-between;align-items:center;">
+          <label class="input-label">Wer sagt das?</label>
+          <button onclick="openEditModal('stimmen_personen')" style="background:none;border:none;font-size:11px;color:var(--accent);font-weight:600;cursor:pointer;font-family:var(--f);">✏️ Team bearbeiten</button>
+        </div>
         <div class="chips" id="stimmen-person-chips"></div>
       </div>
       <div class="input-wrap" style="margin-top:10px;" id="stimmen-andere-wrap">
@@ -1088,45 +1106,84 @@ function renderChips(groupId, key, defaults) {
   if(i===0) S[groupId] = data[0]?.val;
 }
 
-// Edit Modal
+// Edit Modal — generalisiert, damit sich beliebige Listen (val/id + ein oder
+// mehrere Textfelder) über denselben Dialog bearbeiten lassen. Aufgerufen als
+// Funktion (nicht als Konstante), weil manche DEFAULT_*-Arrays erst weiter
+// unten im Script deklariert werden — so spielt die Reihenfolge keine Rolle.
+function getEditConfigs() {
+  return {
+    postton:        { defaults: DEFAULT_TON,        idField:'val', fields:[{key:'label', placeholder:'Bezeichnung'}], title:'Tonalität bearbeiten',          onSave:['renderPostChips'] },
+    postwer:        { defaults: DEFAULT_WER,         idField:'val', fields:[{key:'label', placeholder:'Bezeichnung'}], title:'Zielgruppen bearbeiten',        onSave:['renderPostChips'] },
+    terminleistung: { defaults: DEFAULT_LEISTUNG,    idField:'val', fields:[{key:'label', placeholder:'Bezeichnung'}], title:'Leistungen bearbeiten',         onSave:['renderLeistungChips'] },
+    sprueche:       { defaults: DEFAULT_SPRUECHE,    idField:'val', fields:[{key:'label', placeholder:'Spruch'}],      title:'Sprüche bearbeiten',            onSave:['initRahmenSprueche'] },
+    situationen:    { defaults: DEFAULT_SITUATIONEN, idField:'val', fields:[{key:'label', placeholder:'Situation'}],   title:'Situationen bearbeiten',        onSave:['initPostFlow'] },
+    stimmen_personen: { defaults: DEFAULT_STIMMEN_PERSONEN, idField:'val', fields:[{key:'label', placeholder:'Name'}], title:'Team-Mitglieder bearbeiten',    onSave:['renderStimmenChips'] },
+    inserat_rollen: { defaults: DEFAULT_INSERAT_ROLLEN, idField:'val', fields:[{key:'label', placeholder:'Rollenbezeichnung'}], title:'Rollen bearbeiten (Inserat)', onSave:['renderInseratChips'] },
+    fc_rollen:      { defaults: DEFAULT_FC_ROLLEN,   idField:'val', fields:[{key:'label', placeholder:'Rollenbezeichnung'}], title:'Rollen bearbeiten (Fit-Check)', onSave:['fcRenderRolleChips'] },
+    fc_werte:       { defaults: DEFAULT_FC_WERTE,    idField:'id',  fields:[{key:'label', placeholder:'Wert'}],        title:'Werte-Kriterien bearbeiten',    onSave:['fcRenderWerte'] },
+    fc_flags:       { defaults: DEFAULT_FC_FLAGS,    idField:'id',  fields:[{key:'text',  placeholder:'Rotes-Tuch-Kriterium'}], title:'Rotes Tuch bearbeiten', onSave:['fcRenderFlags'] },
+    fc_fragen:      { defaults: DEFAULT_FC_FRAGEN,   idField:'id',  fields:[{key:'frage', placeholder:'Frage', multiline:true},{key:'warum', placeholder:'Warum das wichtig ist', multiline:true}], title:'Gesprächsleitfaden bearbeiten', onSave:['fcRenderFragen'] },
+  };
+}
+
 let editModalKey = '';
 let editModalData = [];
 
-function saveEditModal() {
-  saveChipData(editModalKey, editModalData);
-  if(editModalKey==='postton' || editModalKey==='postwer') renderPostChips();
-  if(editModalKey==='terminleistung') renderLeistungChips();
-  if(editModalKey==='sprueche') initRahmenSprueche();
-  if(editModalKey==='situationen') initPostFlow();
-  closeEditModal();
-}
+function slugify(s) { return (s||'').toLowerCase().replace(/[^a-z0-9]/g,'_').replace(/^_+|_+$/g,'') || ('eintrag_'+Date.now()); }
 
 function openEditModal(key) {
+  const cfg = getEditConfigs()[key];
+  if (!cfg) return;
   editModalKey = key;
-  const defaults = key==='postton' ? DEFAULT_TON
-    : key==='postwer' ? DEFAULT_WER
-    : key==='terminleistung' ? DEFAULT_LEISTUNG
-    : key==='situationen' ? DEFAULT_SITUATIONEN
-    : DEFAULT_SPRUECHE;
-  const titles = {postton:'Tonalität bearbeiten', postwer:'Zielgruppen bearbeiten', terminleistung:'Leistungen bearbeiten', sprueche:'Sprüche bearbeiten', situationen:'Situationen bearbeiten'};
-  editModalData = JSON.parse(JSON.stringify(loadChipData(key, defaults)));
-  document.getElementById('edit-modal-title').textContent = titles[key] || 'Bearbeiten';
+  editModalData = JSON.parse(JSON.stringify(loadChipData(key, cfg.defaults)));
+  document.getElementById('edit-modal-title').textContent = cfg.title || 'Bearbeiten';
   renderEditList();
   document.getElementById('modal-edit').style.display = 'block';
 }
 
 function renderEditList() {
+  const cfg = getEditConfigs()[editModalKey];
+  if (!cfg) return;
   document.getElementById('edit-modal-list').innerHTML = editModalData.map((item,i) => `
-    <div style="display:flex;gap:8px;align-items:center;">
-      <input type="text" value="${item.label}" onchange="editModalData[${i}].label=this.value;editModalData[${i}].val=this.value.toLowerCase().replace(/[^a-z0-9]/g,'_')" style="flex:1;padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:14px;">
-      <button onclick="editModalData.splice(${i},1);renderEditList()" style="background:none;border:none;font-size:18px;color:var(--sub);cursor:pointer;">✕</button>
+    <div style="display:flex;gap:8px;align-items:flex-start;border-bottom:1px solid var(--line);padding-bottom:10px;">
+      <div style="flex:1;display:flex;flex-direction:column;gap:6px;">
+        ${cfg.fields.map(f => f.multiline
+          ? `<textarea placeholder="${f.placeholder}" oninput="editModalFieldChange(${i},'${f.key}',this.value)" style="padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:14px;resize:none;">${(item[f.key]||'').replace(/</g,'&lt;')}</textarea>`
+          : `<input type="text" value="${(item[f.key]||'').replace(/"/g,'&quot;')}" placeholder="${f.placeholder}" oninput="editModalFieldChange(${i},'${f.key}',this.value)" style="padding:10px 12px;border:1.5px solid var(--line);border-radius:10px;font-family:var(--f);font-size:14px;">`
+        ).join('')}
+      </div>
+      <button onclick="editModalData.splice(${i},1);renderEditList()" style="background:none;border:none;font-size:18px;color:var(--sub);cursor:pointer;padding-top:8px;">✕</button>
     </div>
   `).join('');
 }
 
+function editModalFieldChange(i, key, value) {
+  const cfg = getEditConfigs()[editModalKey];
+  if (!cfg || !editModalData[i]) return;
+  editModalData[i][key] = value;
+  // val/id wird aus dem ersten Feld abgeleitet, wie im bisherigen System
+  if (cfg.fields[0].key === key) editModalData[i][cfg.idField] = slugify(value);
+}
+
 function addEditItem() {
-  editModalData.push({val:'neu_'+Date.now(), label:'Neuer Eintrag'});
+  const cfg = getEditConfigs()[editModalKey];
+  if (!cfg) return;
+  const item = { [cfg.idField]: 'neu_'+Date.now() };
+  cfg.fields.forEach(f => item[f.key] = '');
+  editModalData.push(item);
   renderEditList();
+}
+
+function saveEditModal() {
+  const cfg = getEditConfigs()[editModalKey];
+  if (!cfg) { closeEditModal(); return; }
+  // leere Einträge (kein Text im ersten/wichtigsten Feld) beim Speichern entfernen
+  const primary = cfg.fields[0].key;
+  let data = editModalData.filter(item => (item[primary]||'').trim().length);
+  if (!data.length) data = JSON.parse(JSON.stringify(cfg.defaults)); // nie eine leere Liste speichern
+  saveChipData(editModalKey, data);
+  (cfg.onSave||[]).forEach(fnName => { if (typeof window[fnName] === 'function') window[fnName](); });
+  closeEditModal();
 }
 
 function closeEditModal() {
@@ -2575,12 +2632,13 @@ function showTeamView(name) {
 }
 
 // ── INSERAT-GENERATOR (lokal, ohne API — 3 Kanäle) ──
-const INSERAT_ROLLEN = [
+const DEFAULT_INSERAT_ROLLEN = [
   {val:'stylist', label:'Stylist:in'},
   {val:'lehrling', label:'Lehrling'},
   {val:'rezeption', label:'Rezeption/Empfang'},
   {val:'sonstiges', label:'Sonstige Position'},
 ];
+function getInseratRollen() { return loadChipData('inserat_rollen', DEFAULT_INSERAT_ROLLEN); }
 const INSERAT_ANSTELLUNG = [
   {val:'vollzeit', label:'Vollzeit'},
   {val:'teilzeit', label:'Teilzeit'},
@@ -2616,7 +2674,9 @@ function onQrZielChange(input) {
 let inseratVariantIndex = {};
 
 function renderInseratChips() {
-  document.getElementById('inserat-rolle-chips').innerHTML = INSERAT_ROLLEN.map(r =>
+  const rollen = getInseratRollen();
+  if (!rollen.find(r => r.val === inserat.rolle)) inserat.rolle = rollen[0]?.val || 'stylist';
+  document.getElementById('inserat-rolle-chips').innerHTML = rollen.map(r =>
     `<button class="chip ${inserat.rolle===r.val?'on':''}" onclick="setInseratRolle('${r.val}')">${r.label}</button>`).join('');
   document.getElementById('inserat-anstellung-chips').innerHTML = INSERAT_ANSTELLUNG.map(a =>
     `<button class="chip ${inserat.anstellung===a.val?'on':''}" onclick="setInseratAnstellung('${a.val}')">${a.label}</button>`).join('');
@@ -2631,7 +2691,7 @@ function toggleInseratKanal(val) {
   renderInseratChips();
 }
 
-function rolleLabelFor(val) { return (INSERAT_ROLLEN.find(r=>r.val===val)||{}).label || 'Mitarbeiter:in'; }
+function rolleLabelFor(val) { return (getInseratRollen().find(r=>r.val===val)||{}).label || 'Mitarbeiter:in'; }
 function anstellungLabelFor(val) { return (INSERAT_ANSTELLUNG.find(a=>a.val===val)||{}).label || ''; }
 
 // ── Mehrere Varianten pro Kanal — alle in Mirjams eigenem Ton ──
@@ -3003,14 +3063,14 @@ function generiereInserate() {
 }
 
 // ── FIT-CHECK (integriert aus dem eigenständigen Tool) ──
-const FC_ROLLEN = [
+const DEFAULT_FC_ROLLEN = [
   {val:'lehrling', label:'Lehrling'},
   {val:'stylist', label:'Stylist:in'},
   {val:'erfahren', label:'Erfahrene Kraft'},
   {val:'sonstiges', label:'Sonstiges'},
 ];
 
-const FC_FRAGEN = [
+const DEFAULT_FC_FRAGEN = [
   {id:'kritik', frage:'Erzähl mir von einer Situation im Job, in der du eine Rückmeldung bekommen hast, die dir nicht gefallen hat. Wie bist du damit umgegangen?', warum:'Zeigt Umgang mit Kritik — reflektiert oder rechtfertigt sich die Person?'},
   {id:'lernen', frage:'Was war die letzte neue Technik oder Methode, die du dir angeeignet hast? Was hat dich daran interessiert?', warum:'Zeigt Wissensdurst — "Wer aufhört zu lernen, hört auf zu wachsen."'},
   {id:'schwierige_kundin', frage:'Wie gehst du mit jemandem um, der unzufrieden ist, obwohl du fachlich alles richtig gemacht hast?', warum:'Zeigt Freundlichkeit unter Druck, nicht nur wenn es leicht ist.'},
@@ -3019,7 +3079,7 @@ const FC_FRAGEN = [
   {id:'warum_wir', frage:'Warum genau dieser Salon, warum jetzt?', warum:'Zeigt, ob es um den Ort und die Menschen geht — oder nur um irgendeinen Job.'},
 ];
 
-const FC_WERTE = [
+const DEFAULT_FC_WERTE = [
   {id:'freundlichkeit', label:'Freundlichkeit'},
   {id:'wissensdurst', label:'Wissensdurst / Lernbereitschaft'},
   {id:'teamgeist', label:'Teamgeist'},
@@ -3028,30 +3088,40 @@ const FC_WERTE = [
   {id:'offenheit', label:'Offenheit — der Mensch zählt, nicht die Herkunft'},
 ];
 
-const FC_FLAGS = [
+const DEFAULT_FC_FLAGS = [
   {id:'jammert', text:'Jammert über die Branche, statt nach Lösungen zu suchen.'},
   {id:'abwertend', text:'Äußert sich abwertend über andere — frühere Kolleg:innen, Chef:innen oder Kund:innen.'},
   {id:'neues_ab', text:'Lehnt Neues oder Veränderung pauschal ab.'},
   {id:'unehrlich', text:'Wirkt schon bei einfachen Fragen genervt, ausweichend oder unehrlich.'},
 ];
 
+// Bearbeitbare Varianten (wie Tonalität/Sprüche) — bei Änderung bleiben
+// bereits gespeicherte Kandidat:innen unangetastet, nur Frage-IDs, die es
+// nicht mehr gibt, verschwinden dort still aus der Ansicht.
+function getFcRollen() { return loadChipData('fc_rollen', DEFAULT_FC_ROLLEN); }
+function getFcFragen() { return loadChipData('fc_fragen', DEFAULT_FC_FRAGEN); }
+function getFcWerte() { return loadChipData('fc_werte', DEFAULT_FC_WERTE); }
+function getFcFlags() { return loadChipData('fc_flags', DEFAULT_FC_FLAGS); }
+
 let fcCurrent = fcLeererKandidat();
 
 function fcLeererKandidat() {
-  const notizen = {}; FC_FRAGEN.forEach(f => notizen[f.id] = '');
-  const werte = {}; FC_WERTE.forEach(w => werte[w.id] = 0);
-  const flags = {}; FC_FLAGS.forEach(f => flags[f.id] = false);
+  const notizen = {}; getFcFragen().forEach(f => notizen[f.id] = '');
+  const werte = {}; getFcWerte().forEach(w => werte[w.id] = 0);
+  const flags = {}; getFcFlags().forEach(f => flags[f.id] = false);
   return { rolle:'lehrling', notizen, werte, flags, entscheidung:null };
 }
 
 function fcRenderRolleChips() {
-  document.getElementById('fc-rolle-chips').innerHTML = FC_ROLLEN.map(r =>
+  const rollen = getFcRollen();
+  if (!rollen.find(r => r.val === fcCurrent.rolle)) fcCurrent.rolle = rollen[0]?.val || 'lehrling';
+  document.getElementById('fc-rolle-chips').innerHTML = rollen.map(r =>
     `<button class="chip ${fcCurrent.rolle===r.val?'on':''}" onclick="fcSetRolle('${r.val}')">${r.label}</button>`).join('');
 }
 function fcSetRolle(val) { fcCurrent.rolle = val; fcRenderRolleChips(); }
 
 function fcRenderFragen() {
-  document.getElementById('fc-fragen-list').innerHTML = FC_FRAGEN.map((f,i) => `
+  document.getElementById('fc-fragen-list').innerHTML = getFcFragen().map((f,i) => `
     <div class="frage">
       <div class="frage-nr">Frage ${i+1}</div>
       <div class="frage-text">${f.frage}</div>
@@ -3061,7 +3131,7 @@ function fcRenderFragen() {
 }
 
 function fcRenderWerte() {
-  document.getElementById('fc-werte-list').innerHTML = FC_WERTE.map(w => `
+  document.getElementById('fc-werte-list').innerHTML = getFcWerte().map(w => `
     <div class="wert-row">
       <div class="wert-label">${w.label}</div>
       <div class="sterne">${[1,2,3,4,5].map(n => `<span class="stern ${fcCurrent.werte[w.id]>=n?'on':''}" onclick="fcSetWert('${w.id}',${n})">★</span>`).join('')}</div>
@@ -3070,7 +3140,7 @@ function fcRenderWerte() {
 function fcSetWert(id, n) { fcCurrent.werte[id] = fcCurrent.werte[id] === n ? n-1 : n; fcRenderWerte(); }
 
 function fcRenderFlags() {
-  document.getElementById('fc-flags-list').innerHTML = FC_FLAGS.map(f => `
+  document.getElementById('fc-flags-list').innerHTML = getFcFlags().map(f => `
     <div class="flag-row" onclick="fcToggleFlag('${f.id}')">
       <div class="flag-box ${fcCurrent.flags[f.id]?'on':''}">${fcCurrent.flags[f.id]?'✕':''}</div>
       <div class="flag-text">${f.text}</div>
@@ -3157,7 +3227,7 @@ function fcRenderListe() {
   wrap.innerHTML = list.map((k,i) => {
     const badge = k.entscheidung ? k.entscheidung : 'offen';
     const badgeLabel = {ja:'Ja', vielleicht:'Vielleicht', nein:'Eher nicht', offen:'Offen'}[badge];
-    const rolleLabel = (FC_ROLLEN.find(r=>r.val===k.rolle)||{}).label || '';
+    const rolleLabel = (getFcRollen().find(r=>r.val===k.rolle)||{}).label || '';
     const statusVal = k.pipelineStatus || 'offen';
     const statusLabel = (FC_PIPELINE_STATUS.find(s=>s.val===statusVal)||{}).label || '';
     return `
@@ -3175,21 +3245,21 @@ function fcZeigeDetail(i) {
   const k = list[i];
   if (!k) return;
   const einsch = fcEinschaetzung(k);
-  const rolleLabel = (FC_ROLLEN.find(r=>r.val===k.rolle)||{}).label || '';
+  const rolleLabel = (getFcRollen().find(r=>r.val===k.rolle)||{}).label || '';
 
-  const fragenHtml = FC_FRAGEN.map(f => `
+  const fragenHtml = getFcFragen().map(f => `
     <div class="frage">
       <div class="frage-nr">${f.frage}</div>
       <div style="font-size:13px;color:var(--ink);line-height:1.5;">${(k.notizen[f.id]||'—').replace(/</g,'&lt;')}</div>
     </div>`).join('');
 
-  const werteHtml = FC_WERTE.map(w => `
+  const werteHtml = getFcWerte().map(w => `
     <div class="wert-row">
       <div class="wert-label">${w.label}</div>
       <div class="sterne">${[1,2,3,4,5].map(n => `<span class="stern ${k.werte[w.id]>=n?'on':''}">★</span>`).join('')}</div>
     </div>`).join('');
 
-  const flagsAn = FC_FLAGS.filter(f => k.flags[f.id]);
+  const flagsAn = getFcFlags().filter(f => k.flags[f.id]);
   const flagsHtml = flagsAn.length
     ? flagsAn.map(f => `<div class="flag-text" style="color:var(--red,#a13a3a);padding:4px 0;">⚑ ${f.text}</div>`).join('')
     : '<div class="card-sub">Keine roten Flaggen notiert.</div>';
@@ -3231,19 +3301,26 @@ function initTeamTab() {
 }
 
 // ── TEAM-STIMMEN (echte Zitate für Recruiting-Content, keine erfundenen) ──
-const STIMMEN_PERSONEN = [
+const DEFAULT_STIMMEN_PERSONEN = [
   {val:'mazen', label:'Mazen'},
   {val:'alina', label:'Alina'},
   {val:'hassan', label:'Hassan'},
   {val:'ronya', label:'Ronya'},
-  {val:'andere', label:'Andere'},
 ];
 let stimmenPerson = 'mazen';
+
+// "Andere" bleibt als fixer Auffangwert am Ende immer erhalten, auch wenn die
+// eigentliche Team-Liste bearbeitet, geleert oder neu befüllt wird.
+function getStimmenPersonen() {
+  return [...loadChipData('stimmen_personen', DEFAULT_STIMMEN_PERSONEN), {val:'andere', label:'Andere'}];
+}
 
 function renderStimmenChips() {
   const wrap = document.getElementById('stimmen-person-chips');
   if (!wrap) return;
-  wrap.innerHTML = STIMMEN_PERSONEN.map(p =>
+  const personen = getStimmenPersonen();
+  if (!personen.find(p => p.val === stimmenPerson)) stimmenPerson = personen[0]?.val || 'andere';
+  wrap.innerHTML = personen.map(p =>
     `<button class="chip ${stimmenPerson===p.val?'on':''}" onclick="setStimmenPerson('${p.val}')">${p.label}</button>`).join('');
   const andereWrap = document.getElementById('stimmen-andere-wrap');
   if (andereWrap) andereWrap.style.display = stimmenPerson === 'andere' ? 'flex' : 'none';
@@ -3259,7 +3336,7 @@ function stimmenSpeichern() {
   if (!zitat) { zitatEl.focus(); return; }
   const person = stimmenPerson === 'andere'
     ? (document.getElementById('stimmen-andere-name').value.trim() || 'Team')
-    : (STIMMEN_PERSONEN.find(p=>p.val===stimmenPerson)||{}).label;
+    : (getStimmenPersonen().find(p=>p.val===stimmenPerson)||{}).label;
   const list = getStimmen();
   list.unshift({ person, zitat, datum: new Date().toISOString().slice(0,10) });
   saveStimmenListe(list);

@@ -246,8 +246,11 @@ textarea{resize:none;}
 .kbadge.offen{background:var(--chip);color:var(--sub);}
 .kanal-row{display:flex;flex-wrap:wrap;gap:8px;}
 .inserat-block{background:var(--surface);border-radius:var(--r);box-shadow:0 1px 8px rgba(0,0,0,.06);overflow:hidden;}
-.inserat-head{padding:11px 14px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
-.inserat-body{padding:14px;font-size:13px;color:var(--ink);line-height:1.7;white-space:pre-line;}
+.inserat-head{padding:11px 14px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+.inserat-head span.edit-hint{text-transform:none;font-weight:400;font-size:10px;opacity:.85;letter-spacing:0;}
+.inserat-body{padding:14px;font-size:13px;color:var(--ink);line-height:1.7;white-space:pre-line;outline:none;border-radius:8px;}
+.inserat-body[contenteditable="true"]{cursor:text;}
+.inserat-body[contenteditable="true"]:focus{background:var(--gold-light);box-shadow:inset 0 0 0 1.5px var(--gold);}
 
 @media(min-width:420px){
   body{padding-top:20px;}
@@ -2467,6 +2470,7 @@ const INSERAT_KANAELE = [
   {val:'google', label:'Google Business'},
   {val:'jobboerse', label:'Jobbörse (willhaben/AMS)'},
   {val:'website', label:'Website'},
+  {val:'schaufenster', label:'Schaufenster-Aushang'},
 ];
 let inserat = { rolle:'stylist', anstellung:'vollzeit', kanaele: new Set(['instagram']) };
 let inseratVariantIndex = {};
@@ -2642,12 +2646,52 @@ Interesse? Wir freuen uns auf deine Nachricht.
 📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
 ];
 
+// Schaufenster-Aushang: gedruckter Aushang, andere Sprachlogik als die digitalen Kanäle —
+// hier ist "Wir suchen Verstärkung" bewusst passend (Mirjams eigene, bevorzugte Formulierung).
+// Variante 1 ist ihre gewählte Version und wird als Erstes angezeigt (kein Zufall).
+const SCHAUFENSTER_VARIANTEN = [
+(rolleL, anstellungL, details) => `Wir suchen Verstärkung
+
+Für unseren Salon in 1050 Wien suchen wir Verstärkung als ${rolleL} (${anstellungL}) — mit Gespür für Qualität, Stil und Menschen.
+
+Bei uns erwarten dich Stammkundschaft, ein schönes Umfeld, klare Führung und ein respektvolles Miteinander.${details ? `\n\n${details}` : ''}
+
+Wenn du gute Arbeit in Ruhe machen möchtest und einen Platz suchst, an dem Beständigkeit und Wertschätzung zählen, freuen wir uns auf deine Kontaktaufnahme.
+
+Mirjam Walenta
+Rechte Wienzeile 47, 1050 Wien
+01 5863130`,
+
+(rolleL, anstellungL, details) => `Wir suchen Verstärkung
+
+Für unseren Salon in 1050 Wien suchen wir Verstärkung als ${rolleL} (${anstellungL}) — mit Gespür für Qualität, Stil und Menschen.
+
+Stammkundschaft, ein schönes Umfeld, klare Führung und ein respektvolles Miteinander erwarten dich bei uns.${details ? `\n\n${details}` : ''}
+
+Wenn du gute Arbeit in Ruhe machen möchtest und einen Platz suchst, an dem Beständigkeit und Wertschätzung zählen, freuen wir uns auf deine Kontaktaufnahme.
+
+Mirjam Walenta
+Rechte Wienzeile 47, 1050 Wien
+01 5863130`,
+
+(rolleL, anstellungL, details) => `Wir suchen Verstärkung
+
+Erfahrung. Qualität. Stil. Menschlichkeit.
+
+Für unseren Salon in 1050 Wien suchen wir Verstärkung als ${rolleL} (${anstellungL}) — für gute Arbeit in Ruhe, mit einem schönen Umfeld, Stammkundschaft und respektvollem Miteinander.${details ? `\n\n${details}` : ''}
+
+Mirjam Walenta
+Rechte Wienzeile 47, 1050 Wien
+01 5863130`,
+];
+
 const INSERAT_VARIANTEN = {
   instagram: INSTAGRAM_VARIANTEN,
   facebook: FACEBOOK_VARIANTEN,
   google: GOOGLE_VARIANTEN,
   jobboerse: JOBBOERSE_VARIANTEN,
   website: WEBSITE_VARIANTEN,
+  schaufenster: SCHAUFENSTER_VARIANTEN,
 };
 const INSERAT_TITEL = {
   instagram: 'Instagram',
@@ -2655,23 +2699,31 @@ const INSERAT_TITEL = {
   google: 'Google Business',
   jobboerse: 'Jobbörse (willhaben/AMS)',
   website: 'Website',
+  schaufenster: 'Schaufenster-Aushang',
 };
+// Bei diesen Kanälen startet die Anzeige mit fixer Variante 1 statt zufällig
+// (schon abgestimmte/bevorzugte Formulierung) — "Andere Variante" bleibt trotzdem nutzbar.
+const INSERAT_FIXER_START = { schaufenster: true };
 
 function inseratBlockHtml(k) {
   const rolleL = rolleLabelFor(inserat.rolle);
   const anstellungL = anstellungLabelFor(inserat.anstellung);
   const details = document.getElementById('inserat-details').value.trim();
   const varianten = INSERAT_VARIANTEN[k] || [];
-  const idx = Math.floor(Math.random() * varianten.length);
+  const idx = INSERAT_FIXER_START[k] ? 0 : Math.floor(Math.random() * varianten.length);
   inseratVariantIndex[k] = idx;
   const text = varianten[idx](rolleL, anstellungL, details);
+  const druckBtn = (k === 'schaufenster')
+    ? `<button class="copy-btn" style="background:transparent;border:1px solid var(--line);color:var(--sub);" onclick="printInseratBlock('${k}')">🖨️ Drucken</button>`
+    : '';
   return `
     <div class="inserat-block" id="inserat-block-${k}">
-      <div class="inserat-head">${INSERAT_TITEL[k]}</div>
-      <div class="inserat-body" id="inserat-text-${k}">${text}</div>
+      <div class="inserat-head"><span>${INSERAT_TITEL[k]}</span><span class="edit-hint">✎ frei bearbeitbar</span></div>
+      <div class="inserat-body" id="inserat-text-${k}" contenteditable="true">${text}</div>
       <div style="padding:0 14px 14px;display:flex;gap:8px;flex-wrap:wrap;">
         <button class="copy-btn" onclick="copyFromId('inserat-text-${k}', this)">Kopieren</button>
         <button class="copy-btn" style="background:transparent;border:1px solid var(--line);color:var(--sub);" onclick="regenerateInseratBlock('${k}')">🔄 Andere Variante</button>
+        ${druckBtn}
       </div>
     </div>`;
 }
@@ -2688,6 +2740,22 @@ function regenerateInseratBlock(k) {
   const text = varianten[idx](rolleL, anstellungL, details);
   const body = document.getElementById(`inserat-text-${k}`);
   if (body) body.textContent = text;
+}
+
+function printInseratBlock(k) {
+  const body = document.getElementById(`inserat-text-${k}`);
+  if (!body) return;
+  const text = (body.innerText || body.textContent || '').replace(/</g, '&lt;');
+  const w = window.open('', '_blank');
+  if (!w) return;
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Schaufenster-Aushang</title>
+    <style>
+      body{font-family:Georgia,'Times New Roman',serif;max-width:700px;margin:60px auto;padding:0 30px;white-space:pre-line;font-size:20px;line-height:1.8;color:#1C1C1C;}
+      @media print{body{margin:0;padding:40px;}}
+    </style></head><body>${text}</body></html>`);
+  w.document.close();
+  w.focus();
+  setTimeout(() => w.print(), 300);
 }
 
 function generiereInserate() {

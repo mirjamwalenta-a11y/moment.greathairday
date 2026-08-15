@@ -207,6 +207,48 @@ textarea{resize:none;}
 /* Share btn */
 .share-btn{background:linear-gradient(135deg,#833ab4,#fd1d1d,#fcb045);border:none;border-radius:8px;padding:7px 13px;font-size:12px;font-weight:600;color:#fff;cursor:pointer;font-family:var(--f);}
 
+/* ══ TEAM / FIT-CHECK ══ */
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
+.hub-card{background:var(--surface);border-radius:14px;padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);cursor:pointer;display:flex;align-items:center;gap:12px;transition:transform .12s;}
+.hub-card:active{transform:scale(.98);}
+.hub-icon{font-size:26px;flex-shrink:0;}
+.hub-title{font-size:14px;font-weight:700;color:var(--ink);}
+.hub-sub{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.frage{display:flex;flex-direction:column;gap:6px;padding:12px 0;border-bottom:1px solid var(--line);}
+.frage:last-child{border-bottom:none;}
+.frage-nr{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.4px;}
+.frage-text{font-size:14px;font-weight:600;color:var(--ink);line-height:1.45;}
+.frage-warum{font-size:11px;color:var(--sub);font-style:italic;line-height:1.4;}
+.wert-row{display:flex;flex-direction:column;gap:6px;padding:10px 0;border-bottom:1px solid var(--line);}
+.wert-row:last-child{border-bottom:none;}
+.wert-label{font-size:13px;font-weight:600;color:var(--ink);}
+.sterne{display:flex;gap:6px;}
+.stern{font-size:26px;cursor:pointer;color:#D8D3CA;line-height:1;user-select:none;}
+.stern.on{color:var(--gold);}
+.flag-row{display:flex;align-items:flex-start;gap:10px;padding:10px 0;border-bottom:1px solid var(--line);cursor:pointer;}
+.flag-row:last-child{border-bottom:none;}
+.flag-box{width:20px;height:20px;border-radius:5px;border:1.5px solid var(--line);flex-shrink:0;margin-top:1px;display:flex;align-items:center;justify-content:center;font-size:12px;color:#fff;}
+.flag-box.on{background:var(--red,#a13a3a);border-color:var(--red,#a13a3a);}
+.flag-text{font-size:13px;color:var(--ink);line-height:1.45;}
+.entscheidung-row{display:flex;gap:8px;}
+.entscheidung-btn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--f);font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer;text-align:center;}
+.entscheidung-btn.on.ja{border-color:var(--accent);background:#EEF4F1;color:var(--accent);}
+.entscheidung-btn.on.vielleicht{border-color:var(--gold);background:var(--gold-light);color:var(--gold);}
+.entscheidung-btn.on.nein{border-color:var(--red,#a13a3a);background:var(--red-light,#f8ecec);color:var(--red,#a13a3a);}
+.kliste-item{background:var(--surface);border-radius:14px;padding:14px;box-shadow:0 1px 8px rgba(0,0,0,.06);display:flex;flex-direction:column;gap:6px;cursor:pointer;}
+.kliste-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.kliste-name{font-size:14px;font-weight:700;color:var(--ink);}
+.kliste-meta{font-size:11px;color:var(--sub);margin-top:2px;}
+.kbadge{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
+.kbadge.ja{background:#EEF4F1;color:var(--accent);}
+.kbadge.vielleicht{background:var(--gold-light);color:var(--gold);}
+.kbadge.nein{background:var(--red-light,#f8ecec);color:var(--red,#a13a3a);}
+.kbadge.offen{background:var(--chip);color:var(--sub);}
+.kanal-row{display:flex;flex-wrap:wrap;gap:8px;}
+.inserat-block{background:var(--surface);border-radius:var(--r);box-shadow:0 1px 8px rgba(0,0,0,.06);overflow:hidden;}
+.inserat-head{padding:11px 14px;background:var(--accent);color:#fff;font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:.5px;}
+.inserat-body{padding:14px;font-size:13px;color:var(--ink);line-height:1.7;white-space:pre-line;}
+
 @media(min-width:420px){
   body{padding-top:20px;}
   .phone{border-radius:36px;min-height:auto;box-shadow:0 8px 40px rgba(0,0,0,.13);overflow:hidden;}
@@ -255,6 +297,7 @@ textarea{resize:none;}
   <button class="tab" onclick="showTab('post')">Post</button>
   <button class="tab" onclick="showTab('termine')">Termine</button>
   <button class="tab" onclick="showTab('kampagne')">Kampagne</button>
+  <button class="tab" onclick="showTab('team')">Team</button>
 </div>
 
 <!-- ══ HEUTE ══ -->
@@ -694,6 +737,158 @@ textarea{resize:none;}
 </div>
 
 
+
+<!-- ══ TEAM ══ -->
+<div class="screen" id="screen-team">
+
+  <!-- HUB -->
+  <div id="team-hub" style="display:flex;flex-direction:column;gap:14px;">
+    <div style="padding:4px 0 2px;">
+      <div style="font-size:20px;font-weight:700;color:var(--ink);line-height:1.25;">Team finden</div>
+      <div style="font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;">Bei uns musst du dich nicht erklären. Aber wir schauen genau hin, wer zu uns passt.</div>
+    </div>
+
+    <div class="hub-card" onclick="showTeamView('inserat')">
+      <div class="hub-icon">📝</div>
+      <div>
+        <div class="hub-title">Inserat schreiben</div>
+        <div class="hub-sub">Für Instagram, Jobbörse oder deine Website — in deiner Stimme, nicht generisch.</div>
+      </div>
+    </div>
+
+    <div class="hub-card" onclick="showTab('kampagne'); selectKampagneZiel('mitarbeiter');">
+      <div class="hub-icon">📣</div>
+      <div>
+        <div class="hub-title">Kampagne: Mitarbeiter:innen ansprechen</div>
+        <div class="hub-sub">7 Tage, die zeigen, wie Arbeit und Miteinander bei euch wirken.</div>
+      </div>
+    </div>
+
+    <div class="hub-card" onclick="showTab('kampagne'); selectKampagneZiel('lehrling');">
+      <div class="hub-icon">🎓</div>
+      <div>
+        <div class="hub-title">Kampagne: Lehrling gewinnen</div>
+        <div class="hub-sub">7 Tage, die ehrlich zeigen, wie Lernen bei euch aussieht.</div>
+      </div>
+    </div>
+
+    <div class="hub-card" onclick="showTeamView('fitcheck-neu')">
+      <div class="hub-icon">✨</div>
+      <div>
+        <div class="hub-title">Bewerbungsgespräch bewerten</div>
+        <div class="hub-sub">Fit-Check: Werte statt Wissenspunkte — für Lehrlinge und erfahrene Kräfte.</div>
+      </div>
+    </div>
+
+    <div class="hub-card" onclick="showTeamView('fitcheck-liste')">
+      <div class="hub-icon">📋</div>
+      <div>
+        <div class="hub-title">Bisherige Kandidat:innen</div>
+        <div class="hub-sub">Alle bisherigen Fit-Check-Gespräche im Überblick.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- INSERAT -->
+  <div id="team-inserat" style="display:none;flex-direction:column;gap:14px;">
+    <button onclick="showTeamView('hub')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:left;padding:0;">← Zurück</button>
+
+    <div class="card">
+      <div class="card-tag">Wen sucht ihr?</div>
+      <div class="input-wrap" style="margin-top:8px;">
+        <label class="input-label">Rolle</label>
+        <div class="chips" id="inserat-rolle-chips"></div>
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Anstellung</label>
+        <div class="chips" id="inserat-anstellung-chips"></div>
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Details (optional)</label>
+        <textarea id="inserat-details" placeholder="z.B. 30h Basis, ab sofort, Erfahrung mit Balayage von Vorteil"></textarea>
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Wo soll es erscheinen?</label>
+        <div class="kanal-row" id="inserat-kanal-chips"></div>
+      </div>
+      <button class="btn-gold" style="margin-top:14px;" onclick="generiereInserate()">Inserate erstellen</button>
+    </div>
+
+    <div id="inserat-ergebnis" style="display:none;flex-direction:column;gap:12px;"></div>
+  </div>
+
+  <!-- FIT-CHECK: NEUES GESPRÄCH -->
+  <div id="team-fitcheck-neu" style="display:none;flex-direction:column;gap:14px;">
+    <button onclick="showTeamView('hub')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:left;padding:0;">← Zurück</button>
+
+    <div class="hinweis">Für Lehrlinge nutzt du zusätzlich dein Schnuppertag-Tool für den fachlichen Teil (Wissen, Geschicklichkeit). Hier geht's um die Werte, die für <strong>alle</strong> gelten.</div>
+
+    <div class="card">
+      <div class="card-tag">Wer sitzt dir gegenüber</div>
+      <div class="input-wrap" style="margin-top:8px;">
+        <label class="input-label">Name</label>
+        <input type="text" id="fc-name" placeholder="Vorname reicht">
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Datum</label>
+        <input type="date" id="fc-datum">
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Rolle</label>
+        <div class="chips" id="fc-rolle-chips"></div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Gesprächsleitfaden</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Kein Verhör — ein Gespräch. Notier dir Stichworte, keine perfekten Sätze.</div>
+      <div id="fc-fragen-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Werte-Einschätzung</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Nach dem Gespräch, aus dem Bauch heraus. 5 Sterne = trifft voll zu.</div>
+      <div id="fc-werte-list"></div>
+    </div>
+
+    <div class="card" style="border-left:3px solid var(--red,#a13a3a);">
+      <div class="card-tag" style="color:var(--red,#a13a3a);">Rotes Tuch</div>
+      <div class="card-sub" style="margin-top:2px;margin-bottom:4px;">Wenn eins davon zutrifft, ist das für dich meistens schon eine Antwort.</div>
+      <div id="fc-flags-list"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Gesamteindruck</div>
+      <div class="input-wrap" style="margin-top:8px;">
+        <textarea id="fc-eindruck" placeholder="Was bleibt hängen? Was war der Moment, an dem du gemerkt hast, wie jemand wirklich tickt?"></textarea>
+      </div>
+      <div class="input-wrap" style="margin-top:10px;">
+        <label class="input-label">Entscheidung</label>
+        <div class="entscheidung-row" id="fc-entscheidung-row">
+          <button class="entscheidung-btn ja" data-val="ja" onclick="fcWaehleEntscheidung('ja')">Ja</button>
+          <button class="entscheidung-btn vielleicht" data-val="vielleicht" onclick="fcWaehleEntscheidung('vielleicht')">Vielleicht</button>
+          <button class="entscheidung-btn nein" data-val="nein" onclick="fcWaehleEntscheidung('nein')">Eher nicht</button>
+        </div>
+      </div>
+    </div>
+
+    <button class="btn-gold" onclick="fcSpeichernKandidat()">Speichern</button>
+    <div id="fc-speicher-hinweis" style="display:none;text-align:center;font-size:12px;color:var(--accent);font-weight:600;">✓ Gespeichert — unter "Bisherige Kandidat:innen" zu finden</div>
+  </div>
+
+  <!-- FIT-CHECK: LISTE -->
+  <div id="team-fitcheck-liste" style="display:none;flex-direction:column;gap:14px;">
+    <button onclick="showTeamView('hub')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:left;padding:0;">← Zurück</button>
+    <div style="font-size:12px;color:var(--sub);line-height:1.5;">Alle Gespräche bleiben nur auf diesem Gerät gespeichert — nirgendwo sonst.</div>
+    <div id="fc-kandidaten-liste" style="display:flex;flex-direction:column;gap:10px;"></div>
+  </div>
+
+  <!-- FIT-CHECK: DETAIL -->
+  <div id="team-fitcheck-detail" style="display:none;flex-direction:column;gap:14px;">
+    <div id="fc-detail-content"></div>
+  </div>
+
+</div>
 
 <!-- ══ PLAN ══ -->
 <div class="screen" id="screen-plan">
@@ -1135,7 +1330,7 @@ function initTextPersistenz() {
 }
 
 // ── TABS ──
-const TAB_MAP = {heute:0,rahmen:1,mediastory:2,post:3,termine:4,kampagne:5,plan:null,favs:null,anlass:null};
+const TAB_MAP = {heute:0,rahmen:1,mediastory:2,post:3,termine:4,kampagne:5,team:6,plan:null,favs:null,anlass:null};
 function showTab(name) {
   document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
   document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
@@ -1145,6 +1340,7 @@ function showTab(name) {
   if(name==='favs') renderFavs();
   if(name==='plan') renderWeekPlan();
   if(name==='heute') renderDirectorEmpfehlung();
+  if(name==='team') { showTeamView('hub'); }
   if(name==='post') { resetPostFlow(); }
   if(name==='kampagne') { initKampagneTab(); }
   if(name==='mediastory') {
@@ -2237,6 +2433,473 @@ function init(){
   renderKampagneGrid();
   initTextPersistenz();
   addLogoutBtn();
+  initTeamTab();
+}
+
+// ══════════════════════════════════════════════════════════════
+// ══ TEAM: Inserate + Kampagne-Links + Fit-Check (integriert) ══
+// ══════════════════════════════════════════════════════════════
+
+function showTeamView(name) {
+  ['hub','inserat','fitcheck-neu','fitcheck-liste','fitcheck-detail'].forEach(v => {
+    const el = document.getElementById('team-' + v);
+    if (el) el.style.display = (v === name) ? 'flex' : 'none';
+  });
+  if (name === 'fitcheck-liste') fcRenderListe();
+  window.scrollTo(0,0);
+}
+
+// ── INSERAT-GENERATOR (lokal, ohne API — 3 Kanäle) ──
+const INSERAT_ROLLEN = [
+  {val:'stylist', label:'Stylist:in'},
+  {val:'lehrling', label:'Lehrling'},
+  {val:'rezeption', label:'Rezeption/Empfang'},
+  {val:'sonstiges', label:'Sonstige Position'},
+];
+const INSERAT_ANSTELLUNG = [
+  {val:'vollzeit', label:'Vollzeit'},
+  {val:'teilzeit', label:'Teilzeit'},
+  {val:'lehrstelle', label:'Lehrstelle'},
+];
+const INSERAT_KANAELE = [
+  {val:'instagram', label:'Instagram'},
+  {val:'facebook', label:'Facebook'},
+  {val:'google', label:'Google Business'},
+  {val:'jobboerse', label:'Jobbörse (willhaben/AMS)'},
+  {val:'website', label:'Website'},
+];
+let inserat = { rolle:'stylist', anstellung:'vollzeit', kanaele: new Set(['instagram']) };
+let inseratVariantIndex = {};
+
+function renderInseratChips() {
+  document.getElementById('inserat-rolle-chips').innerHTML = INSERAT_ROLLEN.map(r =>
+    `<button class="chip ${inserat.rolle===r.val?'on':''}" onclick="setInseratRolle('${r.val}')">${r.label}</button>`).join('');
+  document.getElementById('inserat-anstellung-chips').innerHTML = INSERAT_ANSTELLUNG.map(a =>
+    `<button class="chip ${inserat.anstellung===a.val?'on':''}" onclick="setInseratAnstellung('${a.val}')">${a.label}</button>`).join('');
+  document.getElementById('inserat-kanal-chips').innerHTML = INSERAT_KANAELE.map(k =>
+    `<button class="chip ${inserat.kanaele.has(k.val)?'on':''}" onclick="toggleInseratKanal('${k.val}')">${k.label}</button>`).join('');
+}
+function setInseratRolle(val) { inserat.rolle = val; if(val==='lehrling') inserat.anstellung='lehrstelle'; renderInseratChips(); }
+function setInseratAnstellung(val) { inserat.anstellung = val; renderInseratChips(); }
+function toggleInseratKanal(val) {
+  if (inserat.kanaele.has(val)) { if(inserat.kanaele.size>1) inserat.kanaele.delete(val); }
+  else inserat.kanaele.add(val);
+  renderInseratChips();
+}
+
+function rolleLabelFor(val) { return (INSERAT_ROLLEN.find(r=>r.val===val)||{}).label || 'Mitarbeiter:in'; }
+function anstellungLabelFor(val) { return (INSERAT_ANSTELLUNG.find(a=>a.val===val)||{}).label || ''; }
+
+// ── Mehrere Varianten pro Kanal — alle mit echten Fakten aus dem Betrieb ──
+// Bewusst NICHT als "Suche"/Mangel formuliert — die Attraktivität des Betriebs steht vorn,
+// die offene Position ist eine Randnotiz, keine Bittstellung.
+const INSTAGRAM_VARIANTEN = [
+(rolleL, anstellungL, details) => `Ein Team, das sich seit Jahren kennt — und sich trotzdem noch gern hat. Das ist bei uns keine Floskel, das ist einfach so.
+
+Mazen, Alina, Hassan und unsere Lehrling Ronya arbeiten seit Jahren zusammen, seit über 30 Jahren gibt es uns in Wien-Margareten. Bei uns musst du dich nicht erklären.
+
+Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
+
+Wenn dich das anspricht: meld dich einfach, unkompliziert.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Viele Salons schneiden Haare. Bei uns wird zugehört. ✂️
+
+Das gilt für unsere Kund:innen — und für unser Team. 80% unserer Kund:innen kommen seit Jahren zu uns zurück, weil hier niemand sich verstellen muss.
+
+Für ${rolleL} (${anstellungL}) ist bei uns noch ein Platz frei.${details ? `\n\n${details}` : ''}
+
+Klingt das nach deinem nächsten Kapitel? Schreib uns.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Stell dir einen Arbeitsplatz vor, an dem du nicht ständig beweisen musst, dass du gut genug bist.
+
+Bei uns gilt: "Wer aufhört zu lernen, hört auf zu wachsen" — keine leere Worthülse, sondern wie wir seit über 30 Jahren arbeiten. Mazen, Alina, Hassan und Lehrling Ronya können das bestätigen.
+
+Für ${rolleL} (${anstellungL}) ist bei uns noch Platz — für jemanden, der dazupasst, nicht nur ins Schema.${details ? `\n\n${details}` : ''}
+
+Interesse? Meld dich unkompliziert.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+];
+
+const FACEBOOK_VARIANTEN = [
+(rolleL, anstellungL, details) => `A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. Nicht weil wir die Lautesten sind, sondern weil 80% unserer Kund:innen seit Jahren zu uns zurückkommen.
+
+Was uns wirklich ausmacht: ein kleines, eingespieltes Team (Mazen, Alina, Hassan und Lehrling Ronya), ehrliche Beratung statt Verkaufsdruck, und die Haltung "Wer aufhört zu lernen, hört auf zu wachsen".
+
+Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
+
+Wenn du dich darin wiederfindest, freuen wir uns auf deine Nachricht — unkompliziert, ohne langes Anschreiben.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen genauso wie fürs Team.
+
+Wir sind seit über 30 Jahren an derselben Adresse in Wien-Margareten, mit einem Team, das zusammenhält statt gegeneinander zu arbeiten. Genau deshalb wachsen wir gerade weiter und haben Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : '\n\nWichtig ist uns Freude an der Arbeit, Teamgeist und Lust, dazuzulernen.'}
+
+Meld dich gern direkt bei uns.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Ankommen und dich neu entdecken — das wünschen wir uns für unsere Kund:innen. Und für unser Team. 🌿
+
+Seit über 30 Jahren sind wir in Wien-Margareten, an derselben Adresse, mit Menschen, die sich seit Jahren kennen und vertrauen (Mazen, Alina, Hassan, Lehrling Ronya). Für ${rolleL} (${anstellungL}) ist bei uns noch Platz.${details ? `\n\n${details}` : ''}
+
+Wenn du Lust auf so ein Team hast, schreib uns.
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+];
+
+const GOOGLE_VARIANTEN = [
+(rolleL, anstellungL, details) => `Seit über 30 Jahren in Wien-Margareten, kleines eingespieltes Team, ehrliche Beratung statt Verkaufsdruck — und aktuell Platz für ${rolleL} (${anstellungL}). 💈${details ? ` ${details}` : ''}
+
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30 — meld dich einfach unkompliziert.`,
+
+(rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen wie fürs Team. 80% unserer Kund:innen sind seit Jahren dabei. Wir wachsen weiter und haben Platz für ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
+
+📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `"Wer aufhört zu lernen, hört auf zu wachsen" — bei uns gelebte Praxis, kein Spruch. Aktuell freuen wir uns über Verstärkung als ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
+
+Ruf einfach an oder schreib uns: +43 1 586 31 30
+📍 Rechte Wienzeile 47, 1050 Wien`,
+];
+
+const JOBBOERSE_VARIANTEN = [
+(rolleL, anstellungL, details) => `Über uns
+A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. 80% unserer Kund:innen kommen seit vielen Jahren zu uns zurück — das sagt mehr über uns als jede Beschreibung.
+
+Was dich bei uns erwartet
+Ein kleines, eingespieltes Team. Ehrliche Beratung statt Verkaufsdruck. Raum, um zu lernen und zu wachsen — "Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns kein Spruch, sondern gelebte Praxis.
+
+Die Position
+Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).
+
+Was du mitbringst${details ? `\n${details}` : '\nFreude an der Arbeit, Teamgeist und den Willen, dazuzulernen.'}
+
+So bewirbst du dich
+Ruf einfach an oder schreib uns — unkompliziert, ohne langes Anschreiben.
+📍 Rechte Wienzeile 47, 1050 Wien
+✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `A great hair day, Wien-Margareten
+
+Seit über 30 Jahren an derselben Adresse — Rechte Wienzeile 47, 1050 Wien. Ein kleines Team (Mazen, Alina, Hassan, Lehrling Ronya), das seit Jahren zusammenarbeitet und zusammenhält.
+
+Die Position
+${rolleL} (${anstellungL}) — mit Verantwortung, echtem Kundenkontakt und der Möglichkeit, sich fachlich weiterzuentwickeln.
+
+Ihr Profil${details ? `\n${details}` : '\nFreude am Handwerk, Teamfähigkeit, Bereitschaft dazuzulernen.'}
+
+Kontakt
+Telefonisch oder schriftlich, unkompliziert: +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Wien-Margareten
+
+Warum zu uns?
+80% unserer Kund:innen sind seit Jahren dabei. Das entsteht durch ehrliche Beratung statt Verkaufsdruck — und durch ein Team, das zusammenhält.
+
+Was Sie erwartet
+Ein eingespieltes, kleines Team und die Haltung: Wer aufhört zu lernen, hört auf zu wachsen. Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).
+
+Was Sie mitbringen sollten${details ? `\n${details}` : '\nFreude an der Arbeit und Lust, Teil eines eingespielten Teams zu werden.'}
+
+Bewerbung
+Einfach anrufen oder schreiben, ohne langes Anschreiben.
+📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
+];
+
+const WEBSITE_VARIANTEN = [
+(rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen genauso wie fürs Team.
+
+A great hair day ist seit über 30 Jahren in Wien. Wer bei uns arbeitet, arbeitet nicht für ein Unternehmen, sondern mit Menschen, die sich seit Jahren kennen und vertrauen. Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
+
+Interesse? Schreib uns einfach — wir melden uns schnell zurück.
+📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Ankommen und dich neu entdecken — das wünschen wir uns für jede:n, der/die zu uns kommt. Als Kund:in. Und als Teammitglied.
+
+Seit über 30 Jahren in Wien-Margareten, ein kleines eingespieltes Team (Mazen, Alina, Hassan, Lehrling Ronya). Für ${rolleL} (${anstellungL}) ist bei uns noch Platz.${details ? `\n\n${details}` : ''}
+
+Meld dich einfach — unkompliziert, ohne Anschreiben.
+📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
+
+(rolleL, anstellungL, details) => `Viele Salons schneiden Haare. Bei uns wird zugehört — bei Kund:innen genauso wie im Team.
+
+80% unserer Kund:innen sind seit Jahren dabei, und "Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns gelebte Praxis, kein Spruch. Für ${rolleL} (${anstellungL}) haben wir aktuell Platz.${details ? `\n\n${details}` : ''}
+
+Interesse? Wir freuen uns auf deine Nachricht.
+📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
+];
+
+const INSERAT_VARIANTEN = {
+  instagram: INSTAGRAM_VARIANTEN,
+  facebook: FACEBOOK_VARIANTEN,
+  google: GOOGLE_VARIANTEN,
+  jobboerse: JOBBOERSE_VARIANTEN,
+  website: WEBSITE_VARIANTEN,
+};
+const INSERAT_TITEL = {
+  instagram: 'Instagram',
+  facebook: 'Facebook',
+  google: 'Google Business',
+  jobboerse: 'Jobbörse (willhaben/AMS)',
+  website: 'Website',
+};
+
+function inseratBlockHtml(k) {
+  const rolleL = rolleLabelFor(inserat.rolle);
+  const anstellungL = anstellungLabelFor(inserat.anstellung);
+  const details = document.getElementById('inserat-details').value.trim();
+  const varianten = INSERAT_VARIANTEN[k] || [];
+  const idx = Math.floor(Math.random() * varianten.length);
+  inseratVariantIndex[k] = idx;
+  const text = varianten[idx](rolleL, anstellungL, details);
+  return `
+    <div class="inserat-block" id="inserat-block-${k}">
+      <div class="inserat-head">${INSERAT_TITEL[k]}</div>
+      <div class="inserat-body" id="inserat-text-${k}">${text}</div>
+      <div style="padding:0 14px 14px;display:flex;gap:8px;flex-wrap:wrap;">
+        <button class="copy-btn" onclick="copyFromId('inserat-text-${k}', this)">Kopieren</button>
+        <button class="copy-btn" style="background:transparent;border:1px solid var(--line);color:var(--sub);" onclick="regenerateInseratBlock('${k}')">🔄 Andere Variante</button>
+      </div>
+    </div>`;
+}
+
+function regenerateInseratBlock(k) {
+  const rolleL = rolleLabelFor(inserat.rolle);
+  const anstellungL = anstellungLabelFor(inserat.anstellung);
+  const details = document.getElementById('inserat-details').value.trim();
+  const varianten = INSERAT_VARIANTEN[k] || [];
+  if (varianten.length < 2) return;
+  let idx;
+  do { idx = Math.floor(Math.random() * varianten.length); } while (idx === inseratVariantIndex[k]);
+  inseratVariantIndex[k] = idx;
+  const text = varianten[idx](rolleL, anstellungL, details);
+  const body = document.getElementById(`inserat-text-${k}`);
+  if (body) body.textContent = text;
+}
+
+function generiereInserate() {
+  inseratVariantIndex = {};
+  const blocks = [...inserat.kanaele].map(k => inseratBlockHtml(k)).join('');
+
+  const wrap = document.getElementById('inserat-ergebnis');
+  wrap.innerHTML = blocks;
+  wrap.style.display = 'flex';
+  wrap.scrollIntoView({behavior:'smooth', block:'start'});
+}
+
+// ── FIT-CHECK (integriert aus dem eigenständigen Tool) ──
+const FC_ROLLEN = [
+  {val:'lehrling', label:'Lehrling'},
+  {val:'stylist', label:'Stylist:in'},
+  {val:'erfahren', label:'Erfahrene Kraft'},
+  {val:'sonstiges', label:'Sonstiges'},
+];
+
+const FC_FRAGEN = [
+  {id:'kritik', frage:'Erzähl mir von einer Situation im Job, in der du eine Rückmeldung bekommen hast, die dir nicht gefallen hat. Wie bist du damit umgegangen?', warum:'Zeigt Umgang mit Kritik — reflektiert oder rechtfertigt sich die Person?'},
+  {id:'lernen', frage:'Was war die letzte neue Technik oder Methode, die du dir angeeignet hast? Was hat dich daran interessiert?', warum:'Zeigt Wissensdurst — "Wer aufhört zu lernen, hört auf zu wachsen."'},
+  {id:'schwierige_kundin', frage:'Wie gehst du mit jemandem um, der unzufrieden ist, obwohl du fachlich alles richtig gemacht hast?', warum:'Zeigt Freundlichkeit unter Druck, nicht nur wenn es leicht ist.'},
+  {id:'team', frage:'Stell dir vor, eine neue Kollegin oder ein neuer Kollege macht am Anfang noch viele Fehler. Wie reagierst du?', warum:'Zeigt Teamgeist — wird ein schwächeres Teammitglied getragen oder abgewertet?'},
+  {id:'verlaesslichkeit', frage:'Was bedeutet Pünktlichkeit und Verlässlichkeit für dich im Arbeitsalltag ganz konkret?', warum:'Zeigt, ob Verlässlichkeit als Selbstverständlichkeit oder als lästige Pflicht verstanden wird.'},
+  {id:'warum_wir', frage:'Warum genau dieser Salon, warum jetzt?', warum:'Zeigt, ob es um den Ort und die Menschen geht — oder nur um irgendeinen Job.'},
+];
+
+const FC_WERTE = [
+  {id:'freundlichkeit', label:'Freundlichkeit'},
+  {id:'wissensdurst', label:'Wissensdurst / Lernbereitschaft'},
+  {id:'teamgeist', label:'Teamgeist'},
+  {id:'puenktlichkeit', label:'Pünktlichkeit / Verlässlichkeit'},
+  {id:'kritikfaehigkeit', label:'Umgang mit Kritik'},
+  {id:'offenheit', label:'Offenheit — der Mensch zählt, nicht die Herkunft'},
+];
+
+const FC_FLAGS = [
+  {id:'jammert', text:'Jammert über die Branche, statt nach Lösungen zu suchen.'},
+  {id:'abwertend', text:'Äußert sich abwertend über andere — frühere Kolleg:innen, Chef:innen oder Kund:innen.'},
+  {id:'neues_ab', text:'Lehnt Neues oder Veränderung pauschal ab.'},
+  {id:'unehrlich', text:'Wirkt schon bei einfachen Fragen genervt, ausweichend oder unehrlich.'},
+];
+
+let fcCurrent = fcLeererKandidat();
+
+function fcLeererKandidat() {
+  const notizen = {}; FC_FRAGEN.forEach(f => notizen[f.id] = '');
+  const werte = {}; FC_WERTE.forEach(w => werte[w.id] = 0);
+  const flags = {}; FC_FLAGS.forEach(f => flags[f.id] = false);
+  return { rolle:'lehrling', notizen, werte, flags, entscheidung:null };
+}
+
+function fcRenderRolleChips() {
+  document.getElementById('fc-rolle-chips').innerHTML = FC_ROLLEN.map(r =>
+    `<button class="chip ${fcCurrent.rolle===r.val?'on':''}" onclick="fcSetRolle('${r.val}')">${r.label}</button>`).join('');
+}
+function fcSetRolle(val) { fcCurrent.rolle = val; fcRenderRolleChips(); }
+
+function fcRenderFragen() {
+  document.getElementById('fc-fragen-list').innerHTML = FC_FRAGEN.map((f,i) => `
+    <div class="frage">
+      <div class="frage-nr">Frage ${i+1}</div>
+      <div class="frage-text">${f.frage}</div>
+      <div class="frage-warum">${f.warum}</div>
+      <textarea placeholder="Stichworte zur Antwort..." oninput="fcCurrent.notizen['${f.id}']=this.value">${fcCurrent.notizen[f.id]||''}</textarea>
+    </div>`).join('');
+}
+
+function fcRenderWerte() {
+  document.getElementById('fc-werte-list').innerHTML = FC_WERTE.map(w => `
+    <div class="wert-row">
+      <div class="wert-label">${w.label}</div>
+      <div class="sterne">${[1,2,3,4,5].map(n => `<span class="stern ${fcCurrent.werte[w.id]>=n?'on':''}" onclick="fcSetWert('${w.id}',${n})">★</span>`).join('')}</div>
+    </div>`).join('');
+}
+function fcSetWert(id, n) { fcCurrent.werte[id] = fcCurrent.werte[id] === n ? n-1 : n; fcRenderWerte(); }
+
+function fcRenderFlags() {
+  document.getElementById('fc-flags-list').innerHTML = FC_FLAGS.map(f => `
+    <div class="flag-row" onclick="fcToggleFlag('${f.id}')">
+      <div class="flag-box ${fcCurrent.flags[f.id]?'on':''}">${fcCurrent.flags[f.id]?'✕':''}</div>
+      <div class="flag-text">${f.text}</div>
+    </div>`).join('');
+}
+function fcToggleFlag(id) { fcCurrent.flags[id] = !fcCurrent.flags[id]; fcRenderFlags(); }
+
+function fcWaehleEntscheidung(val) {
+  fcCurrent.entscheidung = val;
+  document.querySelectorAll('#fc-entscheidung-row .entscheidung-btn').forEach(b => b.classList.toggle('on', b.dataset.val===val));
+}
+
+function fcGetKandidaten() {
+  try { return JSON.parse(localStorage.getItem('ghd_fitcheck_kandidaten')) || []; } catch { return []; }
+}
+function fcSaveKandidaten(list) { localStorage.setItem('ghd_fitcheck_kandidaten', JSON.stringify(list)); }
+
+function fcSpeichernKandidat() {
+  const name = document.getElementById('fc-name').value.trim();
+  if (!name) { document.getElementById('fc-name').focus(); return; }
+  const datum = document.getElementById('fc-datum').value || new Date().toISOString().slice(0,10);
+
+  const eintrag = {
+    id: 'k_' + name.toLowerCase().replace(/\s+/g,'_') + '_' + datum,
+    name, datum, rolle: fcCurrent.rolle,
+    notizen: {...fcCurrent.notizen}, werte: {...fcCurrent.werte}, flags: {...fcCurrent.flags},
+    eindruck: document.getElementById('fc-eindruck').value.trim(),
+    entscheidung: fcCurrent.entscheidung,
+  };
+  const list = fcGetKandidaten();
+  list.unshift(eintrag);
+  fcSaveKandidaten(list);
+
+  document.getElementById('fc-speicher-hinweis').style.display = 'block';
+  setTimeout(() => { document.getElementById('fc-speicher-hinweis').style.display = 'none'; }, 2500);
+
+  fcCurrent = fcLeererKandidat();
+  document.getElementById('fc-name').value = '';
+  document.getElementById('fc-datum').value = '';
+  document.getElementById('fc-eindruck').value = '';
+  document.querySelectorAll('#fc-entscheidung-row .entscheidung-btn').forEach(b => b.classList.remove('on'));
+  fcRenderRolleChips(); fcRenderFragen(); fcRenderWerte(); fcRenderFlags();
+}
+
+function fcWerteSchnitt(werte) {
+  const vals = Object.values(werte).filter(v => v > 0);
+  if (!vals.length) return 0;
+  return vals.reduce((a,b)=>a+b,0) / vals.length;
+}
+function fcAnzahlFlags(flags) { return Object.values(flags).filter(Boolean).length; }
+function fcEinschaetzung(k) {
+  const schnitt = fcWerteSchnitt(k.werte);
+  const flagCount = fcAnzahlFlags(k.flags);
+  if (flagCount >= 2) return {label:'Rotes Tuch', badge:'nein'};
+  if (flagCount === 1) return {label: schnitt>=4 ? 'Starker Fit, eine Sache klären' : 'Genauer hinschauen', badge:'vielleicht'};
+  if (schnitt >= 4) return {label:'Starker Fit', badge:'ja'};
+  if (schnitt >= 2.5) return {label:'Teilweiser Fit', badge:'vielleicht'};
+  return {label:'Eher kein Fit', badge:'nein'};
+}
+
+function fcRenderListe() {
+  const list = fcGetKandidaten();
+  const wrap = document.getElementById('fc-kandidaten-liste');
+  if (!list.length) { wrap.innerHTML = '<div class="card"><div class="card-sub">Noch keine Gespräche gespeichert.</div></div>'; return; }
+  wrap.innerHTML = list.map((k,i) => {
+    const badge = k.entscheidung ? k.entscheidung : 'offen';
+    const badgeLabel = {ja:'Ja', vielleicht:'Vielleicht', nein:'Eher nicht', offen:'Offen'}[badge];
+    const rolleLabel = (FC_ROLLEN.find(r=>r.val===k.rolle)||{}).label || '';
+    return `
+      <div class="kliste-item" onclick="fcZeigeDetail(${i})">
+        <div class="kliste-top">
+          <div><div class="kliste-name">${k.name}</div><div class="kliste-meta">${k.datum} · ${rolleLabel}</div></div>
+          <div class="kbadge ${badge}">${badgeLabel}</div>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+function fcZeigeDetail(i) {
+  const list = fcGetKandidaten();
+  const k = list[i];
+  if (!k) return;
+  const einsch = fcEinschaetzung(k);
+  const rolleLabel = (FC_ROLLEN.find(r=>r.val===k.rolle)||{}).label || '';
+
+  const fragenHtml = FC_FRAGEN.map(f => `
+    <div class="frage">
+      <div class="frage-nr">${f.frage}</div>
+      <div style="font-size:13px;color:var(--ink);line-height:1.5;">${(k.notizen[f.id]||'—').replace(/</g,'&lt;')}</div>
+    </div>`).join('');
+
+  const werteHtml = FC_WERTE.map(w => `
+    <div class="wert-row">
+      <div class="wert-label">${w.label}</div>
+      <div class="sterne">${[1,2,3,4,5].map(n => `<span class="stern ${k.werte[w.id]>=n?'on':''}">★</span>`).join('')}</div>
+    </div>`).join('');
+
+  const flagsAn = FC_FLAGS.filter(f => k.flags[f.id]);
+  const flagsHtml = flagsAn.length
+    ? flagsAn.map(f => `<div class="flag-text" style="color:var(--red,#a13a3a);padding:4px 0;">⚑ ${f.text}</div>`).join('')
+    : '<div class="card-sub">Keine roten Flaggen notiert.</div>';
+
+  document.getElementById('fc-detail-content').innerHTML = `
+    <button onclick="showTeamView('fitcheck-liste')" style="background:none;border:none;font-size:13px;color:var(--sub);cursor:pointer;font-family:var(--f);padding:0 0 8px;text-align:left;">← Zurück</button>
+    <div class="card" style="border-left:3px solid var(--gold);background:var(--gold-light);">
+      <div class="card-tag" style="color:var(--gold);">${einsch.label}</div>
+      <div class="card-title">${k.name}</div>
+      <div class="card-sub">${k.datum} · ${rolleLabel}</div>
+    </div>
+    <div class="card" style="margin-top:12px;"><div class="card-tag">Gesprächsleitfaden</div>${fragenHtml}</div>
+    <div class="card" style="margin-top:12px;"><div class="card-tag">Werte-Einschätzung</div>${werteHtml}</div>
+    <div class="card" style="margin-top:12px;border-left:3px solid var(--red,#a13a3a);"><div class="card-tag" style="color:var(--red,#a13a3a);">Rotes Tuch</div>${flagsHtml}</div>
+    <div class="card" style="margin-top:12px;"><div class="card-tag">Gesamteindruck</div><div class="card-sub">${(k.eindruck||'—').replace(/</g,'&lt;')}</div></div>
+    <button class="btn-danger" style="margin-top:14px;background:none;border:1.5px solid var(--red,#a13a3a);color:var(--red,#a13a3a);border-radius:10px;padding:10px 12px;font-size:13px;font-weight:600;cursor:pointer;font-family:var(--f);width:100%;" onclick="fcLoeschenKandidat(${i})">Eintrag löschen</button>
+  `;
+  showTeamView('fitcheck-detail');
+}
+
+function fcLoeschenKandidat(i) {
+  const list = fcGetKandidaten();
+  list.splice(i,1);
+  fcSaveKandidaten(list);
+  showTeamView('fitcheck-liste');
+}
+
+function initTeamTab() {
+  renderInseratChips();
+  fcRenderRolleChips();
+  fcRenderFragen();
+  fcRenderWerte();
+  fcRenderFlags();
 }
 
 // ══ SUPABASE ══

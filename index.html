@@ -2494,113 +2494,109 @@ function toggleInseratKanal(val) {
 function rolleLabelFor(val) { return (INSERAT_ROLLEN.find(r=>r.val===val)||{}).label || 'Mitarbeiter:in'; }
 function anstellungLabelFor(val) { return (INSERAT_ANSTELLUNG.find(a=>a.val===val)||{}).label || ''; }
 
-// ── Mehrere Varianten pro Kanal — alle mit echten Fakten aus dem Betrieb ──
-// Bewusst NICHT als "Suche"/Mangel formuliert — die Attraktivität des Betriebs steht vorn,
-// die offene Position ist eine Randnotiz, keine Bittstellung.
+// ── Mehrere Varianten pro Kanal — alle in Mirjams eigenem Ton ──
+// Stimme orientiert sich direkt an ihrem selbst verfassten Schaufenster-Text (ruhig, gehoben,
+// klare Sätze, keine Ausrufe/Hooks, keine Emoji-Häufung) statt an generischer Social-Media-Sprache.
+// Kanäle unterscheiden sich in Aufbau/Länge (kurz & sachlich bei Google, strukturiert mit
+// Überschriften bei der Jobbörse, fließender Text bei Instagram/Facebook/Website) — nicht im Charakter.
 const INSTAGRAM_VARIANTEN = [
-(rolleL, anstellungL, details) => `Ein Team, das sich seit Jahren kennt — und sich trotzdem noch gern hat. Das ist bei uns keine Floskel, das ist einfach so.
+(rolleL, anstellungL, details) => `Wir sind seit über 30 Jahren in Wien-Margareten — mit einem Team, das sich seit Jahren kennt und gut zusammenarbeitet: Mazen, Alina, Hassan und unsere Lehrling Ronya.
 
-Mazen, Alina, Hassan und unsere Lehrling Ronya arbeiten seit Jahren zusammen, seit über 30 Jahren gibt es uns in Wien-Margareten. Bei uns musst du dich nicht erklären.
+Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}) — mit Gespür für Qualität, Stil und Menschen.
 
-Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
-
-Wenn dich das anspricht: meld dich einfach, unkompliziert.
+Bei uns musst du dich nicht erklären. Wenn dich das anspricht, melde dich einfach.${details ? `\n\n${details}` : ''}
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Viele Salons schneiden Haare. Bei uns wird zugehört. ✂️
+(rolleL, anstellungL, details) => `80% unserer Kund:innen kommen seit Jahren zu uns zurück. Das entsteht durch ehrliche Beratung, ein eingespieltes Team und die Ruhe, gute Arbeit zu machen.
 
-Das gilt für unsere Kund:innen — und für unser Team. 80% unserer Kund:innen kommen seit Jahren zu uns zurück, weil hier niemand sich verstellen muss.
+Für ${rolleL} (${anstellungL}) suchen wir eine Persönlichkeit, die zu uns passt — verlässlich, teamfähig und mit Freude am Handwerk.${details ? `\n\n${details}` : ''}
 
-Für ${rolleL} (${anstellungL}) ist bei uns noch ein Platz frei.${details ? `\n\n${details}` : ''}
-
-Klingt das nach deinem nächsten Kapitel? Schreib uns.
+Wenn du einen Platz suchst, an dem Beständigkeit zählt, freuen wir uns auf deine Nachricht.
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Stell dir einen Arbeitsplatz vor, an dem du nicht ständig beweisen musst, dass du gut genug bist.
+(rolleL, anstellungL, details) => `"Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns keine Floskel, sondern gelebte Praxis — seit über 30 Jahren.
 
-Bei uns gilt: "Wer aufhört zu lernen, hört auf zu wachsen" — keine leere Worthülse, sondern wie wir seit über 30 Jahren arbeiten. Mazen, Alina, Hassan und Lehrling Ronya können das bestätigen.
+Für ${rolleL} (${anstellungL}) ist bei uns aktuell Platz.${details ? `\n\n${details}` : ''}
 
-Für ${rolleL} (${anstellungL}) ist bei uns noch Platz — für jemanden, der dazupasst, nicht nur ins Schema.${details ? `\n\n${details}` : ''}
-
-Interesse? Meld dich unkompliziert.
+Wenn du gute Arbeit in Ruhe machen möchtest, melde dich unkompliziert bei uns.
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 ];
 
 const FACEBOOK_VARIANTEN = [
-(rolleL, anstellungL, details) => `A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. Nicht weil wir die Lautesten sind, sondern weil 80% unserer Kund:innen seit Jahren zu uns zurückkommen.
+(rolleL, anstellungL, details) => `A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. 80% unserer Kund:innen kommen seit vielen Jahren zu uns zurück — das sagt mehr über uns als jede Beschreibung.
 
-Was uns wirklich ausmacht: ein kleines, eingespieltes Team (Mazen, Alina, Hassan und Lehrling Ronya), ehrliche Beratung statt Verkaufsdruck, und die Haltung "Wer aufhört zu lernen, hört auf zu wachsen".
+Was uns ausmacht: ein kleines, eingespieltes Team (Mazen, Alina, Hassan und Lehrling Ronya), ehrliche Beratung statt Verkaufsdruck und klare Führung.
 
-Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
+Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}), mit Gespür für Qualität, Stil und Menschen.${details ? `\n\n${details}` : ''}
 
-Wenn du dich darin wiederfindest, freuen wir uns auf deine Nachricht — unkompliziert, ohne langes Anschreiben.
+Wenn dich das anspricht, freuen wir uns auf deine Nachricht — unkompliziert, ohne langes Anschreiben.
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 
 (rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen genauso wie fürs Team.
 
-Wir sind seit über 30 Jahren an derselben Adresse in Wien-Margareten, mit einem Team, das zusammenhält statt gegeneinander zu arbeiten. Genau deshalb wachsen wir gerade weiter und haben Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : '\n\nWichtig ist uns Freude an der Arbeit, Teamgeist und Lust, dazuzulernen.'}
+Wir sind seit über 30 Jahren an derselben Adresse in Wien-Margareten. Wer bei uns arbeitet, arbeitet mit Menschen, die sich seit Jahren kennen und vertrauen. Für ${rolleL} (${anstellungL}) ist bei uns aktuell Platz.${details ? `\n\n${details}` : '\n\nWichtig ist uns Freude an der Arbeit, Teamgeist und die Bereitschaft, dazuzulernen.'}
 
 Meld dich gern direkt bei uns.
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Ankommen und dich neu entdecken — das wünschen wir uns für unsere Kund:innen. Und für unser Team. 🌿
+(rolleL, anstellungL, details) => `Ein kleines Team, das seit Jahren zusammenhält: Mazen, Alina, Hassan und unsere Lehrling Ronya. Seit über 30 Jahren in Wien-Margareten.
 
-Seit über 30 Jahren sind wir in Wien-Margareten, an derselben Adresse, mit Menschen, die sich seit Jahren kennen und vertrauen (Mazen, Alina, Hassan, Lehrling Ronya). Für ${rolleL} (${anstellungL}) ist bei uns noch Platz.${details ? `\n\n${details}` : ''}
+Für ${rolleL} (${anstellungL}) haben wir aktuell Platz — für jemanden, der gute Arbeit in Ruhe machen möchte.${details ? `\n\n${details}` : ''}
 
-Wenn du Lust auf so ein Team hast, schreib uns.
+Wenn dich das anspricht, schreib uns.
 
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 ];
 
 const GOOGLE_VARIANTEN = [
-(rolleL, anstellungL, details) => `Seit über 30 Jahren in Wien-Margareten, kleines eingespieltes Team, ehrliche Beratung statt Verkaufsdruck — und aktuell Platz für ${rolleL} (${anstellungL}). 💈${details ? ` ${details}` : ''}
+(rolleL, anstellungL, details) => `A great hair day, Wien-Margareten. Seit über 30 Jahren ein fester Ort mit kleinem, eingespieltem Team. Aktuell Platz für ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
 
 📍 Rechte Wienzeile 47, 1050 Wien
-✉️ +43 1 586 31 30 — meld dich einfach unkompliziert.`,
+✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen wie fürs Team. 80% unserer Kund:innen sind seit Jahren dabei. Wir wachsen weiter und haben Platz für ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
+(rolleL, anstellungL, details) => `Ehrliche Beratung statt Verkaufsdruck, 80% Stammkundschaft, klare Führung. Wir freuen uns über Verstärkung als ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
 
 📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `"Wer aufhört zu lernen, hört auf zu wachsen" — bei uns gelebte Praxis, kein Spruch. Aktuell freuen wir uns über Verstärkung als ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
+(rolleL, anstellungL, details) => `"Wer aufhört zu lernen, hört auf zu wachsen" — bei uns gelebte Praxis. Aktuell ist Platz für ${rolleL} (${anstellungL}).${details ? ` ${details}` : ''}
 
-Ruf einfach an oder schreib uns: +43 1 586 31 30
+Rufen Sie an oder schreiben Sie uns: +43 1 586 31 30
 📍 Rechte Wienzeile 47, 1050 Wien`,
 ];
 
 const JOBBOERSE_VARIANTEN = [
 (rolleL, anstellungL, details) => `Über uns
-A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. 80% unserer Kund:innen kommen seit vielen Jahren zu uns zurück — das sagt mehr über uns als jede Beschreibung.
-
-Was dich bei uns erwartet
-Ein kleines, eingespieltes Team. Ehrliche Beratung statt Verkaufsdruck. Raum, um zu lernen und zu wachsen — "Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns kein Spruch, sondern gelebte Praxis.
+A great hair day ist seit über 30 Jahren ein fester Ort in Wien-Margareten. 80% unserer Kund:innen kommen seit vielen Jahren zu uns zurück.
 
 Die Position
-Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).
+Für unseren Salon suchen wir ${rolleL} (${anstellungL}) — eine verlässliche Persönlichkeit mit Gespür für Qualität, Stil und Menschen.
+
+Was dich erwartet
+Stammkundschaft, ein stilvolles Umfeld, klare Führung und ein respektvolles Miteinander.
 
 Was du mitbringst${details ? `\n${details}` : '\nFreude an der Arbeit, Teamgeist und den Willen, dazuzulernen.'}
 
-So bewirbst du dich
+Bewerbung
 Ruf einfach an oder schreib uns — unkompliziert, ohne langes Anschreiben.
 📍 Rechte Wienzeile 47, 1050 Wien
 ✉️ +43 1 586 31 30`,
 
 (rolleL, anstellungL, details) => `A great hair day, Wien-Margareten
 
-Seit über 30 Jahren an derselben Adresse — Rechte Wienzeile 47, 1050 Wien. Ein kleines Team (Mazen, Alina, Hassan, Lehrling Ronya), das seit Jahren zusammenarbeitet und zusammenhält.
+Seit über 30 Jahren an derselben Adresse — Rechte Wienzeile 47, 1050 Wien. Ein kleines Team (Mazen, Alina, Hassan, Lehrling Ronya), das seit Jahren zusammenarbeitet.
 
-Die Position
+Die Aufgabe
 ${rolleL} (${anstellungL}) — mit Verantwortung, echtem Kundenkontakt und der Möglichkeit, sich fachlich weiterzuentwickeln.
 
 Ihr Profil${details ? `\n${details}` : '\nFreude am Handwerk, Teamfähigkeit, Bereitschaft dazuzulernen.'}
@@ -2611,10 +2607,10 @@ Telefonisch oder schriftlich, unkompliziert: +43 1 586 31 30`,
 (rolleL, anstellungL, details) => `Wien-Margareten
 
 Warum zu uns?
-80% unserer Kund:innen sind seit Jahren dabei. Das entsteht durch ehrliche Beratung statt Verkaufsdruck — und durch ein Team, das zusammenhält.
+80% unserer Kund:innen sind seit Jahren dabei. Das entsteht durch ehrliche Beratung und ein Team, das zusammenhält.
 
 Was Sie erwartet
-Ein eingespieltes, kleines Team und die Haltung: Wer aufhört zu lernen, hört auf zu wachsen. Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).
+Ein eingespieltes Team, klare Führung und die Haltung: Wer aufhört zu lernen, hört auf zu wachsen. Aktuell ist Platz für ${rolleL} (${anstellungL}).
 
 Was Sie mitbringen sollten${details ? `\n${details}` : '\nFreude an der Arbeit und Lust, Teil eines eingespielten Teams zu werden.'}
 
@@ -2626,23 +2622,23 @@ Einfach anrufen oder schreiben, ohne langes Anschreiben.
 const WEBSITE_VARIANTEN = [
 (rolleL, anstellungL, details) => `Bei uns musst du dich nicht erklären — das gilt für Kund:innen genauso wie fürs Team.
 
-A great hair day ist seit über 30 Jahren in Wien. Wer bei uns arbeitet, arbeitet nicht für ein Unternehmen, sondern mit Menschen, die sich seit Jahren kennen und vertrauen. Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
+A great hair day ist seit über 30 Jahren in Wien-Margareten. Wer bei uns arbeitet, arbeitet mit Menschen, die sich seit Jahren kennen und vertrauen. Aktuell ist bei uns Platz für ${rolleL} (${anstellungL}).${details ? `\n\n${details}` : ''}
 
 Interesse? Schreib uns einfach — wir melden uns schnell zurück.
 📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Ankommen und dich neu entdecken — das wünschen wir uns für jede:n, der/die zu uns kommt. Als Kund:in. Und als Teammitglied.
+(rolleL, anstellungL, details) => `Ein kleines, eingespieltes Team, Stammkundschaft, die seit Jahren bleibt, und klare Führung: Das ist A great hair day, seit über 30 Jahren in Wien-Margareten.
 
-Seit über 30 Jahren in Wien-Margareten, ein kleines eingespieltes Team (Mazen, Alina, Hassan, Lehrling Ronya). Für ${rolleL} (${anstellungL}) ist bei uns noch Platz.${details ? `\n\n${details}` : ''}
+Für ${rolleL} (${anstellungL}) ist bei uns aktuell Platz.${details ? `\n\n${details}` : ''}
 
-Meld dich einfach — unkompliziert, ohne Anschreiben.
+Melde dich einfach — unkompliziert.
 📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
 
-(rolleL, anstellungL, details) => `Viele Salons schneiden Haare. Bei uns wird zugehört — bei Kund:innen genauso wie im Team.
+(rolleL, anstellungL, details) => `"Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns gelebte Praxis, kein Spruch. 80% unserer Kund:innen sind seit Jahren dabei.
 
-80% unserer Kund:innen sind seit Jahren dabei, und "Wer aufhört zu lernen, hört auf zu wachsen" ist bei uns gelebte Praxis, kein Spruch. Für ${rolleL} (${anstellungL}) haben wir aktuell Platz.${details ? `\n\n${details}` : ''}
+Für ${rolleL} (${anstellungL}) haben wir aktuell Platz.${details ? `\n\n${details}` : ''}
 
-Interesse? Wir freuen uns auf deine Nachricht.
+Wir freuen uns auf deine Nachricht.
 📍 Rechte Wienzeile 47, 1050 Wien · ✉️ +43 1 586 31 30`,
 ];
 

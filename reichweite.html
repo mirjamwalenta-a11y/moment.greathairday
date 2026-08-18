@@ -1814,8 +1814,15 @@ function msReset() {
 }
 
 async function msSave() {
-  if (msIsVideo) { msSaveFrame(); return; }
   if (!msCurrentFile) return;
+
+  if (msIsVideo) {
+    // Video-Export: Canvas-Overlay mit MediaRecorder aufnehmen
+    await msExportVideo();
+    return;
+  }
+
+  // Foto-Export
   const btn = document.querySelector('[onclick="msSave()"]');
   if (btn) { btn.textContent = 'Wird erstellt…'; btn.disabled = true; }
 
@@ -1827,26 +1834,156 @@ async function msSave() {
     };
     img.onerror = () => {
       if (btn) { btn.textContent = '⬇ Story speichern'; btn.disabled = false; }
-      alert('Bitte Screenshot machen:\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
     };
     img.src = src;
   }
 
-  // Nutze das bereits geladene Bild aus der Vorschau (kein CORS-Problem)
   const shownImg = document.getElementById('ms-media-img');
   if (shownImg && shownImg.src && shownImg.naturalWidth > 0) {
     doExport(shownImg.src);
     return;
   }
-
-  // Fallback: FileReader
   const reader = new FileReader();
   reader.onload = ev => doExport(ev.target.result);
-  reader.onerror = () => {
-    if (btn) { btn.textContent = '⬇ Story speichern'; btn.disabled = false; }
-    alert('Bitte Screenshot machen:\niPhone: Seitentaste + Lautlos\nAndroid: Seitentaste + Lauter');
-  };
   reader.readAsDataURL(msCurrentFile);
+}
+
+async function msExportVideo() {
+  const btn = document.querySelector('[onclick="msSave()"]');
+  const vid = document.getElementById('ms-media-vid');
+  if (!vid || !vid.src) { alert('Kein Video geladen.'); return; }
+
+  // Canvas aufbauen
+  const W = 1080, H = 1920;
+  const cvs = document.createElement('canvas');
+  cvs.width = W; cvs.height = H;
+  const ctx = cvs.getContext('2d');
+
+  // Logos laden
+  const imgM = new Image(), imgSig = new Image();
+  const logoMSrc = document.getElementById('ms-logo-m')?.src || '';
+  const logoSigSrc = document.getElementById('ms-logo-sig')?.src || '';
+
+  await Promise.all([
+    new Promise(res => { imgM.onload = res; imgM.onerror = res; imgM.src = logoMSrc; if(!logoMSrc) res(); }),
+    new Promise(res => { imgSig.onload = res; imgSig.onerror = res; imgSig.src = logoSigSrc; if(!logoSigSrc) res(); }),
+  ]);
+
+  // Prüfe ob MediaRecorder & captureStream verfügbar
+  if (!cvs.captureStream || !window.MediaRecorder) {
+    // Fallback: Screenshot-Hinweis
+    if (btn) { btn.textContent = '⬇ Story speichern'; btn.disabled = false; }
+    alert('Video-Export nicht unterst\u00fctzt. Bitte Screenshot: iPhone Seitentaste+Lautlos, Android Seitentaste+Lauter');
+    return;
+  }
+
+  if (btn) { btn.textContent = 'Video wird aufgenommen…'; btn.disabled = true; }
+
+  // Video zurückspulen und abspielen
+  vid.currentTime = 0;
+  await new Promise(res => { vid.onseeked = res; setTimeout(res, 500); });
+  vid.play().catch(() => {});
+
+  const duration = vid.duration || 10;
+  const fps = 30;
+
+  // Parameter vom Slider lesen
+  const scaleVal = parseInt(document.getElementById('ms-scale').value || 100) / 100;
+  const offsetVal = parseInt(document.getElementById('ms-pos-y').value || 0);
+
+  // Cover-Berechnung
+  const vW = vid.videoWidth || W, vH = vid.videoHeight || H;
+  const ar = vW / vH, arC = W / H;
+  let baseW, baseH;
+  if (ar > arC) { baseH = H; baseW = baseH * ar; }
+  else { baseW = W; baseH = baseW / ar; }
+  const finalW = baseW * scaleVal;
+  const finalH = baseH * scaleVal;
+  const shiftY = (offsetVal / 100) * H;
+  const dx = (W - finalW) / 2;
+  const dy = (H - finalH) / 2 + shiftY;
+
+  // Rahmen-Elemente vorberechnen
+  const inset = Math.round(W * 0.03);
+  const mW = Math.round(W * 0.20);
+  const mH = imgM.naturalHeight ? Math.round(imgM.naturalHeight / imgM.naturalWidth * mW) : 80;
+  const mX = Math.round(W / 2 - mW / 2);
+  const mY = Math.round(H * 0.055);
+  const srcY = imgSig.naturalHeight ? Math.round(imgSig.naturalHeight * MS_SIG_CROP) : 0;
+  const srcH = imgSig.naturalHeight ? imgSig.naturalHeight - srcY : 0;
+  const dstW = Math.round(W * 0.52);
+  const dstH = srcH && imgSig.naturalWidth ? Math.round(srcH / imgSig.naturalWidth * dstW) : 60;
+  const sigX = Math.round(W / 2 - dstW / 2);
+  const sigY = Math.round(H * 0.945) - dstH;
+
+  function drawFrame() {
+    ctx.fillStyle = '#ffffff';
+    ctx.fillRect(0, 0, W, H);
+
+    // Video-Frame
+    try { ctx.drawImage(vid, dx, dy, finalW, finalH); } catch(e) {}
+
+    // Goldrahmen
+    ctx.strokeStyle = '#816a3c';
+    ctx.lineWidth = Math.max(2, Math.round(W * 0.003));
+    ctx.strokeRect(inset, inset, W - inset * 2, H - inset * 2);
+
+    // Logos
+    if (imgM.naturalWidth) ctx.drawImage(imgM, mX, mY, mW, mH);
+    if (imgSig.naturalWidth && srcH > 0) {
+      ctx.drawImage(imgSig, 0, srcY, imgSig.naturalWidth, srcH, sigX, sigY, dstW, dstH);
+    }
+  }
+
+  // Stream vom Canvas
+  const stream = cvs.captureStream(fps);
+  const mimeType = MediaRecorder.isTypeSupported('video/webm;codecs=vp9')
+    ? 'video/webm;codecs=vp9'
+    : MediaRecorder.isTypeSupported('video/webm')
+    ? 'video/webm'
+    : 'video/mp4';
+
+  const recorder = new MediaRecorder(stream, { mimeType, videoBitsPerSecond: 8000000 });
+  const chunks = [];
+  recorder.ondataavailable = e => { if (e.data.size > 0) chunks.push(e.data); };
+
+  recorder.onstop = () => {
+    const blob = new Blob(chunks, { type: mimeType });
+    const ext = mimeType.includes('mp4') ? 'mp4' : 'webm';
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'greathairday-story.' + ext;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 3000);
+    if (btn) { btn.textContent = '⬇ Story speichern'; btn.disabled = false; }
+    cancelAnimationFrame(msRafId);
+  };
+
+  recorder.start();
+  let msRafId;
+  const startTime = performance.now();
+
+  function renderLoop() {
+    drawFrame();
+    const elapsed = (performance.now() - startTime) / 1000;
+    if (elapsed < duration && !vid.ended) {
+      msRafId = requestAnimationFrame(renderLoop);
+    } else {
+      vid.pause();
+      setTimeout(() => recorder.stop(), 200);
+    }
+  }
+  msRafId = requestAnimationFrame(renderLoop);
+
+  // Statusanzeige
+  let sec = 0;
+  const statusInterval = setInterval(() => {
+    sec++;
+    const elapsed = Math.round((performance.now() - startTime) / 100) / 10;
+    const total = Math.round(duration * 10) / 10;
+    if (btn) btn.textContent = 'Aufnehme ' + elapsed.toFixed(1) + 's / ' + total.toFixed(1) + 's…';
+    if (elapsed >= duration) clearInterval(statusInterval);
+  }, 500);
 }
 
 function msExportWithMedia(img) {

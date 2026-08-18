@@ -1806,7 +1806,7 @@ function msReset() {
   if (vid) { vid.src = ''; vid.style.display = 'none'; }
   const img = document.getElementById('ms-media-img');
   if (img) { img.src = ''; img.style.display = 'none'; }
-  document.getElementById('ms-upload-zone').style.display = 'block';
+  document.getElementById('ms-upload-zone').style.display = 'flex';
   document.getElementById('ms-preview-section').style.display = 'none';
   document.getElementById('ms-file-input').value = '';
   document.getElementById('ms-pos-y').value = 0;
@@ -1954,20 +1954,25 @@ function msOpenInBrowser() {
 }
 
 function msSyncLogos() {
-  const srcM = document.querySelector('.rahmen-logo-m');
-  const srcSig = document.querySelector('.rahmen-sig');
-  if (srcM && srcM.src) {
-    const m1 = document.getElementById('ms-logo-m');
-    const m2 = document.getElementById('ms-overlay-m');
-    if (m1) m1.src = srcM.src;
-    if (m2) m2.src = srcM.src;
+  // Hole Logo-src aus dem Rahmen-Tab (das erste Element mit Base64-src)
+  const allM = document.querySelectorAll('.rahmen-logo-m');
+  const allSig = document.querySelectorAll('.rahmen-sig');
+  let srcM = '', srcSig = '';
+  allM.forEach(el => { if (el.src && el.src.length > 100) srcM = el.src; });
+  allSig.forEach(el => { if (el.src && el.src.length > 100) srcSig = el.src; });
+  if (srcM) {
+    ['ms-logo-m','ms-overlay-m'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.src = srcM;
+    });
   }
-  if (srcSig && srcSig.src) {
-    const s1 = document.getElementById('ms-logo-sig');
-    const s2 = document.getElementById('ms-overlay-sig');
-    if (s1) s1.src = srcSig.src;
-    if (s2) s2.src = srcSig.src;
+  if (srcSig) {
+    ['ms-logo-sig','ms-overlay-sig'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.src = srcSig;
+    });
   }
+  setTimeout(msSigCrop, 200);
 }
 
 initIdeas();
@@ -1977,52 +1982,30 @@ initRahmenSprueche();
 
 <!-- ══ SCREEN: FOTO/VIDEO IN RAHMEN ══ -->
 <section class="screen" id="screen-mediasave">
-  <div class="card" style="border-left:3px solid var(--gold); background:var(--gold-pale);">
+  <div class="card" style="background:var(--gold-pale);border-left:3px solid var(--gold);">
     <div class="card-tag">Foto oder Video in den Rahmen</div>
-    <div class="card-title">Im Browser öffnen</div>
-    <div class="card-body" style="margin-bottom:12px;">Der eingebettete Vorschau-Browser der Claude-App blockiert Foto- und Video-Uploads. Öffne die Datei im Chrome- oder Safari-Browser — dort funktioniert alles.</div>
-    <button class="btn-gold" onclick="msOpenInBrowser()" style="margin-bottom:8px;">🌐 Im Browser öffnen</button>
-    <div style="font-size:11px;color:var(--soft);line-height:1.5;">Tipp: Dreipunkt-Menü oben rechts → „Im Browser öffnen" oder „Teilen" → Chrome/Safari</div>
-  </div>
-  <div class="card" style="background:#f0f0f0;">
-    <div class="card-tag" style="color:#888;">Warum funktioniert das hier nicht?</div>
-    <div class="card-body" style="font-size:12px;color:#666;">Die App zeigt HTML-Dateien in einem eingeschränkten Vorschau-Modus. Datei-Uploads sind dort aus Sicherheitsgründen gesperrt — im echten Browser funktioniert alles normal.</div>
+    <div class="card-body">Wähle ein Foto oder Video. Passe Position und Größe an — dann speichern.</div>
   </div>
 
-  <!-- Upload Zone -->
-  <div id="ms-upload-zone" style="display:flex;flex-direction:column;gap:10px;">
-    <!-- Foto-Button: sichtbarer Input, funktioniert in allen Browsern -->
-    <label style="display:flex;flex-direction:column;align-items:center;gap:8px;border:2px dashed var(--gold);border-radius:16px;padding:24px 20px;text-align:center;cursor:pointer;background:#fff;">
-      <span style="font-size:36px;">📸</span>
-      <span style="font-size:15px;color:#3a3a3a;font-weight:600;">Foto auswählen</span>
-      <span style="font-size:12px;color:#999;">JPG, PNG</span>
-      <input type="file" accept="image/*" style="position:absolute;opacity:0;width:1px;height:1px;"
-        onchange="msHandleFile(this.files[0])">
-    </label>
-    <!-- Video-Button: eigener Input für Video -->
-    <label style="display:flex;flex-direction:column;align-items:center;gap:8px;border:2px dashed #c4a96a;border-radius:16px;padding:24px 20px;text-align:center;cursor:pointer;background:#fffdf8;">
-      <span style="font-size:36px;">🎬</span>
-      <span style="font-size:15px;color:#816a3c;font-weight:600;">Video auswählen</span>
-      <span style="font-size:12px;color:#999;">MP4, MOV</span>
-      <input type="file" accept="video/*" style="position:absolute;opacity:0;width:1px;height:1px;"
-        onchange="msHandleFile(this.files[0])">
-    </label>
-    <!-- Fallback: FileReader statt URL.createObjectURL -->
-    <div style="font-size:11px;color:#bbb;text-align:center;padding:4px;">
-      Funktioniert nicht? Tippe direkt auf den Text.
-    </div>
-  </div>
+  <!-- Upload Zone — einfacher Label-Input, funktioniert auf iOS/Android -->
+  <label id="ms-upload-zone" style="display:flex;flex-direction:column;align-items:center;gap:10px;border:2px dashed var(--gold);border-radius:16px;padding:28px 16px;text-align:center;cursor:pointer;background:#fff;">
+    <span style="font-size:36px;">📷</span>
+    <span style="font-size:14px;color:#5a5a5a;font-weight:600;">Foto oder Video auswählen</span>
+    <span style="font-size:12px;color:#999;">JPG, PNG, MP4, MOV</span>
+    <input type="file" id="ms-file-input" accept="image/*,video/*" style="display:none"
+      onchange="msHandleFile(this.files[0])">
+  </label>
 
-  <!-- Logos (versteckt, für Canvas-Export) -->
-  <img id="ms-logo-m" style="display:none" alt="M">
-  <img id="ms-logo-sig" style="display:none" alt="Mirjam Walenta">
+  <!-- Logos für Canvas-Export (unsichtbar) -->
+  <img id="ms-logo-m" class="rahmen-logo-m" style="display:none;" alt="M">
+  <img id="ms-logo-sig" class="rahmen-sig" style="display:none;" alt="Mirjam Walenta">
 
   <!-- Vorschau -->
   <div id="ms-preview-section" style="display:none;flex-direction:column;gap:12px;">
     <div id="ms-story-wrap" style="position:relative;width:100%;aspect-ratio:9/16;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(129,106,60,0.25);background:#fff;">
       <!-- Hintergrund -->
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;background:#fff;"></div>
-      <!-- Media Layer -->
+      <!-- Media -->
       <div id="ms-media-layer" style="position:absolute;top:0;left:0;width:100%;height:100%;">
         <img id="ms-media-img" style="position:absolute;display:none;" alt="">
         <video id="ms-media-vid" autoplay muted loop playsinline style="position:absolute;display:none;"></video>
@@ -2030,14 +2013,12 @@ initRahmenSprueche();
       <!-- Goldrahmen Overlay -->
       <div style="position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;">
         <div style="position:absolute;top:3%;left:3%;width:94%;height:94%;border:1.5px solid var(--gold);"></div>
-        <!-- M-Logo oben -->
         <div style="position:absolute;top:5.5%;width:100%;display:flex;justify-content:center;">
-          <img id="ms-overlay-m" style="width:12%;object-fit:contain;" alt="M">
+          <img id="ms-overlay-m" class="rahmen-logo-m" style="width:12%;object-fit:contain;" alt="M">
         </div>
-        <!-- Signatur unten -->
         <div style="position:absolute;bottom:5.5%;width:100%;display:flex;justify-content:center;">
           <div id="ms-sig-clip" style="width:52%;overflow:hidden;">
-            <img id="ms-overlay-sig" style="width:100%;display:block;" alt="Mirjam Walenta">
+            <img id="ms-overlay-sig" class="rahmen-sig" style="width:100%;display:block;" alt="Mirjam Walenta">
           </div>
         </div>
       </div>
@@ -2045,15 +2026,18 @@ initRahmenSprueche();
 
     <div class="card" style="padding:14px 16px;">
       <div class="input-label" style="margin-bottom:8px;">Position (oben / unten)</div>
-      <input type="range" id="ms-pos-y" min="-100" max="100" value="0" style="width:100%;accent-color:var(--gold);">
+      <input type="range" id="ms-pos-y" min="-100" max="100" value="0"
+        oninput="msOffsetY=parseInt(this.value);msApplyTransform()" style="width:100%;accent-color:var(--gold);">
     </div>
     <div class="card" style="padding:14px 16px;">
       <div class="input-label" style="margin-bottom:8px;">Größe</div>
-      <input type="range" id="ms-scale" min="50" max="200" value="100" style="width:100%;accent-color:var(--gold);">
+      <input type="range" id="ms-scale" min="50" max="200" value="100"
+        oninput="msScaleV=parseInt(this.value)/100;msApplyTransform()" style="width:100%;accent-color:var(--gold);">
     </div>
 
-    <div id="ms-video-tip" style="display:none;background:#fff8e8;border:1px solid #e0c070;border-radius:10px;padding:12px 14px;font-size:12px;color:#7a6020;line-height:1.5;">
-      <strong>Video-Tipp:</strong> Lade den Rahmen als PNG herunter und lege ihn in Instagram oder CapCut als Overlay über dein Video. Der Goldrahmen bleibt sichtbar.
+    <!-- Video-Hinweis -->
+    <div id="ms-video-tip" style="display:none;background:#fff8e8;border:1px solid #e0c070;border-radius:10px;padding:12px 14px;font-size:13px;color:#7a6020;line-height:1.5;">
+      <strong>Video-Tipp:</strong> Beim Tippen auf „Story speichern" wird der Goldrahmen als PNG gespeichert. In Instagram Stories: Foto/Video hochladen → Sticker → dieses PNG drüber legen → auf Vollbild ziehen.
     </div>
 
     <div style="display:flex;gap:8px;">
@@ -2065,6 +2049,7 @@ initRahmenSprueche();
     </div>
   </div>
 </section>
+
 
 </body>
 </html>

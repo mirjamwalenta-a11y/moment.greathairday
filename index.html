@@ -376,6 +376,381 @@
   .char-counter.warn { color: #c97a00; }
   .char-counter.over { color: #c0392b; font-weight: 700; }
 
+  /* ── REEL-SCRIPT ── */
+  .reel-scene {
+    background: var(--white);
+    border-radius: var(--radius);
+    border-left: 3px solid var(--gold);
+    padding: 14px 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+  .reel-scene-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 6px;
+  }
+  .reel-timing {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    color: var(--gold);
+    background: var(--gold-pale);
+    padding: 2px 9px;
+    border-radius: 20px;
+  }
+  .reel-scene-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+  .reel-scene-action {
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 4px;
+    line-height: 1.4;
+  }
+  .reel-scene-text {
+    font-size: 13px;
+    color: var(--mid);
+    line-height: 1.5;
+  }
+  .reel-scene-tip {
+    font-size: 11px;
+    color: var(--soft);
+    margin-top: 6px;
+    font-style: italic;
+  }
+
+  /* ── 7-TAGE-PLANER ── */
+  .planer-week {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 16px;
+  }
+  .planer-day {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid #e5ddd0;
+    padding: 14px 16px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    transition: border-color .15s, transform .15s;
+  }
+  .planer-day:active { transform: scale(0.98); border-color: var(--gold); }
+  .planer-day.heute-tag { border-color: var(--gold); background: var(--gold-pale); }
+  .planer-day-left { flex-shrink: 0; text-align: center; min-width: 44px; }
+  .planer-day-name {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--soft);
+  }
+  .planer-day-num {
+    font-size: 22px;
+    font-weight: 700;
+    color: var(--black);
+    line-height: 1.1;
+  }
+  .planer-day.heute-tag .planer-day-num { color: var(--gold); }
+  .planer-day-content { flex: 1; }
+  .planer-day-thema {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--black);
+    margin-bottom: 3px;
+  }
+  .planer-day-hint {
+    font-size: 12px;
+    color: var(--soft);
+    line-height: 1.4;
+  }
+  .planer-day-chips {
+    display: flex;
+    gap: 5px;
+    margin-top: 8px;
+    flex-wrap: wrap;
+  }
+  .planer-chip {
+    background: var(--gold-pale2);
+    color: var(--gold);
+    font-size: 11px;
+    font-weight: 600;
+    padding: 3px 8px;
+    border-radius: 20px;
+    border: none;
+    cursor: pointer;
+    font-family: var(--f);
+    transition: background .15s;
+  }
+  .planer-chip:active { background: var(--gold-pale); }
+
+  /* ── CTA-GENERATOR ── */
+  .cta-gen-variant {
+    background: var(--white);
+    border-radius: var(--radius);
+    border: 1.5px solid #e5ddd0;
+    padding: 16px;
+    margin-bottom: 10px;
+    box-shadow: var(--shadow);
+  }
+  .cta-gen-variant.aktiv { border-color: var(--gold); background: var(--gold-pale); }
+  .cta-gen-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 8px;
+  }
+  .cta-gen-typ {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .07em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .cta-gen-text {
+    font-size: 14px;
+    color: var(--black);
+    line-height: 1.55;
+    margin-bottom: 10px;
+  }
+  .cta-gen-actions {
+    display: flex;
+    gap: 7px;
+  }
+  .btn-cta-copy {
+    flex: 1;
+    background: var(--black);
+    color: white;
+    border: none;
+    border-radius: 9px;
+    padding: 10px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--f);
+    transition: opacity .15s;
+  }
+  .btn-cta-copy:active { opacity: .8; }
+  .btn-cta-copy.copied { background: #2d6a4f; }
+  .btn-cta-post {
+    background: var(--white);
+    color: var(--mid);
+    border: 1.5px solid #e0d8cb;
+    border-radius: 9px;
+    padding: 10px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--f);
+  }
+  .btn-cta-post:active { border-color: var(--gold); }
+  .cta-kontext-row {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 14px;
+    flex-wrap: wrap;
+  }
+
+  /* ── FOTO-ANALYSE ── */
+  .foto-upload-zone {
+    border: 2px dashed #d4c4a0;
+    border-radius: var(--radius);
+    background: var(--gold-pale);
+    padding: 22px 16px;
+    text-align: center;
+    cursor: pointer;
+    transition: border-color .2s, background .2s;
+    margin-bottom: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+  }
+  .foto-upload-zone:active { border-color: var(--gold); background: #f3ecdc; }
+  .foto-upload-zone .fuz-icon { font-size: 32px; }
+  .foto-upload-zone .fuz-label { font-size: 14px; font-weight: 600; color: var(--black); }
+  .foto-upload-zone .fuz-sub { font-size: 12px; color: var(--soft); }
+  .foto-preview-wrap {
+    position: relative;
+    margin-bottom: 10px;
+    border-radius: var(--radius);
+    overflow: hidden;
+    border: 1.5px solid #e0d8cb;
+  }
+  .foto-preview-wrap img {
+    width: 100%;
+    max-height: 280px;
+    object-fit: cover;
+    display: block;
+  }
+  .foto-preview-remove {
+    position: absolute;
+    top: 8px; right: 8px;
+    background: rgba(0,0,0,0.55);
+    color: white;
+    border: none;
+    border-radius: 20px;
+    padding: 4px 10px;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--f);
+  }
+  .foto-analyse-loading {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 14px 16px;
+    background: var(--gold-pale);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--mid);
+    margin-bottom: 10px;
+  }
+  .foto-analyse-result {
+    background: var(--white);
+    border: 1.5px solid #d4c4a0;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 10px;
+  }
+  .foto-analyse-result .far-header {
+    background: var(--gold);
+    padding: 10px 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .foto-analyse-result .far-header span {
+    font-size: 12px;
+    font-weight: 700;
+    color: white;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+  }
+  .foto-analyse-result .far-body {
+    padding: 14px 16px;
+  }
+  .far-row {
+    margin-bottom: 10px;
+  }
+  .far-row:last-child { margin-bottom: 0; }
+  .far-row .far-label {
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gold);
+    margin-bottom: 3px;
+  }
+  .far-row .far-val {
+    font-size: 13px;
+    color: var(--black);
+    line-height: 1.5;
+  }
+  .btn-analyse-zu-post {
+    width: 100%;
+    background: var(--black);
+    color: white;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 13px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: var(--f);
+    margin-top: 12px;
+  }
+  .btn-analyse-zu-post:active { opacity: .85; }
+
+  /* ── MIC-BUTTON (Sprachsteuerung) ── */
+  .input-with-mic {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+  }
+  .input-with-mic textarea,
+  .input-with-mic input {
+    flex: 1;
+  }
+  .btn-mic {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    background: var(--white);
+    border: 1.5px solid #e0d8cb;
+    border-radius: 10px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    transition: all .15s;
+    margin-top: 0;
+  }
+  .btn-mic.active {
+    background: #fff0f0;
+    border-color: #c0392b;
+    animation: mic-pulse 1s infinite;
+  }
+  @keyframes mic-pulse {
+    0%,100% { box-shadow: 0 0 0 0 rgba(192,57,43,0.3); }
+    50%      { box-shadow: 0 0 0 6px rgba(192,57,43,0); }
+  }
+
+  /* ── SECTION-COPY (1-Klick pro Abschnitt) ── */
+  .section-copy-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 4px;
+  }
+  .section-copy-row .sc-label {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: .06em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+  .btn-section-copy {
+    background: none;
+    border: 1px solid #e0d8cb;
+    border-radius: 8px;
+    padding: 3px 10px;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--soft);
+    cursor: pointer;
+    font-family: var(--f);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    transition: all .15s;
+  }
+  .btn-section-copy:active { border-color: var(--gold); color: var(--gold); }
+  .btn-section-copy.copied { background: #edf5f0; border-color: #2d6a4f; color: #2d6a4f; }
+
+  /* ── STORY OUTPUT STRUCTURED ── */
+  .story-section-block {
+    background: var(--gold-pale);
+    border-radius: 10px;
+    padding: 12px 14px;
+    margin-bottom: 10px;
+  }
+  .story-section-block .sc-label { font-size: 10px; font-weight: 700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); }
+  .story-section-block .sc-val { font-size: 14px; color: var(--black); line-height: 1.5; margin: 4px 0 8px; }
+  .story-section-block .btn-section-copy { margin-left: auto; display: flex; }
+
   /* ── IN RAHMEN (Feature 3) ── */
   .btn-zu-rahmen {
     width: 100%; padding: 11px; background: none;
@@ -733,10 +1108,13 @@
   <button class="tab" onclick="showTab('hook')">🎯 Hook</button>
   <button class="tab" onclick="showTab('post')">✍ Post</button>
   <button class="tab" onclick="showTab('story')">📱 Story</button>
+  <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
+  <button class="tab" onclick="showTab('planer')">📅 Planer</button>
+  <button class="tab" onclick="showTab('cta')">📣 CTA</button>
   <button class="tab" onclick="showTab('ideen')">💡 Ideen</button>
   <button class="tab" onclick="showTab('rahmen')">🖼 Rahmen</button>
   <button class="tab" onclick="showTab('recherche')">🔍 Recherche</button>
-  <button class="tab" onclick="showTab('mediasave')">🎬 Foto/Video</button>
+  <button class="tab" onclick="showTab('mediasave')">📸 Foto/Video</button>
 </nav>
 
 <!-- ══ SCREEN: START ══ -->
@@ -986,9 +1364,42 @@
     <div class="card-title">Aus einem Moment ein vollständiger Post.</div>
     <div class="card-body">Kein Hochglanz, keine Floskeln. Ein Text der nach dir klingt.</div>
   </div>
+  <!-- FOTO-ANALYSE -->
+  <div class="input-wrap">
+    <div class="input-label" style="display:flex;justify-content:space-between;align-items:center;">
+      <span>Foto analysieren <span style="font-size:10px;font-weight:400;color:var(--soft);">optional</span></span>
+      <span style="font-size:10px;color:var(--gold);font-weight:600;">✦ KI-Bildanalyse</span>
+    </div>
+    <input type="file" id="foto-analyse-input" accept="image/*" style="display:none" onchange="handleFotoAnalyse(this)">
+    <div class="foto-upload-zone" id="foto-upload-zone" onclick="document.getElementById('foto-analyse-input').click()">
+      <span class="fuz-icon">📸</span>
+      <span class="fuz-label">Foto hochladen</span>
+      <span class="fuz-sub">Vorher/Nachher, Ergebnis, Salon-Moment — Wörni beschreibt es automatisch</span>
+    </div>
+    <div class="foto-preview-wrap" id="foto-preview-wrap" style="display:none;">
+      <img id="foto-preview-img" src="" alt="Vorschau">
+      <button class="foto-preview-remove" onclick="removeFotoAnalyse()">✕ Entfernen</button>
+    </div>
+    <div class="foto-analyse-loading" id="foto-analyse-loading" style="display:none;">
+      <span>✦</span><span>Wörni analysiert das Foto …</span>
+    </div>
+    <div class="foto-analyse-result" id="foto-analyse-result" style="display:none;">
+      <div class="far-header"><span>📸 Bild-Analyse</span></div>
+      <div class="far-body">
+        <div class="far-row"><div class="far-label">Was Wörni sieht</div><div class="far-val" id="far-beschreibung">—</div></div>
+        <div class="far-row"><div class="far-label">Fachbegriffe</div><div class="far-val" id="far-begriffe">—</div></div>
+        <div class="far-row"><div class="far-label">Hook-Vorschlag</div><div class="far-val" id="far-hook">—</div></div>
+        <button class="btn-analyse-zu-post" onclick="analyseZuPost()">✍ In Post übernehmen</button>
+      </div>
+    </div>
+  </div>
+
   <div class="input-wrap">
     <div class="input-label">Was ist passiert oder was willst du zeigen?</div>
-    <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
+    <div class="input-with-mic">
+      <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
+      <button class="btn-mic" id="mic-post" onclick="toggleMic('post-moment','mic-post')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Tonalität</div>
@@ -1024,9 +1435,35 @@
         <div class="output-meta-row"><span class="meta-icon">→</span><span class="meta-text" id="post-cta-hint"></span></div>
       </div>
     </div>
+
+    <!-- Overlay-Text & Sticker (strukturierte Output-Blöcke) -->
+    <div id="post-structured-blocks" style="display:none;margin-bottom:8px;">
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">📌 Story Overlay-Text</span>
+          <button class="btn-section-copy" id="copy-overlay" aria-label="Overlay-Text kopieren" onclick="copySectionBlock('post-overlay-val','copy-overlay')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="post-overlay-val">—</div>
+      </div>
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">🎯 Interaktiver Sticker</span>
+          <button class="btn-section-copy" id="copy-sticker" aria-label="Sticker-Idee kopieren" onclick="copySectionBlock('post-sticker-val','copy-sticker')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="post-sticker-val">—</div>
+      </div>
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">#️⃣ Hashtag-Set</span>
+          <button class="btn-section-copy" id="copy-hashtags" aria-label="Hashtags kopieren" onclick="copySectionBlock('post-hashtags-val','copy-hashtags')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="post-hashtags-val">—</div>
+      </div>
+    </div>
+
     <div class="cta-row">
       <button class="btn-copy" id="post-copy-btn" onclick="copyEl('post-text-main','post-copy-btn')">
-        📋 Kopieren
+        📋 Caption kopieren
       </button>
       <button class="btn-edit" onclick="document.getElementById('post-text-main').focus()">✏️ Bearbeiten</button>
     </div>
@@ -1044,7 +1481,10 @@
   </div>
   <div class="input-wrap">
     <div class="input-label">Thema oder Moment</div>
-    <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag dafür genutzt, mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+    <div class="input-with-mic">
+      <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag dafür genutzt, mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+      <button class="btn-mic" id="mic-story" onclick="toggleMic('story-moment','mic-story')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Stimmung</div>
@@ -1069,6 +1509,98 @@
     <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 5 Story-Frames</p>
     <div class="story-list" id="story-list"></div>
     <button class="btn-ghost-sm" onclick="generateStory()">↺ Neue Variante</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: REEL ══ -->
+<section class="screen" id="screen-reel">
+  <div class="card">
+    <div class="card-tag">Reel-Script</div>
+    <div class="card-title">Scene by Scene — mit Timing.</div>
+    <div class="card-body">Beschreib deinen Moment — Wörni baut daraus ein fertiges Reel-Script mit Sekunden-Angaben.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was willst du zeigen?</div>
+    <div class="input-with-mic">
+      <textarea id="reel-moment" placeholder="z.B. Vorher kaputtes Blond, dann Glossing-Behandlung, danach strahlend — Ronya hat es heute gemacht..." rows="4" oninput="reelCheck()"></textarea>
+      <button class="btn-mic" id="mic-reel" onclick="toggleMic('reel-moment','mic-reel')" aria-label="Spracheingabe" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Reel-Länge</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="15" onclick="pickSel(this,'reellaenge')">15 Sek</button>
+      <button class="chip-select" data-val="30" onclick="pickSel(this,'reellaenge')">30 Sek</button>
+      <button class="chip-select" data-val="60" onclick="pickSel(this,'reellaenge')">60 Sek</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Ziel</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="transformation" onclick="pickSel(this,'reelziel')">Transformation</button>
+      <button class="chip-select" data-val="behind" onclick="pickSel(this,'reelziel')">Behind the Scenes</button>
+      <button class="chip-select" data-val="expertise" onclick="pickSel(this,'reelziel')">Expertise</button>
+      <button class="chip-select" data-val="recruiting" onclick="pickSel(this,'reelziel')">Recruiting</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-reel" onclick="generateReel()" disabled>Script erstellen</button>
+  <div id="reel-result" style="display:none;margin-top:16px;">
+    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Dein Reel-Script</p>
+    <div id="reel-scene-list"></div>
+    <div id="reel-caption-block" style="display:none;margin-top:4px;">
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">📋 Caption für das Reel</span>
+          <button class="btn-section-copy" id="copy-reel-caption" onclick="copySectionBlock('reel-caption-val','copy-reel-caption')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="reel-caption-val">—</div>
+      </div>
+      <div class="story-section-block" style="margin-top:8px;">
+        <div class="section-copy-row">
+          <span class="sc-label">#️⃣ Hashtags</span>
+          <button class="btn-section-copy" id="copy-reel-hash" onclick="copySectionBlock('reel-hash-val','copy-reel-hash')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="reel-hash-val">—</div>
+      </div>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateReel()">↺ Neue Variante</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: PLANER ══ -->
+<section class="screen" id="screen-planer">
+  <div class="card">
+    <div class="card-tag">7-Tage-Planer</div>
+    <div class="card-title">Ein Thema pro Tag.</div>
+    <div class="card-body">Tippe auf einen Tag — das Thema wird direkt in Post oder Story übernommen.</div>
+  </div>
+  <div class="planer-week" id="planer-week"></div>
+</section>
+
+<!-- ══ SCREEN: CTA ══ -->
+<section class="screen" id="screen-cta">
+  <div class="card">
+    <div class="card-tag">CTA-Generator</div>
+    <div class="card-title">Drei Varianten — auf Knopfdruck.</div>
+    <div class="card-body">Buchung, Engagement oder Recruiting — kopieren und direkt verwenden.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Kontext (optional)</div>
+    <input type="text" id="cta-kontext" placeholder="z.B. Vorher-Nachher-Foto, Balayage, freier Termin …" oninput="ctaCheck()">
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Format</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="alle" onclick="pickSel(this,'ctaformat')">Alle 3</button>
+      <button class="chip-select" data-val="buchung" onclick="pickSel(this,'ctaformat')">Buchung</button>
+      <button class="chip-select" data-val="engagement" onclick="pickSel(this,'ctaformat')">Engagement</button>
+      <button class="chip-select" data-val="recruiting" onclick="pickSel(this,'ctaformat')">Recruiting</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-cta" onclick="generateCTA()">CTAs erstellen</button>
+  <div id="cta-result" style="display:none;margin-top:16px;">
+    <div id="cta-variant-list"></div>
+    <button class="btn-ghost-sm" onclick="generateCTA()">↺ Neue Varianten</button>
   </div>
 </section>
 
@@ -1378,6 +1910,7 @@ function showTab(id) {
   if(event && event.currentTarget) event.currentTarget.classList.add('active');
   tabNavVisible = true;
   if(id === 'heute') initHeuteTab();
+  if(id === 'planer') initPlaner();
   window.scrollTo(0, 0);
 }
 
@@ -1673,21 +2206,31 @@ async function generatePost() {
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Friseurmeisterin und Salon-Inhaberin in Wien (Rechte Wienzeile 47, 1050 Wien, "A Great Hair Day").
 
-Schreibe einen authentischen Instagram-Post in Mirjams Stimme. Ihre Sprache: ruhig, gehoben, klare vollständige Sätze, kaum Emoji (maximal 1–2, nur wenn sie passen), keine Ausrufezeichen, keine Marketing-Floskeln, keine Fragen als Hooks. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}.
+Erstelle einen vollständigen Social-Media-Post als JSON-Objekt mit folgenden Feldern:
 
-Struktur des Posts:
-1. Eröffnungssatz (kein Zitat, kein Ausruf — ein ruhiger, echter Satz der den Moment öffnet)
-2. 2–3 kurze Absätze die den Moment entfalten
-3. 1 abschließender Satz der Haltung zeigt
-4. Hashtags (3–5, auf Deutsch + #GreatHairDay #Wien)
+- "caption": Der Instagram-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
+- "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
+- "sticker": Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?".
+- "hashtags": 5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe.
 
-Antworte NUR mit dem Post-Text. Keine Erklärung, kein "Hier ist dein Post". Kein CTA-Text — der kommt separat.`;
+Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
   const userText = `Moment/Thema: ${m}`;
 
   let postText = null;
+  let postStructured = null;
   try {
-    postText = await claudeAnfrage(system, userText, 500);
+    const raw = await claudeAnfrage(system, userText, 600);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      try {
+        postStructured = JSON.parse(clean);
+        postText = postStructured.caption || null;
+      } catch(e) {
+        // KI hat reinen Text geliefert (Fallback-Kompatibilität)
+        postText = raw;
+      }
+    }
   } catch(e) { postText = null; }
 
   // Fallback auf Template wenn KI nicht antwortet
@@ -1717,6 +2260,23 @@ Antworte NUR mit dem Post-Text. Keine Erklärung, kein "Hier ist dein Post". Kei
   document.getElementById('post-result').style.display = 'block';
   setKiBadge('post-ki-badge', !!postText && !POST_T[ton]?.[wer]);
   updateCharCount('post-text-main', 'post-char');
+
+  // Structured Blocks befüllen (Overlay, Sticker, Hashtags)
+  if(postStructured) {
+    const blocksWrap = document.getElementById('post-structured-blocks');
+    if(postStructured.overlay) {
+      document.getElementById('post-overlay-val').textContent = postStructured.overlay;
+    }
+    if(postStructured.sticker) {
+      document.getElementById('post-sticker-val').textContent = postStructured.sticker;
+    }
+    if(postStructured.hashtags) {
+      document.getElementById('post-hashtags-val').textContent = postStructured.hashtags;
+    }
+    if(blocksWrap && (postStructured.overlay || postStructured.sticker || postStructured.hashtags)) {
+      blocksWrap.style.display = 'block';
+    }
+  }
 
   btn.disabled = false;
   btn.textContent = 'Post erstellen';
@@ -1784,6 +2344,8 @@ Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 - "label": kurzer Titel des Frames (z.B. "Einstieg", "Der Moment", "Warum", "Einladung", "Abschluss")
 - "text": der Text für diesen Frame (kurz, 1–3 Sätze, Mirjams Stimme: ruhig, echt, klar, gehoben)
 - "tip": ein konkreter visueller Hinweis (was man zeigen/fotografieren könnte)
+- "overlay": Sehr kurzer Overlay-Text für diesen Frame (max 4–5 Wörter direkt aufs Bild/Video), oder leer ""
+- "sticker": Konkreter Sticker-Vorschlag nur wenn passend (z.B. "Umfrage: Stimmt ihr zu?", "Frage: Was wünscht ihr euch?", "Quiz: Was war es?"), sonst leer ""
 
 Stimmung: ${moodMap[mood] || 'emotional und nah'}
 Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
@@ -1791,7 +2353,7 @@ Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
 Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. Der letzte Frame endet immer mit "A great hair day." oder der Adresse.
 
 Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Format:
-[{"label":"Einstieg","text":"...","tip":"..."},...]`;
+[{"label":"Einstieg","text":"...","tip":"...","overlay":"...","sticker":""},...]`;
 
   const userText = `Moment/Thema: ${m}`;
 
@@ -1810,14 +2372,26 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
     frames = getFn(m);
   }
 
-  document.getElementById('story-list').innerHTML = frames.map((f,i) =>
-    `<div class="story-frame">
+  document.getElementById('story-list').innerHTML = frames.map((f,i) => {
+    const safeText = (f.text||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
+    const overlayGuess = (f.text||'').split('\n')[0].slice(0,40);
+    return `<div class="story-frame">
       <div class="story-num">Frame ${i+1} von ${frames.length}</div>
       <div class="story-label">${f.label}</div>
-      <div class="story-text">${f.text}</div>
+      <div class="story-text" id="sframe-text-${i}">${f.text}</div>
       <div class="story-tip">💡 ${f.tip}</div>
-    </div>`
-  ).join('');
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap;">
+        <button class="btn-section-copy" id="scopy-text-${i}" aria-label="Frame-Text kopieren"
+          onclick="copySectionBlock('sframe-text-${i}','scopy-text-${i}')">📋 Text</button>
+        ${f.overlay ? `<button class="btn-section-copy" id="scopy-ov-${i}" aria-label="Overlay kopieren"
+          onclick="copySectionBlock('sframe-ov-${i}','scopy-ov-${i}')">📌 Overlay</button>
+        <span id="sframe-ov-${i}" style="display:none">${f.overlay}</span>` : ''}
+        ${f.sticker ? `<button class="btn-section-copy" id="scopy-st-${i}" aria-label="Sticker kopieren"
+          onclick="copySectionBlock('sframe-st-${i}','scopy-st-${i}')">🎯 Sticker</button>
+        <span id="sframe-st-${i}" style="display:none">${f.sticker}</span>` : ''}
+      </div>
+    </div>`;
+  }).join('');
   document.getElementById('story-result').style.display = 'block';
 
   btn.disabled = false;
@@ -2754,6 +3328,468 @@ async function claudeAnfrage(system, userText, maxTokens) {
     return null;
   }
 }
+// ════════════════════════════════════════════
+// REEL-SCRIPT-GENERATOR
+// ════════════════════════════════════════════
+SEL.reellaenge = '15';
+SEL.reelziel   = 'transformation';
+
+function reelCheck() {
+  document.getElementById('btn-reel').disabled =
+    document.getElementById('reel-moment').value.trim().length < 5;
+}
+
+async function generateReel() {
+  const m       = document.getElementById('reel-moment').value.trim();
+  if(m.length < 5) return;
+  const laenge  = SEL.reellaenge  || '15';
+  const ziel    = SEL.reelziel    || 'transformation';
+
+  const zielMap = {
+    transformation: 'Vorher-Nachher-Transformation zeigen',
+    behind:         'Authentischer Blick hinter die Kulissen',
+    expertise:      'Fachkompetenz und Handwerk sichtbar machen',
+    recruiting:     'Potenzielle Mitarbeiter:innen ansprechen'
+  };
+
+  const btn = document.getElementById('btn-reel');
+  btn.disabled = true; btn.textContent = '✦ Wörni schreibt Script …';
+
+  const system = `Du bist Wörni, Reel-Script-Assistent von Mirjam Walenta, Friseurmeisterin Wien ("A Great Hair Day").
+
+Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Objekt mit:
+- "scenes": Array von Szenen. Jede Szene hat:
+  - "timing": Zeitangabe z.B. "0–3 Sek"
+  - "label": Szenentyp z.B. "Hook", "Vorher", "Prozess", "Ergebnis", "CTA"
+  - "action": Was gezeigt/gefilmt wird (1 klarer Satz)
+  - "text": Text-Overlay oder gesprochener Text für diese Szene (max 6 Wörter, oder leer "")
+  - "tip": Konkreter Kamera-/Regie-Hinweis (1 Satz)
+- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter)
+- "hashtags": 6–8 Hashtags passend zum Ziel
+
+Ziel: ${zielMap[ziel]}
+Anzahl Szenen: ${laenge === '15' ? '4–5' : laenge === '30' ? '6–7' : '8–10'} Szenen
+Gesamtdauer: ${laenge} Sekunden — Timings müssen sich zu ${laenge} Sek addieren.
+
+Antworte NUR mit dem JSON. Kein Text drumherum.`;
+
+  let result = null;
+  try {
+    const raw = await claudeAnfrage(system, `Moment/Thema: ${m}`, 800);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      result = JSON.parse(clean);
+    }
+  } catch(e) { result = null; }
+
+  // Fallback
+  if(!result || !result.scenes) {
+    result = {
+      scenes: [
+        { timing:'0–2 Sek', label:'Hook', action:'Nahaufnahme des Ergebnisses', text:'So geht das.', tip:'Extreme Nahaufnahme, Licht von der Seite.' },
+        { timing:'2–6 Sek', label:'Vorher', action:'Das Problem oder der Ausgangszustand', text:'Vorher:', tip:'Ruhige Einstellung, kein Zoom.' },
+        { timing:'6–11 Sek', label:'Prozess', action:m, text:'', tip:'Handgriffe filmen, kein Gesicht nötig.' },
+        { timing:'11–14 Sek', label:'Ergebnis', action:'Das fertige Ergebnis in bestem Licht', text:'Nachher.', tip:'Goldstunde-Licht wenn möglich.' },
+        { timing:'14–15 Sek', label:'CTA', action:'Salon-Name oder Adresse einblenden', text:'A great hair day.', tip:'Text-Overlay, ruhiger Abschluss.' }
+      ],
+      caption: m + '\n\nSo sieht echte Handwerkskunst aus.\n\nRechte Wienzeile 47, Wien.',
+      hashtags: '#GreatHairDay #Wien #Friseur #Haare #Salon #Handwerk'
+    };
+  }
+
+  document.getElementById('reel-scene-list').innerHTML = result.scenes.map((s, i) => `
+    <div class="reel-scene">
+      <div class="reel-scene-header">
+        <span class="reel-timing">${s.timing}</span>
+        <span class="reel-scene-label">${s.label}</span>
+      </div>
+      <div class="reel-scene-action">${s.action}</div>
+      ${s.text ? `<div class="reel-scene-text">📌 Overlay: „${s.text}"</div>` : ''}
+      <div class="reel-scene-tip">🎥 ${s.tip}</div>
+      <div style="margin-top:8px;">
+        <button class="btn-section-copy" id="scopy-reel-${i}"
+          onclick="copySectionBlock('sreel-text-${i}','scopy-reel-${i}')">📋 Szene kopieren</button>
+        <span id="sreel-text-${i}" style="display:none">${s.timing} – ${s.label}: ${s.action}${s.text ? ' | Overlay: ' + s.text : ''}</span>
+      </div>
+    </div>`).join('');
+
+  if(result.caption) {
+    document.getElementById('reel-caption-val').textContent = result.caption;
+    document.getElementById('reel-hash-val').textContent    = result.hashtags || '';
+    document.getElementById('reel-caption-block').style.display = 'block';
+  }
+
+  document.getElementById('reel-result').style.display = 'block';
+  btn.disabled = false; btn.textContent = 'Script erstellen';
+  setTimeout(()=>document.getElementById('reel-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// 7-TAGE-PLANER
+// ════════════════════════════════════════════
+const PLANER_TAGE = [
+  { tag:'Mo', thema:'Wochenbeginn & Team', hint:'Ein ruhiger Moment beim Start in die Woche.', post:'Wir starten in die Woche — ruhig, konzentriert, mit Freude an der Arbeit.', story:'Montag-Energie im Salon.' },
+  { tag:'Di', thema:'Handwerk & Technik', hint:'Ein Handgriff, eine Technik, ein Ergebnis das erklärt werden kann.', post:'Was steckt hinter diesem Ergebnis? Eine Technik, die wir jeden Tag verfeinern.', story:'So entsteht das Ergebnis — Schritt für Schritt.' },
+  { tag:'Mi', thema:'Kundentransformation', hint:'Vorher-Nachher oder ein Ergebnis das dich heute stolz macht.', post:'Heute ist etwas Schönes fertig geworden.', story:'Vorher / Nachher — heute im Salon.' },
+  { tag:'Do', thema:'Hinter die Kulissen', hint:'Was passiert, wenn keine Kunden da sind? Das echte Leben im Salon.', post:'Was zwischen den Terminen passiert — der Teil den die meisten nicht sehen.', story:'Behind the Scenes — ein echter Moment.' },
+  { tag:'Fr', thema:'Wochenend-Styling-Tipp', hint:'Ein konkreter Tipp für das Wochenende — Pflege, Styling, Produkt.', post:'Ein Tipp für das Wochenende — direkt aus dem Salon.', story:'Tipp für heute Abend: das.' },
+  { tag:'Sa', thema:'Community & Danke', hint:'Ein Moment der zeigt, warum ihr diesen Job macht.', post:'Danke für diese Woche. Für jeden Termin, jeden Moment der Verbindung.', story:'Danke — für alles diese Woche.' },
+  { tag:'So', thema:'Ausblick & Inspiration', hint:'Was kommt nächste Woche? Was beschäftigt dich gerade?', post:'Die Woche geht zu Ende. Was uns nächste Woche erwartet.', story:'Ausblick auf nächste Woche.' },
+];
+
+function initPlaner() {
+  const heute = new Date().getDay(); // 0=So, 1=Mo ...
+  // Wir mappen auf unsere Reihenfolge Mo=0...So=6
+  const heuteIdx = heute === 0 ? 6 : heute - 1;
+  const now = new Date();
+
+  document.getElementById('planer-week').innerHTML = PLANER_TAGE.map((d, i) => {
+    const istHeute = i === heuteIdx;
+    // Datum berechnen
+    const diff = i - heuteIdx;
+    const datum = new Date(now);
+    datum.setDate(now.getDate() + diff);
+    const dayNum = datum.getDate();
+
+    return `<div class="planer-day${istHeute ? ' heute-tag' : ''}">
+      <div class="planer-day-left">
+        <div class="planer-day-name">${d.tag}</div>
+        <div class="planer-day-num">${dayNum}</div>
+      </div>
+      <div class="planer-day-content">
+        <div class="planer-day-thema">${istHeute ? '☀️ ' : ''}${d.thema}</div>
+        <div class="planer-day-hint">${d.hint}</div>
+        <div class="planer-day-chips">
+          <button class="planer-chip" onclick="planerZuPost(${i})">✍ Post</button>
+          <button class="planer-chip" onclick="planerZuStory(${i})">📱 Story</button>
+          <button class="planer-chip" onclick="planerZuReel(${i})">🎬 Reel</button>
+        </div>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function planerZuPost(idx) {
+  const d = PLANER_TAGE[idx];
+  showTab_direct('screen-post');
+  setTimeout(()=>{ const el=document.getElementById('post-moment'); el.value=d.post; el.dispatchEvent(new Event('input')); },150);
+}
+function planerZuStory(idx) {
+  const d = PLANER_TAGE[idx];
+  showTab_direct('screen-story');
+  setTimeout(()=>{ const el=document.getElementById('story-moment'); el.value=d.story; el.dispatchEvent(new Event('input')); },150);
+}
+function planerZuReel(idx) {
+  const d = PLANER_TAGE[idx];
+  showTab_direct('screen-reel');
+  setTimeout(()=>{ const el=document.getElementById('reel-moment'); el.value=d.post; el.dispatchEvent(new Event('input')); reelCheck(); },150);
+}
+
+// ════════════════════════════════════════════
+// CTA-GENERATOR
+// ════════════════════════════════════════════
+SEL.ctaformat = 'alle';
+
+// Statische Fallback-CTAs
+const CTA_STATIC = {
+  buchung: [
+    'Termin online buchen: Link in der Bio.',
+    'Freie Termine diese Woche — einfach schreiben oder anrufen: 01 5863130.',
+    'Rechte Wienzeile 47, 1050 Wien — wir freuen uns auf dich.',
+  ],
+  engagement: [
+    'Speichere dir diesen Beitrag für dein nächstes Styling.',
+    'Was ist dein größtes Haar-Thema gerade? Schreib es in die Kommentare.',
+    'Teile das mit jemandem, der das kennt.',
+  ],
+  recruiting: [
+    'Du willst Teil unseres Teams werden? Schreib uns direkt per DM.',
+    'Ausbildungsplatz frei — Interesse? Einfach melden: 01 5863130.',
+    'Wir suchen Menschen, die wirklich Freude am Handwerk haben.',
+  ]
+};
+
+function ctaCheck() { /* immer aktiv */ }
+
+async function generateCTA() {
+  const kontext = document.getElementById('cta-kontext').value.trim();
+  const format  = SEL.ctaformat || 'alle';
+
+  const btn = document.getElementById('btn-cta');
+  btn.disabled = true; btn.textContent = '✦ Wörni formuliert …';
+
+  const typen = format === 'alle'
+    ? ['buchung','engagement','recruiting']
+    : [format];
+
+  const system = `Du bist Wörni, CTA-Assistent von Mirjam Walenta, Friseurmeisterin Wien ("A Great Hair Day", Rechte Wienzeile 47, 01 5863130).
+
+Erstelle Call-to-Action-Texte als JSON-Objekt. Für jeden der folgenden Typen liefere einen prägnanten CTA-Satz in Mirjams ruhiger Stimme (kein Ausrufezeichen, kein Marketingsprech, max 25 Wörter):
+- "buchung": Zum Termin buchen oder Kontakt aufnehmen
+- "engagement": Kommentar, Speichern, Teilen oder Frage
+- "recruiting": Mitarbeiter:innen oder Lehrlinge ansprechen
+
+${kontext ? `Kontext: ${kontext}` : ''}
+
+Antworte NUR mit JSON: {"buchung":"...","engagement":"...","recruiting":"..."}`;
+
+  let result = null;
+  try {
+    const raw = await claudeAnfrage(system, kontext || 'Allgemein', 300);
+    if(raw) { const clean = raw.replace(/```json|```/g,'').trim(); result = JSON.parse(clean); }
+  } catch(e) { result = null; }
+
+  // Fallback
+  if(!result) {
+    result = {
+      buchung:    CTA_STATIC.buchung[Math.floor(Math.random()*3)],
+      engagement: CTA_STATIC.engagement[Math.floor(Math.random()*3)],
+      recruiting: CTA_STATIC.recruiting[Math.floor(Math.random()*3)],
+    };
+  }
+
+  const typLabels = { buchung:'📅 Buchung', engagement:'💬 Engagement', recruiting:'🤝 Recruiting' };
+  const typHints  = {
+    buchung:'Für Posts mit Ergebnis oder freiem Termin.',
+    engagement:'Für Posts die Diskussion oder Reichweite auslösen sollen.',
+    recruiting:'Für Team-Momente und Einblicke in den Salon-Alltag.'
+  };
+
+  document.getElementById('cta-variant-list').innerHTML = typen.map((typ, i) => `
+    <div class="cta-gen-variant" id="cta-block-${typ}">
+      <div class="cta-gen-header">
+        <span class="cta-gen-typ">${typLabels[typ]}</span>
+        <span style="font-size:11px;color:var(--soft);">${typHints[typ]}</span>
+      </div>
+      <div class="cta-gen-text" id="cta-text-${typ}">${result[typ] || '—'}</div>
+      <div class="cta-gen-actions">
+        <button class="btn-cta-copy" id="btn-ctacopy-${typ}"
+          onclick="ctaCopy('cta-text-${typ}','btn-ctacopy-${typ}')">📋 Kopieren</button>
+        <button class="btn-cta-post"
+          onclick="ctaZuPost('${typ}')">➕ An Post</button>
+      </div>
+    </div>`).join('');
+
+  document.getElementById('cta-result').style.display = 'block';
+  btn.disabled = false; btn.textContent = 'CTAs erstellen';
+  setTimeout(()=>document.getElementById('cta-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function ctaCopy(sourceId, btnId) {
+  copySectionBlock(sourceId, btnId);
+}
+
+function ctaZuPost(typ) {
+  const text = document.getElementById('cta-text-'+typ)?.textContent || '';
+  if(!text) return;
+  showTab_direct('screen-post');
+  setTimeout(()=>{
+    const el = document.getElementById('post-moment');
+    el.value = (el.value ? el.value + '\n\n' : '') + text;
+    el.dispatchEvent(new Event('input'));
+    el.focus();
+  }, 150);
+}
+
+// ════════════════════════════════════════════
+// FOTO-ANALYSE (Claude Vision)
+// ════════════════════════════════════════════
+let fotoAnalyseBase64 = null;
+let fotoAnalyseResult = null;
+
+function handleFotoAnalyse(input) {
+  const file = input.files[0];
+  if(!file) return;
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const dataUrl = e.target.result;
+    // Vorschau zeigen
+    document.getElementById('foto-preview-img').src = dataUrl;
+    document.getElementById('foto-preview-wrap').style.display = 'block';
+    document.getElementById('foto-upload-zone').style.display = 'none';
+    document.getElementById('foto-analyse-result').style.display = 'none';
+
+    // Base64 ohne Prefix speichern
+    fotoAnalyseBase64 = dataUrl.split(',')[1];
+    const mediaType = file.type || 'image/jpeg';
+
+    // Analyse starten
+    document.getElementById('foto-analyse-loading').style.display = 'flex';
+    try {
+      const result = await analysiereFoto(fotoAnalyseBase64, mediaType);
+      fotoAnalyseResult = result;
+      if(result) {
+        document.getElementById('far-beschreibung').textContent = result.beschreibung || '—';
+        document.getElementById('far-begriffe').textContent = result.begriffe || '—';
+        document.getElementById('far-hook').textContent = result.hook || '—';
+        document.getElementById('foto-analyse-result').style.display = 'block';
+      }
+    } catch(err) {
+      console.error('Foto-Analyse Fehler:', err);
+    }
+    document.getElementById('foto-analyse-loading').style.display = 'none';
+  };
+  reader.readAsDataURL(file);
+}
+
+async function analysiereFoto(base64, mediaType) {
+  try {
+    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cmxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMTQ2MzIsImV4cCI6MjA2MTU5MDYzMn0.YaGBmLpMpLCFHJmORKKkR9GKLyOKjVj_bWCIjXJwK8s'
+      },
+      body: JSON.stringify({
+        model: 'claude-sonnet-4-6',
+        max_tokens: 600,
+        system: `Du bist Wörni, Bildanalyse-Assistent von Mirjam Walenta, Friseurmeisterin in Wien ("A Great Hair Day").
+Analysiere das hochgeladene Foto und antworte NUR mit einem JSON-Objekt mit diesen Feldern:
+- "beschreibung": Was ist auf dem Bild zu sehen? (1–2 Sätze, Fachsprache, z.B. Haarfarbe, Technik, Schnitt, Atmosphäre)
+- "begriffe": Die wichtigsten Fachbegriffe als kommaseparierte Liste (z.B. "Balayage, Kupferton, Stufenschnitt, Glossing")
+- "hook": Ein konkreter Instagram-Hook-Satz passend zum Bild, in Mirjams ruhiger Stimme (max 15 Wörter)
+Antworte NUR mit dem JSON. Kein Text drumherum.`,
+        messages: [{
+          role: 'user',
+          content: [
+            {
+              type: 'image',
+              source: { type: 'base64', media_type: mediaType, data: base64 }
+            },
+            { type: 'text', text: 'Analysiere dieses Foto für Mirjams Instagram.' }
+          ]
+        }]
+      })
+    });
+    if(!res.ok) return null;
+    const data = await res.json();
+    const raw = data?.content?.[0]?.text || null;
+    if(!raw) return null;
+    const clean = raw.replace(/```json|```/g,'').trim();
+    return JSON.parse(clean);
+  } catch(e) {
+    return null;
+  }
+}
+
+function removeFotoAnalyse() {
+  fotoAnalyseBase64 = null;
+  fotoAnalyseResult = null;
+  document.getElementById('foto-analyse-input').value = '';
+  document.getElementById('foto-preview-wrap').style.display = 'none';
+  document.getElementById('foto-upload-zone').style.display = 'flex';
+  document.getElementById('foto-analyse-result').style.display = 'none';
+  document.getElementById('foto-analyse-loading').style.display = 'none';
+}
+
+function analyseZuPost() {
+  if(!fotoAnalyseResult) return;
+  const teile = [];
+  if(fotoAnalyseResult.hook) teile.push(fotoAnalyseResult.hook);
+  if(fotoAnalyseResult.beschreibung) teile.push(fotoAnalyseResult.beschreibung);
+  if(fotoAnalyseResult.begriffe) teile.push('Technik: ' + fotoAnalyseResult.begriffe);
+  const text = teile.join('\n\n');
+  const el = document.getElementById('post-moment');
+  if(el) {
+    el.value = text;
+    el.dispatchEvent(new Event('input'));
+    el.focus();
+    el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+}
+
+// ════════════════════════════════════════════
+// SPRACHSTEUERUNG (Web Speech API)
+// ════════════════════════════════════════════
+let activeMicRecognition = null;
+
+function toggleMic(targetId, btnId) {
+  const btn = document.getElementById(btnId);
+  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+  if(!SpeechRecognition) {
+    alert('Sprachsteuerung wird von diesem Browser nicht unterstützt.\nFür iOS Safari: Einstellungen → Safari → Mikrofon erlauben.');
+    return;
+  }
+
+  // Laufende Aufnahme stoppen
+  if(activeMicRecognition) {
+    activeMicRecognition.stop();
+    activeMicRecognition = null;
+    if(btn) { btn.classList.remove('active'); btn.textContent = '🎙'; }
+    return;
+  }
+
+  const recognition = new SpeechRecognition();
+  recognition.lang = 'de-AT';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+
+  recognition.onstart = () => {
+    activeMicRecognition = recognition;
+    if(btn) { btn.classList.add('active'); btn.textContent = '⏹'; }
+  };
+
+  recognition.onresult = (e) => {
+    const transcript = e.results[0][0].transcript;
+    const target = document.getElementById(targetId);
+    if(target) {
+      target.value += (target.value ? ' ' : '') + transcript;
+      target.dispatchEvent(new Event('input'));
+    }
+  };
+
+  recognition.onerror = (e) => {
+    if(e.error !== 'aborted') {
+      alert('Spracheingabe fehlgeschlagen: ' + e.error);
+    }
+  };
+
+  recognition.onend = () => {
+    activeMicRecognition = null;
+    if(btn) { btn.classList.remove('active'); btn.textContent = '🎙'; }
+  };
+
+  recognition.start();
+}
+
+// ════════════════════════════════════════════
+// 1-KLICK SECTION-COPY
+// ════════════════════════════════════════════
+function copySectionBlock(sourceId, btnId) {
+  const el = document.getElementById(sourceId);
+  if(!el) return;
+  const text = el.textContent || el.innerText || '';
+  if(!text.trim()) return;
+
+  navigator.clipboard.writeText(text.trim()).then(() => {
+    const btn = document.getElementById(btnId);
+    if(btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Kopiert';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }
+  }).catch(() => {
+    // Fallback für ältere Browser
+    const ta = document.createElement('textarea');
+    ta.value = text.trim();
+    ta.style.position = 'fixed'; ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    document.execCommand('copy');
+    document.body.removeChild(ta);
+    const btn = document.getElementById(btnId);
+    if(btn) {
+      const orig = btn.innerHTML;
+      btn.innerHTML = '✓ Kopiert';
+      btn.classList.add('copied');
+      setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+    }
+  });
+}
+
 initIdeas();
 initHeuteTab();
 msSyncLogos();

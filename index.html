@@ -6,25 +6,28 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Reichweite">
 <title>Reichweite – A Great Hair Day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
   :root {
-    --gold: #816a3c;
-    --gold-light: #c4a96a;
-    --gold-pale: #f5f0e8;
-    --gold-pale2: #ede5d4;
-    --black: #111;
-    --mid: #555;
-    --soft: #888;
-    --bg: #fafaf8;
-    --white: #ffffff;
+    --gold: #896c32;
+    --gold-light: #b8924a;
+    --gold-pale: #f7f2e8;
+    --gold-pale2: #ede8d8;
+    --black: #1a1208;
+    --mid: #5a4e3a;
+    --soft: #8a7d68;
+    --bg: #faf6ee;
+    --white: #fffdf8;
     --radius: 14px;
     --radius-sm: 9px;
-    --shadow: 0 2px 12px rgba(0,0,0,0.07);
-    --shadow-md: 0 4px 20px rgba(0,0,0,0.10);
-    --accent: #2E5D4B;
-    --f: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --shadow: 0 2px 12px rgba(100,80,40,0.08);
+    --shadow-md: 0 4px 20px rgba(100,80,40,0.12);
+    --accent: #896c32;
+    --f: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   body {
@@ -354,6 +357,104 @@
   .cta-suggestion strong { color: var(--gold); font-weight: 600; }
   .section-divider { height: 1px; background: #e8e4dc; margin: 20px 0; }
 
+  /* ── KI-BADGE (Feature 1) ── */
+  .ki-badge {
+    display: inline-flex; align-items: center; gap: 4px;
+    font-size: 10px; font-weight: 600; padding: 2px 8px;
+    border-radius: 20px; margin-left: 6px; vertical-align: middle;
+  }
+  .ki-badge.ai { background: #f0ebe0; color: var(--gold); border: 1px solid var(--gold-light); }
+  .ki-badge.tmpl { background: #f2f2f2; color: var(--soft); border: 1px solid #ddd; }
+
+  /* ── ZEICHENZÄHLER (Feature 2) ── */
+  .char-counter {
+    text-align: right; font-size: 11px; color: var(--soft);
+    margin-top: 4px; transition: color .2s;
+  }
+  .char-counter.warn { color: #c97a00; }
+  .char-counter.over { color: #c0392b; font-weight: 700; }
+
+  /* ── IN RAHMEN (Feature 3) ── */
+  .btn-zu-rahmen {
+    width: 100%; padding: 11px; background: none;
+    border: 1.5px solid var(--gold); border-radius: var(--radius-sm);
+    font-family: var(--f); font-size: 13px; font-weight: 600;
+    color: var(--gold); cursor: pointer; margin-top: 8px;
+    transition: background .15s;
+  }
+  .btn-zu-rahmen:active { background: var(--gold-pale); }
+
+  /* ── WOCHENPLAN (Feature 5) ── */
+  .woche-grid {
+    display: grid; grid-template-columns: repeat(7,1fr); gap: 6px;
+    margin: 12px 0;
+  }
+  .woche-day {
+    display: flex; flex-direction: column; align-items: center;
+    gap: 4px; cursor: pointer;
+  }
+  .woche-day-label {
+    font-size: 10px; font-weight: 600; color: var(--soft);
+    text-transform: uppercase; letter-spacing: .3px;
+  }
+  .woche-day-dot {
+    width: 32px; height: 32px; border-radius: 50%;
+    border: 2px solid var(--gold-pale2);
+    display: flex; align-items: center; justify-content: center;
+    font-size: 14px; transition: all .15s; background: var(--white);
+  }
+  .woche-day-dot.posted { background: var(--gold); border-color: var(--gold); }
+  .woche-day-dot.posted::after { content: '✓'; color: white; font-size: 13px; font-weight: 700; }
+  .woche-day-dot.today { border-color: var(--gold); border-width: 2.5px; }
+  .woche-day-dot.empty::after { content: ''; }
+  .woche-streak {
+    font-size: 12px; color: var(--mid); text-align: center;
+    padding: 6px 0 2px;
+  }
+  .woche-streak strong { color: var(--gold); }
+
+  /* ── KANDIDAT VORERFASSUNG (Feature 6) ── */
+  .kandidat-pre-form {
+    background: var(--white); border-radius: var(--radius);
+    padding: 16px; box-shadow: var(--shadow); margin-bottom: 14px;
+  }
+  .kandidat-pre-form .input-label { margin-top: 10px; }
+  .kandidat-pre-form .input-label:first-child { margin-top: 0; }
+
+  /* ── HEUTE-TAB als Startpunkt (Feature 7) ── */
+  .heute-empfehlung {
+    background: var(--gold); color: white;
+    border-radius: var(--radius); padding: 16px;
+    margin-bottom: 14px; box-shadow: var(--shadow-md);
+  }
+  .heute-emp-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .6px;
+    text-transform: uppercase; opacity: .8; margin-bottom: 4px;
+  }
+  .heute-emp-title { font-size: 16px; font-weight: 700; line-height: 1.3; margin-bottom: 4px; }
+  .heute-emp-why { font-size: 12px; opacity: .85; line-height: 1.4; margin-bottom: 12px; }
+  .heute-emp-btns { display: flex; gap: 8px; }
+  .heute-emp-btn {
+    flex: 1; padding: 9px; border-radius: 8px; border: 1.5px solid rgba(255,255,255,.5);
+    background: rgba(255,255,255,.15); color: white;
+    font-family: var(--f); font-size: 12px; font-weight: 600; cursor: pointer;
+    transition: background .15s;
+  }
+  .heute-emp-btn:active { background: rgba(255,255,255,.3); }
+  .heute-quick-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 14px;
+  }
+  .heute-quick-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 14px 12px; box-shadow: var(--shadow);
+    border: 1.5px solid var(--gold-pale2); cursor: pointer;
+    transition: border-color .15s; display: flex; flex-direction: column; gap: 4px;
+  }
+  .heute-quick-card:active { border-color: var(--gold); }
+  .heute-quick-icon { font-size: 20px; }
+  .heute-quick-label { font-size: 12px; font-weight: 700; color: var(--black); }
+  .heute-quick-sub { font-size: 11px; color: var(--soft); }
+
   /* ── HOOKS ── */
   .hook-result-list { display: flex; flex-direction: column; gap: 10px; }
   .hook-item {
@@ -510,6 +611,58 @@
   .story-text { font-size: 14px; color: var(--black); line-height: 1.6; }
   .story-tip { font-size: 11px; color: var(--soft); margin-top: 5px; font-style: italic; }
 
+  /* ── RECHERCHE ── */
+  .recherche-category-row {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px;
+  }
+  .recherche-cat-btn {
+    background: var(--white); border: 1.5px solid var(--gold-pale2);
+    border-radius: var(--radius); padding: 14px 12px;
+    font-family: var(--f); font-size: 13px; font-weight: 600;
+    color: var(--mid); cursor: pointer; text-align: left;
+    transition: all .15s; box-shadow: var(--shadow);
+  }
+  .recherche-cat-btn.on {
+    border-color: var(--gold); background: var(--gold-pale); color: var(--gold);
+  }
+  .recherche-cat-btn .cat-icon { font-size: 22px; display: block; margin-bottom: 4px; }
+  .recherche-cat-btn .cat-label { display: block; font-size: 12px; }
+  .recherche-result-list { display: flex; flex-direction: column; gap: 12px; margin-top: 16px; }
+  .recherche-card {
+    background: var(--white); border-radius: var(--radius);
+    padding: 15px; box-shadow: var(--shadow);
+    border-left: 3px solid var(--gold-light);
+    cursor: pointer; transition: all .15s;
+  }
+  .recherche-card:active { transform: scale(0.98); border-color: var(--gold); }
+  .recherche-card-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .5px;
+    text-transform: uppercase; color: var(--gold); margin-bottom: 5px;
+  }
+  .recherche-card-title { font-size: 14px; font-weight: 700; color: var(--black); line-height: 1.4; margin-bottom: 4px; }
+  .recherche-card-body { font-size: 12px; color: var(--mid); line-height: 1.55; }
+  .recherche-card-footer {
+    margin-top: 10px; display: flex; gap: 8px;
+  }
+  .recherche-card-footer button {
+    flex: 1; padding: 8px; border-radius: 8px; border: 1px solid var(--gold);
+    background: none; font-family: var(--f); font-size: 12px; font-weight: 600;
+    color: var(--gold); cursor: pointer; transition: background .15s;
+  }
+  .recherche-card-footer button:active { background: var(--gold-pale); }
+  .recherche-loading {
+    text-align: center; padding: 32px 16px;
+    font-size: 14px; color: var(--soft);
+  }
+  .recherche-loading-dot {
+    display: inline-block; width: 6px; height: 6px;
+    background: var(--gold); border-radius: 50%; margin: 0 2px;
+    animation: rechDot 1.2s infinite ease-in-out;
+  }
+  .recherche-loading-dot:nth-child(2) { animation-delay: .2s; }
+  .recherche-loading-dot:nth-child(3) { animation-delay: .4s; }
+  @keyframes rechDot { 0%,80%,100%{opacity:.2;transform:scale(.8)} 40%{opacity:1;transform:scale(1)} }
+
   /* ── EDIT MODAL ── */
   .modal-overlay {
     display: none; position: fixed; inset: 0;
@@ -574,11 +727,13 @@
 
 <!-- ══ TAB NAV ══ -->
 <nav class="tabnav" id="tabnav" style="display:none;">
+  <button class="tab" onclick="showTab('heute')">☀️ Heute</button>
   <button class="tab" onclick="showTab('hook')">🎯 Hook</button>
   <button class="tab" onclick="showTab('post')">✍ Post</button>
   <button class="tab" onclick="showTab('story')">📱 Story</button>
   <button class="tab" onclick="showTab('ideen')">💡 Ideen</button>
   <button class="tab" onclick="showTab('rahmen')">🖼 Rahmen</button>
+  <button class="tab" onclick="showTab('recherche')">🔍 Recherche</button>
   <button class="tab" onclick="showTab('mediasave')">🎬 Foto/Video</button>
 </nav>
 
@@ -757,6 +912,43 @@
 </section>
 
 <!-- ══ SCREEN: HOOK ══ -->
+<!-- ══ SCREEN: HEUTE ══ -->
+<section class="screen" id="screen-heute">
+  <div id="heute-emp-wrap"></div>
+
+  <div id="heute-woche-wrap">
+    <div class="card">
+      <div class="card-tag">Diese Woche</div>
+      <div class="woche-grid" id="woche-grid"></div>
+      <div class="woche-streak" id="woche-streak"></div>
+    </div>
+  </div>
+
+  <div class="heute-quick-grid">
+    <div class="heute-quick-card" onclick="showTab_direct('screen-post')">
+      <span class="heute-quick-icon">✍️</span>
+      <span class="heute-quick-label">Post schreiben</span>
+      <span class="heute-quick-sub">Aus einem Moment</span>
+    </div>
+    <div class="heute-quick-card" onclick="showTab_direct('screen-story')">
+      <span class="heute-quick-icon">📱</span>
+      <span class="heute-quick-label">Story erstellen</span>
+      <span class="heute-quick-sub">5 Frames</span>
+    </div>
+    <div class="heute-quick-card" onclick="showTab_direct('screen-recherche')">
+      <span class="heute-quick-icon">🔍</span>
+      <span class="heute-quick-label">Trend recherchieren</span>
+      <span class="heute-quick-sub">Was ist gerade relevant</span>
+    </div>
+    <div class="heute-quick-card" onclick="showTab_direct('screen-rahmen')">
+      <span class="heute-quick-icon">🖼️</span>
+      <span class="heute-quick-label">Goldrahmen</span>
+      <span class="heute-quick-sub">Bild für Story</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCREEN: HOOK ══ -->
 <section class="screen" id="screen-hook">
   <div class="card">
     <div class="card-tag">Hook-Generator</div>
@@ -794,7 +986,7 @@
   </div>
   <div class="input-wrap">
     <div class="input-label">Was ist passiert oder was willst du zeigen?</div>
-    <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck()"></textarea>
+    <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
   </div>
   <div class="input-wrap">
     <div class="input-label">Tonalität</div>
@@ -818,11 +1010,12 @@
   <div id="post-result" style="display:none;margin-top:16px;">
     <div class="output-wrap">
       <div class="output-header">
-        <span class="output-label">Textvorschlag</span>
+        <span class="output-label">Textvorschlag <span id="post-ki-badge"></span></span>
         <span class="output-format-badge">Post</span>
       </div>
       <div class="output-body">
-        <div class="output-text" contenteditable="true" id="post-text-main"></div>
+        <div class="output-text" contenteditable="true" id="post-text-main" oninput="updateCharCount('post-text-main','post-char')"></div>
+        <div class="char-counter" id="post-char">0 / 2200</div>
       </div>
       <div class="output-meta">
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text" id="post-bild-hint"></span></div>
@@ -835,6 +1028,7 @@
       </button>
       <button class="btn-edit" onclick="document.getElementById('post-text-main').focus()">✏️ Bearbeiten</button>
     </div>
+    <button class="btn-zu-rahmen" onclick="postZuRahmen()">🖼️ Text in Goldrahmen übernehmen</button>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
   </div>
 </section>
@@ -888,6 +1082,51 @@
     <div class="card-tag" style="color:#2d6a4f;">Dein Mantra</div>
     <div class="card-title" style="font-size:15px;">„Bei uns musst du dich nicht erklären."</div>
     <div class="card-body">Dieser Satz trägt 33 Jahre Haltung.</div>
+  </div>
+</section>
+
+<!-- ══ SCREEN: RECHERCHE ══ -->
+<section class="screen" id="screen-recherche">
+  <div class="card">
+    <div class="card-tag">Trend-Recherche</div>
+    <div class="card-title">Was ist gerade relevant?</div>
+    <div class="card-body">Wörni sucht für dich — und macht daraus direkt einen Post oder eine Story.</div>
+  </div>
+
+  <div class="recherche-category-row">
+    <button class="recherche-cat-btn on" id="rcat-trends" onclick="selectRcat(this,'trends')">
+      <span class="cat-icon">✂️</span>
+      <span class="cat-label">Friseur-Trends</span>
+    </button>
+    <button class="recherche-cat-btn" id="rcat-recruiting" onclick="selectRcat(this,'recruiting')">
+      <span class="cat-icon">🤝</span>
+      <span class="cat-label">Recruiting & Ausbildung</span>
+    </button>
+    <button class="recherche-cat-btn" id="rcat-wien" onclick="selectRcat(this,'wien')">
+      <span class="cat-icon">🏙️</span>
+      <span class="cat-label">Wien & Margareten</span>
+    </button>
+    <button class="recherche-cat-btn" id="rcat-produkte" onclick="selectRcat(this,'produkte')">
+      <span class="cat-icon">💆</span>
+      <span class="cat-label">Produkte & Pflege</span>
+    </button>
+  </div>
+
+  <div class="input-wrap" style="margin-bottom:8px;">
+    <div class="input-label">Fokus eingrenzen (optional)</div>
+    <input type="text" id="recherche-fokus" placeholder="z.B. Balayage, Gen Z, Herbst 2025 …">
+  </div>
+
+  <button class="btn-main" id="btn-recherche" onclick="startRecherche()">🔍 Jetzt recherchieren</button>
+
+  <div id="recherche-result-area" style="display:none;">
+    <div id="recherche-loading" class="recherche-loading" style="display:none;">
+      <div style="margin-bottom:10px;">Wörni recherchiert</div>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+    </div>
+    <div class="recherche-result-list" id="recherche-list"></div>
   </div>
 </section>
 
@@ -1045,16 +1284,15 @@ function goBack() {
 }
 
 function showTabNav() {
-  // Verstecke Recruiting/Neukunden-Screens, zeige Hook
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-  document.getElementById('screen-hook').classList.add('active');
+  document.getElementById('screen-heute').classList.add('active');
   document.getElementById('tabnav').style.display = 'flex';
   document.getElementById('backBtn').classList.remove('visible');
-  // Aktiver Tab
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector('.tab').classList.add('active');
   tabNavVisible = true;
-  screenHistory.push('screen-hook');
+  screenHistory.push('screen-heute');
+  initHeuteTab();
   window.scrollTo(0, 0);
 }
 
@@ -1066,6 +1304,7 @@ function showTab(id) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   event.currentTarget.classList.add('active');
   tabNavVisible = true;
+  if(id === 'heute') initHeuteTab();
   window.scrollTo(0, 0);
 }
 
@@ -1344,17 +1583,71 @@ const POST_T = {
   }
 };
 
-function generatePost() {
+async function generatePost() {
   const m = document.getElementById('post-moment').value.trim();
   if(m.length < 5) return;
   const ton = SEL.postton || 'nahbar';
   const wer = SEL.postwer || 'kundinnen';
-  const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
-  const r = fn(m);
-  document.getElementById('post-text-main').textContent = r.hook + '\n\n' + r.body;
-  document.getElementById('post-bild-hint').innerHTML = `<strong>Bildidee:</strong> ${r.bild}`;
-  document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${r.cta}`;
+
+  // Tonalität & Zielgruppe als Text
+  const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
+  const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
+
+  // Button in Loading-State
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Friseurmeisterin und Salon-Inhaberin in Wien (Rechte Wienzeile 47, 1050 Wien, "A Great Hair Day").
+
+Schreibe einen authentischen Instagram-Post in Mirjams Stimme. Ihre Sprache: ruhig, gehoben, klare vollständige Sätze, kaum Emoji (maximal 1–2, nur wenn sie passen), keine Ausrufezeichen, keine Marketing-Floskeln, keine Fragen als Hooks. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}.
+
+Struktur des Posts:
+1. Eröffnungssatz (kein Zitat, kein Ausruf — ein ruhiger, echter Satz der den Moment öffnet)
+2. 2–3 kurze Absätze die den Moment entfalten
+3. 1 abschließender Satz der Haltung zeigt
+4. Hashtags (3–5, auf Deutsch + #GreatHairDay #Wien)
+
+Antworte NUR mit dem Post-Text. Keine Erklärung, kein "Hier ist dein Post". Kein CTA-Text — der kommt separat.`;
+
+  const userText = `Moment/Thema: ${m}`;
+
+  let postText = null;
+  try {
+    postText = await claudeAnfrage(system, userText, 500);
+  } catch(e) { postText = null; }
+
+  // Fallback auf Template wenn KI nicht antwortet
+  if(!postText) {
+    const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
+    const r = fn(m);
+    postText = r.hook + '\n\n' + r.body;
+  }
+
+  // Bildidee & CTA via KI oder Fallback
+  const ctaMap = {
+    kundinnen: 'Termin: Link in Bio oder 01 5863130 · Rechte Wienzeile 47, 1050 Wien',
+    neu: 'Erstes Gespräch? Einfach melden — DM oder 01 5863130.',
+    lehrlinge: 'Interesse an der Ausbildung? Schreib uns direkt.',
+    branche: 'Was denkst du dazu?'
+  };
+  const bildMap = {
+    nahbar: 'Ein echter Moment aus dem Salon — keine gestellte Aufnahme.',
+    stolz: 'Das Ergebnis im besten Licht — würdevoll, kein Überfilter.',
+    nachdenklich: 'Ruhige, stimmungsvolle Aufnahme — Atmosphäre statt Pose.',
+    direkt: 'Klares, sauberes Bild vom Salon oder Ergebnis.'
+  };
+
+  document.getElementById('post-text-main').textContent = postText;
+  document.getElementById('post-bild-hint').innerHTML = `<strong>Bildidee:</strong> ${bildMap[ton] || bildMap.nahbar}`;
+  document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${ctaMap[wer] || ctaMap.kundinnen}`;
   document.getElementById('post-result').style.display = 'block';
+  setKiBadge('post-ki-badge', !!postText && !POST_T[ton]?.[wer]);
+  updateCharCount('post-text-main', 'post-char');
+
+  btn.disabled = false;
+  btn.textContent = 'Post erstellen';
+
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
@@ -1398,13 +1691,52 @@ const STORY_T = {
   }
 };
 
-function generateStory() {
+async function generateStory() {
   const m = document.getElementById('story-moment').value.trim();
   if(m.length < 5) return;
   const mood = SEL.storymood || 'emotional';
   const ziel = SEL.storyziel || 'vertrauen';
-  const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
-  const frames = getFn(m);
+
+  const moodMap = { emotional:'emotional und nah', neugier:'neugierig und spannend', behind:'hinter die Kulissen', haltung:'selbstbewusst und klar' };
+  const zielMap = { vertrauen:'Vertrauen aufbauen', reichweite:'Reichweite gewinnen', termin:'Terminanfragen auslösen', lehrling:'Lehrlinge ansprechen' };
+
+  // Button Loading-State
+  const btn = document.getElementById('btn-story');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Friseurmeisterin in Wien ("A Great Hair Day", Rechte Wienzeile 47).
+
+Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
+- "label": kurzer Titel des Frames (z.B. "Einstieg", "Der Moment", "Warum", "Einladung", "Abschluss")
+- "text": der Text für diesen Frame (kurz, 1–3 Sätze, Mirjams Stimme: ruhig, echt, klar, gehoben)
+- "tip": ein konkreter visueller Hinweis (was man zeigen/fotografieren könnte)
+
+Stimmung: ${moodMap[mood] || 'emotional und nah'}
+Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
+
+Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. Der letzte Frame endet immer mit "A great hair day." oder der Adresse.
+
+Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Format:
+[{"label":"Einstieg","text":"...","tip":"..."},...]`;
+
+  const userText = `Moment/Thema: ${m}`;
+
+  let frames = null;
+  try {
+    const raw = await claudeAnfrage(system, userText, 700);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      frames = JSON.parse(clean);
+    }
+  } catch(e) { frames = null; }
+
+  // Fallback auf Template
+  if(!frames || !Array.isArray(frames) || frames.length < 2) {
+    const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
+    frames = getFn(m);
+  }
+
   document.getElementById('story-list').innerHTML = frames.map((f,i) =>
     `<div class="story-frame">
       <div class="story-num">Frame ${i+1} von ${frames.length}</div>
@@ -1414,6 +1746,10 @@ function generateStory() {
     </div>`
   ).join('');
   document.getElementById('story-result').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = 'Story erstellen';
+
   setTimeout(()=>document.getElementById('story-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
@@ -1580,7 +1916,7 @@ async function speichereRahmen() {
     ctx.fillStyle = isHell ? '#ffffff' : '#1C1C1C';
     ctx.fillRect(0,0,W,H);
     // Goldrahmen
-    const gold='#816a3c', border=28;
+    const gold='#896c32', border=28;
     ctx.strokeStyle=gold; ctx.lineWidth=3;
     ctx.strokeRect(border,border,W-border*2,H-border*2);
     ctx.lineWidth=1;
@@ -1924,7 +2260,7 @@ async function msExportVideo() {
     try { ctx.drawImage(vid, dx, dy, finalW, finalH); } catch(e) {}
 
     // Goldrahmen
-    ctx.strokeStyle = '#816a3c';
+    ctx.strokeStyle = '#896c32';
     ctx.lineWidth = Math.max(2, Math.round(W * 0.003));
     ctx.strokeRect(inset, inset, W - inset * 2, H - inset * 2);
 
@@ -2029,7 +2365,7 @@ function msSaveFrame() {
 
 function msDrawFrame(ctx, w, h, cb) {
   const inset = Math.round(w * 0.03);
-  ctx.strokeStyle = '#816a3c';
+  ctx.strokeStyle = '#896c32';
   ctx.lineWidth = Math.max(1, Math.round(w * 0.003));
   ctx.strokeRect(inset, inset, w - inset * 2, h - inset * 2);
 
@@ -2094,7 +2430,338 @@ function msSyncLogos() {
   setTimeout(msSigCrop, 200);
 }
 
+// ════════════════════════════════════════════
+// FEATURE 1: KI-BADGE
+// ════════════════════════════════════════════
+function setKiBadge(elId, isAi) {
+  const el = document.getElementById(elId);
+  if(!el) return;
+  el.innerHTML = isAi
+    ? '<span class="ki-badge ai">✦ Wörni</span>'
+    : '<span class="ki-badge tmpl">📋 Vorlage</span>';
+}
+
+// ════════════════════════════════════════════
+// FEATURE 2: ZEICHENZÄHLER
+// ════════════════════════════════════════════
+function updateCharCount(textElId, counterElId) {
+  const text = document.getElementById(textElId)?.textContent || '';
+  const len = text.length;
+  const el = document.getElementById(counterElId);
+  if(!el) return;
+  el.textContent = len + ' / 2200';
+  el.classList.remove('warn','over');
+  if(len > 2200) el.classList.add('over');
+  else if(len > 1800) el.classList.add('warn');
+}
+
+// ════════════════════════════════════════════
+// FEATURE 3: POST → RAHMEN
+// ════════════════════════════════════════════
+function postZuRahmen() {
+  const text = document.getElementById('post-text-main')?.textContent?.trim();
+  if(!text) return;
+  showTab_direct('screen-rahmen');
+  setTimeout(() => {
+    const inp = document.getElementById('rahmen-text-input');
+    if(inp) {
+      inp.value = text.slice(0, 220); // Rahmen-optimierte Länge
+      updateRahmenText();
+      setRahmenMode('text');
+    }
+  }, 150);
+}
+
+// ════════════════════════════════════════════
+// FEATURE 5: WOCHENPLAN
+// ════════════════════════════════════════════
+const WOCHE_KEY = 'ghd_wochenplan';
+const TAGE = ['Mo','Di','Mi','Do','Fr','Sa','So'];
+
+function getWocheData() {
+  try {
+    const data = JSON.parse(localStorage.getItem(WOCHE_KEY)) || {};
+    // Woche als ISO-KW-Key: YYYY-WW
+    const key = getKwKey();
+    if(!data[key]) data[key] = {};
+    return { data, key };
+  } catch { return { data: {}, key: getKwKey() }; }
+}
+
+function getKwKey() {
+  const now = new Date();
+  const start = new Date(now.getFullYear(), 0, 1);
+  const kw = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
+  return now.getFullYear() + '-W' + String(kw).padStart(2,'0');
+}
+
+function getTodayIdx() {
+  // Mo=0 … So=6
+  return (new Date().getDay() + 6) % 7;
+}
+
+function toggleWocheDay(idx) {
+  const { data, key } = getWocheData();
+  data[key][idx] = !data[key][idx];
+  localStorage.setItem(WOCHE_KEY, JSON.stringify(data));
+  renderWoche();
+}
+
+function renderWoche() {
+  const grid = document.getElementById('woche-grid');
+  const streakEl = document.getElementById('woche-streak');
+  if(!grid) return;
+  const { data, key } = getWocheData();
+  const week = data[key] || {};
+  const todayIdx = getTodayIdx();
+  let count = 0;
+
+  grid.innerHTML = TAGE.map((tag, i) => {
+    const posted = !!week[i];
+    const isToday = i === todayIdx;
+    if(posted) count++;
+    return `<div class="woche-day" onclick="toggleWocheDay(${i})">
+      <div class="woche-day-label">${tag}</div>
+      <div class="woche-day-dot ${posted ? 'posted' : isToday ? 'today empty' : 'empty'}"></div>
+    </div>`;
+  }).join('');
+
+  if(streakEl) {
+    if(count === 0) streakEl.innerHTML = 'Diese Woche noch kein Post. Heute wäre ein guter Start.';
+    else if(count === 1) streakEl.innerHTML = '<strong>1 Post</strong> diese Woche. Gut.';
+    else streakEl.innerHTML = `<strong>${count} Posts</strong> diese Woche — starke Woche.`;
+  }
+}
+
+function markHeuteGepostet() {
+  const { data, key } = getWocheData();
+  data[key][getTodayIdx()] = true;
+  localStorage.setItem(WOCHE_KEY, JSON.stringify(data));
+  renderWoche();
+}
+
+// ════════════════════════════════════════════
+// FEATURE 6: KANDIDATEN-SCHNELLERFASSUNG
+// ════════════════════════════════════════════
+const KANDIDATEN_KEY = 'ghd_kandidaten_v2';
+
+function ladeKandidaten() {
+  try { return JSON.parse(localStorage.getItem(KANDIDATEN_KEY)) || []; } catch { return []; }
+}
+
+function speichereKandidat(k) {
+  const liste = ladeKandidaten();
+  k.id = Date.now();
+  k.datum = new Date().toLocaleDateString('de-AT');
+  liste.unshift(k);
+  localStorage.setItem(KANDIDATEN_KEY, JSON.stringify(liste));
+}
+
+// ════════════════════════════════════════════
+// FEATURE 7: HEUTE-TAB INIT + EMPFEHLUNG
+// ════════════════════════════════════════════
+const HEUTE_EMPFEHLUNGEN = [
+  { tag: 'Heute empfohlen', title: 'Zeig einen echten Moment aus dem Salon', why: 'Authentische Einblicke bauen mehr Vertrauen als jede Werbung.', post: 'Heute im Salon — ein echter, ungestellter Moment.', story: 'Ein ruhiger Blick hinter die Kulissen.' },
+  { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Mazen, Alina, Hassan — Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
+  { tag: 'Heute empfohlen', title: 'Ein Ergebnis das dich stolz macht', why: 'Ergebnisse zeigen, was du kannst — ohne Erklärung.', post: 'Ein Ergebnis das heute fertig wurde.', story: 'Vorher / Nachher — oder nur das Ergebnis.' },
+  { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Schnell Termin → Rechte Wienzeile 47.' },
+  { tag: 'Heute empfohlen', title: 'Deine Haltung zu einem Thema', why: 'Eine klare Meinung macht dich erkennbar und menschlich.', post: 'Was mich gerade in unserem Handwerk beschäftigt.', story: 'Ein Satz der deine Haltung zeigt.' },
+];
+
+function initHeuteTab() {
+  // Empfehlung — täglich wechselnd
+  const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
+  const emp = HEUTE_EMPFEHLUNGEN[idx];
+  const wrap = document.getElementById('heute-emp-wrap');
+  if(wrap) {
+    wrap.innerHTML = `<div class="heute-empfehlung">
+      <div class="heute-emp-tag">✦ ${emp.tag}</div>
+      <div class="heute-emp-title">${emp.title}</div>
+      <div class="heute-emp-why">${emp.why}</div>
+      <div class="heute-emp-btns">
+        <button class="heute-emp-btn" onclick="heuteZuPost(${idx})">✍ Als Post</button>
+        <button class="heute-emp-btn" onclick="heuteZuStory(${idx})">📱 Als Story</button>
+      </div>
+    </div>`;
+  }
+  renderWoche();
+}
+
+function heuteZuPost(idx) {
+  const emp = HEUTE_EMPFEHLUNGEN[idx];
+  showTab_direct('screen-post');
+  setTimeout(() => {
+    const el = document.getElementById('post-moment');
+    if(el) { el.value = emp.post; el.dispatchEvent(new Event('input')); }
+  }, 150);
+}
+
+function heuteZuStory(idx) {
+  const emp = HEUTE_EMPFEHLUNGEN[idx];
+  showTab_direct('screen-story');
+  setTimeout(() => {
+    const el = document.getElementById('story-moment');
+    if(el) { el.value = emp.story; el.dispatchEvent(new Event('input')); }
+  }, 150);
+}
+
+// ════════════════════════════════════════════
+// RECHERCHE-TAB
+// ════════════════════════════════════════════
+let currentRcat = 'trends';
+
+function selectRcat(el, cat) {
+  document.querySelectorAll('.recherche-cat-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentRcat = cat;
+}
+
+async function startRecherche() {
+  const fokus = document.getElementById('recherche-fokus').value.trim();
+  const btn = document.getElementById('btn-recherche');
+  const area = document.getElementById('recherche-result-area');
+  const loading = document.getElementById('recherche-loading');
+  const list = document.getElementById('recherche-list');
+
+  const catConfig = {
+    trends: {
+      label: 'Friseur-Trends',
+      prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta (Friseurmeisterin, Wien).
+Recherchiere die aktuell relevantesten Friseur-Trends ${fokus ? 'mit Fokus auf: ' + fokus : '(Farbe, Schnitt, Pflege, Styling)'}.
+Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Jede Erkenntnis hat:
+- "tag": Kurzes Label (z.B. "Trend 2025", "Instagram-Trend")
+- "titel": Prägnanter Titel der Erkenntnis (max 60 Zeichen)
+- "text": 2–3 Sätze: Was ist der Trend, warum relevant, ein konkretes Beispiel
+- "postidee": Ein konkreter Moment/Anlass wie Mirjam das in ihrem Salon zeigen könnte (1 Satz)
+Antworte NUR mit dem JSON-Array.`
+    },
+    recruiting: {
+      label: 'Recruiting & Ausbildung',
+      prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta (Friseurmeisterin, Wien, Lehrlingsbetrieb).
+Recherchiere aktuelle Entwicklungen zu Fachkräftemangel, Lehrlingssuche und Arbeitgeberattraktivität im österreichischen Friseurhandwerk${fokus ? ', Fokus: ' + fokus : ''}.
+Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Jede Erkenntnis hat:
+- "tag": Kurzes Label (z.B. "Österreich 2025", "Lehrlingssituation")
+- "titel": Prägnanter Titel (max 60 Zeichen)
+- "text": 2–3 Sätze: Was ist die Entwicklung, warum wichtig für einen Wiener Salon
+- "postidee": Wie Mirjam das authentisch auf Instagram ansprechen könnte (1 Satz)
+Antworte NUR mit dem JSON-Array.`
+    },
+    wien: {
+      label: 'Wien & Margareten',
+      prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta (Friseurin, Rechte Wienzeile 47, 1050 Wien-Margareten).
+Recherchiere aktuelle lokale Themen, Ereignisse oder Entwicklungen in Wien / im 5. Bezirk die für einen Friseursalon relevant sein könnten${fokus ? ', Fokus: ' + fokus : ''}.
+Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Jede Erkenntnis hat:
+- "tag": Kurzes Label (z.B. "Wien aktuell", "Margareten")
+- "titel": Prägnanter Titel (max 60 Zeichen)
+- "text": 2–3 Sätze: Was passiert, warum relevant für lokalen Salon und seine Community
+- "postidee": Wie Mirjam das lokal-authentisch auf Instagram aufgreifen könnte (1 Satz)
+Antworte NUR mit dem JSON-Array.`
+    },
+    produkte: {
+      label: 'Produkte & Pflege',
+      prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta (Friseurmeisterin, Wien).
+Recherchiere aktuelle Trends bei Haarpflegeprodukten, Inhaltsstoffen und Behandlungen${fokus ? ', Fokus: ' + fokus : ''}.
+Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Jede Erkenntnis hat:
+- "tag": Kurzes Label (z.B. "Pflegetrend", "Inhaltsstoff")
+- "titel": Prägnanter Titel (max 60 Zeichen)
+- "text": 2–3 Sätze: Was ist der Trend, warum relevant, konkretes Beispiel (Produkt, Behandlung)
+- "postidee": Wie Mirjam das als echten Salon-Moment zeigen könnte (1 Satz)
+Antworte NUR mit dem JSON-Array.`
+    }
+  };
+
+  const cfg = catConfig[currentRcat];
+
+  // Loading-State
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni recherchiert …';
+  area.style.display = 'block';
+  loading.style.display = 'block';
+  list.innerHTML = '';
+
+  let items = null;
+  try {
+    const raw = await claudeAnfrage(cfg.prompt, fokus ? `Fokus: ${fokus}` : 'Allgemeine Recherche', 900);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      items = JSON.parse(clean);
+    }
+  } catch(e) { items = null; }
+
+  loading.style.display = 'none';
+
+  if(!items || !Array.isArray(items) || items.length === 0) {
+    list.innerHTML = `<div class="card" style="border-left:3px solid var(--gold-light);">
+      <div class="card-body">Wörni konnte gerade nicht recherchieren. Bitte versuche es nochmal oder prüfe deine Verbindung.</div>
+    </div>`;
+  } else {
+    list.innerHTML = items.map((item, i) => `
+      <div class="recherche-card">
+        <div class="recherche-card-tag">${item.tag || cfg.label}</div>
+        <div class="recherche-card-title">${item.titel || ''}</div>
+        <div class="recherche-card-body">${item.text || ''}</div>
+        ${item.postidee ? `<div style="margin-top:8px;padding:8px 10px;background:var(--gold-pale);border-radius:8px;font-size:12px;color:var(--mid);line-height:1.5;">
+          <strong style="color:var(--gold);">💡 Post-Idee:</strong> ${item.postidee}
+        </div>` : ''}
+        <div class="recherche-card-footer">
+          <button onclick="rechercheZuPost(${i})">✍ Als Post</button>
+          <button onclick="rechercheZuStory(${i})">📱 Als Story</button>
+        </div>
+      </div>
+    `).join('');
+    // Ergebnisse für Weiterleitung merken
+    window._rechercheItems = items;
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🔍 Nochmal recherchieren';
+  setTimeout(()=>area.scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+function rechercheZuPost(idx) {
+  const item = window._rechercheItems?.[idx];
+  if(!item) return;
+  showTab_direct('screen-post');
+  setTimeout(()=>{
+    const el = document.getElementById('post-moment');
+    el.value = item.postidee || item.titel || '';
+    el.dispatchEvent(new Event('input'));
+    el.focus();
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 150);
+}
+
+function rechercheZuStory(idx) {
+  const item = window._rechercheItems?.[idx];
+  if(!item) return;
+  showTab_direct('screen-story');
+  setTimeout(()=>{
+    const el = document.getElementById('story-moment');
+    el.value = item.postidee || item.titel || '';
+    el.dispatchEvent(new Event('input'));
+    el.focus();
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+  }, 150);
+}
+
+// ── Wörni / Claude – sicherer Proxy ──
+async function claudeAnfrage(system, userText, maxTokens) {
+  maxTokens = maxTokens || 400;
+  const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/dynamic-processor', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      model: 'claude-sonnet-4-6',
+      max_tokens: maxTokens,
+      system: system,
+      messages: [{ role: 'user', content: userText }]
+    })
+  });
+  const data = await res.json();
+  return data?.content?.[0]?.text || null;
+}
 initIdeas();
+initHeuteTab();
 msSyncLogos();
 initRahmenSprueche();
 </script>
@@ -2170,23 +2837,6 @@ initRahmenSprueche();
 </section>
 
 
-<script>
-// ── Wörni / Claude – sicherer Proxy ──
-async function claudeAnfrage(system, userText, maxTokens) {
-  maxTokens = maxTokens || 400;
-  const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/dynamic-processor', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      model: 'claude-sonnet-4-6',
-      max_tokens: maxTokens,
-      system: system,
-      messages: [{ role: 'user', content: userText }]
-    })
-  });
-  const data = await res.json();
-  return data?.content?.[0]?.text || null;
-}
-</script>
+
 </body>
 </html>

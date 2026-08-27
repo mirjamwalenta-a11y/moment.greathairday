@@ -2291,24 +2291,51 @@ function storyCheck() {
   document.getElementById('btn-story').disabled = document.getElementById('story-moment').value.trim().length < 5;
 }
 
+// Hilfsfunktion: extrahiert einen kurzen Hook aus dem Rohtext
+function storyHookAusText(m) {
+  let clean = m
+    .replace(/^hallo[\s,]*(ich brauche|wir brauchen|ich möchte)[^\n]*/i, '')
+    .replace(/^(wir|ich) (veranstalten|machen|haben|wollen)[^\n]*/i, '')
+    .trim();
+  const eventMatch = m.match(/käse|wein|verkostung|event|veranstaltung|abend|feier|seminar|workshop/i);
+  const datumMatch = m.match(/\d{1,2}\.\s?\d{1,2}\.?/);
+  if(eventMatch) {
+    const w = eventMatch[0];
+    return w.charAt(0).toUpperCase() + w.slice(1).toLowerCase() + (datumMatch ? ' · ' + datumMatch[0] : '');
+  }
+  if(clean.length > 10) return clean.split(/[.!?\n]/)[0].slice(0, 60);
+  return 'Ein besonderer Moment.';
+}
+
+function storyThemaAusText(m) {
+  const eventMatch = m.match(/(käse\w*|wein\w*|verkostung|netzwerk|haarnetzwerk|workshop|seminar)/i);
+  const ortMatch   = m.match(/(flyeralarm\s*lounge|rechte wienzeile|[1-9]\.\s*bezirk|[A-ZÄÖÜ][a-zäöüß]+\s*(lounge|bar|café|hotel|saal))/i);
+  const datumMatch = m.match(/\d{1,2}\.\s?\d{1,2}\.?/);
+  let thema = '';
+  if(eventMatch) thema += eventMatch[0];
+  if(ortMatch)   thema += (thema ? ' in der ' : 'In der ') + ortMatch[0];
+  if(datumMatch) thema += (thema ? ' am ' : 'Am ') + datumMatch[0];
+  return thema || 'Ein Moment, der zeigt, wer wir sind.';
+}
+
 const STORY_T = {
   emotional: {
     vertrauen: m => [
-      {label:'Einstieg', text:`„${m}"`, tip:'Großes Foto, Text groß darüber — kein Filter.'},
+      {label:'Einstieg', text: storyHookAusText(m), tip:'Großes Foto, Text groß darüber — kein Filter.'},
       {label:'Der Moment darunter', text:`Solche Momente passieren nicht zufällig.\nSie entstehen, wenn man seinen Job wirklich liebt.`, tip:'Kein Gesicht nötig — Stimmung reicht.'},
       {label:'Was das bedeutet', text:`Das ist der Grund, warum wir hier sind.\nNach 33 Jahren immer noch.`, tip:'Text auf hellem Hintergrund — ruhig und klar.'},
       {label:'Einladung', text:`Wenn du sowas auch erleben willst:\nDu weißt, wo wir sind.\nRechte Wienzeile 47.`, tip:'Adresse groß — klarer CTA.'},
       {label:'Abschluss', text:`A great hair day.\n→ Link in Bio für Termin`, tip:'Slide mit Logo oder Salon-Bild.'},
     ],
     reichweite: m => [
-      {label:'Hook', text:`Heute ist etwas passiert, das ich mit euch teilen möchte.`, tip:'Neugier wecken — kein Spoiler.'},
-      {label:'Der Moment', text:`${m}`, tip:'Foto dazu, wenn möglich.'},
+      {label:'Hook', text: storyHookAusText(m), tip:'Neugier wecken — kein Spoiler.'},
+      {label:'Der Moment', text: storyThemaAusText(m), tip:'Foto dazu, wenn möglich.'},
       {label:'Warum es mich bewegt', text:`Genau deshalb mache ich diesen Job seit über 30 Jahren.`, tip:'Persönlich und echt.'},
       {label:'Was ihr tun könnt', text:`Teilt das, wenn ihr das kennt.\nOder schreibt mir — ich bin neugierig auf eure Geschichten.`, tip:'Engagement fördern.'},
       {label:'Abschluss', text:`A great hair day.`, tip:'Ruhiger Abschluss.'},
     ],
     termin: m => [
-      {label:'Einstieg', text:`${m}`, tip:'Bild des Ergebnisses oder Moments.'},
+      {label:'Einstieg', text: storyHookAusText(m), tip:'Bild des Ergebnisses oder Moments.'},
       {label:'Was steckt dahinter', text:`So sieht Qualität aus, wenn man sich wirklich Zeit nimmt.`, tip:'Text auf ruhigem Hintergrund.'},
       {label:'Für wen das ist', text:`Für alle, die wissen, dass gutes Haar kein Zufall ist.`, tip:'Identifikation ermöglichen.'},
       {label:'Einladung', text:`Wenn du das willst: Wir haben noch Termine diese Woche.\nRechte Wienzeile 47 · 01 5863130`, tip:'Konkreter CTA.'},
@@ -2316,14 +2343,13 @@ const STORY_T = {
     ],
     lehrling: m => [
       {label:'Einstieg', text:`Was macht eine gute Ausbildung aus?`, tip:'Frage als Einstieg.'},
-      {label:'Was wir glauben', text:`${m}`, tip:'Authentisch und direkt.'},
+      {label:'Was wir glauben', text: storyThemaAusText(m) || 'Lernen passiert nicht im Lehrbuch. Sondern im echten Moment.', tip:'Authentisch und direkt.'},
       {label:'Was das bedeutet', text:`Das ist nicht selbstverständlich. Aber es ist unser Anspruch.`, tip:'Haltung zeigen.'},
       {label:'Für wen das ist', text:`Wenn du nach der Schule nicht weißt, wo du hingehörst — vielleicht passt du zu uns.`, tip:'Direkte Ansprache.'},
       {label:'Abschluss', text:`Einfach melden.\nDM oder 01 5863130.`, tip:'Niedrigschwelliger CTA.'},
     ],
   }
 };
-
 async function generateStory() {
   const m = document.getElementById('story-moment').value.trim();
   if(m.length < 5) return;
@@ -2351,6 +2377,12 @@ Stimmung: ${moodMap[mood] || 'emotional und nah'}
 Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
 
 Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. Der letzte Frame endet immer mit "A great hair day." oder der Adresse.
+
+WICHTIG — Input-Verarbeitung:
+- Der Input kann ein rohes Sprach-Diktat sein. Gib diesen Rohtext NIEMALS direkt als Frame-Text aus.
+- Extrahiere: Event-Name, Datum, Ort, Thema — und baue daraus eigenständige saubere Frame-Texte.
+- Frame 1 ist immer eine kurze einladende Überschrift — nie ein Diktat oder eine Anfrage.
+- Wenn es sich um ein Event handelt: alle 5 Frames müssen auf dieses spezifische Event eingehen.
 
 Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Format:
 [{"label":"Einstieg","text":"...","tip":"...","overlay":"...","sticker":""},...]`;

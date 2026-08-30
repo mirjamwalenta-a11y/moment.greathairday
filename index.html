@@ -6,6 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Reichweite">
 <title>Reichweite – A Great Hair Day</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
@@ -38,6 +39,16 @@
     max-width: 430px;
     margin: 0 auto;
   }
+
+  /* ── LOGIN ── */
+  .login-gate { display: flex; position: fixed; inset: 0; background: var(--bg); z-index: 999; flex-direction: column; align-items: center; justify-content: center; max-width: 430px; margin: 0 auto; padding: 20px; }
+  .login-gate.hidden { display: none; }
+  .login-brand { font-size: 20px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
+  .login-sub { font-size: 13px; color: var(--soft); margin-bottom: 28px; }
+  .login-input { width: 100%; max-width: 280px; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid #e8e4dc; background: var(--white); font-size: 16px; font-family: inherit; color: var(--black); outline: none; text-align: center; display: block; margin-bottom: 10px; }
+  .login-error { display: none; color: #b3392c; font-size: 12px; font-weight: 600; margin-top: 4px; margin-bottom: 12px; text-align: center; }
+  .login-btn { background: var(--gold); color: #fff; border: none; border-radius: var(--radius-sm); padding: 13px 32px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 8px; }
+  .logout-link { background: none; border: none; font-size: 12px; color: var(--soft); cursor: pointer; text-decoration: underline; }
 
   /* ── HEADER ── */
   .app-header {
@@ -1093,9 +1104,23 @@
 </head>
 <body>
 
+<!-- LOGIN -->
+<div class="login-gate" id="login-gate">
+  <div class="login-brand">Reichweite</div>
+  <div class="login-sub">Anmelden zum Fortfahren</div>
+  <input type="email" id="loginEmail" class="login-input" placeholder="E-Mail"
+    onkeydown="if(event.key==='Enter')document.getElementById('loginPw').focus()"/>
+  <input type="password" id="loginPw" class="login-input" placeholder="Passwort"
+    onkeydown="if(event.key==='Enter')loginMitSupabase()"
+    oninput="document.getElementById('loginFehler').style.display='none'"/>
+  <div id="loginFehler" class="login-error">Falsche E-Mail oder Passwort — bitte nochmal versuchen.</div>
+  <button class="login-btn" onclick="loginMitSupabase()" id="loginBtn">Einloggen</button>
+</div>
+
 <!-- ══ HEADER ══ -->
 <header class="app-header">
   <div class="header-logo">Reichweite <span>· A Great Hair Day</span></div>
+  <button class="logout-link" onclick="abmelden()">Abmelden</button>
   <div class="header-back" id="backBtn" onclick="goBack()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Zurück
@@ -1850,6 +1875,55 @@
 </section>
 
 <script>
+// ════════════════════════════════════════════
+// AUTH
+// ════════════════════════════════════════════
+const AUTH_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+const AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
+const AUTH_CLIENT = supabase.createClient(AUTH_URL, AUTH_KEY);
+
+async function loginMitSupabase() {
+  const email = document.getElementById('loginEmail').value.trim();
+  const pw    = document.getElementById('loginPw').value;
+  if (!email || !pw) return;
+  const btn = document.getElementById('loginBtn');
+  btn.textContent = 'Wird geprüft…';
+  btn.disabled = true;
+  const { data, error } = await AUTH_CLIENT.auth.signInWithPassword({ email, password: pw });
+  btn.textContent = 'Einloggen';
+  btn.disabled = false;
+  if (error) {
+    document.getElementById('loginFehler').style.display = 'block';
+    document.getElementById('loginPw').value = '';
+    document.getElementById('loginPw').focus();
+    return;
+  }
+  document.getElementById('login-gate').classList.add('hidden');
+  starteApp();
+}
+
+async function abmelden() {
+  await AUTH_CLIENT.auth.signOut();
+  location.reload();
+}
+
+function starteApp() {
+  initIdeas();
+  initHeuteTab();
+  msSyncLogos();
+  initRahmenSprueche();
+}
+
+// Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
+(async function() {
+  const { data } = await AUTH_CLIENT.auth.getSession();
+  if (data && data.session) {
+    document.getElementById('login-gate').classList.add('hidden');
+    starteApp();
+  }
+  // sonst: login-gate bleibt sichtbar (Standard), App startet erst nach loginMitSupabase()
+})();
+
 // ════════════════════════════════════════════
 // STATE
 // ════════════════════════════════════════════
@@ -3414,11 +3488,13 @@ function rechercheZuStory(idx) {
 async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
   try {
-    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
+    const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
+    const token = sessionData?.session?.access_token || AUTH_KEY;
+    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cmxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMTQ2MzIsImV4cCI6MjA2MTU5MDYzMn0.YaGBmLpMpLCFHJmORKKkR9GKLyOKjVj_bWCIjXJwK8s'
+        'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
@@ -3767,11 +3843,13 @@ function handleFotoAnalyse(input) {
 
 async function analysiereFoto(base64, mediaType) {
   try {
-    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-service', {
+    const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
+    const token = sessionData?.session?.access_token || AUTH_KEY;
+    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Ind4cmxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDYwMTQ2MzIsImV4cCI6MjA2MTU5MDYzMn0.YaGBmLpMpLCFHJmORKKkR9GKLyOKjVj_bWCIjXJwK8s'
+        'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-6',
@@ -3934,10 +4012,7 @@ function copySectionBlock(sourceId, btnId) {
   });
 }
 
-initIdeas();
-initHeuteTab();
-msSyncLogos();
-initRahmenSprueche();
+// Start läuft jetzt gebündelt in starteApp() weiter oben, erst nach Login
 </script>
 </body>
 </html>

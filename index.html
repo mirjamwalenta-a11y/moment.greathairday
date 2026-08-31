@@ -3571,19 +3571,30 @@ async function claudeAnfrage(system, userText, maxTokens) {
   try {
     const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
     const token = sessionData?.session?.access_token || AUTH_KEY;
-    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
-        max_tokens: maxTokens,
-        system: system,
-        messages: [{ role: 'user', content: userText }]
-      })
-    });
+    // Zeitlimit, damit eine ausbleibende Antwort wie ein normaler Fehlschlag behandelt
+    // wird (bestehender Rückfall auf feste Texte greift) statt den Button dauerhaft zu blockieren.
+    const timeoutMs = 20000;
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    let res;
+    try {
+      res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          model: 'claude-sonnet-4-6',
+          max_tokens: maxTokens,
+          system: system,
+          messages: [{ role: 'user', content: userText }]
+        }),
+        signal: controller.signal
+      });
+    } finally {
+      clearTimeout(timeoutId);
+    }
     if(!res.ok) return null;
     const data = await res.json();
     return data?.content?.[0]?.text || null;

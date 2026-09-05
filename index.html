@@ -3340,17 +3340,35 @@ function renderWoche() {
 // Nutzt denselben zentralen Ereigniskanal wie Belege/Checkliste (ghd_ereignisse) — keine
 // neue Struktur. Ab 1 Post gilt die Woche als sichtbar — dann kein Signal (wie im Text oben:
 // "1 Post — Gut."). Kein eigener Schwellenwert erfunden, nur die bestehende Regel gemeldet.
+let meldeReichweiteLueckeLaeuft = false; // Schutz gegen überlappende Aufrufe (z. B. schnelles Tab-Wechseln) —
+// ohne diese Sperre können zwei fast gleichzeitige Aufrufe beide "kein bestehendes Ereignis" sehen und
+// beide eins anlegen; das war die Ursache der Dubletten.
 async function meldeReichweiteLuecke(count) {
+  if (meldeReichweiteLueckeLaeuft) return;
+  meldeReichweiteLueckeLaeuft = true;
   try {
-    if (count > 0) return;
     const gh = { 'apikey': AUTH_KEY, 'Authorization': 'Bearer ' + AUTH_KEY, 'Content-Type': 'application/json' };
-    const titel = 'Diese Woche noch kein Post veröffentlicht';
-    // Mo–Mi (idx 0–2): früher Hinweis. Ab Do (idx ≥3): Sichtbarkeit bleibt mehrere Tage aus.
-    const prioritaet = getTodayIdx() >= 3 ? 'heute' : 'diese-woche';
-    // order=erstellt_am.desc: das neueste bestehende Ereignis wird aktualisiert,
+    // order=erstellt_am.desc: das neueste bestehende Ereignis wird ggf. aktualisiert,
     // etwaige weitere (bereits doppelt entstandene) werden unten aufgeräumt.
     const check = await fetch(AUTH_URL + '/rest/v1/ghd_ereignisse?app=eq.Reichweite&typ=eq.reichweite_luecke&gelesen=eq.false&select=id&order=erstellt_am.desc', { headers: gh });
     const existing = await check.json();
+
+    if (count > 0) {
+      // Woche ist wieder sichtbar — noch offene Hinweise dazu als gelesen markieren, statt sie stehen zu lassen
+      if (Array.isArray(existing) && existing.length > 0) {
+        const alleIds = existing.map(e => e.id).join(',');
+        await fetch(AUTH_URL + '/rest/v1/ghd_ereignisse?id=in.(' + alleIds + ')', {
+          method: 'PATCH', headers: { ...gh, 'Prefer': 'return=minimal' },
+          body: JSON.stringify({ gelesen: true })
+        });
+      }
+      return;
+    }
+
+    const titel = 'Diese Woche noch kein Post veröffentlicht';
+    // Mo–Mi (idx 0–2): früher Hinweis. Ab Do (idx ≥3): Sichtbarkeit bleibt mehrere Tage aus.
+    const prioritaet = getTodayIdx() >= 3 ? 'heute' : 'diese-woche';
+
     if (Array.isArray(existing) && existing.length > 0) {
       const neuestesId = existing[0].id;
       await fetch(AUTH_URL + '/rest/v1/ghd_ereignisse?id=eq.' + neuestesId, {
@@ -3372,6 +3390,7 @@ async function meldeReichweiteLuecke(count) {
       });
     }
   } catch(e) { console.warn('Wörni-Ereignis Reichweite:', e); }
+  finally { meldeReichweiteLueckeLaeuft = false; }
 }
 
 function markHeuteGepostet() {

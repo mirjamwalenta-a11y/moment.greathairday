@@ -177,6 +177,7 @@
     text-transform: uppercase;
     color: var(--soft);
     margin-bottom: 6px;
+    text-align: center;
   }
   .start-headline {
     font-size: 22px;
@@ -184,12 +185,14 @@
     color: var(--black);
     line-height: 1.25;
     margin-bottom: 6px;
+    text-align: center;
   }
   .start-sub {
     font-size: 14px;
     color: var(--mid);
     line-height: 1.5;
     margin-bottom: 28px;
+    text-align: center;
   }
   .goal-card-primary {
     background: var(--black);
@@ -1187,23 +1190,35 @@
 <section class="screen active" id="screen-start">
   <p class="start-eyebrow">Was ist gerade dran?</p>
   <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
-  <p class="start-sub">Wähle dein Ziel — alles Weitere kommt von selbst.</p>
+  <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
 
-  <div class="goal-card-primary" onclick="showScreen('screen-zeigen')">
-    <div class="card-badge">Deine Priorität jetzt</div>
-    <div class="card-title">Ich will Mitarbeiter:innen anziehen</div>
-    <div class="card-desc">Zeig, wie es bei euch wirklich ist — und lass die richtigen Menschen von selbst auf dich zukommen.</div>
-    <div class="card-arrow">
-      Los geht's
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
+  <div class="goal-card-secondary" onclick="showTab_direct('screen-post')">
+    <div class="sec-left">
+      <div class="sec-label">Schnellster Weg</div>
+      <div class="sec-title">Ich will heute sichtbar werden</div>
+      <div class="sec-desc">Ein echter Moment aus dem Salon — sofort ein Text zum Posten.</div>
+    </div>
+    <div class="sec-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
     </div>
   </div>
 
-  <div class="goal-card-secondary" onclick="showScreen('screen-neukunden')">
+  <div class="goal-card-secondary" onclick="showScreen('screen-zeigen')">
     <div class="sec-left">
-      <div class="sec-label">Auch möglich</div>
-      <div class="sec-title">Ich will Neukund:innen gewinnen</div>
-      <div class="sec-desc">Aus einem echten Moment sichtbares Interesse machen.</div>
+      <div class="sec-label">Recruiting</div>
+      <div class="sec-title">Ich will Mitarbeiter:innen anziehen</div>
+      <div class="sec-desc">Zeig, wie es bei euch wirklich ist — und lass die richtigen Menschen von selbst auf dich zukommen.</div>
+    </div>
+    <div class="sec-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
+  <div class="goal-card-secondary" onclick="generateOutput('freier-termin')">
+    <div class="sec-left">
+      <div class="sec-label">Termine</div>
+      <div class="sec-title">Ich will einen freien Termin füllen</div>
+      <div class="sec-desc">Schnell raus, direkt buchbar.</div>
     </div>
     <div class="sec-arrow">
       <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
@@ -1212,7 +1227,7 @@
 
   <div style="margin-top:10px; text-align:center;">
     <button onclick="showTabNav()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">
-      Zu Hook · Post · Story · Ideen · Rahmen →
+      Werkbank öffnen: Hook · Post · Story · Reel · CTA · Ideen · Rahmen · Recherche · Foto/Video · Planer →
     </button>
   </div>
 </section>
@@ -1391,6 +1406,11 @@
       <span class="heute-quick-label">Goldrahmen</span>
       <span class="heute-quick-sub">Bild für Story</span>
     </div>
+    <div class="heute-quick-card" onclick="showScreen('screen-neukunden')">
+      <span class="heute-quick-icon">🗓️</span>
+      <span class="heute-quick-label">Weitere Neukund:innen-Anlässe</span>
+      <span class="heute-quick-sub">Ergebnis, Haarproblem, Behandlung, u.a.</span>
+    </div>
   </div>
 </section>
 
@@ -1535,6 +1555,11 @@
     </div>
     <button class="btn-zu-rahmen" onclick="postZuRahmen()">🖼️ Text in Goldrahmen übernehmen</button>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('post-result','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('post-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
   </div>
 </section>
 
@@ -1575,6 +1600,11 @@
     <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 5 Story-Frames</p>
     <div class="story-list" id="story-list"></div>
     <button class="btn-ghost-sm" onclick="generateStory()">↺ Neue Variante</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('story-result','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('story-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
   </div>
 </section>
 
@@ -1630,6 +1660,11 @@
       </div>
     </div>
     <button class="btn-ghost-sm" onclick="generateReel()">↺ Neue Variante</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('reel-result','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('reel-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
   </div>
 </section>
 
@@ -1842,6 +1877,33 @@
     <div id="edit-modal-list"></div>
     <button class="btn-add" onclick="addEditItem()">+ Neuen Eintrag hinzufügen</button>
     <button class="btn-save" onclick="saveEditModal()">✅ Speichern</button>
+  </div>
+</div>
+
+<!-- ══ TEAM-STIMMEN MODAL (Feature 8, eigenständig) ══ -->
+<div class="modal-overlay" id="modal-stimmen">
+  <div class="modal-inner">
+    <div class="modal-head">
+      <div class="modal-title">Team-Stimmen</div>
+      <button class="modal-close" onclick="closeStimmenModal()">✕</button>
+    </div>
+    <div class="card" style="margin-bottom:12px;">
+      <div class="card-body">Echte Sätze von echten Leuten aus dem Team — werden bei passenden Recruiting-Anlässen als Vorschlag angezeigt. Nichts hier wird erfunden.</div>
+    </div>
+    <div id="stimmen-modal-list"></div>
+    <div class="kandidat-pre-form" style="margin-top:14px;">
+      <div class="input-label">Wer sagt das?</div>
+      <input type="text" id="stimme-person" class="login-input" placeholder="z.B. Mazen, Alina, Ronya..." style="max-width:100%;text-align:left;">
+      <div class="input-label">Was wurde gesagt?</div>
+      <textarea id="stimme-text" class="login-input" rows="3" style="max-width:100%;text-align:left;" placeholder="Der echte Satz, so wie er gesagt wurde..."></textarea>
+      <div class="input-label">Passt eher zu</div>
+      <select id="stimme-bezug" class="login-input" style="max-width:100%;text-align:left;">
+        <option value="">Team &amp; Lehrling</option>
+        <option value="Team">Eher Team</option>
+        <option value="Lehrling">Eher Lehrling</option>
+      </select>
+    </div>
+    <button class="btn-add" onclick="stimmeHinzufuegen()">+ Stimme speichern</button>
   </div>
 </div>
 
@@ -2176,9 +2238,15 @@ function generateOutput(key) {
         ✏️ Bearbeiten
       </button>
     </div>
+    ${isR ? stimmenVorschlagHtml(key) : ''}
     <div class="cta-suggestion">
       <strong>Nächster Schritt:</strong> Text kopieren → auf Instagram, Facebook oder WhatsApp einfügen → Foto dazu → fertig.
-    </div>`;
+    </div>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('output-container','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('output-container','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>`;
   document.getElementById('output-container').innerHTML = html;
   showScreen('screen-output');
 }
@@ -3314,6 +3382,38 @@ function markHeuteGepostet() {
 }
 
 // ════════════════════════════════════════════
+// FEATURE 9: ABSCHLUSSENTSCHEIDUNG „GEPOSTET / SPÄTER"
+// ════════════════════════════════════════════
+// Kleiner Verbindlichkeits-Schritt direkt unter fertigen Outputs (Post,
+// Story, Reel, Heute-/Recruiting-/Neukunden-Anlässe). Kein neues Tracking:
+// "Gepostet" nutzt die bereits vorhandene Wochenlogik (WOCHE_KEY /
+// markHeuteGepostet) mit — dieselbe, die auch die Wochenpunkte im Planer
+// und die Wörni-Ereignis-Meldung steuert. "Später" ist rein visuell,
+// speichert nichts Neues und erzeugt keine Erinnerung. Der Zustand gehört
+// nur zur aktuell sichtbaren Ausgabe und verschwindet automatisch, sobald
+// eine neue Variante generiert wird (der Container wird dann neu befüllt).
+function abschlussEntscheidung(containerId, status, btn) {
+  const row = btn.closest('.abschluss-row');
+  if (row) row.querySelectorAll('button').forEach(b => {
+    b.classList.remove('copied');
+    b.style.background = ''; b.style.borderColor = ''; b.style.color = '';
+  });
+  const wrap = document.getElementById(containerId);
+  const hint = wrap ? wrap.querySelector('.abschluss-hint') : null;
+  if (status === 'gepostet') {
+    btn.classList.add('copied');
+    markHeuteGepostet();
+    if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
+  } else {
+    btn.style.background = 'var(--gold-pale)';
+    btn.style.borderColor = 'var(--gold)';
+    btn.style.color = 'var(--gold)';
+    if (hint) hint.textContent = 'Später vorgemerkt — kein Druck, kein Reminder.';
+  }
+  if (hint) hint.style.display = 'block';
+}
+
+// ════════════════════════════════════════════
 // FEATURE 6: KANDIDATEN-SCHNELLERFASSUNG
 // ════════════════════════════════════════════
 const KANDIDATEN_KEY = 'ghd_kandidaten_v2';
@@ -3328,6 +3428,125 @@ function speichereKandidat(k) {
   k.datum = new Date().toLocaleDateString('de-AT');
   liste.unshift(k);
   localStorage.setItem(KANDIDATEN_KEY, JSON.stringify(liste));
+}
+
+// ════════════════════════════════════════════
+// FEATURE 8: ECHTE TEAM-STIMMEN BEI RECRUITING
+// ════════════════════════════════════════════
+// Zeigt bei Recruiting-Anlässen 1-3 echte, selbst gespeicherte Team-Zitate
+// vor. Keine erfundenen Texte — nur was hier manuell eingetragen wurde.
+const STIMMEN_KEY = 'ghd_team_stimmen';
+const LEHRLING_ANLAESSE = ['lernmoment','lehrling-alltag','lehrling-warum','lehrling-direkt'];
+
+function ladeTeamStimmen() {
+  try { return JSON.parse(localStorage.getItem(STIMMEN_KEY)) || []; } catch { return []; }
+}
+
+function speichereTeamStimme(s) {
+  const liste = ladeTeamStimmen();
+  s.id = Date.now();
+  liste.unshift(s);
+  localStorage.setItem(STIMMEN_KEY, JSON.stringify(liste));
+  return liste;
+}
+
+function teamStimmeLoeschen(id) {
+  const liste = ladeTeamStimmen().filter(s => s.id !== id);
+  localStorage.setItem(STIMMEN_KEY, JSON.stringify(liste));
+  renderStimmenListe();
+}
+
+// Wählt bis zu 3 passende Stimmen für einen Anlass. "Lehrling"-Anlässe
+// bevorzugen mit "Lehrling" markierte Stimmen, alle anderen Recruiting-
+// Anlässe bevorzugen "Team"-Stimmen. Unmarkierte ("Beides") passen immer.
+// Ist noch gar keine Stimme gespeichert, wird nichts angezeigt.
+function passendeStimmen(key) {
+  const alle = ladeTeamStimmen();
+  if (!alle.length) return [];
+  const gruppe = LEHRLING_ANLAESSE.includes(key) ? 'Lehrling' : 'Team';
+  const treffer = alle.filter(s => s.bezug === gruppe);
+  const allgemein = alle.filter(s => !s.bezug);
+  const rest = alle.filter(s => s.bezug && s.bezug !== gruppe);
+  return [...treffer, ...allgemein, ...rest].slice(0, 3);
+}
+
+function stimmenVorschlagHtml(key) {
+  const treffer = passendeStimmen(key);
+  if (!treffer.length) {
+    return `<div style="text-align:right;margin:2px 0 12px;">
+      <button onclick="openStimmenModal('${key}')" style="background:none;border:none;font-size:11px;color:var(--gold);font-weight:600;cursor:pointer;font-family:var(--f);text-decoration:underline;">
+        💬 Team-Stimmen hinzufügen
+      </button>
+    </div>`;
+  }
+  const items = treffer.map(s => `
+    <div class="output-meta-row" style="align-items:flex-start;">
+      <span class="meta-icon">💬</span>
+      <span class="meta-text" style="flex:1;">
+        <em>„${s.text}“</em> — ${s.person}<br>
+        <button class="copy-sm" id="stimme-btn-${s.id}" onclick="stimmeUebernehmen(${s.id})">Übernehmen</button>
+      </span>
+    </div>`).join('');
+  return `
+    <div class="card" style="background:var(--gold-pale);border-left:3px solid var(--gold);">
+      <div class="card-tag">Echte Team-Stimmen</div>
+      ${items}
+      <div style="text-align:right;margin-top:6px;">
+        <button onclick="openStimmenModal('${key}')" style="background:none;border:none;font-size:11px;color:var(--gold);font-weight:600;cursor:pointer;font-family:var(--f);text-decoration:underline;">
+          🗂 verwalten
+        </button>
+      </div>
+    </div>`;
+}
+
+// Fügt die Stimme sauber an das bestehende, bereits editierbare Textfeld an —
+// keine Parallelstruktur, keine zweite Textquelle.
+function stimmeUebernehmen(id) {
+  const el = document.getElementById('output-text-main');
+  const s = ladeTeamStimmen().find(x => x.id === id);
+  if (!el || !s) return;
+  el.textContent = el.textContent.replace(/\s+$/,'') + '\n\n„' + s.text + '“ — ' + s.person;
+  const btn = document.getElementById('stimme-btn-' + id);
+  if (btn) { btn.textContent = '✓ Übernommen'; btn.classList.add('done'); }
+}
+
+let stimmenModalKey = '';
+function openStimmenModal(key) {
+  stimmenModalKey = key || '';
+  renderStimmenListe();
+  document.getElementById('modal-stimmen').style.display = 'block';
+  window.scrollTo(0,0);
+}
+function closeStimmenModal() {
+  document.getElementById('modal-stimmen').style.display = 'none';
+  // Vorschlag im Hintergrund aktualisieren, falls gerade etwas hinzugefügt/gelöscht wurde
+  if (stimmenModalKey && outputs[stimmenModalKey]) generateOutput(stimmenModalKey);
+}
+
+function renderStimmenListe() {
+  const alle = ladeTeamStimmen();
+  document.getElementById('stimmen-modal-list').innerHTML = alle.length
+    ? alle.map(s => `
+      <div class="modal-item" style="flex-direction:column;align-items:flex-start;">
+        <div style="display:flex;justify-content:space-between;width:100%;">
+          <strong style="font-size:13px;">${s.person}${s.bezug ? ' · ' + s.bezug : ''}</strong>
+          <button class="modal-item-del" onclick="teamStimmeLoeschen(${s.id})">✕</button>
+        </div>
+        <div style="font-size:13px;color:var(--mid);margin-top:2px;">„${s.text}“</div>
+      </div>`).join('')
+    : '<div class="card-body" style="color:var(--soft);">Noch keine Team-Stimmen gespeichert.</div>';
+}
+
+function stimmeHinzufuegen() {
+  const person = document.getElementById('stimme-person').value.trim();
+  const text = document.getElementById('stimme-text').value.trim();
+  const bezug = document.getElementById('stimme-bezug').value;
+  if (!person || !text) return;
+  speichereTeamStimme({ person, text, bezug });
+  document.getElementById('stimme-person').value = '';
+  document.getElementById('stimme-text').value = '';
+  document.getElementById('stimme-bezug').value = '';
+  renderStimmenListe();
 }
 
 // ════════════════════════════════════════════

@@ -2740,60 +2740,117 @@ function flowRestart() {
 // ════════════════════════════════════════════
 // EINSTIEGE FINDEN
 // Keine "Hooks" im Creator-Sinn, und kein Themenlabel wird roh in
-// einen Satz eingesetzt. Stattdessen: Bereich → konkreter Moment
-// (fertig als echte Szene formuliert, keine Platzhalter-Einsetzung)
-// + Wirkung (bestimmt die Abschlusszeile). Jede Kombination ist
-// gegen die 5 Ausschlussregeln geprüft: kein rohes Themenlabel,
-// keine Satzschablone mit Platzhalter, kein Satz ohne beobachtbaren
+// einen Satz eingesetzt. Bereich → konkreter Moment → Wirkung.
+// Pro Moment gibt es drei fertig geschriebene, eigenständige
+// Einstiege aus drei verschiedenen Blickwinkeln (interne
+// Schreibhilfe, nicht im UI sichtbar):
+//   1. Beobachtung — was man in dem Moment konkret sieht
+//   2. Bedeutung   — was der Moment über Arbeit/Haltung zeigt
+//   3. Atmosphäre  — wie sich der Moment anfühlt
+// Das ist keine Variation im Nachsatz, sondern drei komplett
+// eigenständige Sätze — jeder muss für sich allein natürlich klingen.
+// Die Wirkung wählt eine von zwei Stimmungsfamilien (ruhig/warm),
+// die alle drei Blickwinkel gleichermaßen einfärbt, statt nur einen
+// Nachsatz anzuhängen. Jede Kombination ist gegen die 5
+// Ausschlussregeln geprüft: kein rohes Themenlabel, keine
+// Satzschablone mit Platzhalter, kein Satz ohne beobachtbaren
 // Moment, kein Creator-/Coaching-Ton, muss unter ein spontanes Foto
 // passen.
 // ════════════════════════════════════════════
 const HOOK_BEREICHE = {
   lehrling: { label:'Lehrling', momente:[
-    { key:'technik', label:'übt eine Technik', text:'Heute wird eine Technik so lange geübt, bis sie sicher sitzt.' },
-    { key:'anleitung', label:'bekommt Anleitung', text:'Ein Handgriff wird in Ruhe erklärt, Schritt für Schritt.' },
-    { key:'fortschritt', label:'macht Fortschritte', text:'Ein kleiner Fortschritt, den man heute sofort gesehen hat.' },
+    { key:'technik', label:'übt eine Technik', varianten:{
+      ruhig: ['Immer wieder derselbe Griff, bis er von selbst sitzt.', 'Nicht jeder Handgriff gelingt beim ersten Mal — genau deshalb wird geübt.', 'Stille Konzentration, mehr braucht es für diesen Schritt nicht.'],
+      warm: ['Wieder ein Griff, der heute zum ersten Mal richtig gesessen ist.', 'Genau an solchen Momenten sieht man, wie Können bei uns wächst.', 'Man merkt richtig, wie viel Freude in so einem kleinen Fortschritt steckt.'],
+    }},
+    { key:'anleitung', label:'bekommt Anleitung', varianten:{
+      ruhig: ['Ein Handgriff nach dem anderen, ruhig erklärt und sauber gezeigt.', 'Heute ging es nicht um Tempo, sondern darum, dass die Bewegung wirklich sitzt.', 'Lernen schaut bei uns oft genau so aus: konzentriert, ruhig und ganz nah dran.'],
+      warm: ['Schritt für Schritt gezeigt, bis jede Bewegung von selbst kommt.', 'Genau so geben wir hier Wissen weiter — mit Zeit statt mit Druck.', 'Ein Moment, in dem man richtig spürt, wie viel Geduld im Handwerk steckt.'],
+    }},
+    { key:'fortschritt', label:'macht Fortschritte', varianten:{
+      ruhig: ['Ein kleiner Schritt weiter als noch letzte Woche.', 'Fortschritt zeigt sich bei uns selten laut, meistens nur in kleinen Details.', 'Ruhig, aber spürbar — genau so fühlt sich Weiterkommen an.'],
+      warm: ['Heute saß etwas zum ersten Mal, das letzte Woche noch schwerfiel.', 'Genau diese kleinen Fortschritte sind es, die Ausbildung bei uns ausmachen.', 'Ein Moment mit echtem Stolz, auch wenn er nur kurz war.'],
+    }},
   ]},
   team: { label:'Team', momente:[
-    { key:'ruhig', label:'ruhiger Arbeitsmoment', text:'Ein ruhiger Moment mitten in der Arbeit, ganz ohne Eile.' },
-    { key:'handgriff', label:'sicherer Handgriff', text:'Ein Handgriff, der so sicher sitzt, dass man ihn kaum bemerkt.' },
-    { key:'stimmung', label:'gute Stimmung im Team', text:'Ein kurzer Lacher zwischen zwei Terminen, mehr braucht es manchmal nicht.' },
+    { key:'ruhig', label:'ruhiger Arbeitsmoment', varianten:{
+      ruhig: ['Ein kurzer stiller Moment mitten im Arbeiten.', 'Gerade in solchen ruhigen Augenblicken merkt man, wie ein Tag bei uns wirklich läuft.', 'Kein großer Moment, aber genau einer von denen, die wir an unserem Alltag mögen.'],
+      warm: ['Kurz nichts zu tun, mitten im vollen Terminplan.', 'Auch solche Pausen gehören zu einem guten Team dazu.', 'Ein kleiner Moment zum Durchatmen, bevor es weitergeht.'],
+    }},
+    { key:'handgriff', label:'sicherer Handgriff', varianten:{
+      ruhig: ['Ein Griff, der so oft geübt wurde, dass er wie von selbst passiert.', 'Routine sieht bei uns nicht nach Eile aus, sondern nach Sicherheit.', 'Ruhige Hände, ruhiger Kopf — mehr braucht so ein Moment nicht.'],
+      warm: ['Man sieht sofort, wie oft dieser Griff schon gesessen hat.', 'Genau das macht Erfahrung aus: Dinge, die man gar nicht mehr erklären muss.', 'Ein kleiner Moment, der Vertrauen schafft, ganz ohne große Worte.'],
+    }},
+    { key:'stimmung', label:'gute Stimmung im Team', varianten:{
+      ruhig: ['Ein kurzer Lacher zwischen zwei Terminen.', 'Gute Stimmung entsteht bei uns nebenbei, nicht auf Kommando.', 'Locker, echt und ganz ohne Anlass — so ist es bei uns oft.'],
+      warm: ['Mitten im Trubel war kurz Zeit für einen gemeinsamen Lacher.', 'Genau solche Momente zeigen, wie gern wir hier zusammenarbeiten.', 'Ein kleiner Moment, der den ganzen Tag ein bisschen leichter macht.'],
+    }},
   ]},
   kundin: { label:'Kundin', momente:[
-    { key:'spiegel', label:'letzter Blick in den Spiegel', text:'Der letzte Blick in den Spiegel, und dann dieses Lächeln.' },
-    { key:'freude', label:'sichtbare Freude', text:'Ein Lächeln nach dem Termin, das für sich spricht.' },
-    { key:'vorhernachher', label:'Vorher-Nachher', text:'Der Moment zwischen Vorher und Nachher, in dem plötzlich alles zusammenpasst.' },
+    { key:'spiegel', label:'letzter Blick in den Spiegel', varianten:{
+      ruhig: ['Der letzte Blick in den Spiegel, und dann dieses Lächeln.', 'Genau dieser Moment zeigt, ob ein Termin wirklich gepasst hat.', 'Kurz, still, und trotzdem sagt er alles.'],
+      warm: ['Ein Blick in den Spiegel, ein Lächeln, mehr braucht es oft nicht.', 'Für uns ist genau das der schönste Teil an unserer Arbeit.', 'Ein warmer kleiner Moment am Ende eines Termins.'],
+    }},
+    { key:'freude', label:'sichtbare Freude', varianten:{
+      ruhig: ['Ein Lächeln nach dem Termin, ganz ohne große Worte.', 'Zufriedenheit sieht man bei uns eher im Gesicht als im Feedback.', 'Ruhig, echt und irgendwie schöner als jedes Kompliment.'],
+      warm: ['Man sieht es sofort, noch bevor ein Wort fällt.', 'Genau dafür machen wir diesen Job — für solche Momente.', 'Ein kleiner Moment, der den ganzen Tag schöner macht.'],
+    }},
+    { key:'vorhernachher', label:'Vorher-Nachher', varianten:{
+      ruhig: ['Der Moment zwischen Vorher und Nachher, in dem plötzlich alles zusammenpasst.', 'Genau da zeigt sich, ob die Beratung am Anfang gestimmt hat.', 'Ein kurzer Moment, aber einer, der sich richtig gut anfühlt.'],
+      warm: ['Erst noch unsicher, dann plötzlich dieses breite Lächeln.', 'Solche Übergänge sind es, die uns an unserer Arbeit am meisten freuen.', 'Ein Moment mit echtem Wow-Gefühl, ganz ohne große Inszenierung.'],
+    }},
   ]},
   salonalltag: { label:'Salonalltag', momente:[
-    { key:'vormittag', label:'ruhiger Vormittag', text:'Ein ruhiger Vormittag im Salon, zwischen Farbe, Beratung und Kaffee.' },
-    { key:'pause', label:'kurze Pause', text:'Eine kurze Pause zwischen zwei Terminen, mehr Alltag geht nicht.' },
-    { key:'spontan', label:'spontaner Moment', text:'Ein spontaner Blick durch den Salon, so wie er heute wirklich aussah.' },
+    { key:'vormittag', label:'ruhiger Vormittag', varianten:{
+      ruhig: ['Ein ruhiger Vormittag im Salon, zwischen Farbe, Beratung und Kaffee.', 'Nicht jeder Tag ist hektisch — manche laufen einfach in Ruhe.', 'Entspannt, gleichmäßig, fast ein bisschen meditativ.'],
+      warm: ['Kaffee in der einen Hand, Termine im Blick, alles im gewohnten Rhythmus.', 'So ein Vormittag zeigt eigentlich ganz gut, wie es bei uns zugeht.', 'Gemütlich und vertraut, wie ein guter Start in den Tag.'],
+    }},
+    { key:'pause', label:'kurze Pause', varianten:{
+      ruhig: ['Eine kurze Pause zwischen zwei Terminen, mehr Alltag geht nicht.', 'Auch kleine Pausen gehören zu einem guten Arbeitstag dazu.', 'Kurz durchatmen, dann geht\'s weiter — ruhig und unaufgeregt.'],
+      warm: ['Fünf Minuten Luft holen, bevor der nächste Termin beginnt.', 'Auch das gehört zu einem Tag bei uns, nicht nur die Termine selbst.', 'Ein kleiner, angenehmer Moment mittendrin.'],
+    }},
+    { key:'spontan', label:'spontaner Moment', varianten:{
+      ruhig: ['Ein spontaner Blick durch den Salon, so wie er heute wirklich aussah.', 'Nicht gestellt, einfach der Alltag, wie er gerade war.', 'Unaufgeregt, genau wie ein normaler Tag bei uns.'],
+      warm: ['Einfach kurz umgeschaut, mitten im ganz normalen Trubel.', 'Solche spontanen Blicke zeigen oft mehr als jedes geplante Foto.', 'Ein bisschen Trubel, ein bisschen Herzlichkeit — genau unser Alltag.'],
+    }},
   ]},
   ergebnis: { label:'Ergebnis', momente:[
-    { key:'frisch', label:'frisch fertig', text:'Ein frisch fertiges Ergebnis, noch bevor der Fön ganz ausgekühlt ist.' },
-    { key:'detail', label:'Detail beim zweiten Blick', text:'Ein Detail, das einem erst beim zweiten Hinschauen auffällt.' },
-    { key:'sprichtfuersich', label:'spricht für sich', text:'Ein Ergebnis, das für sich spricht, ganz ohne große Worte.' },
+    { key:'frisch', label:'frisch fertig', varianten:{
+      ruhig: ['Ein frisch fertiges Ergebnis, noch bevor der Fön ganz ausgekühlt ist.', 'Der letzte Handgriff macht oft den größten Unterschied.', 'Frisch, sauber, fertig — ein guter Moment zum Innehalten.'],
+      warm: ['Noch warm vom Fön, und schon sieht man das Ergebnis.', 'Genau dieser Moment macht die Arbeit hier jedes Mal wieder schön.', 'Ein kleiner Erfolgsmoment, frisch und greifbar.'],
+    }},
+    { key:'detail', label:'Detail beim zweiten Blick', varianten:{
+      ruhig: ['Ein Detail, das einem erst beim zweiten Hinschauen auffällt.', 'Gute Arbeit zeigt sich oft genau in solchen Kleinigkeiten.', 'Unauffällig, aber genau deshalb besonders.'],
+      warm: ['Erst beim zweiten Blick fällt auf, wie fein das gearbeitet ist.', 'Solche Details sind es, auf die wir besonders stolz sind.', 'Ein kleiner Moment mit großem Aha-Effekt.'],
+    }},
+    { key:'sprichtfuersich', label:'spricht für sich', varianten:{
+      ruhig: ['Ein Ergebnis, das für sich spricht, ganz ohne große Worte.', 'Manche Arbeit muss man nicht erklären, man sieht sie einfach.', 'Ruhig, klar, überzeugend — ohne viel Aufhebens.'],
+      warm: ['Kein Kommentar nötig, das Ergebnis sagt schon alles.', 'Genau solche Ergebnisse sind unser bester Beweis.', 'Ein Moment mit echtem Stolz auf die eigene Arbeit.'],
+    }},
   ]},
   behandlung: { label:'Behandlung', momente:[
-    { key:'jahreszeit', label:'passt zur Jahreszeit', text:'Eine Behandlung, die gerade jetzt besonders gut passt.' },
-    { key:'ablauf', label:'ruhiger Ablauf', text:'Ein ruhiger Ablauf, Schritt für Schritt, ohne Hektik.' },
-    { key:'danach', label:'Ergebnis direkt danach', text:'Das Ergebnis direkt nach der Behandlung, noch ganz frisch.' },
+    { key:'jahreszeit', label:'passt zur Jahreszeit', varianten:{
+      ruhig: ['Eine Behandlung, die gerade jetzt besonders gut passt.', 'Gutes Timing macht oft den Unterschied zwischen einer Behandlung und der richtigen Behandlung.', 'Passend, unaufgeregt, genau richtig für diese Jahreszeit.'],
+      warm: ['Genau jetzt macht diese Behandlung am meisten Sinn.', 'Wir schauen genau hin, was die Jahreszeit für das Haar bedeutet.', 'Ein Moment, der sich einfach richtig anfühlt für diese Zeit im Jahr.'],
+    }},
+    { key:'ablauf', label:'ruhiger Ablauf', varianten:{
+      ruhig: ['Ein ruhiger Ablauf, Schritt für Schritt, ohne Hektik.', 'Sorgfalt braucht Zeit — genau die nehmen wir uns.', 'Gleichmäßig und ruhig, fast schon entspannend.'],
+      warm: ['Ein Schritt nach dem anderen, ganz ohne Zeitdruck.', 'Genau so soll sich eine gute Behandlung anfühlen: ruhig und sicher.', 'Ein kleiner Moment zum Entspannen, mitten im Alltag.'],
+    }},
+    { key:'danach', label:'Ergebnis direkt danach', varianten:{
+      ruhig: ['Das Ergebnis direkt nach der Behandlung, noch ganz frisch.', 'Der erste Blick danach zeigt meistens schon, ob es gepasst hat.', 'Frisch, klar, und schon sichtbar besser.'],
+      warm: ['Noch ganz frisch, und der Unterschied ist sofort sichtbar.', 'Genau dieser Moment direkt danach macht die Arbeit sichtbar.', 'Ein kleiner, zufriedener Moment direkt nach getaner Arbeit.'],
+    }},
   ]},
 };
 
-// Reine Abschlusszeilen ohne jede Themen-Einsetzung — deshalb zu
-// jedem Moment aus HOOK_BEREICHE beliebig kombinierbar, ohne
-// Grammatikrisiko oder Label-Leck. Führen den Moment weiter/runden
-// ihn ab, statt ihn mit einem Echtheits-Stempel zu bewerten.
+// Wirkung bestimmt nur, welche der zwei Stimmungsfamilien verwendet
+// wird — "ruhig" (plain, zurückhaltend) oder "warm" (einladender,
+// stärker auf Miteinander/Verbindung). Beide Familien enthalten pro
+// Moment drei eigenständige Sätze (Beobachtung/Bedeutung/Atmosphäre),
+// keine Nachsatz-Einsetzung.
 const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
-const EINSTIEG_CLOSINGS = {
-  vertrauen: ['Viel mehr muss man dazu meistens nicht sagen.', 'Man merkt es eher, als dass man es erklären müsste.', 'So ein Moment bleibt oft länger im Kopf, als man denkt.'],
-  einblick: ['So viel Alltag steckt oft in einem einzigen Moment.', 'Ein Ausschnitt von vielen, die den Tag ausmachen.', 'Mehr zeigen wir selten — aber diesen schon.'],
-  interesse: ['Ein Moment, bei dem man gern noch mal hinschaut.', 'Klein, aber genau deshalb bleibt er im Gedächtnis.', 'Nicht viel passiert, und trotzdem war es ein guter Moment.'],
-  anziehung: ['So sieht es bei uns oft aus, ganz ohne große Ankündigung.', 'Wer so arbeitet, bringt meistens auch gute Stimmung mit.', 'Alltag, wie ihn viele bei uns im Team kennen.'],
-  naehe: ['Genau solche Augenblicke mögen wir im Alltag besonders gern.', 'Kein großer Anlass — nur ein Moment, der gutgetan hat.', 'Ein kleiner Moment, der trotzdem hängen bleibt.'],
-  klarheit: ['Nicht mehr, aber auch nicht weniger.', 'Kurz, und trotzdem genug gesagt.', 'Ruhig weitergemacht, wie an jedem anderen Tag auch.'],
-};
+const HOOK_WIRKUNG_FAMILIE = { vertrauen:'ruhig', einblick:'ruhig', klarheit:'ruhig', interesse:'warm', anziehung:'warm', naehe:'warm' };
 
 function renderHookBereichRow() {
   const row = document.getElementById('hook-bereich-row');
@@ -2835,9 +2892,9 @@ function initHookScreen() {
 function generateEinstiege() {
   const moment = HOOK_BEREICHE[SEL.hookbereich].momente.find(m => m.key === SEL.hookmoment) || HOOK_BEREICHE[SEL.hookbereich].momente[0];
   const ziel = SEL.hookziel || 'vertrauen';
-  const closings = [...(EINSTIEG_CLOSINGS[ziel] || EINSTIEG_CLOSINGS.vertrauen)].sort(() => Math.random() - .5);
-  document.getElementById('hook-list').innerHTML = closings.map((closing, i) => {
-    const txt = `${moment.text} ${closing}`;
+  const familie = HOOK_WIRKUNG_FAMILIE[ziel] || 'ruhig';
+  const einstiege = [...moment.varianten[familie]].sort(() => Math.random() - .5);
+  document.getElementById('hook-list').innerHTML = einstiege.map((txt, i) => {
     return `<div class="hook-item">
       <div class="hook-num">Einstieg ${i + 1} · ${EINSTIEG_LABEL[ziel]}</div>
       <div class="hook-text">„${txt}"</div>

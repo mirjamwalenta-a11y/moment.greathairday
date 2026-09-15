@@ -4389,8 +4389,33 @@ async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
   letzterKIFehler = null;
   try {
-    const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
-    const token = sessionData?.session?.access_token || AUTH_KEY;
+    let { data: sessionData } = await AUTH_CLIENT.auth.getSession();
+    let session = sessionData?.session || null;
+    // Wenn die Session fehlt oder in Kürze/bereits abläuft (z.B. weil der
+    // Tab lange offen war und der automatische Refresh dadurch verpasst
+    // wurde), aktiv versuchen aufzufrischen, bevor auf den anon-Key
+    // zurückgefallen wird — der anon-Key wird von der Funktion serverseitig
+    // nicht als "angemeldet" akzeptiert.
+    const laeuftBaldAb = !session || !session.expires_at || (session.expires_at - Date.now()/1000) < 60;
+    let refreshErfolgreich = false;
+    if (laeuftBaldAb) {
+      try {
+        const { data: refreshData } = await AUTH_CLIENT.auth.refreshSession();
+        if (refreshData?.session) { session = refreshData.session; refreshErfolgreich = true; }
+      } catch(_) {}
+    }
+    const token = session?.access_token || AUTH_KEY;
+    // Diagnose: hatte der Browser überhaupt eine gültige Anmelde-Session,
+    // oder wurde (unbemerkt) auf den anon-Key zurückgefallen? Wird nur bei
+    // einem Fehlschlag unten mit ausgegeben.
+    let sessionInfo;
+    if (!session) {
+      sessionInfo = `keine Session gefunden — es wurde der anon-Key verwendet${laeuftBaldAb ? ' (Refresh-Versuch ist fehlgeschlagen)' : ''}`;
+    } else {
+      const laeuftAbIn = session.expires_at ? Math.round(session.expires_at - Date.now()/1000) : null;
+      const ablaufText = laeuftAbIn !== null ? (laeuftAbIn > 0 ? `läuft in ${laeuftAbIn}s ab` : `ist seit ${-laeuftAbIn}s abgelaufen`) : 'Ablaufzeit unbekannt';
+      sessionInfo = `Session vorhanden${refreshErfolgreich ? ' (gerade frisch aufgefrischt)' : ''}, ${ablaufText}`;
+    }
     // Zeitlimit, damit eine ausbleibende Antwort wie ein normaler Fehlschlag behandelt
     // wird (bestehender Rückfall auf feste Texte greift) statt den Button dauerhaft zu blockieren.
     const timeoutMs = 20000;
@@ -4418,7 +4443,7 @@ async function claudeAnfrage(system, userText, maxTokens) {
     if(!res.ok) {
       let bodyText = '';
       try { bodyText = (await res.text()).slice(0, 300); } catch(_) {}
-      letzterKIFehler = `HTTP ${res.status} ${res.statusText}${bodyText ? ' — ' + bodyText : ''}`;
+      letzterKIFehler = `HTTP ${res.status} ${res.statusText}${bodyText ? ' — ' + bodyText : ''} (${sessionInfo})`;
       return null;
     }
     const data = await res.json();

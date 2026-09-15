@@ -95,31 +95,31 @@
     width: 100%;
     box-sizing: border-box;
   }
-  /* Dezenter Hinweis am rechten Rand: zeigt, dass weitere Tabs (u.a. CTA)
-     außerhalb des sichtbaren Bereichs liegen und per Wischen erreichbar sind.
-     Nutzt nur bestehende Farben (--white, --soft), keine Schriftänderung. */
-  .tabnav::after {
-    content: '›';
+  .tabnav::-webkit-scrollbar { display: none; }
+  /* Echte, klickbare Pfeil-Buttons an beiden Rändern der Tab-Leiste — ersetzen
+     den alten, rein dekorativen Hinweis-Pfeil (der pointer-events:none hatte und
+     daher nicht klickbar war). Wichtig für Desktop-Mäuse ohne Trackpad/Touch.
+     Nutzen nur bestehende Farben (--white, --gold), keine neue Optik. */
+  .tab-scroll-btn {
     position: sticky;
-    top: 0;
-    right: 0;
-    flex: none;
-    width: 26px;
-    margin-left: -26px;
+    z-index: 5;
+    flex: 0 0 auto;
+    width: 28px;
+    align-self: stretch;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 15px;
+    border: none;
+    cursor: pointer;
+    color: var(--gold);
+    font-size: 17px;
     font-weight: 700;
-    color: var(--soft);
-    background: linear-gradient(to right, transparent, var(--white) 55%);
-    pointer-events: none;
+    font-family: var(--f);
     transition: opacity .15s;
   }
-  /* Verschwindet, sobald ganz nach rechts gescrollt ist — sonst würde der Hinweis-Pfeil
-     den letzten Tab (Foto/Video) überlappen. Klasse wird per JS gesetzt (siehe unten). */
-  .tabnav.tabnav-end::after { opacity: 0; }
-  .tabnav::-webkit-scrollbar { display: none; }
+  .tab-scroll-prev { left: 0; background: linear-gradient(to left, transparent, var(--white) 55%); }
+  .tab-scroll-next { right: 0; background: linear-gradient(to right, transparent, var(--white) 55%); }
+  .tab-scroll-btn.hidden-edge { opacity: 0; pointer-events: none; }
   .tab {
     flex: 0 0 auto;
     padding: 10px 10px;
@@ -1159,6 +1159,7 @@
 
 <!-- ══ TAB NAV ══ -->
 <nav class="tabnav" id="tabnav" style="display:none;">
+  <button class="tab-scroll-btn tab-scroll-prev hidden-edge" id="tabScrollPrev" aria-label="Tabs nach links scrollen" onclick="tabnavScrollBy(-1)" type="button">‹</button>
   <button class="tab" onclick="showTab('heute')">☀️ Heute</button>
   <button class="tab" onclick="showTab('hook')">🎯 Hook</button>
   <button class="tab" onclick="showTab('post')">✍ Post</button>
@@ -1170,17 +1171,23 @@
   <button class="tab" onclick="showTab('rahmen')">🖼 Rahmen</button>
   <button class="tab" onclick="showTab('recherche')">🔍 Recherche</button>
   <button class="tab" onclick="showTab('mediasave')">📸 Foto/Video</button>
+  <button class="tab-scroll-btn tab-scroll-next" id="tabScrollNext" aria-label="Tabs nach rechts scrollen" onclick="tabnavScrollBy(1)" type="button">›</button>
 </nav>
 <script>
-// Blendet den Wisch-Hinweis (›) am Ende der Tab-Leiste aus — sonst würde er den
-// letzten Tab (Foto/Video) überlappen. Reine Sichtbarkeits-Logik, keine neue Optik.
+// Blendet die Scroll-Pfeile ein/aus, je nachdem ob am Anfang/Ende der
+// Tab-Leiste gescrollt wurde. Reine Sichtbarkeits-Logik, keine neue Optik.
 (function(){
   var nav = document.getElementById('tabnav');
   if(!nav) return;
+  var prevBtn = document.getElementById('tabScrollPrev');
+  var nextBtn = document.getElementById('tabScrollNext');
   function tabnavFadeUpdate(){
     var scrollable = nav.scrollWidth > nav.clientWidth + 1;
+    var amAnfang = nav.scrollLeft <= 1;
     var amEnde = nav.scrollLeft + nav.clientWidth >= nav.scrollWidth - 1;
     nav.classList.toggle('tabnav-end', !scrollable || amEnde);
+    if(prevBtn) prevBtn.classList.toggle('hidden-edge', !scrollable || amAnfang);
+    if(nextBtn) nextBtn.classList.toggle('hidden-edge', !scrollable || amEnde);
   }
   nav.addEventListener('scroll', tabnavFadeUpdate, { passive: true });
   window.addEventListener('resize', tabnavFadeUpdate);
@@ -1197,6 +1204,14 @@
     e.preventDefault();
   }, { passive: false });
 })();
+
+// Für die Pfeil-Buttons: scrollt die Tab-Leiste um ein Stück nach links/rechts.
+// Global (nicht in der IIFE oben), damit die inline onclick-Handler sie finden.
+function tabnavScrollBy(direction) {
+  var nav = document.getElementById('tabnav');
+  if(!nav) return;
+  nav.scrollBy({ left: direction * nav.clientWidth * 0.6, behavior: 'smooth' });
+}
 </script>
 
 <!-- ══ SCREEN: START ══ -->

@@ -4325,6 +4325,7 @@ Antworte NUR mit dem JSON-Array.`
   if(!items || !Array.isArray(items) || items.length === 0) {
     list.innerHTML = `<div class="card" style="border-left:3px solid var(--gold-light);">
       <div class="card-body">Wörni konnte gerade nicht recherchieren. Bitte versuche es nochmal oder prüfe deine Verbindung.</div>
+      ${letzterKIFehler ? `<div class="card-body" style="margin-top:8px;font-size:11px;color:var(--soft);word-break:break-word;">Technischer Hinweis: ${letzterKIFehler}</div>` : ''}
     </div>`;
   } else {
     list.innerHTML = items.map((item, i) => `
@@ -4377,8 +4378,16 @@ function rechercheZuStory(idx) {
 }
 
 // ── Wörni / Claude – sicherer Proxy ──
+// Merkt sich den technischen Grund des letzten fehlgeschlagenen
+// KI-Aufrufs (Status-Code + Server-Antwort bzw. Fehlermeldung), damit
+// er bei Bedarf angezeigt werden kann — statt dass jeder Fehlschlag
+// (Netzwerk, Auth, ungültiges Modell, Server-Fehler ...) nach außen
+// hin gleich aussieht.
+let letzterKIFehler = null;
+
 async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
+  letzterKIFehler = null;
   try {
     const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
     const token = sessionData?.session?.access_token || AUTH_KEY;
@@ -4406,10 +4415,18 @@ async function claudeAnfrage(system, userText, maxTokens) {
     } finally {
       clearTimeout(timeoutId);
     }
-    if(!res.ok) return null;
+    if(!res.ok) {
+      let bodyText = '';
+      try { bodyText = (await res.text()).slice(0, 300); } catch(_) {}
+      letzterKIFehler = `HTTP ${res.status} ${res.statusText}${bodyText ? ' — ' + bodyText : ''}`;
+      return null;
+    }
     const data = await res.json();
-    return data?.content?.[0]?.text || null;
+    const text = data?.content?.[0]?.text || null;
+    if(!text) letzterKIFehler = 'Antwort kam an, enthielt aber keinen Text: ' + JSON.stringify(data).slice(0, 300);
+    return text;
   } catch(e) {
+    letzterKIFehler = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (keine Antwort nach 20 Sekunden)' : ('Fehler: ' + (e?.message || e));
     return null;
   }
 }

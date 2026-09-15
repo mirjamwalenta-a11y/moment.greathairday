@@ -873,7 +873,7 @@
   .heute-quick-label { font-size: 12px; font-weight: 700; color: var(--black); }
   .heute-quick-sub { font-size: 11px; color: var(--soft); }
 
-  /* ── HOOKS ── */
+  /* ── EINSTIEGE ── */
   .hook-result-list { display: flex; flex-direction: column; gap: 10px; }
   .hook-item {
     background: var(--white); border-radius: var(--radius);
@@ -1160,7 +1160,7 @@
 <!-- ══ TAB NAV ══ -->
 <nav class="tabnav" id="tabnav" style="display:none;">
   <button class="tab" onclick="showTab('heute')">☀️ Heute</button>
-  <button class="tab" onclick="showTab('hook')">🎯 Hook</button>
+  <button class="tab" onclick="showTab('hook')">🎯 Einstieg</button>
   <button class="tab" onclick="showTab('post')">✍ Post</button>
   <button class="tab" onclick="showTab('story')">📱 Story</button>
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
@@ -1524,29 +1524,30 @@
 <!-- ══ SCREEN: HOOK ══ -->
 <section class="screen" id="screen-hook">
   <div class="card">
-    <div class="card-tag">Hook-Generator</div>
+    <div class="card-tag">Einstiege finden</div>
     <div class="card-title">Was ist dein Thema?</div>
-    <div class="card-body">Gib ein Stichwort ein — die App baut daraus 5 starke Einstiege.</div>
+    <div class="card-body">Gib ein Stichwort ein — die App macht daraus 3 natürliche Einstiege.</div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Thema</div>
     <input type="text" id="hook-thema" placeholder="z.B. Ausbildung, Stammkunden, ruhiger Tag...">
   </div>
   <div class="input-wrap">
-    <div class="input-label">Welches Ziel?</div>
+    <div class="input-label">Welche Wirkung?</div>
     <div class="chip-row">
-      <button class="chip-select on" data-val="neugier" onclick="pickSel(this,'hookziel')">Neugier</button>
-      <button class="chip-select" data-val="emotion" onclick="pickSel(this,'hookziel')">Emotion</button>
-      <button class="chip-select" data-val="diskussion" onclick="pickSel(this,'hookziel')">Diskussion</button>
-      <button class="chip-select" data-val="expertise" onclick="pickSel(this,'hookziel')">Expertise</button>
-      <button class="chip-select" data-val="provokativ" onclick="pickSel(this,'hookziel')">Provokativ</button>
+      <button class="chip-select on" data-val="vertrauen" onclick="pickSel(this,'hookziel')">Vertrauen</button>
+      <button class="chip-select" data-val="einblick" onclick="pickSel(this,'hookziel')">Einblick</button>
+      <button class="chip-select" data-val="interesse" onclick="pickSel(this,'hookziel')">Interesse</button>
+      <button class="chip-select" data-val="anziehung" onclick="pickSel(this,'hookziel')">Anziehung</button>
+      <button class="chip-select" data-val="naehe" onclick="pickSel(this,'hookziel')">Nähe</button>
+      <button class="chip-select" data-val="klarheit" onclick="pickSel(this,'hookziel')">Klarheit</button>
     </div>
   </div>
-  <button class="btn-main" onclick="generateHooks()">5 Hooks generieren</button>
+  <button class="btn-main" onclick="generateEinstiege()">3 Einstiege finden</button>
   <div id="hook-results" style="display:none;margin-top:16px;">
-    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 5 Hooks</p>
+    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 3 Einstiege</p>
     <div class="hook-result-list" id="hook-list"></div>
-    <button class="btn-ghost-sm" onclick="generateHooks()">↺ Neue Varianten</button>
+    <button class="btn-ghost-sm" onclick="generateEinstiege()">↺ Neue Varianten</button>
   </div>
 </section>
 
@@ -2139,7 +2140,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'neugier',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
+const SEL = {hookziel:'vertrauen',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
 let tabNavVisible = false;
 
 // ════════════════════════════════════════════
@@ -2705,63 +2706,75 @@ function flowRestart() {
 }
 
 // ════════════════════════════════════════════
-// HOOK-GENERATOR
+// EINSTIEGE FINDEN
+// Keine "Hooks" im Creator-Sinn: kurze, echte Einstiege aus dem
+// Salonalltag. Beobachtend statt belehrend, konkret statt clever,
+// ruhig statt laut. Kategorien sind Wirkung, nicht Engagement-Technik.
 // ════════════════════════════════════════════
-const HOOKS = {
-  neugier:[
-    t=>`Was glaubst du, warum ${t} bei uns so anders ist als woanders?`,
-    t=>`Ich werde oft gefragt, was das Geheimnis hinter ${t} ist. Hier ist meine ehrliche Antwort.`,
-    t=>`Das, was bei ${t} wirklich passiert, sieht man von außen nicht.`,
-    t=>`Ich habe über 30 Jahre gebraucht, um zu verstehen, was ${t} wirklich bedeutet.`,
-    t=>`Was haben ${t} und Vertrauen gemeinsam? Mehr als du denkst.`,
+const EINSTIEGE = {
+  vertrauen:[
+    t=>`Bei ${t} zeigt sich am ehesten, wie wir wirklich arbeiten.`,
+    t=>`Wir reden nicht groß über ${t} — wir zeigen es einfach, so wie es ist.`,
+    t=>`${t} ist bei uns kein Vorzeigethema, sondern Alltag.`,
+    t=>`So ehrlich wie möglich: das ist unser Zugang zu ${t}.`,
+    t=>`Bei ${t} lassen wir lieber die Arbeit sprechen als große Worte.`,
   ],
-  emotion:[
-    t=>`Heute ist etwas passiert, das uns an ${t} erinnert hat, warum wir diesen Job lieben.`,
-    t=>`${t} hat uns heute kurz sprachlos gemacht. Im besten Sinne.`,
-    t=>`Es gibt Momente, die bleiben. ${t} war heute so einer.`,
-    t=>`33 Jahre im Salon. Und ${t} berührt mich heute noch genauso wie damals.`,
-    t=>`Heute hat ${t} gezeigt, dass es im Friseurhandwerk um viel mehr geht als Haare.`,
+  einblick:[
+    t=>`Ein kurzer Blick in unseren heutigen Tag: ${t}.`,
+    t=>`So sieht ${t} bei uns im Alltag aus.`,
+    t=>`Zwischen Farbe, Beratung und Kaffee war heute auch ${t} dabei.`,
+    t=>`Heute ein kleiner Einblick: ${t}.`,
+    t=>`Nicht alles zeigen wir — aber ${t} war heute einen Blick wert.`,
   ],
-  diskussion:[
-    t=>`Ehrliche Frage: Was erwartest du dir wirklich von ${t}?`,
-    t=>`${t} — wird das überschätzt oder unterschätzt?`,
-    t=>`Unpopular Opinion: Bei ${t} machen die meisten einen entscheidenden Fehler.`,
-    t=>`${t}: Was würdet ihr anders machen? Ich bin neugierig.`,
-    t=>`Bei ${t} gehen die Meinungen auseinander. Wie seht ihr das?`,
+  interesse:[
+    t=>`${t} — das war heute ein kleiner, aber schöner Moment bei uns.`,
+    t=>`Manchmal braucht es gar nicht viel, so wie heute bei ${t}.`,
+    t=>`Heute war wieder so ein Moment mit ${t}, den wir gern zeigen.`,
+    t=>`${t} hat uns heute kurz innehalten lassen.`,
+    t=>`Ein Detail, das man leicht übersieht: ${t}.`,
   ],
-  expertise:[
-    t=>`3 Dinge, die die meisten über ${t} nicht wissen — obwohl sie es sollten.`,
-    t=>`Was ich nach 33 Jahren Erfahrung über ${t} sagen kann.`,
-    t=>`Der häufigste Irrtum bei ${t} — und wie du ihn vermeidest.`,
-    t=>`${t} richtig gemacht sieht so aus. Alles andere ist Kompromiss.`,
-    t=>`Was wirklich hinter ${t} steckt. Ohne Marketingsprache.`,
+  anziehung:[
+    t=>`Bei uns gehört ${t} einfach dazu — nicht nur in der Theorie.`,
+    t=>`So sieht Arbeiten bei uns aus, wenn es um ${t} geht.`,
+    t=>`Wer bei uns mitarbeitet, bekommt ${t} nicht nebenbei, sondern wirklich.`,
+    t=>`${t} ist bei uns kein Schlagwort, sondern Alltag im Team.`,
+    t=>`Man merkt schnell, ob ${t} im Alltag wirklich Platz hat.`,
   ],
-  provokativ:[
-    t=>`Ich sage es direkt: ${t} wird in unserer Branche meistens falsch gemacht.`,
-    t=>`${t} klingt einfach. Ist es aber nicht.`,
-    t=>`Nein — ${t} braucht kein Marketing. Es braucht Haltung.`,
-    t=>`Ich habe einen Kunden abgelehnt. Wegen ${t}. Und ich würde es wieder tun.`,
-    t=>`Wer denkt, ${t} ist selbstverständlich, hat noch nicht wirklich hingeschaut.`,
+  naehe:[
+    t=>`So schaut ein ganz normaler Moment bei uns aus: ${t}.`,
+    t=>`Nicht groß inszeniert — einfach ${t}, wie es heute war.`,
+    t=>`Diese ruhigen Momente wie bei ${t} mögen wir fast am liebsten.`,
+    t=>`${t} — kein besonderer Anlass, einfach ein guter Moment.`,
+    t=>`Heute war Zeit für ${t}, und das hat gutgetan.`,
+  ],
+  klarheit:[
+    t=>`${t}: heute fertig geworden, ohne Umwege.`,
+    t=>`Kurz gesagt: ${t}, so wie es ist.`,
+    t=>`Bei ${t} war heute alles klar und geradeaus.`,
+    t=>`Kein langes Drumherum — einfach ${t}.`,
+    t=>`${t}, ruhig und ohne viel Aufhebens erledigt.`,
   ]
 };
-const WHY = {
-  neugier:'Weckt Neugier ohne zu viel zu verraten.',
-  emotion:'Emotionale Einstiege werden 3× häufiger gespeichert.',
-  diskussion:'Fragen erzeugen Kommentare — das pusht den Algorithmus.',
-  expertise:'Wissen teilen = Vertrauen aufbauen.',
-  provokativ:'Starke Meinungen polarisieren. Wer nicht polarisiert, bleibt unsichtbar.'
+const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
+const EINSTIEG_WIRKUNG = {
+  vertrauen:'Zeigt echte Abläufe – so wie sie wirklich sind.',
+  einblick:'Ein kurzer, ehrlicher Blick in den Alltag.',
+  interesse:'Ein kleiner Moment, der zum Hinschauen einlädt.',
+  anziehung:'Zeigt, wie es ist, bei euch zu arbeiten.',
+  naehe:'Nah am Moment, nicht an der Bühne.',
+  klarheit:'Klar gesagt, ohne Umschweife.'
 };
 
-function generateHooks() {
+function generateEinstiege() {
   const t = document.getElementById('hook-thema').value.trim() || 'Ausbildung';
-  const ziel = SEL.hookziel || 'neugier';
-  const pool = [...(HOOKS[ziel]||HOOKS.neugier)].sort(()=>Math.random()-.5).slice(0,5);
+  const ziel = SEL.hookziel || 'vertrauen';
+  const pool = [...(EINSTIEGE[ziel]||EINSTIEGE.vertrauen)].sort(()=>Math.random()-.5).slice(0,3);
   document.getElementById('hook-list').innerHTML = pool.map((fn,i) => {
     const txt = fn(t);
     return `<div class="hook-item">
-      <div class="hook-num">Hook ${i+1} · ${ziel}</div>
+      <div class="hook-num">Einstieg ${i+1} · ${EINSTIEG_LABEL[ziel]}</div>
       <div class="hook-text">„${txt}"</div>
-      <div class="hook-why">${WHY[ziel]}</div>
+      <div class="hook-why">${EINSTIEG_WIRKUNG[ziel]}</div>
       <button class="copy-sm" onclick="copyHookBtn(this)" data-text="${txt}">Kopieren</button>
     </div>`;
   }).join('');

@@ -2783,15 +2783,16 @@ const HOOK_BEREICHE = {
 
 // Reine Abschlusszeilen ohne jede Themen-Einsetzung — deshalb zu
 // jedem Moment aus HOOK_BEREICHE beliebig kombinierbar, ohne
-// Grammatikrisiko oder Label-Leck.
+// Grammatikrisiko oder Label-Leck. Führen den Moment weiter/runden
+// ihn ab, statt ihn mit einem Echtheits-Stempel zu bewerten.
 const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
 const EINSTIEG_CLOSINGS = {
-  vertrauen: ['Nicht inszeniert, einfach echt.', 'Genau so, wie es wirklich war.', 'Mehr Ehrlichkeit braucht es nicht.'],
-  einblick: ['Ein kleiner Ausschnitt aus unserem Alltag.', 'Nicht alles zeigen wir, aber das war es wert.', 'So sieht ein ganz normaler Tag bei uns aus.'],
-  interesse: ['Ein Moment, den wir gern mit dir teilen.', 'Klein, aber schön genug zum Zeigen.', 'Manchmal reicht genau das.'],
-  anziehung: ['Genau so fühlt sich unser Alltag an.', 'So sieht es bei uns aus, wenn niemand hinschaut.', 'Ein Ausschnitt aus dem, was unseren Alltag ausmacht.'],
-  naehe: ['Kein großer Anlass, einfach ein guter Moment.', 'Diese ruhigen Momente mögen wir am liebsten.', 'Nah dran, nicht inszeniert.'],
-  klarheit: ['Ohne Umwege, so wie es war.', 'Kurz und klar, mehr nicht.', 'Ruhig erledigt, ohne viel Aufhebens.'],
+  vertrauen: ['Viel mehr muss man dazu meistens nicht sagen.', 'Man merkt es eher, als dass man es erklären müsste.', 'So ein Moment bleibt oft länger im Kopf, als man denkt.'],
+  einblick: ['So viel Alltag steckt oft in einem einzigen Moment.', 'Ein Ausschnitt von vielen, die den Tag ausmachen.', 'Mehr zeigen wir selten — aber diesen schon.'],
+  interesse: ['Ein Moment, bei dem man gern noch mal hinschaut.', 'Klein, aber genau deshalb bleibt er im Gedächtnis.', 'Nicht viel passiert, und trotzdem war es ein guter Moment.'],
+  anziehung: ['So sieht es bei uns oft aus, ganz ohne große Ankündigung.', 'Wer so arbeitet, bringt meistens auch gute Stimmung mit.', 'Alltag, wie ihn viele bei uns im Team kennen.'],
+  naehe: ['Genau solche Augenblicke mögen wir im Alltag besonders gern.', 'Kein großer Anlass — nur ein Moment, der gutgetan hat.', 'Ein kleiner Moment, der trotzdem hängen bleibt.'],
+  klarheit: ['Nicht mehr, aber auch nicht weniger.', 'Kurz, und trotzdem genug gesagt.', 'Ruhig weitergemacht, wie an jedem anderen Tag auch.'],
 };
 
 function renderHookBereichRow() {

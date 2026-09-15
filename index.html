@@ -4447,7 +4447,11 @@ async function claudeAnfrage(system, userText, maxTokens) {
       return null;
     }
     const data = await res.json();
-    const text = data?.content?.[0]?.text || null;
+    // Anthropic kann vor dem eigentlichen Text noch "thinking"-Blöcke
+    // schicken (Extended Thinking) — deshalb nicht blind content[0]
+    // nehmen, sondern den ersten echten Text-Block suchen.
+    const textBlock = Array.isArray(data?.content) ? data.content.find(b => b?.type === 'text' && b.text) : null;
+    const text = textBlock?.text || null;
     if(!text) letzterKIFehler = 'Antwort kam an, enthielt aber keinen Text: ' + JSON.stringify(data).slice(0, 300);
     return text;
   } catch(e) {
@@ -4831,7 +4835,8 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`,
     });
     if(!res.ok) return null;
     const data = await res.json();
-    const raw = data?.content?.[0]?.text || null;
+    const textBlock = Array.isArray(data?.content) ? data.content.find(b => b?.type === 'text' && b.text) : null;
+    const raw = textBlock?.text || null;
     if(!raw) return null;
     const clean = raw.replace(/```json|```/g,'').trim();
     return JSON.parse(clean);

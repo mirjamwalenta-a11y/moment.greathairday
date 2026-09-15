@@ -1186,6 +1186,16 @@
   window.addEventListener('resize', tabnavFadeUpdate);
   new MutationObserver(tabnavFadeUpdate).observe(nav, { attributes: true, attributeFilter: ['style','class'] });
   tabnavFadeUpdate();
+
+  // Erlaubt Scrollen der Tab-Leiste per Mausrad am Desktop — ohne Touch/Trackpad
+  // kommt man an die hinteren Tabs (CTA, Ideen, Rahmen, Recherche, Foto/Video)
+  // sonst nicht heran, da die Leiste nur horizontal scrollt.
+  nav.addEventListener('wheel', function(e){
+    if(nav.scrollWidth <= nav.clientWidth) return;
+    if(Math.abs(e.deltaY) <= Math.abs(e.deltaX)) return;
+    nav.scrollLeft += e.deltaY;
+    e.preventDefault();
+  }, { passive: false });
 })();
 </script>
 

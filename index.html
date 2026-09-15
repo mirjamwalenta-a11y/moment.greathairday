@@ -397,6 +397,9 @@
   .cta-suggestion strong { color: var(--gold); font-weight: 600; }
   .section-divider { height: 1px; background: #e8e4dc; margin: 20px 0; }
 
+  /* ── GEFÜHRTER FLOW V1 (Anlass → Ziel → Format → Output) ── */
+  .flow-format-name { font-size: 26px; font-weight: 700; color: var(--gold); margin: 4px 0 8px; }
+
   /* ── KI-BADGE (Feature 1) ── */
   .ki-badge {
     display: inline-flex; align-items: center; gap: 4px;
@@ -870,7 +873,7 @@
   .heute-quick-label { font-size: 12px; font-weight: 700; color: var(--black); }
   .heute-quick-sub { font-size: 11px; color: var(--soft); }
 
-  /* ── HOOKS ── */
+  /* ── EINSTIEGE ── */
   .hook-result-list { display: flex; flex-direction: column; gap: 10px; }
   .hook-item {
     background: var(--white); border-radius: var(--radius);
@@ -1157,7 +1160,7 @@
 <!-- ══ TAB NAV ══ -->
 <nav class="tabnav" id="tabnav" style="display:none;">
   <button class="tab" onclick="showTab('heute')">☀️ Heute</button>
-  <button class="tab" onclick="showTab('hook')">🎯 Hook</button>
+  <button class="tab" onclick="showTab('hook')">🎯 Einstieg</button>
   <button class="tab" onclick="showTab('post')">✍ Post</button>
   <button class="tab" onclick="showTab('story')">📱 Story</button>
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
@@ -1191,6 +1194,15 @@
   <p class="start-eyebrow">Was ist gerade dran?</p>
   <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
   <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
+
+  <div class="goal-card-primary" onclick="showScreen('screen-flow-anlass')">
+    <span class="card-badge">Geführt</span>
+    <div class="card-title">Was soll ich heute posten?</div>
+    <div class="card-desc">Anlass wählen, Ziel wählen — in Sekunden ein fertiger Vorschlag, der zu dir passt.</div>
+    <div class="card-arrow">Loslegen
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="16" height="16"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
 
   <div class="goal-card-secondary" onclick="showTab_direct('screen-post')">
     <div class="sec-left">
@@ -1230,6 +1242,101 @@
       Werkbank öffnen: Hook · Post · Story · Reel · CTA · Ideen · Rahmen · Recherche · Foto/Video · Planer →
     </button>
   </div>
+</section>
+
+<!-- ══ SCREEN: GEFÜHRTER FLOW – ANLASS ══ -->
+<section class="screen" id="screen-flow-anlass">
+  <p class="screen-eyebrow">Schritt 1 von 4</p>
+  <h2 class="screen-headline">Was ist gerade<br>dein Anlass?</h2>
+  <div class="anlass-intro">Wähle, was heute wirklich passiert ist. Daraus entsteht dein Vorschlag — kein allgemeiner Text.</div>
+  <div class="anlass-grid">
+    <div class="anlass-card" onclick="flowSelectAnlass('einblick')">
+      <div class="anlass-title">Einblick in den Salon</div>
+      <div class="anlass-hint">Der ganz normale Alltag bei euch — Atmosphäre, kein besonderes Ereignis.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('lehrling-lernt')">
+      <div class="anlass-title">Lehrling lernt etwas</div>
+      <div class="anlass-hint">Ein Lernschritt, ein erstes Mal, ein Moment des Wachsens.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('mitarbeiterin-zeigen')">
+      <div class="anlass-title">Mitarbeiter:in zeigen</div>
+      <div class="anlass-hint">Ein Gesicht aus dem Team, echt gezeigt.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('freier-termin')">
+      <div class="anlass-title">Freier Termin</div>
+      <div class="anlass-hint">Kurzfristig ist ein Platz frei geworden.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('kundenergebnis')">
+      <div class="anlass-title">Kundenergebnis</div>
+      <div class="anlass-hint">Ein Ergebnis ist gerade fertig geworden.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('produkt-behandlung')">
+      <div class="anlass-title">Produkt oder Behandlung</div>
+      <div class="anlass-hint">Eine Behandlung, die gerade besonders gut passt.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectAnlass('besonderer-moment')">
+      <div class="anlass-title">Besonderer Moment im Alltag</div>
+      <div class="anlass-hint">Etwas Kleines, das heute berührt oder zum Lachen gebracht hat.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCREEN: GEFÜHRTER FLOW – ZIEL ══ -->
+<section class="screen" id="screen-flow-ziel">
+  <p class="screen-eyebrow">Schritt 2 von 4</p>
+  <h2 class="screen-headline">Was soll es<br>bewirken?</h2>
+  <div class="anlass-intro" id="flow-ziel-context">Anlass: —</div>
+  <div class="anlass-grid">
+    <div class="anlass-card" onclick="flowSelectZiel('vertrauen')">
+      <div class="anlass-title">Vertrauen stärken</div>
+      <div class="anlass-hint">Zeigen, wie ihr wirklich arbeitet.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectZiel('interesse')">
+      <div class="anlass-title">Interesse wecken</div>
+      <div class="anlass-hint">Aufmerksamkeit für euren Salon schaffen.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectZiel('anfrage')">
+      <div class="anlass-title">Anfrage auslösen</div>
+      <div class="anlass-hint">Eine konkrete Nachricht oder Buchung anstoßen.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectZiel('lehrling-ansprechen')">
+      <div class="anlass-title">Lehrling ansprechen</div>
+      <div class="anlass-hint">Jemanden für eine Ausbildung bei euch begeistern.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectZiel('mitarbeiterin-anziehen')">
+      <div class="anlass-title">Mitarbeiter:in anziehen</div>
+      <div class="anlass-hint">Fachkräfte auf euch aufmerksam machen.</div>
+    </div>
+    <div class="anlass-card" onclick="flowSelectZiel('termine-fuellen')">
+      <div class="anlass-title">Freie Termine füllen</div>
+      <div class="anlass-hint">Kurzfristig einen Platz sichtbar machen.</div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SCREEN: GEFÜHRTER FLOW – FORMAT ══ -->
+<section class="screen" id="screen-flow-format">
+  <p class="screen-eyebrow">Schritt 3 von 4</p>
+  <h2 class="screen-headline">Unsere<br>Empfehlung</h2>
+  <div class="card">
+    <div class="card-tag">Empfohlenes Format</div>
+    <div class="flow-format-name" id="flow-format-name">—</div>
+    <div class="card-body" id="flow-format-reason">—</div>
+  </div>
+  <div class="anlass-intro" id="flow-format-context">—</div>
+  <button class="btn-main" onclick="flowShowOutput()">Vorschlag ansehen</button>
+</section>
+
+<!-- ══ SCREEN: GEFÜHRTER FLOW – OUTPUT ══ -->
+<section class="screen" id="screen-flow-output">
+  <p class="screen-eyebrow" id="flow-output-eyebrow">Dein Vorschlag</p>
+  <h2 class="screen-headline" id="flow-output-headline">—</h2>
+  <div class="anlass-intro" id="flow-output-context">—</div>
+  <div id="flow-output-body"></div>
+  <div class="cta-row" style="margin-top:16px;">
+    <button class="btn-copy" id="flow-copy-all-btn" onclick="flowCopyAll()">📋 Alles kopieren</button>
+  </div>
+  <button class="btn-ghost-sm" onclick="flowRestart()">↺ Neuer Vorschlag</button>
 </section>
 
 <!-- ══ SCREEN: RECRUITING ══ -->
@@ -1417,29 +1524,30 @@
 <!-- ══ SCREEN: HOOK ══ -->
 <section class="screen" id="screen-hook">
   <div class="card">
-    <div class="card-tag">Hook-Generator</div>
+    <div class="card-tag">Einstiege finden</div>
     <div class="card-title">Was ist dein Thema?</div>
-    <div class="card-body">Gib ein Stichwort ein — die App baut daraus 5 starke Einstiege.</div>
+    <div class="card-body">Gib ein Stichwort ein — die App macht daraus 3 natürliche Einstiege.</div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Thema</div>
     <input type="text" id="hook-thema" placeholder="z.B. Ausbildung, Stammkunden, ruhiger Tag...">
   </div>
   <div class="input-wrap">
-    <div class="input-label">Welches Ziel?</div>
+    <div class="input-label">Welche Wirkung?</div>
     <div class="chip-row">
-      <button class="chip-select on" data-val="neugier" onclick="pickSel(this,'hookziel')">Neugier</button>
-      <button class="chip-select" data-val="emotion" onclick="pickSel(this,'hookziel')">Emotion</button>
-      <button class="chip-select" data-val="diskussion" onclick="pickSel(this,'hookziel')">Diskussion</button>
-      <button class="chip-select" data-val="expertise" onclick="pickSel(this,'hookziel')">Expertise</button>
-      <button class="chip-select" data-val="provokativ" onclick="pickSel(this,'hookziel')">Provokativ</button>
+      <button class="chip-select on" data-val="vertrauen" onclick="pickSel(this,'hookziel')">Vertrauen</button>
+      <button class="chip-select" data-val="einblick" onclick="pickSel(this,'hookziel')">Einblick</button>
+      <button class="chip-select" data-val="interesse" onclick="pickSel(this,'hookziel')">Interesse</button>
+      <button class="chip-select" data-val="anziehung" onclick="pickSel(this,'hookziel')">Anziehung</button>
+      <button class="chip-select" data-val="naehe" onclick="pickSel(this,'hookziel')">Nähe</button>
+      <button class="chip-select" data-val="klarheit" onclick="pickSel(this,'hookziel')">Klarheit</button>
     </div>
   </div>
-  <button class="btn-main" onclick="generateHooks()">5 Hooks generieren</button>
+  <button class="btn-main" onclick="generateEinstiege()">3 Einstiege finden</button>
   <div id="hook-results" style="display:none;margin-top:16px;">
-    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 5 Hooks</p>
+    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 3 Einstiege</p>
     <div class="hook-result-list" id="hook-list"></div>
-    <button class="btn-ghost-sm" onclick="generateHooks()">↺ Neue Varianten</button>
+    <button class="btn-ghost-sm" onclick="generateEinstiege()">↺ Neue Varianten</button>
   </div>
 </section>
 
@@ -2032,7 +2140,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'neugier',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
+const SEL = {hookziel:'vertrauen',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
 let tabNavVisible = false;
 
 // ════════════════════════════════════════════
@@ -2268,63 +2376,405 @@ function copyEl(textId, btnId) {
 }
 
 // ════════════════════════════════════════════
-// HOOK-GENERATOR
+// GEFÜHRTER FLOW V1: ANLASS → ZIEL → FORMAT → OUTPUT
+// Rein regelbasiert, keine KI-Anbindung. Anlass + Ziel bestimmen über
+// FLOW_FORMAT_MATRIX das Format, FLOW_CONTENT liefert den fertigen Text.
 // ════════════════════════════════════════════
-const HOOKS = {
-  neugier:[
-    t=>`Was glaubst du, warum ${t} bei uns so anders ist als woanders?`,
-    t=>`Ich werde oft gefragt, was das Geheimnis hinter ${t} ist. Hier ist meine ehrliche Antwort.`,
-    t=>`Das, was bei ${t} wirklich passiert, sieht man von außen nicht.`,
-    t=>`Ich habe über 30 Jahre gebraucht, um zu verstehen, was ${t} wirklich bedeutet.`,
-    t=>`Was haben ${t} und Vertrauen gemeinsam? Mehr als du denkst.`,
-  ],
-  emotion:[
-    t=>`Heute ist etwas passiert, das uns an ${t} erinnert hat, warum wir diesen Job lieben.`,
-    t=>`${t} hat uns heute kurz sprachlos gemacht. Im besten Sinne.`,
-    t=>`Es gibt Momente, die bleiben. ${t} war heute so einer.`,
-    t=>`33 Jahre im Salon. Und ${t} berührt mich heute noch genauso wie damals.`,
-    t=>`Heute hat ${t} gezeigt, dass es im Friseurhandwerk um viel mehr geht als Haare.`,
-  ],
-  diskussion:[
-    t=>`Ehrliche Frage: Was erwartest du dir wirklich von ${t}?`,
-    t=>`${t} — wird das überschätzt oder unterschätzt?`,
-    t=>`Unpopular Opinion: Bei ${t} machen die meisten einen entscheidenden Fehler.`,
-    t=>`${t}: Was würdet ihr anders machen? Ich bin neugierig.`,
-    t=>`Bei ${t} gehen die Meinungen auseinander. Wie seht ihr das?`,
-  ],
-  expertise:[
-    t=>`3 Dinge, die die meisten über ${t} nicht wissen — obwohl sie es sollten.`,
-    t=>`Was ich nach 33 Jahren Erfahrung über ${t} sagen kann.`,
-    t=>`Der häufigste Irrtum bei ${t} — und wie du ihn vermeidest.`,
-    t=>`${t} richtig gemacht sieht so aus. Alles andere ist Kompromiss.`,
-    t=>`Was wirklich hinter ${t} steckt. Ohne Marketingsprache.`,
-  ],
-  provokativ:[
-    t=>`Ich sage es direkt: ${t} wird in unserer Branche meistens falsch gemacht.`,
-    t=>`${t} klingt einfach. Ist es aber nicht.`,
-    t=>`Nein — ${t} braucht kein Marketing. Es braucht Haltung.`,
-    t=>`Ich habe einen Kunden abgelehnt. Wegen ${t}. Und ich würde es wieder tun.`,
-    t=>`Wer denkt, ${t} ist selbstverständlich, hat noch nicht wirklich hingeschaut.`,
-  ]
-};
-const WHY = {
-  neugier:'Weckt Neugier ohne zu viel zu verraten.',
-  emotion:'Emotionale Einstiege werden 3× häufiger gespeichert.',
-  diskussion:'Fragen erzeugen Kommentare — das pusht den Algorithmus.',
-  expertise:'Wissen teilen = Vertrauen aufbauen.',
-  provokativ:'Starke Meinungen polarisieren. Wer nicht polarisiert, bleibt unsichtbar.'
+const FLOW_ANLAESSE = {
+  'einblick': 'Einblick in den Salon',
+  'lehrling-lernt': 'Lehrling lernt etwas',
+  'mitarbeiterin-zeigen': 'Mitarbeiter:in zeigen',
+  'freier-termin': 'Freier Termin',
+  'kundenergebnis': 'Kundenergebnis',
+  'produkt-behandlung': 'Produkt oder Behandlung',
+  'besonderer-moment': 'Besonderer Moment im Alltag'
 };
 
-function generateHooks() {
+const FLOW_ZIELE = {
+  'vertrauen': 'Vertrauen stärken',
+  'interesse': 'Interesse wecken',
+  'anfrage': 'Anfrage auslösen',
+  'lehrling-ansprechen': 'Lehrling ansprechen',
+  'mitarbeiterin-anziehen': 'Mitarbeiter:in anziehen',
+  'termine-fuellen': 'Freie Termine füllen'
+};
+
+const FLOW_FORMAT_LABEL = { story: 'Story', reel: 'Reel', einzelbild: 'Einzelbild' };
+const FLOW_FORMAT_REASON = {
+  story: 'Weil hier Nähe, ein kurzer Einblick und der Moment selbst im Vordergrund stehen.',
+  reel: 'Weil Entwicklung, Ausstrahlung und Dynamik hier stärker wirken.',
+  einzelbild: 'Weil ein ruhiger, klarer Moment für sich steht.'
+};
+
+const FLOW_FORMAT_MATRIX = {
+  'einblick': { vertrauen:'story', interesse:'reel', anfrage:'einzelbild', 'lehrling-ansprechen':'story', 'mitarbeiterin-anziehen':'reel', 'termine-fuellen':'story' },
+  'lehrling-lernt': { vertrauen:'story', interesse:'reel', anfrage:'story', 'lehrling-ansprechen':'reel', 'mitarbeiterin-anziehen':'story', 'termine-fuellen':'einzelbild' },
+  'mitarbeiterin-zeigen': { vertrauen:'story', interesse:'reel', anfrage:'einzelbild', 'lehrling-ansprechen':'story', 'mitarbeiterin-anziehen':'reel', 'termine-fuellen':'story' },
+  'freier-termin': { vertrauen:'einzelbild', interesse:'story', anfrage:'story', 'lehrling-ansprechen':'einzelbild', 'mitarbeiterin-anziehen':'einzelbild', 'termine-fuellen':'story' },
+  'kundenergebnis': { vertrauen:'einzelbild', interesse:'reel', anfrage:'einzelbild', 'lehrling-ansprechen':'story', 'mitarbeiterin-anziehen':'reel', 'termine-fuellen':'story' },
+  'produkt-behandlung': { vertrauen:'story', interesse:'reel', anfrage:'einzelbild', 'lehrling-ansprechen':'einzelbild', 'mitarbeiterin-anziehen':'story', 'termine-fuellen':'story' },
+  'besonderer-moment': { vertrauen:'story', interesse:'reel', anfrage:'story', 'lehrling-ansprechen':'story', 'mitarbeiterin-anziehen':'reel', 'termine-fuellen':'story' }
+};
+
+const FLOW_CONTENT = {
+  'einblick': {
+    vertrauen: { einstieg:'So sieht ein ganz normaler Nachmittag bei uns aus.', frames:[
+      'Die ersten Handgriffe am Morgen — Kaffee, kurzer Check der Tagestermine.',
+      'Konzentrierte Stille beim Färben, ein kurzer Plausch zwischendurch.',
+      'Der Moment, wenn jemand zufrieden in den Spiegel schaut.'
+    ], abschluss:'Kein Show, einfach unser Alltag.', cta:'Schau vorbei — wir freuen uns über jeden Besuch.' },
+    interesse: { hook:'Ein Tag bei uns in 20 Sekunden.', szenen:[
+      'Salon öffnet, erstes Licht fällt rein.',
+      'Hände bei der Arbeit, Werkzeug wird gerichtet.',
+      'Ein Lachen zwischen zwei Kundinnen.',
+      'Fertiges Ergebnis, zufriedener Blick.'
+    ], kernaussage:'Handwerk mit Ruhe, seit über 30 Jahren.', cta:'Neugierig geworden? Termin ist schnell gemacht.', caption:'Ein ganz normaler Tag bei uns – mehr als nur Haare.' },
+    anfrage: { bildidee:'Ein ruhiges Foto vom Arbeitsplatz — Werkzeug, Licht, Atmosphäre, kein Mensch nötig.', ersterSatz:'Hier entsteht euer nächster guter Haartag.', kernaussage:'Ruhige Hand, klare Abläufe, ehrliche Beratung.', cta:'Schreib uns — wir finden einen Termin, der passt.', begleittext:'Kein Rummel. Nur gute Arbeit.' },
+    'lehrling-ansprechen': { einstieg:'Bei uns lernt man nicht im Vorbeigehen.', frames:[
+      'Der Arbeitsplatz, an dem jeden Tag gelernt wird.',
+      'Ein Blick ins Team — erfahren und neu, nebeneinander.',
+      'Ruhe für Fragen, Zeit für Erklärungen.'
+    ], abschluss:'So sieht Ausbildung bei uns aus.', cta:'Interesse? Schreib uns einfach.' },
+    'mitarbeiterin-anziehen': { hook:'So läuft bei uns ein Tag ab.', szenen:[
+      'Morgens: kurzer Team-Austausch.',
+      'Mittags: konzentrierte Arbeit, klare Abläufe.',
+      'Zwischendurch: ein echter Lacher.',
+      'Abends: aufgeräumt, zufrieden.'
+    ], kernaussage:'Ein Team, das sich aufeinander verlassen kann.', cta:'Wir suchen Verstärkung — meld dich, wenn das nach dir klingt.', caption:'Einblick in unseren Alltag — offen für neue Gesichter.' },
+    'termine-fuellen': { einstieg:'So sieht\'s bei uns gerade aus — mitten im Tag.', frames:[
+      'Noch ein Platz frei heute Nachmittag.',
+      'Kurzer Blick in den Terminkalender.',
+      'Ein freier Stuhl, der auf dich wartet.'
+    ], abschluss:'Heute noch Zeit?', cta:'Schreib uns kurz — wir schauen, was geht.' }
+  },
+  'lehrling-lernt': {
+    vertrauen: { einstieg:'Ronya hat heute etwas zum ersten Mal gemacht.', frames:[
+      'Erste eigene Strähnchen-Technik, mit voller Konzentration.',
+      'Ein kurzer Blick zur Kollegin — Bestätigung, dass es passt.',
+      'Das fertige Ergebnis, mit sichtbarem Stolz.'
+    ], abschluss:'Nicht perfekt. Aber mit vollem Einsatz.', cta:'Das ist der Weg, wie bei uns Qualität entsteht.' },
+    interesse: { hook:'Heute zum ersten Mal: eine eigene Balayage.', szenen:[
+      'Kurze Erklärung von der Kollegin.',
+      'Erste vorsichtige Handgriffe.',
+      'Konzentrierter Blick, kein Wort zu viel.',
+      'Fertiges Ergebnis im Spiegel.'
+    ], kernaussage:'Lernen passiert bei uns live, nicht nebenbei.', cta:'Mehr davon? Folg uns für echte Einblicke.', caption:'Ein erstes Mal, das man sieht.' },
+    anfrage: { einstieg:'Ein Lernmoment, den wir gern zeigen.', frames:[
+      'Ronya probiert eine neue Technik aus.',
+      'Genaues Hinschauen, ruhige Anleitung.',
+      'Ein Ergebnis, das sich sehen lassen kann.'
+    ], abschluss:'Auch Lernschritte führen zu guten Ergebnissen.', cta:'Termin bei uns? Schreib uns kurz.' },
+    'lehrling-ansprechen': { hook:'So fühlt sich der erste eigene Schnitt an.', szenen:[
+      'Vorbereitung, kurzes Durchatmen.',
+      'Erste eigene Schritte, Schere in der Hand.',
+      'Blick zur Ausbilderin — kurzes Nicken.',
+      'Fertig. Und richtig gut.'
+    ], kernaussage:'Bei uns übernimmst du früh echte Verantwortung.', cta:'Interesse an einer Lehrstelle? Meld dich.', caption:'Ausbildung, wie sie sein sollte.' },
+    'mitarbeiterin-anziehen': { einstieg:'So begleiten wir unseren Lehrling.', frames:[
+      'Ein Lernschritt, Schritt für Schritt erklärt.',
+      'Geduld statt Zeitdruck.',
+      'Ein Ergebnis, auf das beide stolz sind.'
+    ], abschluss:'So bildet man aus, wenn man es ernst meint.', cta:'Du willst in einem Team arbeiten, das wirklich begleitet? Schreib uns.' },
+    'termine-fuellen': { bildidee:'Nahaufnahme vom fertigen Ergebnis, das Ronya heute selbst gemacht hat.', ersterSatz:'Auch Lernschritte bringen richtig gute Ergebnisse.', kernaussage:'Frisches Können, gute Betreuung — beides zusammen.', cta:'Heute noch ein Platz frei — schreib uns.', begleittext:'Ausbildung live bei uns im Salon.' }
+  },
+  'mitarbeiterin-zeigen': {
+    vertrauen: { einstieg:'Wer heute für dich da ist, wenn du zu uns kommst.', frames:[
+      'Ein kurzer Blick auf die Arbeit, mit der sie sich Zeit lässt.',
+      'Ruhige Hände, klare Ansage — kein Hin und Her.',
+      'Ein zufriedenes Lächeln am Ende.'
+    ], abschluss:'Erfahrung, die man spürt.', cta:'Lern sie bei deinem nächsten Termin kennen.' },
+    interesse: { hook:'Wer steckt eigentlich hinter deinem nächsten Haarschnitt?', szenen:[
+      'Kurzer Moment beim Ankommen im Salon.',
+      'Konzentrierte Arbeit am Kopf.',
+      'Ein kurzer, echter Lacher zwischendurch.',
+      'Das fertige Ergebnis, gemeinsam betrachtet.'
+    ], kernaussage:'Hinter jedem guten Ergebnis steht jemand mit Erfahrung.', cta:'Termin bei ihr? Schreib uns, wir organisieren das.', caption:'Ein Gesicht aus unserem Team.' },
+    anfrage: { bildidee:'Ruhiges Porträt bei der Arbeit — konzentriert, nicht gestellt.', ersterSatz:'Erfahrung sieht man nicht sofort. Man spürt sie.', kernaussage:'Seit Jahren im Team, mit einem sicheren Blick für Farbe und Schnitt.', cta:'Termin bei ihr vereinbaren — schreib uns.', begleittext:'Ein Teil unseres Teams, den du kennen solltest.' },
+    'lehrling-ansprechen': { einstieg:'So sieht Erfahrung im Alltag aus.', frames:[
+      'Ein Handgriff, der seit Jahren sitzt.',
+      'Ruhe, auch wenn es viel zu tun gibt.',
+      'Zeit für eine kurze Erklärung nebenbei.'
+    ], abschluss:'Genau davon kann man lernen.', cta:'Ausbildung bei uns bedeutet: von den Besten lernen.' },
+    'mitarbeiterin-anziehen': { hook:'Das ist eine von uns.', szenen:[
+      'Ankommen, kurzer Austausch im Team.',
+      'Konzentrierte Arbeit, sichtlich mit Freude.',
+      'Eine kurze Pause, ein echtes Gespräch.',
+      'Feierabend, zufrieden.'
+    ], kernaussage:'Ein Team, in dem jede:r für sich stehen kann.', cta:'Wenn du auch so arbeiten willst — meld dich.', caption:'Unser Team, echt gezeigt.' },
+    'termine-fuellen': { einstieg:'Sie hat heute noch einen freien Platz.', frames:[
+      'Kurzer Blick in ihren Terminkalender.',
+      'Ein freier Slot heute Nachmittag.',
+      'Bereit für deinen nächsten Termin.'
+    ], abschluss:'Heute noch Zeit?', cta:'Schreib uns — wir schauen, was frei ist.' }
+  },
+  'freier-termin': {
+    vertrauen: { bildidee:'Ruhiges Bild vom leeren, aufgeräumten Stuhl — einladend, nicht hektisch.', ersterSatz:'Ein Platz, der auf dich wartet.', kernaussage:'Kurzfristig frei — aber genauso sorgfältig wie jeder andere Termin.', cta:'Schreib uns oder ruf an: 01 5863130.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    interesse: { einstieg:'Heute noch ein Platz frei.', frames:[
+      'Kurzer Blick in den Kalender.',
+      'Ein Termin heute Nachmittag ist offen.',
+      'Perfekt, wenn\'s bei dir spontan sein darf.'
+    ], abschluss:'Wer zuerst kommt …', cta:'Jetzt schreiben oder anrufen — 01 5863130.' },
+    anfrage: { einstieg:'Kurzfristig ein Termin frei geworden.', frames:[
+      'Heute Nachmittag ist noch Platz.',
+      'Rechte Wienzeile 47, 1050 Wien.',
+      'Einfach melden, wenn\'s passt.'
+    ], abschluss:'Kein langes Warten nötig.', cta:'Jetzt anfragen: DM oder 01 5863130.' },
+    'lehrling-ansprechen': { bildidee:'Bild vom Arbeitsplatz, an dem heute noch gearbeitet wird.', ersterSatz:'Heute ist noch Platz — auch für dein erstes Kennenlernen bei uns.', kernaussage:'Wenn du überlegst, bei uns reinzuschnuppern: heute wäre ein guter Tag.', cta:'Schreib uns kurz.', begleittext:'Kein Druck — einfach vorbeischauen.' },
+    'mitarbeiterin-anziehen': { bildidee:'Bild vom Salon, ruhig und einladend, mit Blick auf einen freien Arbeitsplatz.', ersterSatz:'Heute ist bei uns noch Platz — für Kund:innen und vielleicht bald für dich.', kernaussage:'Wir haben gerade viel zu tun. Und suchen Verstärkung.', cta:'Interesse? Meld dich einfach.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    'termine-fuellen': { einstieg:'Heute noch einen Termin bekommen?', frames:[
+      'Wir haben heute Nachmittag noch einen freien Platz.',
+      'Rechte Wienzeile 47, 1050 Wien.',
+      '01 5863130 — einfach anrufen oder schreiben.'
+    ], abschluss:'Solange der Platz frei ist.', cta:'Jetzt melden.' }
+  },
+  'kundenergebnis': {
+    vertrauen: { bildidee:'Nachher-Foto bei gutem, natürlichem Licht — scharf, ehrlich, ohne Filter.', ersterSatz:'Genau so soll\'s aussehen.', kernaussage:'Heute fertig geworden — und wir sind sehr zufrieden.', cta:'Termin? 01 5863130 oder per DM.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    interesse: { hook:'Von hier bis hierhin — in einem Termin.', szenen:[
+      'Vorher: kurzer Blick auf den Ausgangspunkt.',
+      'Mittendrin: konzentrierte Arbeitsschritte.',
+      'Fast fertig: letzte Details.',
+      'Nachher: das fertige Ergebnis.'
+    ], kernaussage:'Manche Veränderungen sieht man sofort.', cta:'Du willst auch so ein Ergebnis? Schreib uns.', caption:'Ein Ergebnis, das für sich spricht.' },
+    anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: DM oder 01 5863130.', begleittext:'Rechte Wienzeile 47 · 1050 Wien' },
+    'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem auch Ronya mitgearbeitet hat.', frames:[
+      'Gemeinsame Vorbereitung, Schritt für Schritt.',
+      'Konzentrierte Zusammenarbeit im Team.',
+      'Das fertige Ergebnis — gemeinsam erreicht.'
+    ], abschluss:'So entstehen gute Ergebnisse bei uns: gemeinsam.', cta:'Ausbildung, bei der man wirklich mitarbeitet — Interesse? Schreib uns.' },
+    'mitarbeiterin-anziehen': { hook:'Ein Ergebnis, auf das wir stolz sind.', szenen:[
+      'Beratung, kurzer Austausch.',
+      'Konzentrierte Arbeit, sichtbare Sorgfalt.',
+      'Letzte Handgriffe, Feinschliff.',
+      'Fertiges Ergebnis, zufriedener Blick.'
+    ], kernaussage:'Arbeit, die man sehen kann — und die Spaß macht.', cta:'Du willst solche Ergebnisse mitgestalten? Meld dich.', caption:'So arbeiten wir bei jedem Termin.' },
+    'termine-fuellen': { einstieg:'Heute fertig geworden.', frames:[
+      'Ein Ergebnis, das für sich spricht.',
+      'Noch Plätze diese Woche frei.',
+      'Rechte Wienzeile 47, 1050 Wien.'
+    ], abschluss:'Auch dein nächster guter Haartag ist buchbar.', cta:'Termin? 01 5863130 oder DM.' }
+  },
+  'produkt-behandlung': {
+    vertrauen: { einstieg:'Warum wir gerade diese Behandlung oft empfehlen.', frames:[
+      'Kurzer Blick auf Haarstruktur und Zustand.',
+      'Ehrliche Einschätzung, kein Verkaufsdruck.',
+      'Das Ergebnis nach der Behandlung.'
+    ], abschluss:'Wir empfehlen nur, was wirklich passt.', cta:'Fragen dazu? Schreib uns.' },
+    interesse: { hook:'Diese Behandlung macht gerade besonders viel Sinn.', szenen:[
+      'Kurze Erklärung, was das Haar gerade braucht.',
+      'Auftragen, einwirken lassen.',
+      'Ausspülen, erste Ergebnisse sichtbar.',
+      'Fertiges Ergebnis: glänzend, gepflegt.'
+    ], kernaussage:'Die richtige Pflege zur richtigen Zeit.', cta:'Interesse? Wir haben diese Woche noch Termine.', caption:'Was dein Haar gerade wirklich braucht.' },
+    anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'DM / Anruf: 01 5863130' },
+    'lehrling-ansprechen': { bildidee:'Bild von Ronya, die die Behandlung unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
+    'mitarbeiterin-anziehen': { einstieg:'So bringen wir neue Behandlungen ins Team.', frames:[
+      'Kurze interne Einschulung vorab.',
+      'Gemeinsames Ausprobieren, Fragen erlaubt.',
+      'Sicherheit, bevor es an Kund:innen geht.'
+    ], abschluss:'Weiterbildung ist bei uns selbstverständlich.', cta:'Team, das mitwächst — Interesse? Meld dich.' },
+    'termine-fuellen': { einstieg:'Diese Behandlung passt gerade besonders gut.', frames:[
+      'Saisonal genau richtig.',
+      'Wir haben diese Woche noch Termine.',
+      'Rechte Wienzeile 47, 1050 Wien.'
+    ], abschluss:'Nicht zu lange warten.', cta:'Termin? DM oder 01 5863130.' }
+  },
+  'besonderer-moment': {
+    vertrauen: { einstieg:'Es gibt Tage, die bleiben.', frames:[
+      'Ein Moment, der uns kurz innehalten ließ.',
+      'Nichts Großes — aber ehrlich.',
+      'Genau deshalb machen wir diesen Job.'
+    ], abschluss:'So fühlt sich ein guter Tag bei uns an.', cta:'Schön, wenn du das mit uns teilst.' },
+    interesse: { hook:'Heute ist etwas passiert, das wir nicht für uns behalten wollten.', szenen:[
+      'Der Moment, wie er wirklich war.',
+      'Reaktionen im Team, echt und ungestellt.',
+      'Kurzes Innehalten.',
+      'Zurück zur Arbeit — mit einem Lächeln.'
+    ], kernaussage:'Kleine Momente, die den Unterschied machen.', cta:'Folg uns für mehr echte Einblicke.', caption:'So sieht ein guter Tag bei uns aus.' },
+    anfrage: { einstieg:'Ein Moment, der uns heute berührt hat.', frames:[
+      'Kurz, echt, ungeplant.',
+      'Genau das macht unseren Alltag aus.',
+      'Wir freuen uns, wenn du Teil davon wirst.'
+    ], abschluss:'Komm vorbei — wir zeigen dir gern mehr.', cta:'Termin anfragen: DM oder Anruf.' },
+    'lehrling-ansprechen': { einstieg:'Ein Moment, der zeigt, warum Ausbildung bei uns anders ist.', frames:[
+      'Ein Lehrling, der heute über sich hinausgewachsen ist.',
+      'Ein Team, das mitgefiebert hat.',
+      'Ein Ergebnis, das stolz gemacht hat.'
+    ], abschluss:'Das ist, was Ausbildung bei uns bedeutet.', cta:'Interesse an einer Lehrstelle? Schreib uns.' },
+    'mitarbeiterin-anziehen': { hook:'Momente wie dieser passieren bei uns öfter.', szenen:[
+      'Der Alltag, ganz normal.',
+      'Ein unerwarteter, echter Moment.',
+      'Reaktionen im Team.',
+      'Zurück in den Rhythmus des Tages.'
+    ], kernaussage:'Ein Team, das echte Momente teilt — nicht nur Arbeit.', cta:'Klingt nach deinem Umfeld? Meld dich.', caption:'So fühlt sich unser Alltag an.' },
+    'termine-fuellen': { einstieg:'Ein guter Tag bei uns — und noch Platz für dich.', frames:[
+      'So sieht\'s gerade bei uns aus.',
+      'Ein freier Termin heute oder morgen.',
+      'Rechte Wienzeile 47, 1050 Wien.'
+    ], abschluss:'Werd Teil eines guten Tages.', cta:'Termin? 01 5863130 oder DM.' }
+  }
+};
+
+let flowState = { anlass: null, ziel: null, format: null };
+
+function flowSelectAnlass(key) {
+  flowState.anlass = key;
+  document.getElementById('flow-ziel-context').innerHTML = `Anlass: <strong>${FLOW_ANLAESSE[key]}</strong>`;
+  showScreen('screen-flow-ziel');
+}
+
+function flowSelectZiel(key) {
+  flowState.ziel = key;
+  const format = FLOW_FORMAT_MATRIX[flowState.anlass][key];
+  flowState.format = format;
+  document.getElementById('flow-format-name').textContent = FLOW_FORMAT_LABEL[format];
+  document.getElementById('flow-format-reason').textContent = FLOW_FORMAT_REASON[format];
+  document.getElementById('flow-format-context').innerHTML = `Anlass: <strong>${FLOW_ANLAESSE[flowState.anlass]}</strong> · Ziel: <strong>${FLOW_ZIELE[key]}</strong>`;
+  showScreen('screen-flow-format');
+}
+
+function flowSectionBlock(label, value, id) {
+  return `<div class="story-section-block">
+    <div class="section-copy-row">
+      <span class="sc-label">${label}</span>
+      <button class="btn-section-copy" id="scopy-${id}" onclick="copySectionBlock('${id}','scopy-${id}')">📋 Kopieren</button>
+    </div>
+    <div class="sc-val" id="${id}">${value}</div>
+  </div>`;
+}
+
+function flowFrameList(items, noun) {
+  return '<div class="story-list" style="margin:12px 0;">' + items.map((t,i) =>
+    `<div class="story-frame"><div class="story-num">${noun} ${i+1} von ${items.length}</div><div class="story-text">${t}</div></div>`
+  ).join('') + '</div>';
+}
+
+function flowShowOutput() {
+  const { anlass, ziel, format } = flowState;
+  const data = FLOW_CONTENT[anlass][ziel];
+  const formatLabel = FLOW_FORMAT_LABEL[format];
+
+  document.getElementById('flow-output-eyebrow').textContent = `${formatLabel}-Vorschlag`;
+  document.getElementById('flow-output-headline').textContent = FLOW_ANLAESSE[anlass];
+  document.getElementById('flow-output-context').innerHTML = `Ziel: <strong>${FLOW_ZIELE[ziel]}</strong>`;
+
+  let bodyHtml = '';
+  let fullText = '';
+
+  if (format === 'story') {
+    bodyHtml += flowSectionBlock('Einstiegssatz', data.einstieg, 'flow-einstieg');
+    bodyHtml += flowFrameList(data.frames, 'Frame');
+    bodyHtml += flowSectionBlock('Abschlusszeile', data.abschluss, 'flow-abschluss');
+    bodyHtml += flowSectionBlock('Handlungsaufforderung', data.cta, 'flow-cta');
+    fullText = [data.einstieg, '', ...data.frames, '', data.abschluss, '', data.cta].join('\n');
+  } else if (format === 'reel') {
+    bodyHtml += flowSectionBlock('Hook', data.hook, 'flow-hook');
+    bodyHtml += flowFrameList(data.szenen, 'Szene');
+    bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
+    bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
+    if (data.caption) bodyHtml += flowSectionBlock('Caption-Vorschlag', data.caption, 'flow-caption');
+    fullText = [data.hook, '', ...data.szenen, '', data.kernaussage, '', data.cta, data.caption ? '\n' + data.caption : ''].join('\n');
+  } else {
+    bodyHtml += flowSectionBlock('Bildidee', data.bildidee, 'flow-bild');
+    bodyHtml += flowSectionBlock('Starker erster Satz', data.ersterSatz, 'flow-satz');
+    bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
+    bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
+    if (data.begleittext) bodyHtml += flowSectionBlock('Begleittext', data.begleittext, 'flow-begleit');
+    fullText = [data.ersterSatz, '', data.kernaussage, '', data.cta, data.begleittext ? '\n' + data.begleittext : '', '', '📷 ' + data.bildidee].join('\n');
+  }
+
+  const bodyEl = document.getElementById('flow-output-body');
+  bodyEl.innerHTML = bodyHtml;
+  bodyEl.dataset.fulltext = fullText;
+  showScreen('screen-flow-output');
+}
+
+function flowCopyAll() {
+  const bodyEl = document.getElementById('flow-output-body');
+  const text = bodyEl ? (bodyEl.dataset.fulltext || '') : '';
+  if (!text) return;
+  const btn = document.getElementById('flow-copy-all-btn');
+  navigator.clipboard.writeText(text).then(() => {
+    const orig = btn.innerHTML;
+    btn.innerHTML = '✓ Kopiert!'; btn.classList.add('copied');
+    setTimeout(() => { btn.innerHTML = orig; btn.classList.remove('copied'); }, 2000);
+  });
+}
+
+function flowRestart() {
+  flowState = { anlass: null, ziel: null, format: null };
+  showScreen('screen-flow-anlass');
+}
+
+// ════════════════════════════════════════════
+// EINSTIEGE FINDEN
+// Keine "Hooks" im Creator-Sinn: kurze, echte Einstiege aus dem
+// Salonalltag. Beobachtend statt belehrend, konkret statt clever,
+// ruhig statt laut. Kategorien sind Wirkung, nicht Engagement-Technik.
+// ════════════════════════════════════════════
+const EINSTIEGE = {
+  vertrauen:[
+    t=>`Bei ${t} zeigt sich am ehesten, wie wir wirklich arbeiten.`,
+    t=>`Wir reden nicht groß über ${t} — wir zeigen es einfach, so wie es ist.`,
+    t=>`${t} ist bei uns kein Vorzeigethema, sondern Alltag.`,
+    t=>`So ehrlich wie möglich: das ist unser Zugang zu ${t}.`,
+    t=>`Bei ${t} lassen wir lieber die Arbeit sprechen als große Worte.`,
+  ],
+  einblick:[
+    t=>`Ein kurzer Blick in unseren heutigen Tag: ${t}.`,
+    t=>`So sieht ${t} bei uns im Alltag aus.`,
+    t=>`Zwischen Farbe, Beratung und Kaffee war heute auch ${t} dabei.`,
+    t=>`Heute ein kleiner Einblick: ${t}.`,
+    t=>`Nicht alles zeigen wir — aber ${t} war heute einen Blick wert.`,
+  ],
+  interesse:[
+    t=>`${t} — das war heute ein kleiner, aber schöner Moment bei uns.`,
+    t=>`Manchmal braucht es gar nicht viel, so wie heute bei ${t}.`,
+    t=>`Heute war wieder so ein Moment mit ${t}, den wir gern zeigen.`,
+    t=>`${t} hat uns heute kurz innehalten lassen.`,
+    t=>`Ein Detail, das man leicht übersieht: ${t}.`,
+  ],
+  anziehung:[
+    t=>`Bei uns gehört ${t} einfach dazu — nicht nur in der Theorie.`,
+    t=>`So sieht Arbeiten bei uns aus, wenn es um ${t} geht.`,
+    t=>`Wer bei uns mitarbeitet, bekommt ${t} nicht nebenbei, sondern wirklich.`,
+    t=>`${t} ist bei uns kein Schlagwort, sondern Alltag im Team.`,
+    t=>`Man merkt schnell, ob ${t} im Alltag wirklich Platz hat.`,
+  ],
+  naehe:[
+    t=>`So schaut ein ganz normaler Moment bei uns aus: ${t}.`,
+    t=>`Nicht groß inszeniert — einfach ${t}, wie es heute war.`,
+    t=>`Diese ruhigen Momente wie bei ${t} mögen wir fast am liebsten.`,
+    t=>`${t} — kein besonderer Anlass, einfach ein guter Moment.`,
+    t=>`Heute war Zeit für ${t}, und das hat gutgetan.`,
+  ],
+  klarheit:[
+    t=>`${t}: heute fertig geworden, ohne Umwege.`,
+    t=>`Kurz gesagt: ${t}, so wie es ist.`,
+    t=>`Bei ${t} war heute alles klar und geradeaus.`,
+    t=>`Kein langes Drumherum — einfach ${t}.`,
+    t=>`${t}, ruhig und ohne viel Aufhebens erledigt.`,
+  ]
+};
+const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
+const EINSTIEG_WIRKUNG = {
+  vertrauen:'Zeigt echte Abläufe – so wie sie wirklich sind.',
+  einblick:'Ein kurzer, ehrlicher Blick in den Alltag.',
+  interesse:'Ein kleiner Moment, der zum Hinschauen einlädt.',
+  anziehung:'Zeigt, wie es ist, bei euch zu arbeiten.',
+  naehe:'Nah am Moment, nicht an der Bühne.',
+  klarheit:'Klar gesagt, ohne Umschweife.'
+};
+
+function generateEinstiege() {
   const t = document.getElementById('hook-thema').value.trim() || 'Ausbildung';
-  const ziel = SEL.hookziel || 'neugier';
-  const pool = [...(HOOKS[ziel]||HOOKS.neugier)].sort(()=>Math.random()-.5).slice(0,5);
+  const ziel = SEL.hookziel || 'vertrauen';
+  const pool = [...(EINSTIEGE[ziel]||EINSTIEGE.vertrauen)].sort(()=>Math.random()-.5).slice(0,3);
   document.getElementById('hook-list').innerHTML = pool.map((fn,i) => {
     const txt = fn(t);
     return `<div class="hook-item">
-      <div class="hook-num">Hook ${i+1} · ${ziel}</div>
+      <div class="hook-num">Einstieg ${i+1} · ${EINSTIEG_LABEL[ziel]}</div>
       <div class="hook-text">„${txt}"</div>
-      <div class="hook-why">${WHY[ziel]}</div>
+      <div class="hook-why">${EINSTIEG_WIRKUNG[ziel]}</div>
       <button class="copy-sm" onclick="copyHookBtn(this)" data-text="${txt}">Kopieren</button>
     </div>`;
   }).join('');

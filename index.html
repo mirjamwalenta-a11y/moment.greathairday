@@ -4339,7 +4339,7 @@ async function claudeAnfrage(system, userText, maxTokens) {
           'Authorization': 'Bearer ' + token
         },
         body: JSON.stringify({
-          model: 'claude-sonnet-4-6',
+          model: 'claude-sonnet-5',
           max_tokens: maxTokens,
           system: system,
           messages: [{ role: 'user', content: userText }]
@@ -4698,7 +4698,7 @@ async function analysiereFoto(base64, mediaType) {
         'Authorization': 'Bearer ' + token
       },
       body: JSON.stringify({
-        model: 'claude-sonnet-4-6',
+        model: 'claude-sonnet-5',
         max_tokens: 600,
         system: `Du bist Wörni, Bildanalyse-Assistent von Mirjam Walenta.
 

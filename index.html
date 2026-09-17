@@ -4313,7 +4313,7 @@ Antworte NUR mit dem JSON-Array.`
 
   let items = null;
   try {
-    const raw = await claudeAnfrage(cfg.prompt, fokus ? `Fokus: ${fokus}` : 'Allgemeine Recherche', 1600);
+    const raw = await claudeAnfrage(cfg.prompt, fokus ? `Fokus: ${fokus}` : 'Allgemeine Recherche', 4096);
     if(raw) {
       let clean = raw.replace(/```json|```/g,'').trim();
       const start = clean.indexOf('[');

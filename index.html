@@ -4424,7 +4424,9 @@ async function claudeAnfrage(system, userText, maxTokens) {
     }
     // Zeitlimit, damit eine ausbleibende Antwort wie ein normaler Fehlschlag behandelt
     // wird (bestehender Rückfall auf feste Texte greift) statt den Button dauerhaft zu blockieren.
-    const timeoutMs = 20000;
+    // Skaliert mit maxTokens, da eine längere angeforderte Antwort (z.B. Recherche)
+    // auch länger zum Generieren braucht als die kurzen Standardantworten.
+    const timeoutMs = Math.max(20000, maxTokens * 30);
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
     let res;

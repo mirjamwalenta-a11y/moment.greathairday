@@ -4313,12 +4313,18 @@ Antworte NUR mit dem JSON-Array.`
 
   let items = null;
   try {
-    const raw = await claudeAnfrage(cfg.prompt, fokus ? `Fokus: ${fokus}` : 'Allgemeine Recherche', 900);
+    const raw = await claudeAnfrage(cfg.prompt, fokus ? `Fokus: ${fokus}` : 'Allgemeine Recherche', 1600);
     if(raw) {
-      const clean = raw.replace(/```json|```/g,'').trim();
+      let clean = raw.replace(/```json|```/g,'').trim();
+      const start = clean.indexOf('[');
+      const end = clean.lastIndexOf(']');
+      if(start !== -1 && end !== -1 && end > start) clean = clean.slice(start, end + 1);
       items = JSON.parse(clean);
     }
-  } catch(e) { items = null; }
+  } catch(e) {
+    items = null;
+    if(!letzterKIFehler) letzterKIFehler = 'Antwort konnte nicht gelesen werden: ' + (e?.message || e);
+  }
 
   loading.style.display = 'none';
 

@@ -1167,6 +1167,8 @@
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
   <button class="tab" onclick="showTab('planer')">📅 Planer</button>
   <button class="tab" onclick="showTab('cta')">📣 CTA</button>
+  <button class="tab" onclick="showTab('google')">📍 Google</button>
+  <button class="tab" onclick="showTab('ki-sichtbarkeit')">🤖 KI-Sichtbarkeit</button>
   <button class="tab" onclick="showTab('ideen')">💡 Ideen</button>
   <button class="tab" onclick="showTab('rahmen')">🖼 Rahmen</button>
   <button class="tab" onclick="showTab('recherche')">🔍 Recherche</button>
@@ -1535,6 +1537,11 @@ function tabnavScrollBy(direction) {
       <span class="heute-quick-label">Trend recherchieren</span>
       <span class="heute-quick-sub">Was ist gerade relevant</span>
     </div>
+    <div class="heute-quick-card" onclick="showTab_direct('screen-google')">
+      <span class="heute-quick-icon">📍</span>
+      <span class="heute-quick-label">Google-Beitrag</span>
+      <span class="heute-quick-sub">Für die lokale Suche</span>
+    </div>
     <div class="heute-quick-card" onclick="showTab_direct('screen-rahmen')">
       <span class="heute-quick-icon">🖼️</span>
       <span class="heute-quick-label">Goldrahmen</span>
@@ -1644,12 +1651,19 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="branche" onclick="pickSel(this,'postwer')">Branche</button>
     </div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Kanal</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="instagram" onclick="pickSel(this,'postkanal')">📷 Instagram</button>
+      <button class="chip-select" data-val="facebook" onclick="pickSel(this,'postkanal')">👍 Facebook</button>
+    </div>
+  </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
   <div id="post-result" style="display:none;margin-top:16px;">
     <div class="output-wrap">
       <div class="output-header">
         <span class="output-label">Textvorschlag <span id="post-ki-badge"></span></span>
-        <span class="output-format-badge">Post</span>
+        <span class="output-format-badge" id="post-format-badge">Post</span>
       </div>
       <div class="output-body">
         <div class="output-text" contenteditable="true" id="post-text-main" oninput="updateCharCount('post-text-main','post-char')"></div>
@@ -1672,7 +1686,7 @@ function tabnavScrollBy(direction) {
       </div>
       <div class="story-section-block">
         <div class="section-copy-row">
-          <span class="sc-label">🎯 Interaktiver Sticker</span>
+          <span class="sc-label" id="post-sticker-label">🎯 Interaktiver Sticker</span>
           <button class="btn-section-copy" id="copy-sticker" aria-label="Sticker-Idee kopieren" onclick="copySectionBlock('post-sticker-val','copy-sticker')">📋 Kopieren</button>
         </div>
         <div class="sc-val" id="post-sticker-val">—</div>
@@ -1841,6 +1855,145 @@ function tabnavScrollBy(direction) {
   <div id="cta-result" style="display:none;margin-top:16px;">
     <div id="cta-variant-list"></div>
     <button class="btn-ghost-sm" onclick="generateCTA()">↺ Neue Varianten</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: GOOGLE ══ -->
+<section class="screen" id="screen-google">
+  <div class="card">
+    <div class="card-tag">Google-Sichtbarkeit</div>
+    <div class="card-title">Sichtbar für alle, die "Friseur Wien" suchen.</div>
+    <div class="card-body">Kein Hashtag nötig — hier zählt Klartext mit Ort und Leistung. Text danach im Google Unternehmensprofil unter „Beiträge" einfügen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Beitragstyp</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="neuigkeit" onclick="pickSel(this,'googletyp')">Neuigkeit</button>
+      <button class="chip-select" data-val="angebot" onclick="pickSel(this,'googletyp')">Angebot</button>
+      <button class="chip-select" data-val="event" onclick="pickSel(this,'googletyp')">Event</button>
+      <button class="chip-select" data-val="freier-termin" onclick="pickSel(this,'googletyp')">Freier Termin</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was gibt's Neues?</div>
+    <div class="input-with-mic">
+      <textarea id="google-moment" placeholder="z.B. Ab sofort bieten wir auch Balayage-Beratung am Samstag an ..." rows="4" oninput="googlePostCheck()"></textarea>
+      <button class="btn-mic" id="mic-google" onclick="toggleMic('google-moment','mic-google')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google" onclick="generateGooglePost()" disabled>Google-Beitrag erstellen</button>
+
+  <div id="google-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Textvorschlag <span id="google-ki-badge"></span></span>
+        <span class="output-format-badge">Google-Beitrag</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-text-main" oninput="updateGoogleCharCount()"></div>
+        <div class="char-counter" id="google-char">0 / 1500</div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">🔘</span><span class="meta-text" id="google-cta-hint"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-copy-btn" onclick="copyEl('google-text-main','google-copy-btn')">📋 Text kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGooglePost()">↺ Neue Variante</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('google-result','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('google-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-tag">Bewertungsantwort</div>
+    <div class="card-title">Auf eine Google-Bewertung antworten.</div>
+    <div class="card-body">Eine persönliche Antwort zählt für Google genauso als frischer, lokaler Inhalt wie ein eigener Beitrag.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Art der Bewertung</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="positiv" onclick="pickSel(this,'googlebewertung')">😊 Positiv</button>
+      <button class="chip-select" data-val="gemischt" onclick="pickSel(this,'googlebewertung')">😐 Gemischt</button>
+      <button class="chip-select" data-val="negativ" onclick="pickSel(this,'googlebewertung')">😟 Kritisch</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was steht in der Bewertung?</div>
+    <div class="input-with-mic">
+      <textarea id="google-review-text" placeholder="Text der Bewertung einfügen oder kurz zusammenfassen ..." rows="4" oninput="googleReviewCheck()"></textarea>
+      <button class="btn-mic" id="mic-google-review" onclick="toggleMic('google-review-text','mic-google-review')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google-review" onclick="generateGoogleReviewReply()" disabled>Antwort vorschlagen</button>
+  <div id="google-review-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Antwortvorschlag <span id="google-review-ki-badge"></span></span>
+        <span class="output-format-badge">Bewertung</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-review-text-main"></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-review-copy-btn" onclick="copyEl('google-review-text-main','google-review-copy-btn')">📋 Antwort kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-review-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGoogleReviewReply()">↺ Neue Variante</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: KI-SICHTBARKEIT ══ -->
+<section class="screen" id="screen-ki-sichtbarkeit">
+  <div class="card">
+    <div class="card-tag">KI-Sichtbarkeit</div>
+    <div class="card-title">Damit ChatGPT & Co. euch empfehlen.</div>
+    <div class="card-body">Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Themenbereich</div>
+    <div class="recherche-category-row">
+      <button class="recherche-cat-btn on" id="kicat-leistungen" onclick="selectKiCat(this,'leistungen')">
+        <span class="cat-icon">✂️</span>
+        <span class="cat-label">Leistungen & Spezialisierung</span>
+      </button>
+      <button class="recherche-cat-btn" id="kicat-standort" onclick="selectKiCat(this,'standort')">
+        <span class="cat-icon">📍</span>
+        <span class="cat-label">Standort & Erreichbarkeit</span>
+      </button>
+      <button class="recherche-cat-btn" id="kicat-team" onclick="selectKiCat(this,'team')">
+        <span class="cat-icon">🤝</span>
+        <span class="cat-label">Team & Ausbildung</span>
+      </button>
+      <button class="recherche-cat-btn" id="kicat-philosophie" onclick="selectKiCat(this,'philosophie')">
+        <span class="cat-icon">💬</span>
+        <span class="cat-label">Philosophie & Werte</span>
+      </button>
+    </div>
+  </div>
+
+  <div class="input-wrap" style="margin-bottom:8px;">
+    <div class="input-label">Konkrete Frage (optional)</div>
+    <input type="text" id="ki-fokus" placeholder="z.B. Macht ihr auch Männerhaarschnitte? …">
+  </div>
+
+  <button class="btn-main" id="btn-ki-sichtbarkeit" onclick="generateKiSichtbarkeit()">FAQ-Text erstellen</button>
+
+  <div id="ki-sichtbarkeit-result-area" style="display:none;">
+    <div id="ki-sichtbarkeit-loading" class="recherche-loading" style="display:none;">
+      <div style="margin-bottom:10px;">Wörni schreibt</div>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+    </div>
+    <div id="ki-sichtbarkeit-list"></div>
   </div>
 </section>
 
@@ -2171,7 +2324,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',storymood:'emotional',storyziel:'vertrauen',googletyp:'neuigkeit',googlebewertung:'positiv'};
 let tabNavVisible = false;
 
 // ════════════════════════════════════════════
@@ -2950,10 +3103,17 @@ async function generatePost() {
   if(m.length < 5) return;
   const ton = SEL.postton || 'nahbar';
   const wer = SEL.postwer || 'kundinnen';
+  const kanal = SEL.postkanal || 'instagram';
 
   // Tonalität & Zielgruppe als Text
   const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
   const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
+  const kanalMap = {
+    instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
+    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas ausführlicher und persönlicher erzählen als auf Instagram (bis zu 2 Sätze mehr), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und Standort im Fließtext nennen.' }
+  };
+  document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
+  document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
 
   // Button in Loading-State
   const btn = document.getElementById('btn-post');
@@ -2976,12 +3136,12 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
 
 Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
 
-Erstelle einen vollständigen Social-Media-Post als JSON-Objekt mit folgenden Feldern:
+Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der Instagram-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
-- "sticker": Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?".
-- "hashtags": 5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe.
+- "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
+- "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe'}.
 
 Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
@@ -3052,6 +3212,243 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   btn.textContent = 'Post erstellen';
 
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEITRAG-GENERATOR
+// ════════════════════════════════════════════
+function googlePostCheck() {
+  document.getElementById('btn-google').disabled = document.getElementById('google-moment').value.trim().length < 5;
+}
+
+async function generateGooglePost() {
+  const m = document.getElementById('google-moment').value.trim();
+  if(m.length < 5) return;
+  const typ = SEL.googletyp || 'neuigkeit';
+  const typMap = {
+    neuigkeit: 'Neuigkeit — eine aktuelle Info aus dem Salon',
+    angebot: 'Angebot — eine konkrete Aktion oder ein Sonderpreis',
+    event: 'Event — eine Veranstaltung oder ein besonderer Termin',
+    'freier-termin': 'Freier Termin — kurzfristig ist ein Platz frei geworden'
+  };
+  const ctaTypFallback = {
+    neuigkeit: 'Mehr erfahren', angebot: 'Termin vereinbaren',
+    event: 'Termin vereinbaren', 'freier-termin': 'Anrufen'
+  };
+
+  const btn = document.getElementById('btn-google');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+
+Mirjam Walenta ist Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993), Prüferin & Ausbilderin bei der Wiener Innung der Friseure.
+
+Schreibe einen Beitrag für das Google Unternehmensprofil (Kategorie: ${typMap[typ]}).
+
+Regeln für Google-Unternehmensprofil-Beiträge:
+- Klartext, KEIN Markdown, KEINE Hashtags, kaum Emoji (max 1)
+- Maximal 1200 Zeichen, idealerweise 400–700 Zeichen
+- Nenne im Fließtext natürlich eingebaut den Salonnamen "A Great Hair Day", den Standort ("Wien-Margareten" oder "1050 Wien") und die konkrete Leistung — das hilft bei der lokalen Google-Suche
+- Ruhige, gehobene, klare Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Marketing-Floskeln
+- Letzter Satz: eine klare Handlungsaufforderung passend zur Kategorie
+
+Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfohlener Google-Button-Typ, einer von: "Termin vereinbaren", "Anrufen", "Mehr erfahren"). Antworte NUR mit dem JSON-Objekt, kein Text drumherum, kein Markdown.`;
+
+  const userText = `Anlass: ${m}`;
+
+  let text = null;
+  let ctaTyp = ctaTypFallback[typ];
+  try {
+    const raw = await claudeAnfrage(system, userText, 500);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      try {
+        const parsed = JSON.parse(clean);
+        text = parsed.text || null;
+        ctaTyp = parsed.cta_typ || ctaTyp;
+      } catch(e) {
+        text = raw;
+      }
+    }
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = `${m}\n\nA Great Hair Day, Rechte Wienzeile 47, 1050 Wien-Margareten.`;
+  }
+
+  document.getElementById('google-text-main').textContent = text;
+  document.getElementById('google-cta-hint').innerHTML = `<strong>Empfohlener Google-Button:</strong> ${ctaTyp}`;
+  document.getElementById('google-result').style.display = 'block';
+  setKiBadge('google-ki-badge', istKi);
+  updateGoogleCharCount();
+
+  btn.disabled = false;
+  btn.textContent = 'Google-Beitrag erstellen';
+  setTimeout(()=>document.getElementById('google-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function updateGoogleCharCount() {
+  const text = document.getElementById('google-text-main')?.textContent || '';
+  const len = text.length;
+  const el = document.getElementById('google-char');
+  if(!el) return;
+  el.textContent = len + ' / 1500';
+  el.classList.remove('warn','over');
+  if(len > 1500) el.classList.add('over');
+  else if(len > 1200) el.classList.add('warn');
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEWERTUNGSANTWORT-GENERATOR
+// ════════════════════════════════════════════
+function googleReviewCheck() {
+  document.getElementById('btn-google-review').disabled = document.getElementById('google-review-text').value.trim().length < 5;
+}
+
+async function generateGoogleReviewReply() {
+  const bewertung = document.getElementById('google-review-text').value.trim();
+  if(bewertung.length < 5) return;
+  const art = SEL.googlebewertung || 'positiv';
+  const artMap = {
+    positiv: 'Positive Bewertung — dankbar, persönlich, kurz',
+    gemischt: 'Gemischte Bewertung — Kritikpunkt ernst nehmen, ohne sich zu rechtfertigen, Lösung anbieten',
+    negativ: 'Negative/kritische Bewertung — ruhig, professionell, keine Rechtfertigung, Einladung zum persönlichen Gespräch'
+  };
+
+  const btn = document.getElementById('btn-google-review');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten).
+
+Schreibe eine Antwort auf eine Google-Bewertung. Art der Bewertung: ${artMap[art]}.
+
+Regeln:
+- Persönlich, Namen aus der Bewertung aufgreifen falls erkennbar, sonst neutral bleiben
+- Ruhige, gehobene, klare Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Floskeln wie "Vielen lieben Dank"
+- 2–4 Sätze, nie länger
+- Bei negativer/gemischter Bewertung: nie rechtfertigen oder widersprechen, sondern ernst nehmen und zu einem persönlichen Gespräch einladen (Telefon 01 5863130)
+- Bei positiver Bewertung: konkret auf etwas Genanntes eingehen, nicht generisch bleiben
+
+Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anführungszeichen drumherum.`;
+
+  const userText = `Bewertungstext: ${bewertung}`;
+
+  let text = null;
+  try {
+    text = await claudeAnfrage(system, userText, 300);
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = art === 'positiv'
+      ? 'Vielen Dank für deine Zeit und dein Vertrauen — das freut uns wirklich. Mirjam & das Team von A Great Hair Day.'
+      : 'Danke, dass du dir die Zeit für dieses Feedback genommen hast. Wir nehmen das ernst und würden uns freuen, kurz persönlich mit dir zu sprechen — unter 01 5863130 erreichst du uns direkt.';
+  }
+
+  document.getElementById('google-review-text-main').textContent = text.trim();
+  document.getElementById('google-review-result').style.display = 'block';
+  setKiBadge('google-review-ki-badge', istKi);
+
+  btn.disabled = false;
+  btn.textContent = 'Antwort vorschlagen';
+  setTimeout(()=>document.getElementById('google-review-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// KI-SICHTBARKEIT (FAQ-TEXTE FÜR KI-ANTWORTMASCHINEN)
+// ════════════════════════════════════════════
+let currentKiCat = 'leistungen';
+function selectKiCat(el, cat) {
+  document.querySelectorAll('#screen-ki-sichtbarkeit .recherche-cat-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentKiCat = cat;
+}
+
+async function generateKiSichtbarkeit() {
+  const fokus = document.getElementById('ki-fokus').value.trim();
+  const btn = document.getElementById('btn-ki-sichtbarkeit');
+  const area = document.getElementById('ki-sichtbarkeit-result-area');
+  const loading = document.getElementById('ki-sichtbarkeit-loading');
+  const list = document.getElementById('ki-sichtbarkeit-list');
+
+  const catLabels = {
+    leistungen: 'Leistungen & Spezialisierung (z.B. Balayage, Farbe, Schnitt, für wen der Salon geeignet ist)',
+    standort: 'Standort, Erreichbarkeit, Terminvereinbarung',
+    team: 'Team, Ausbildung, Lehrlinge, wie man bei ihr lernt',
+    philosophie: 'Philosophie, Werte, was den Salon von anderen unterscheidet'
+  };
+
+  const system = `Du bist Wörni, Assistent von Mirjam Walenta für Inhalte, die von KI-Systemen (ChatGPT, Perplexity, Google Gemini, Google-KI-Übersichten) gelesen und zitiert werden, wenn Menschen nach einem Friseur in Wien suchen.
+
+Mirjam Walenta ist:
+- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
+- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
+- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
+- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
+
+Ziel: Text für die Salon-Website (FAQ oder "Über uns") oder das Google Unternehmensprofil unter "Fragen & Antworten". KI-Systeme bevorzugen klare, vollständige Sätze mit konkreten Fakten (Name, Ort, Leistung, Zielgruppe) statt Marketing-Sprache.
+
+Schreibe genau 4 Frage-Antwort-Paare zum Themenbereich: ${catLabels[currentKiCat]}${fokus ? `. Berücksichtige dabei besonders diese konkrete Frage: "${fokus}"` : ''}.
+
+Jede Antwort: 2–4 vollständige Sätze, sachlich, in Mirjams ruhiger Stimme, OHNE Ausrufezeichen, OHNE Emoji, OHNE Hashtags. Nenne wo passend den Salonnamen "A Great Hair Day", den Standort "Wien-Margareten" oder "1050 Wien" und die konkrete Leistung explizit (das hilft KI-Systemen, den Text der richtigen Suche zuzuordnen).
+
+Antworte als kompaktes JSON-Array ohne Zeilenumbrüche, jedes Element mit "frage" und "antwort". Antworte NUR mit dem JSON-Array.`;
+
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+  area.style.display = 'block';
+  loading.style.display = 'block';
+  list.innerHTML = '';
+
+  let items = null;
+  try {
+    const raw = await claudeAnfrage(system, fokus ? `Fokus: ${fokus}` : 'Allgemein', 1200);
+    if(raw) {
+      let clean = raw.replace(/```json|```/g,'').trim();
+      const start = clean.indexOf('[');
+      if(start !== -1) clean = clean.slice(start);
+      const end = clean.lastIndexOf(']');
+      clean = end !== -1 ? clean.slice(0, end + 1) : clean;
+      items = JSON.parse(clean);
+    }
+  } catch(e) {
+    items = null;
+    if(!letzterKIFehler) letzterKIFehler = 'Antwort konnte nicht gelesen werden: ' + (e?.message || e);
+  }
+
+  loading.style.display = 'none';
+
+  if(!items || !Array.isArray(items) || items.length === 0) {
+    list.innerHTML = `<div class="card" style="border-left:3px solid var(--gold-light);">
+      <div class="card-body">Wörni konnte den Text gerade nicht erstellen. Bitte versuche es nochmal.</div>
+      ${letzterKIFehler ? `<div class="card-body" style="margin-top:8px;font-size:11px;color:var(--soft);word-break:break-word;">Technischer Hinweis: ${letzterKIFehler}</div>` : ''}
+    </div>`;
+  } else {
+    window._kiSichtbarkeitItems = items;
+    list.innerHTML = items.map((item, i) => `
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">❓ ${item.frage || ''}</span>
+          <button class="btn-section-copy" id="ki-copy-${i}" aria-label="Antwort kopieren" onclick="copySectionBlock('ki-antwort-${i}','ki-copy-${i}')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="ki-antwort-${i}">${item.antwort || ''}</div>
+      </div>
+    `).join('') + `<button class="btn-ghost-sm" style="margin-top:10px;" onclick="copyAlleKiSichtbarkeit()">📋 Alles zusammen kopieren</button>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Neue Variante erstellen';
+  setTimeout(()=>area.scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+function copyAlleKiSichtbarkeit() {
+  const items = window._kiSichtbarkeitItems || [];
+  if(!items.length) return;
+  const text = items.map(i => `${i.frage}\n${i.antwort}`).join('\n\n');
+  navigator.clipboard.writeText(text).catch(()=>{});
 }
 
 // ════════════════════════════════════════════

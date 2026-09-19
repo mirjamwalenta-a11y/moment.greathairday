@@ -2062,29 +2062,20 @@ function tabnavScrollBy(direction) {
   <div class="card">
     <div class="card-tag">KI-Sichtbarkeit</div>
     <div class="card-title">Damit ChatGPT & Co. euch empfehlen.</div>
-    <div class="card-body">Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.</div>
+    <div class="card-body" id="ki-sichtbarkeit-intro">Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="selectKiKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectKiKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
   </div>
 
   <div class="input-wrap">
     <div class="input-label">Themenbereich</div>
-    <div class="recherche-category-row">
-      <button class="recherche-cat-btn on" id="kicat-leistungen" onclick="selectKiCat(this,'leistungen')">
-        <span class="cat-icon">✂️</span>
-        <span class="cat-label">Leistungen & Spezialisierung</span>
-      </button>
-      <button class="recherche-cat-btn" id="kicat-standort" onclick="selectKiCat(this,'standort')">
-        <span class="cat-icon">📍</span>
-        <span class="cat-label">Standort & Erreichbarkeit</span>
-      </button>
-      <button class="recherche-cat-btn" id="kicat-team" onclick="selectKiCat(this,'team')">
-        <span class="cat-icon">🤝</span>
-        <span class="cat-label">Team & Ausbildung</span>
-      </button>
-      <button class="recherche-cat-btn" id="kicat-philosophie" onclick="selectKiCat(this,'philosophie')">
-        <span class="cat-icon">💬</span>
-        <span class="cat-label">Philosophie & Werte</span>
-      </button>
-    </div>
+    <div class="recherche-category-row" id="ki-cat-row"></div>
   </div>
 
   <div class="input-wrap" style="margin-bottom:8px;">
@@ -2448,7 +2439,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -2542,7 +2533,7 @@ function showTab(id) {
   if(id === 'heute') initHeuteTab();
   if(id === 'planer') initPlaner();
   if(id === 'hook') initHookScreen();
-  if(id === 'ki-sichtbarkeit') renderKiSichtbarkeitAblage();
+  if(id === 'ki-sichtbarkeit') { renderKiCatRow(); renderKiSichtbarkeitAblage(); }
   window.scrollTo(0, 0);
 }
 
@@ -3647,12 +3638,54 @@ const KI_KAT_LABELS = {
   leistungen: 'Leistungen & Spezialisierung',
   standort: 'Standort & Erreichbarkeit',
   team: 'Team & Ausbildung',
-  philosophie: 'Philosophie & Werte'
+  philosophie: 'Philosophie & Werte',
+  was: 'Was ist das Haarnetzwerk',
+  mitmachen: 'Mitmachen & Kontakt',
+  events: 'Events & Angebote',
+  werte: 'Werte & Ziele'
 };
+// Icon + Kategorie-Buttons je Kontext — Haarnetzwerk hat keine "Leistungen"
+// oder "Standort" wie ein Salon, deshalb eigene, passende Themenbereiche.
+const KI_KAT_OPTIONEN = {
+  salon: [
+    { key:'leistungen', icon:'✂️' },
+    { key:'standort', icon:'📍' },
+    { key:'team', icon:'🤝' },
+    { key:'philosophie', icon:'💬' }
+  ],
+  haarnetzwerk: [
+    { key:'was', icon:'🤝' },
+    { key:'mitmachen', icon:'📩' },
+    { key:'events', icon:'📅' },
+    { key:'werte', icon:'💬' }
+  ]
+};
+function renderKiCatRow() {
+  const optionen = KI_KAT_OPTIONEN[SEL.kikontext] || KI_KAT_OPTIONEN.salon;
+  if (!optionen.some(o => o.key === currentKiCat)) currentKiCat = optionen[0].key;
+  const row = document.getElementById('ki-cat-row');
+  row.innerHTML = optionen.map(o => {
+    const on = o.key === currentKiCat ? ' on' : '';
+    return `<button class="recherche-cat-btn${on}" onclick="selectKiCat(this,'${o.key}')">
+      <span class="cat-icon">${o.icon}</span>
+      <span class="cat-label">${KI_KAT_LABELS[o.key]}</span>
+    </button>`;
+  }).join('');
+}
 function selectKiCat(el, cat) {
   document.querySelectorAll('#screen-ki-sichtbarkeit .recherche-cat-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
   currentKiCat = cat;
+}
+function selectKiKontext(val, el) {
+  SEL.kikontext = val;
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  currentKiCat = '';
+  renderKiCatRow();
+  document.getElementById('ki-sichtbarkeit-intro').textContent = val === 'haarnetzwerk'
+    ? 'Wenn jemand eine KI fragt „was ist das Haarnetzwerk" oder „Friseur-Netzwerk Wien", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf haarnetzwerk.at oder in der Instagram-Bio (@haar.netzwerk) verwenden.'
+    : 'Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.';
 }
 
 async function generateKiSichtbarkeit() {
@@ -3662,26 +3695,36 @@ async function generateKiSichtbarkeit() {
   const loading = document.getElementById('ki-sichtbarkeit-loading');
   const list = document.getElementById('ki-sichtbarkeit-list');
 
-  const catPromptLabels = {
+  const kontext = SEL.kikontext || 'salon';
+
+  const catPromptLabels = kontext === 'haarnetzwerk' ? {
+    was: 'Was das Haarnetzwerk ist, wer dahintersteht, welches Ziel es verfolgt',
+    mitmachen: 'Wie man Teil des Netzwerks wird oder Kontakt aufnimmt',
+    events: 'Welche Events und Angebote es gibt (Netzwerktreffen, Workshops, gemeinsame Aktionen)',
+    werte: 'Werte und Ziele des Netzwerks (Vernetzung, Zusammenhalt, neue Perspektiven fürs Handwerk)'
+  } : {
     leistungen: 'Leistungen & Spezialisierung (z.B. Balayage, Farbe, Schnitt, für wen der Salon geeignet ist)',
     standort: 'Standort, Erreichbarkeit, Terminvereinbarung',
     team: 'Team, Ausbildung, Lehrlinge, wie man bei ihr lernt',
     philosophie: 'Philosophie, Werte, was den Salon von anderen unterscheidet'
   };
 
-  const system = `Du bist Wörni, Assistent von Mirjam Walenta für Inhalte, die von KI-Systemen (ChatGPT, Perplexity, Google Gemini, Google-KI-Übersichten) gelesen und zitiert werden, wenn Menschen nach einem Friseur in Wien suchen.
+  const ziel = kontext === 'haarnetzwerk'
+    ? 'Text für die Haarnetzwerk-Website (haarnetzwerk.at) oder die Social-Media-Bio (Instagram @haar.netzwerk).'
+    : 'Text für die Salon-Website (FAQ oder "Über uns") oder das Google Unternehmensprofil unter "Fragen & Antworten".';
+  const faktenRegel = kontext === 'haarnetzwerk'
+    ? 'Nenne wo passend den Namen "Haarnetzwerk" und die konkrete Aktivität (Netzwerktreffen, Workshop, Vernetzung) explizit. Als Kontaktweg NUR den Instagram-Account @haar.netzwerk oder "über die Website" nennen — erfinde KEINE Adresse, Telefonnummer oder E-Mail-Adresse.'
+    : 'Nenne wo passend den Salonnamen "A Great Hair Day", den Standort "Wien-Margareten" oder "1050 Wien" und die konkrete Leistung explizit (das hilft KI-Systemen, den Text der richtigen Suche zuzuordnen).';
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
+  const system = `Du bist Wörni, Assistent von Mirjam Walenta für Inhalte, die von KI-Systemen (ChatGPT, Perplexity, Google Gemini, Google-KI-Übersichten) gelesen und zitiert werden, wenn Menschen ${kontext === 'haarnetzwerk' ? 'nach einem Branchennetzwerk für Friseur:innen in Österreich suchen' : 'nach einem Friseur in Wien suchen'}.
 
-Ziel: Text für die Salon-Website (FAQ oder "Über uns") oder das Google Unternehmensprofil unter "Fragen & Antworten". KI-Systeme bevorzugen klare, vollständige Sätze mit konkreten Fakten (Name, Ort, Leistung, Zielgruppe) statt Marketing-Sprache.
+${kontextTeil(kontext)}
+
+Ziel: ${ziel} KI-Systeme bevorzugen klare, vollständige Sätze mit konkreten Fakten statt Marketing-Sprache.
 
 Schreibe genau 4 Frage-Antwort-Paare zum Themenbereich: ${catPromptLabels[currentKiCat]}${fokus ? `. Berücksichtige dabei besonders diese konkrete Frage: "${fokus}"` : ''}.
 
-Jede Antwort: 2–4 vollständige Sätze, sachlich, in Mirjams ruhiger Stimme, OHNE Ausrufezeichen, OHNE Emoji, OHNE Hashtags. Nenne wo passend den Salonnamen "A Great Hair Day", den Standort "Wien-Margareten" oder "1050 Wien" und die konkrete Leistung explizit (das hilft KI-Systemen, den Text der richtigen Suche zuzuordnen).
+Jede Antwort: 2–4 vollständige Sätze, sachlich, in Mirjams ruhiger Stimme, OHNE Ausrufezeichen, OHNE Emoji, OHNE Hashtags. ${faktenRegel}
 
 Antworte als kompaktes JSON-Array ohne Zeilenumbrüche, jedes Element mit "frage" und "antwort". Antworte NUR mit dem JSON-Array.`;
 

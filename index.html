@@ -354,6 +354,11 @@
     background: var(--gold); color: white;
     font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px;
   }
+  .ki-status-chip {
+    font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    background: var(--gold); color: white; white-space: nowrap; flex-shrink: 0;
+  }
+  .ki-status-chip.live { background: #edf5f0; color: #2d6a4f; }
   .output-body { padding: 18px 16px; }
   .output-text {
     font-size: 15px; line-height: 1.65; color: var(--black);
@@ -2061,6 +2066,15 @@ function tabnavScrollBy(direction) {
     </div>
     <div id="ki-sichtbarkeit-list"></div>
   </div>
+
+  <div id="ki-sichtbarkeit-ablage-wrap" style="display:none;margin-top:24px;">
+    <div class="card">
+      <div class="card-tag">Deine Ablage</div>
+      <div class="card-title">Was steht schon wo?</div>
+      <div class="card-body">Abgelegte FAQ-Texte — markiere sie als platziert, sobald sie auf der Website oder bei Google stehen. <span id="ki-sichtbarkeit-ablage-zaehler" style="font-weight:600;"></span></div>
+    </div>
+    <div id="ki-sichtbarkeit-ablage-list"></div>
+  </div>
 </section>
 
 <!-- ══ SCREEN: IDEEN ══ -->
@@ -2447,6 +2461,7 @@ function showTab(id) {
   if(id === 'heute') initHeuteTab();
   if(id === 'planer') initPlaner();
   if(id === 'hook') initHookScreen();
+  if(id === 'ki-sichtbarkeit') renderKiSichtbarkeitAblage();
   window.scrollTo(0, 0);
 }
 
@@ -3489,6 +3504,12 @@ Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anfü
 // KI-SICHTBARKEIT (FAQ-TEXTE FÜR KI-ANTWORTMASCHINEN)
 // ════════════════════════════════════════════
 let currentKiCat = 'leistungen';
+const KI_KAT_LABELS = {
+  leistungen: 'Leistungen & Spezialisierung',
+  standort: 'Standort & Erreichbarkeit',
+  team: 'Team & Ausbildung',
+  philosophie: 'Philosophie & Werte'
+};
 function selectKiCat(el, cat) {
   document.querySelectorAll('#screen-ki-sichtbarkeit .recherche-cat-btn').forEach(b => b.classList.remove('on'));
   el.classList.add('on');
@@ -3502,7 +3523,7 @@ async function generateKiSichtbarkeit() {
   const loading = document.getElementById('ki-sichtbarkeit-loading');
   const list = document.getElementById('ki-sichtbarkeit-list');
 
-  const catLabels = {
+  const catPromptLabels = {
     leistungen: 'Leistungen & Spezialisierung (z.B. Balayage, Farbe, Schnitt, für wen der Salon geeignet ist)',
     standort: 'Standort, Erreichbarkeit, Terminvereinbarung',
     team: 'Team, Ausbildung, Lehrlinge, wie man bei ihr lernt',
@@ -3519,7 +3540,7 @@ Mirjam Walenta ist:
 
 Ziel: Text für die Salon-Website (FAQ oder "Über uns") oder das Google Unternehmensprofil unter "Fragen & Antworten". KI-Systeme bevorzugen klare, vollständige Sätze mit konkreten Fakten (Name, Ort, Leistung, Zielgruppe) statt Marketing-Sprache.
 
-Schreibe genau 4 Frage-Antwort-Paare zum Themenbereich: ${catLabels[currentKiCat]}${fokus ? `. Berücksichtige dabei besonders diese konkrete Frage: "${fokus}"` : ''}.
+Schreibe genau 4 Frage-Antwort-Paare zum Themenbereich: ${catPromptLabels[currentKiCat]}${fokus ? `. Berücksichtige dabei besonders diese konkrete Frage: "${fokus}"` : ''}.
 
 Jede Antwort: 2–4 vollständige Sätze, sachlich, in Mirjams ruhiger Stimme, OHNE Ausrufezeichen, OHNE Emoji, OHNE Hashtags. Nenne wo passend den Salonnamen "A Great Hair Day", den Standort "Wien-Margareten" oder "1050 Wien" und die konkrete Leistung explizit (das hilft KI-Systemen, den Text der richtigen Suche zuzuordnen).
 
@@ -3556,6 +3577,7 @@ Antworte als kompaktes JSON-Array ohne Zeilenumbrüche, jedes Element mit "frage
     </div>`;
   } else {
     window._kiSichtbarkeitItems = items;
+    window._kiSichtbarkeitKat = currentKiCat;
     list.innerHTML = items.map((item, i) => `
       <div class="story-section-block">
         <div class="section-copy-row">
@@ -3563,6 +3585,7 @@ Antworte als kompaktes JSON-Array ohne Zeilenumbrüche, jedes Element mit "frage
           <button class="btn-section-copy" id="ki-copy-${i}" aria-label="Antwort kopieren" onclick="copySectionBlock('ki-antwort-${i}','ki-copy-${i}')">📋 Kopieren</button>
         </div>
         <div class="sc-val" id="ki-antwort-${i}">${item.antwort || ''}</div>
+        <button class="btn-ghost-sm" id="ki-ablegen-${i}" style="margin-top:8px;" onclick="kiSichtbarkeitAblegen(${i})">💾 In Ablage speichern</button>
       </div>
     `).join('') + `<button class="btn-ghost-sm" style="margin-top:10px;" onclick="copyAlleKiSichtbarkeit()">📋 Alles zusammen kopieren</button>`;
   }
@@ -3577,6 +3600,90 @@ function copyAlleKiSichtbarkeit() {
   if(!items.length) return;
   const text = items.map(i => `${i.frage}\n${i.antwort}`).join('\n\n');
   navigator.clipboard.writeText(text).catch(()=>{});
+}
+
+// ════════════════════════════════════════════
+// KI-SICHTBARKEIT: ABLAGE (welche FAQ-Texte stehen schon wo?)
+// ════════════════════════════════════════════
+const KI_SICHTBARKEIT_KEY = 'ghd_ki_sichtbarkeit_v1';
+
+function ladeKiSichtbarkeitAblage() {
+  try { return JSON.parse(localStorage.getItem(KI_SICHTBARKEIT_KEY)) || []; } catch { return []; }
+}
+function speichereKiSichtbarkeitAblage(liste) {
+  localStorage.setItem(KI_SICHTBARKEIT_KEY, JSON.stringify(liste));
+}
+
+function kiSichtbarkeitAblegen(i) {
+  const item = window._kiSichtbarkeitItems?.[i];
+  if(!item) return;
+  const liste = ladeKiSichtbarkeitAblage();
+  liste.unshift({
+    id: Date.now(),
+    kategorie: window._kiSichtbarkeitKat || currentKiCat,
+    frage: item.frage || '',
+    antwort: item.antwort || '',
+    status: 'offen',
+    datum: new Date().toLocaleDateString('de-AT')
+  });
+  speichereKiSichtbarkeitAblage(liste);
+
+  const btn = document.getElementById(`ki-ablegen-${i}`);
+  if(btn) { btn.textContent = '✓ Abgelegt'; btn.disabled = true; }
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitStatusUmschalten(id) {
+  const liste = ladeKiSichtbarkeitAblage();
+  const eintrag = liste.find(e => e.id === id);
+  if(!eintrag) return;
+  eintrag.status = eintrag.status === 'live' ? 'offen' : 'live';
+  speichereKiSichtbarkeitAblage(liste);
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitLoeschen(id) {
+  speichereKiSichtbarkeitAblage(ladeKiSichtbarkeitAblage().filter(e => e.id !== id));
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitAblageKopieren(id) {
+  const eintrag = ladeKiSichtbarkeitAblage().find(e => e.id === id);
+  if(!eintrag) return;
+  navigator.clipboard.writeText(`${eintrag.frage}\n${eintrag.antwort}`).catch(()=>{});
+}
+
+function renderKiSichtbarkeitAblage() {
+  const wrap = document.getElementById('ki-sichtbarkeit-ablage-wrap');
+  const list = document.getElementById('ki-sichtbarkeit-ablage-list');
+  if(!wrap || !list) return;
+  const alle = ladeKiSichtbarkeitAblage();
+
+  if(alle.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+
+  const offenCount = alle.filter(e => e.status !== 'live').length;
+  const zaehler = document.getElementById('ki-sichtbarkeit-ablage-zaehler');
+  if(zaehler) zaehler.textContent = offenCount > 0 ? `${offenCount} noch offen` : 'Alle platziert';
+
+  list.innerHTML = alle.map(e => `
+    <div class="story-section-block">
+      <div class="section-copy-row">
+        <span class="sc-label">${KI_KAT_LABELS[e.kategorie] || e.kategorie} · ${e.datum}</span>
+        <span class="ki-status-chip ${e.status === 'live' ? 'live' : 'offen'}">${e.status === 'live' ? '✓ Platziert' : 'Offen'}</span>
+      </div>
+      <div class="sc-val" style="font-weight:600;">${e.frage}</div>
+      <div class="sc-val">${e.antwort}</div>
+      <div class="cta-row" style="margin-top:8px;">
+        <button class="btn-copy" onclick="kiSichtbarkeitAblageKopieren(${e.id})">📋 Kopieren</button>
+        <button class="btn-edit" onclick="kiSichtbarkeitStatusUmschalten(${e.id})">${e.status === 'live' ? '↺ Als offen markieren' : '✓ Als platziert markieren'}</button>
+      </div>
+      <button class="btn-ghost-sm" style="margin-top:6px;color:var(--rot,#a13a3a);" onclick="kiSichtbarkeitLoeschen(${e.id})">🗑 Löschen</button>
+    </div>
+  `).join('');
 }
 
 // ════════════════════════════════════════════

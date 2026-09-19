@@ -794,7 +794,7 @@
     margin-bottom: 10px;
   }
   .story-section-block .sc-label { font-size: 10px; font-weight: 700; letter-spacing:.06em; text-transform:uppercase; color:var(--gold); }
-  .story-section-block .sc-val { font-size: 14px; color: var(--black); line-height: 1.5; margin: 4px 0 8px; }
+  .story-section-block .sc-val { font-size: 14px; color: var(--black); line-height: 1.5; margin: 4px 0 8px; white-space: pre-wrap; }
   .story-section-block .btn-section-copy { margin-left: auto; display: flex; }
 
   /* ── IN RAHMEN (Feature 3) ── */
@@ -1031,7 +1031,7 @@
     text-transform: uppercase; letter-spacing: .5px; margin-bottom: 4px;
   }
   .story-label { font-size: 12px; font-weight: 700; color: var(--gold); margin-bottom: 4px; }
-  .story-text { font-size: 14px; color: var(--black); line-height: 1.6; }
+  .story-text { font-size: 14px; color: var(--black); line-height: 1.6; white-space: pre-wrap; }
   .story-tip { font-size: 11px; color: var(--soft); margin-top: 5px; font-style: italic; }
 
   /* ── RECHERCHE ── */
@@ -1845,7 +1845,8 @@ function tabnavScrollBy(direction) {
   </div>
   <button class="btn-main" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
   <div id="story-result" style="display:none;margin-top:16px;">
-    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine 5 Story-Frames</p>
+    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine Story-Frames <span id="story-ki-badge"></span></p>
+    <div id="story-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
     <div class="story-list" id="story-list"></div>
     <button class="btn-ghost-sm" onclick="generateStory()">↺ Neue Variante</button>
     <div class="cta-row abschluss-row" style="margin-top:10px;">
@@ -1896,7 +1897,8 @@ function tabnavScrollBy(direction) {
   </div>
   <button class="btn-main" id="btn-reel" onclick="generateReel()" disabled>Script erstellen</button>
   <div id="reel-result" style="display:none;margin-top:16px;">
-    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Dein Reel-Script</p>
+    <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:10px;">Dein Reel-Script <span id="reel-ki-badge"></span></p>
+    <div id="reel-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
     <div id="reel-scene-list"></div>
     <div id="reel-caption-block" style="display:none;margin-top:4px;">
       <div class="story-section-block">
@@ -3421,11 +3423,21 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
   const istKi = !!postText;
 
-  // Fallback auf Template wenn KI nicht antwortet
+  // Fallback auf Template wenn KI nicht antwortet — fürs Haarnetzwerk
+  // NICHT die Salon-Vorlagen (die nennen Adresse/Kundinnen), sondern
+  // dieselben Extraktions-Helfer wie Story/Reel, statt den rohen Input
+  // ungefiltert als "fertigen" Post anzuzeigen.
   if(!postText) {
-    const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
-    const r = fn(m);
-    postText = r.hook + '\n\n' + r.body;
+    if(kontext === 'haarnetzwerk') {
+      const hook = storyHookAusText(m);
+      const thema = storyThemaAusText(m);
+      const urlMatch = m.match(/https?:\/\/\S+/);
+      postText = `${hook}\n\n${thema}${urlMatch ? '\n\n' + urlMatch[0] : ''}`;
+    } else {
+      const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
+      const r = fn(m);
+      postText = r.hook + '\n\n' + r.body;
+    }
   }
 
   return { text: postText, structured: postStructured, istKi };
@@ -4055,13 +4067,22 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
     }
   } catch(e) { frames = null; }
 
-  // Fallback auf Template — fürs Haarnetzwerk ein neutraler Fallback statt
+  // Fallback auf Template — fürs Haarnetzwerk ein eigener Fallback statt
   // der Salon-Vorlagen (die nennen Adresse/Kundinnen, passt hier nicht).
+  // Nutzt dieselben Extraktions-Helfer wie der Salon-Fallback, damit der
+  // rohe Input nicht 1:1 als "fertiger" Frame-Text landet.
+  let kiHatGeantwortet = !!frames;
   if(!frames || !Array.isArray(frames) || frames.length < 2) {
+    kiHatGeantwortet = false;
     if(kontext === 'haarnetzwerk') {
+      const hook = storyHookAusText(m);
+      const thema = storyThemaAusText(m);
+      const urlMatch = m.match(/https?:\/\/\S+/);
       frames = [
-        { label:'Einstieg', text: m, tip:'Ein Bild vom Event/Anlass.', overlay:'', sticker:'' },
-        { label:'Abschluss', text:'Mehr dazu beim Haarnetzwerk.', tip:'Ruhiger Abschluss.', overlay:'', sticker:'' }
+        { label:'Einstieg', text: hook, tip:'Ein Bild vom Event/Anlass.', overlay:'', sticker:'' },
+        { label:'Der Anlass', text: thema, tip:'Situation zeigen statt erklären.', overlay:'', sticker:'' },
+        { label:'Einladung', text: urlMatch ? `Mehr dazu und Anmeldung:\n${urlMatch[0]}` : 'Mehr dazu beim Haarnetzwerk.', tip:'Klarer Hinweis, wo man sich informieren kann.', overlay:'', sticker:'' },
+        { label:'Abschluss', text:'Wir freuen uns auf euch.', tip:'Ruhiger Abschluss.', overlay:'', sticker:'' }
       ];
     } else {
       const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
@@ -4089,6 +4110,14 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
       </div>
     </div>`;
   }).join('');
+  setKiBadge('story-ki-badge', kiHatGeantwortet);
+  const fehlerHinweis = document.getElementById('story-fehler-hinweis');
+  if(!kiHatGeantwortet && letzterKIFehler) {
+    fehlerHinweis.textContent = 'Wörni war gerade nicht erreichbar, hier eine Vorlage aus deinem Text. Technischer Hinweis: ' + letzterKIFehler;
+    fehlerHinweis.style.display = 'block';
+  } else {
+    fehlerHinweis.style.display = 'none';
+  }
   document.getElementById('story-result').style.display = 'block';
 
   btn.disabled = false;
@@ -5580,16 +5609,23 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
     }
   } catch(e) { result = null; }
 
-  // Fallback
+  // Fallback — fürs Haarnetzwerk mit denselben Extraktions-Helfern wie der
+  // Story-Fallback, statt den rohen Input als "fertige" Szene zu zeigen.
+  const reelKiHatGeantwortet = !!result;
   if(!result || !result.scenes) {
-    result = kontext === 'haarnetzwerk' ? {
-      scenes: [
-        { timing:'0–3 Sek', label:'Hook', action:'Nahaufnahme vom Event/Anlass', text:m.slice(0,40), tip:'Klare Einstellung, kein Zoom.' },
-        { timing:'3–' + laenge + ' Sek', label:'Inhalt', action:m, text:'', tip:'Situation zeigen statt erklären.' }
-      ],
-      caption: m + '\n\nMehr dazu beim Haarnetzwerk.',
-      hashtags: '#Haarnetzwerk #Friseurhandwerk'
-    } : {
+    result = kontext === 'haarnetzwerk' ? (() => {
+      const hook = storyHookAusText(m);
+      const thema = storyThemaAusText(m);
+      const urlMatch = m.match(/https?:\/\/\S+/);
+      return {
+        scenes: [
+          { timing:'0–3 Sek', label:'Hook', action:'Nahaufnahme vom Event/Anlass', text: hook.slice(0,40), tip:'Klare Einstellung, kein Zoom.' },
+          { timing:'3–' + laenge + ' Sek', label:'Inhalt', action: thema, text:'', tip:'Situation zeigen statt erklären.' }
+        ],
+        caption: thema + (urlMatch ? `\n\nAnmeldung: ${urlMatch[0]}` : '\n\nMehr dazu beim Haarnetzwerk.'),
+        hashtags: '#Haarnetzwerk #Friseurhandwerk'
+      };
+    })() : {
       scenes: [
         { timing:'0–2 Sek', label:'Hook', action:'Nahaufnahme des Ergebnisses', text:'So geht das.', tip:'Extreme Nahaufnahme, Licht von der Seite.' },
         { timing:'2–6 Sek', label:'Vorher', action:'Das Problem oder der Ausgangszustand', text:'Vorher:', tip:'Ruhige Einstellung, kein Zoom.' },
@@ -5622,6 +5658,15 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
     document.getElementById('reel-caption-val').textContent = result.caption;
     document.getElementById('reel-hash-val').textContent    = result.hashtags || '';
     document.getElementById('reel-caption-block').style.display = 'block';
+  }
+
+  setKiBadge('reel-ki-badge', reelKiHatGeantwortet);
+  const reelFehlerHinweis = document.getElementById('reel-fehler-hinweis');
+  if(!reelKiHatGeantwortet && letzterKIFehler) {
+    reelFehlerHinweis.textContent = 'Wörni war gerade nicht erreichbar, hier eine Vorlage aus deinem Text. Technischer Hinweis: ' + letzterKIFehler;
+    reelFehlerHinweis.style.display = 'block';
+  } else {
+    reelFehlerHinweis.style.display = 'none';
   }
 
   document.getElementById('reel-result').style.display = 'block';

@@ -1621,6 +1621,13 @@ function tabnavScrollBy(direction) {
         <div class="far-row"><div class="far-label">Was Wörni sieht</div><div class="far-val" id="far-beschreibung">—</div></div>
         <div class="far-row"><div class="far-label">Fachbegriffe</div><div class="far-val" id="far-begriffe">—</div></div>
         <div class="far-row"><div class="far-label">Hook-Vorschlag</div><div class="far-val" id="far-hook">—</div></div>
+        <div class="far-row">
+          <div class="section-copy-row" style="margin-bottom:3px;">
+            <span class="far-label" style="margin-bottom:0;">Alt-Text (Barrierefreiheit &amp; Bild-SEO)</span>
+            <button class="btn-section-copy" id="copy-far-alttext" aria-label="Alt-Text kopieren" onclick="copySectionBlock('far-alttext','copy-far-alttext')">📋 Kopieren</button>
+          </div>
+          <div class="far-val" id="far-alttext">—</div>
+        </div>
         <button class="btn-analyse-zu-post" onclick="analyseZuPost()">✍ In Post übernehmen</button>
       </div>
     </div>
@@ -5340,6 +5347,7 @@ function handleFotoAnalyse(input) {
         document.getElementById('far-beschreibung').textContent = result.beschreibung || '—';
         document.getElementById('far-begriffe').textContent = result.begriffe || '—';
         document.getElementById('far-hook').textContent = result.hook || '—';
+        document.getElementById('far-alttext').textContent = result.alt_text || '—';
         document.getElementById('foto-analyse-result').style.display = 'block';
       }
     } catch(err) {
@@ -5380,6 +5388,7 @@ Analysiere das hochgeladene Foto und antworte NUR mit einem JSON-Objekt mit dies
 - "beschreibung": Was ist auf dem Bild zu sehen? (1–2 Sätze, Fachsprache, z.B. Haarfarbe, Technik, Schnitt, Atmosphäre)
 - "begriffe": Die wichtigsten Fachbegriffe als kommaseparierte Liste (z.B. "Balayage, Kupferton, Stufenschnitt, Glossing")
 - "hook": Ein konkreter Instagram-Hook-Satz passend zum Bild, in Mirjams ruhiger Stimme (max 15 Wörter)
+- "alt_text": Ein Alt-Text für Screenreader (Bildbeschreibung für blinde/sehbehinderte Nutzer:innen), max. 125 Zeichen. Beschreibt sachlich und konkret, was zu sehen ist (Technik, Ergebnis, Setting) — KEINE Werbesprache, KEIN "Bild von"/"Foto von" am Anfang. Wo es ehrlich zum Bildinhalt passt, den Ort ("Wien-Margareten") oder die Leistung natürlich einbauen, das hilft zusätzlich bei der Google-Bildersuche — aber die Barrierefreiheit hat Vorrang vor der Keyword-Platzierung.
 Antworte NUR mit dem JSON. Kein Text drumherum.`,
         messages: [{
           role: 'user',

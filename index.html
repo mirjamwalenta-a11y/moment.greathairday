@@ -1568,6 +1568,13 @@ function tabnavScrollBy(direction) {
     <div class="card-body">Wähle einen Bereich und einen konkreten Moment daraus — die App macht daraus 3 natürliche Einstiege.</div>
   </div>
   <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="selectHookKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectHookKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
+  <div class="input-wrap">
     <div class="input-label">Bereich</div>
     <div class="chip-row" id="hook-bereich-row"></div>
   </div>
@@ -2441,7 +2448,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -3152,6 +3159,43 @@ const HOOK_BEREICHE = {
   ]},
 };
 
+// Haarnetzwerk-Variante derselben Struktur — Themen und Fakten
+// recherchiert (haarnetzwerk.at): Netzwerktreffen, Workshops, Zusammenhalt
+// (u.a. gemeinsamer Lauf für Sichtbarkeit der Branche). Keine erfundenen
+// Details (Zahlen, Zitate, Termine), nur allgemein gehaltene Momente.
+const HOOK_BEREICHE_HAARNETZWERK = {
+  treffen: { label:'Netzwerktreffen', momente:[
+    { key:'austausch', label:'im Austausch', varianten:{
+      ruhig: ['Ein Abend, an dem einfach nur zugehört und erzählt wird.', 'Genau das ist der Kern eines Netzwerktreffens: Austausch ohne Agenda.', 'Ruhige Gespräche, die trotzdem viel bewegen.'],
+      warm: ['Wieder ein Abend voller Gespräche, die man so im Alltag selten führt.', 'Genau deshalb treffen wir uns: um voneinander zu lernen, nicht nur nebeneinander zu arbeiten.', 'Ein Abend, der zeigt, wie viel Kraft in echtem Austausch steckt.'],
+    }},
+    { key:'neuegesichter', label:'neue Gesichter', varianten:{
+      ruhig: ['Wieder jemand Neues am Tisch, wieder eine neue Perspektive.', 'Ein Netzwerk wächst genau so: ein Gesicht nach dem anderen.', 'Unaufgeregt, aber genau deshalb einladend.'],
+      warm: ['Schön zu sehen, wer heute zum ersten Mal dabei war.', 'Genau das macht unser Netzwerk aus: offen für alle, die dazugehören wollen.', 'Ein Abend, an dem aus Kolleg:innen langsam Vertraute werden.'],
+    }},
+  ]},
+  workshop: { label:'Workshop', momente:[
+    { key:'lernen', label:'gemeinsam lernen', varianten:{
+      ruhig: ['Ein Workshop, konzentriert und mit vollem Raum.', 'Weiterbildung sieht bei uns oft genau so aus: gemeinsam, nicht allein.', 'Ruhige Konzentration, die man in der Branche selten findet.'],
+      warm: ['Wieder ein Raum voller Menschen, die dazulernen wollen.', 'Genau dafür gibt es uns: damit Weiterbildung nicht allein passieren muss.', 'Ein Nachmittag, der zeigt, wie viel Energie in gemeinsamem Lernen steckt.'],
+    }},
+    { key:'input', label:'neuer Input', varianten:{
+      ruhig: ['Ein Impuls, der noch länger nachwirkt als der Workshop selbst.', 'Manchmal reicht ein einziger Satz, um eine neue Perspektive zu öffnen.', 'Ruhig vermittelt, aber mit echtem Gewicht.'],
+      warm: ['Genau der Input, den man gebraucht hat, ohne es vorher zu wissen.', 'Neue Ideen entstehen bei uns oft genau in solchen Momenten.', 'Ein kleiner Denkanstoß mit großer Wirkung.'],
+    }},
+  ]},
+  zusammenhalt: { label:'Zusammenhalt', momente:[
+    { key:'gemeinsam', label:'gemeinsam unterwegs', varianten:{
+      ruhig: ['Gemeinsam unterwegs, für einmal nicht im eigenen Salon.', 'Zusammenhalt zeigt sich bei uns nicht nur in Worten.', 'Ein ruhiger, aber starker Moment der Solidarität.'],
+      warm: ['Gemeinsam am Start, alle für dieselbe Sache.', 'Genau das ist die Kraft unseres Netzwerks: zusammen sind wir sichtbarer.', 'Ein Moment, der zeigt, wie viel Zusammenhalt in unserer Branche steckt.'],
+    }},
+    { key:'sichtbarkeit', label:'Branche sichtbar machen', varianten:{
+      ruhig: ['Ein Zeichen dafür, dass unsere Branche mehr ist als einzelne Salons.', 'Sichtbarkeit entsteht, wenn viele an einem Strang ziehen.', 'Unaufgeregt, aber mit klarer Haltung.'],
+      warm: ['Gemeinsam zeigen wir, wofür unsere Branche steht.', 'Genau deshalb engagieren wir uns: für mehr Sichtbarkeit für das ganze Handwerk.', 'Ein Moment mit echtem Stolz auf das, was wir gemeinsam aufbauen.'],
+    }},
+  ]},
+};
+
 // Wirkung bestimmt nur, welche der zwei Stimmungsfamilien verwendet
 // wird — "ruhig" (plain, zurückhaltend) oder "warm" (einladender,
 // stärker auf Miteinander/Verbindung). Beide Familien enthalten pro
@@ -3160,16 +3204,22 @@ const HOOK_BEREICHE = {
 const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
 const HOOK_WIRKUNG_FAMILIE = { vertrauen:'ruhig', einblick:'ruhig', klarheit:'ruhig', interesse:'warm', anziehung:'warm', naehe:'warm' };
 
+function currentHookBereiche() {
+  return SEL.hookkontext === 'haarnetzwerk' ? HOOK_BEREICHE_HAARNETZWERK : HOOK_BEREICHE;
+}
+
 function renderHookBereichRow() {
+  const bereiche = currentHookBereiche();
+  if (!bereiche[SEL.hookbereich]) SEL.hookbereich = Object.keys(bereiche)[0];
   const row = document.getElementById('hook-bereich-row');
-  row.innerHTML = Object.keys(HOOK_BEREICHE).map(key => {
+  row.innerHTML = Object.keys(bereiche).map(key => {
     const on = key === SEL.hookbereich ? ' on' : '';
-    return `<button class="chip-select${on}" onclick="selectHookBereich('${key}', this)">${HOOK_BEREICHE[key].label}</button>`;
+    return `<button class="chip-select${on}" onclick="selectHookBereich('${key}', this)">${bereiche[key].label}</button>`;
   }).join('');
 }
 
 function renderHookMomentRow() {
-  const momente = HOOK_BEREICHE[SEL.hookbereich].momente;
+  const momente = currentHookBereiche()[SEL.hookbereich].momente;
   if (!momente.some(m => m.key === SEL.hookmoment)) SEL.hookmoment = momente[0].key;
   const row = document.getElementById('hook-moment-row');
   row.innerHTML = momente.map(m => {
@@ -3192,13 +3242,24 @@ function selectHookMoment(key, el) {
   el.classList.add('on');
 }
 
+function selectHookKontext(val, el) {
+  SEL.hookkontext = val;
+  SEL.hookbereich = '';
+  SEL.hookmoment = '';
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderHookBereichRow();
+  renderHookMomentRow();
+}
+
 function initHookScreen() {
   renderHookBereichRow();
   renderHookMomentRow();
 }
 
 function generateEinstiege() {
-  const moment = HOOK_BEREICHE[SEL.hookbereich].momente.find(m => m.key === SEL.hookmoment) || HOOK_BEREICHE[SEL.hookbereich].momente[0];
+  const bereiche = currentHookBereiche();
+  const moment = bereiche[SEL.hookbereich].momente.find(m => m.key === SEL.hookmoment) || bereiche[SEL.hookbereich].momente[0];
   const ziel = SEL.hookziel || 'vertrauen';
   const familie = HOOK_WIRKUNG_FAMILIE[ziel] || 'ruhig';
   const einstiege = [...moment.varianten[familie]].sort(() => Math.random() - .5);

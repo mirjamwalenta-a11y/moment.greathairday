@@ -1569,7 +1569,7 @@ function tabnavScrollBy(direction) {
   </div>
   <div class="input-wrap">
     <div class="input-label">Für wen?</div>
-    <div class="chip-row">
+    <div class="chip-row" id="hook-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="selectHookKontext('salon', this)">🏠 Mein Salon</button>
       <button class="chip-select" data-val="haarnetzwerk" onclick="selectHookKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
     </div>
@@ -1680,7 +1680,7 @@ function tabnavScrollBy(direction) {
   </div>
   <div class="input-wrap">
     <div class="input-label">Für wen schreibst du?</div>
-    <div class="chip-row">
+    <div class="chip-row" id="post-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="pickSel(this,'postkontext')">🏠 Mein Salon</button>
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'postkontext')">🤝 Haarnetzwerk</button>
     </div>
@@ -1837,7 +1837,7 @@ function tabnavScrollBy(direction) {
   </div>
   <div class="input-wrap">
     <div class="input-label">Für wen schreibst du?</div>
-    <div class="chip-row">
+    <div class="chip-row" id="story-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="pickSel(this,'storykontext')">🏠 Mein Salon</button>
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'storykontext')">🤝 Haarnetzwerk</button>
     </div>
@@ -1888,7 +1888,7 @@ function tabnavScrollBy(direction) {
   </div>
   <div class="input-wrap">
     <div class="input-label">Für wen schreibst du?</div>
-    <div class="chip-row">
+    <div class="chip-row" id="reel-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="pickSel(this,'reelkontext')">🏠 Mein Salon</button>
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'reelkontext')">🤝 Haarnetzwerk</button>
     </div>
@@ -1927,7 +1927,14 @@ function tabnavScrollBy(direction) {
   <div class="card">
     <div class="card-tag">7-Tage-Planer</div>
     <div class="card-title">Ein Thema pro Tag.</div>
-    <div class="card-body">Tippe auf einen Tag — das Thema wird direkt in Post oder Story übernommen.</div>
+    <div class="card-body">Tippe auf einen Tag — das Thema wird direkt in Post oder Story übernommen. Die Themen sind Anregungen für den jeweiligen Wochentag, keine festen Termine.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row" id="planer-kontext-row">
+      <button class="chip-select on" data-val="salon" onclick="selectPlanerKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectPlanerKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
   </div>
   <div class="planer-week" id="planer-week"></div>
 </section>
@@ -2112,11 +2119,18 @@ function tabnavScrollBy(direction) {
     <div class="card-title">Was könntest du heute posten?</div>
     <div class="card-body">Wähle eine Idee — sie wird direkt in den Hook-Generator übernommen.</div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row" id="idea-kontext-row">
+      <button class="chip-select on" data-val="salon" onclick="selectIdeaKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectIdeaKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
   <div class="idea-grid" id="idea-grid"></div>
-  <div class="card" style="background:#edf5f0; border:none; margin-top:4px;">
+  <div class="card" id="idea-mantra-card" style="background:#edf5f0; border:none; margin-top:4px;">
     <div class="card-tag" style="color:#2d6a4f;">Dein Mantra</div>
-    <div class="card-title" style="font-size:15px;">„Bei uns musst du dich nicht erklären."</div>
-    <div class="card-body">Dieser Satz trägt 33 Jahre Haltung.</div>
+    <div class="card-title" id="idea-mantra-title" style="font-size:15px;">„Bei uns musst du dich nicht erklären."</div>
+    <div class="card-body" id="idea-mantra-body">Dieser Satz trägt 33 Jahre Haltung.</div>
   </div>
 </section>
 
@@ -2439,7 +2453,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -2544,6 +2558,16 @@ function pickSel(el, group) {
   el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
   el.classList.add('on');
   SEL[group] = el.dataset.val;
+}
+
+// Setzt eine Chip-Auswahl programmatisch (z.B. wenn der Planer eine
+// Haarnetzwerk-Idee an Post/Story/Reel übergibt und den dortigen
+// Kontext-Chip gleich mit umschalten soll).
+function setChipRow(rowId, group, val) {
+  SEL[group] = val;
+  const row = document.getElementById(rowId);
+  if (!row) return;
+  row.querySelectorAll('.chip-select').forEach(b => b.classList.toggle('on', b.dataset.val === val));
 }
 
 function selectRolle(rolle, el) {
@@ -3237,8 +3261,8 @@ function selectHookKontext(val, el) {
   SEL.hookkontext = val;
   SEL.hookbereich = '';
   SEL.hookmoment = '';
-  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
-  el.classList.add('on');
+  const row = el ? el.closest('.chip-row') : document.getElementById('hook-kontext-row');
+  row.querySelectorAll('.chip-select').forEach(c => c.classList.toggle('on', c.dataset.val === val));
   renderHookBereichRow();
   renderHookMomentRow();
 }
@@ -4043,8 +4067,26 @@ const IDEAS = [
   {icon:'⚡',label:'Freier Termin',desc:'Heute noch buchbar — schnell raus.',ziel:'Neukund:innen gewinnen'},
 ];
 
+// Themen fürs Haarnetzwerk — gestützt auf recherchierte Fakten
+// (Netzwerktreffen, Workshops, Zusammenhalt/Sichtbarkeit der Branche,
+// die Gründung durch fünf Unternehmer:innen). Keine erfundenen Details.
+const IDEAS_HAARNETZWERK = [
+  {icon:'🤝',label:'Netzwerktreffen-Moment',desc:'Ein Gespräch, ein neues Gesicht, ein Austausch der hängen bleibt.',ziel:'Vernetzung zeigen'},
+  {icon:'📚',label:'Workshop-Einblick',desc:'Was heute alle gemeinsam gelernt haben.',ziel:'Fachkompetenz + Reichweite'},
+  {icon:'🏃',label:'Zusammenhalt zeigen',desc:'Ein gemeinsamer Moment, der die Branche sichtbar macht.',ziel:'Solidarität'},
+  {icon:'💬',label:'Deine Haltung als Netzwerk',desc:'Wofür steht das Haarnetzwerk? Ein klarer Satz dazu.',ziel:'Positionierung'},
+  {icon:'🌉',label:'Brücken bauen',desc:'Zwischen Generationen, Bezirken, Erfahrung und Neugier.',ziel:'Mission zeigen'},
+  {icon:'🙋',label:'Neues Gesicht vorstellen',desc:'Wer war heute zum ersten Mal dabei?',ziel:'Offenheit zeigen'},
+  {icon:'🎤',label:'Stimme aus dem Netzwerk',desc:'Was sagt eine Kollegin oder ein Kollege über das Haarnetzwerk?',ziel:'Glaubwürdigkeit'},
+  {icon:'📅',label:'Ankündigung',desc:'Ein bevorstehendes Treffen oder Event ankündigen.',ziel:'Teilnahme fördern'},
+];
+
+function currentIdeas() {
+  return SEL.ideakontext === 'haarnetzwerk' ? IDEAS_HAARNETZWERK : IDEAS;
+}
+
 function initIdeas() {
-  document.getElementById('idea-grid').innerHTML = IDEAS.map(idea =>
+  document.getElementById('idea-grid').innerHTML = currentIdeas().map(idea =>
     `<div class="idea-card" onclick="useIdea('${idea.label}')">
       <div class="idea-icon">${idea.icon}</div>
       <div class="idea-label">${idea.label}</div>
@@ -4052,10 +4094,28 @@ function initIdeas() {
       <div class="idea-ziel">${idea.ziel}</div>
     </div>`
   ).join('');
+  const mantraTitle = document.getElementById('idea-mantra-title');
+  const mantraBody = document.getElementById('idea-mantra-body');
+  if (SEL.ideakontext === 'haarnetzwerk') {
+    mantraTitle.textContent = '„Wir wollen Brücken bauen."';
+    mantraBody.textContent = 'Zwischen Generationen, zwischen Bezirken, zwischen Erfahrung und Neugier.';
+  } else {
+    mantraTitle.textContent = '„Bei uns musst du dich nicht erklären."';
+    mantraBody.textContent = 'Dieser Satz trägt 33 Jahre Haltung.';
+  }
+}
+
+function selectIdeaKontext(val, el) {
+  SEL.ideakontext = val;
+  const row = el ? el.closest('.chip-row') : document.getElementById('idea-kontext-row');
+  row.querySelectorAll('.chip-select').forEach(c => c.classList.toggle('on', c.dataset.val === val));
+  initIdeas();
 }
 
 function useIdea(label) {
+  const kontext = SEL.ideakontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon';
   showTab_direct('screen-hook');
+  setTimeout(() => selectHookKontext(kontext), 100);
 }
 
 function showTab_direct(screenId) {
@@ -5397,13 +5457,31 @@ const PLANER_TAGE = [
   { tag:'So', thema:'Ausblick & Inspiration', hint:'Was kommt nächste Woche? Was beschäftigt dich gerade?', post:'Die Woche geht zu Ende. Was uns nächste Woche erwartet.', story:'Ausblick auf nächste Woche.' },
 ];
 
+// Haarnetzwerk-Variante: keine täglich wiederkehrenden Salon-Themen
+// (Netzwerktreffen finden laut Recherche nur ~2x im Jahr statt), sondern
+// sieben wiederverwendbare Content-Blickwinkel — als Anregung fürs jeweilige
+// Wochentag-Gefühl, nicht als Behauptung "heute passiert X".
+const PLANER_TAGE_HAARNETZWERK = [
+  { tag:'Mo', thema:'Vernetzung & Austausch', hint:'Warum Vernetzung im Handwerk zählt — ein Gedanke dazu.', post:'Vernetzung heißt für uns: voneinander lernen, nicht nur nebeneinander arbeiten.', story:'Warum wir uns vernetzen — kurz erklärt.' },
+  { tag:'Di', thema:'Wissen teilen', hint:'Ein Fachimpuls oder Learning, das im Netzwerk entstanden ist.', post:'Ein Gedanke, der uns aus dem Austausch im Netzwerk geblieben ist.', story:'Ein kleiner Impuls fürs Handwerk.' },
+  { tag:'Mi', thema:'Menschen im Netzwerk', hint:'Ein Gesicht aus dem Haarnetzwerk vorstellen.', post:'Hinter dem Haarnetzwerk stehen echte Menschen — heute einer davon.', story:'Wer steckt hinter dem Haarnetzwerk?' },
+  { tag:'Do', thema:'Hinter den Kulissen', hint:'Was das Haarnetzwerk gerade plant oder organisiert.', post:'Was gerade hinter den Kulissen des Haarnetzwerks passiert.', story:'Ein Blick hinter die Kulissen.' },
+  { tag:'Fr', thema:'Denkanstoß zur Branche', hint:'Eine Frage oder Haltung, die euch gerade beschäftigt.', post:'Eine Frage, die uns in der Branche gerade beschäftigt.', story:'Was denkst du dazu?' },
+  { tag:'Sa', thema:'Zusammenhalt zeigen', hint:'Ein Moment, der Solidarität in der Branche zeigt.', post:'Zusammenhalt zeigt sich bei uns nicht nur in Worten.', story:'Gemeinsam sind wir sichtbarer.' },
+  { tag:'So', thema:'Ausblick', hint:'Was als Nächstes im Netzwerk ansteht.', post:'Ein Blick auf das, was als Nächstes im Haarnetzwerk ansteht.', story:'Was kommt als Nächstes?' },
+];
+
+function currentPlanerTage() {
+  return SEL.planerkontext === 'haarnetzwerk' ? PLANER_TAGE_HAARNETZWERK : PLANER_TAGE;
+}
+
 function initPlaner() {
   const heute = new Date().getDay(); // 0=So, 1=Mo ...
   // Wir mappen auf unsere Reihenfolge Mo=0...So=6
   const heuteIdx = heute === 0 ? 6 : heute - 1;
   const now = new Date();
 
-  document.getElementById('planer-week').innerHTML = PLANER_TAGE.map((d, i) => {
+  document.getElementById('planer-week').innerHTML = currentPlanerTage().map((d, i) => {
     const istHeute = i === heuteIdx;
     // Datum berechnen
     const diff = i - heuteIdx;
@@ -5429,20 +5507,39 @@ function initPlaner() {
   }).join('');
 }
 
+function selectPlanerKontext(val, el) {
+  SEL.planerkontext = val;
+  const row = el ? el.closest('.chip-row') : document.getElementById('planer-kontext-row');
+  row.querySelectorAll('.chip-select').forEach(c => c.classList.toggle('on', c.dataset.val === val));
+  initPlaner();
+}
+
 function planerZuPost(idx) {
-  const d = PLANER_TAGE[idx];
+  const d = currentPlanerTage()[idx];
+  const kontext = SEL.planerkontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon';
   showTab_direct('screen-post');
-  setTimeout(()=>{ const el=document.getElementById('post-moment'); el.value=d.post; el.dispatchEvent(new Event('input')); },150);
+  setTimeout(()=>{
+    setChipRow('post-kontext-row', 'postkontext', kontext);
+    const el=document.getElementById('post-moment'); el.value=d.post; el.dispatchEvent(new Event('input'));
+  },150);
 }
 function planerZuStory(idx) {
-  const d = PLANER_TAGE[idx];
+  const d = currentPlanerTage()[idx];
+  const kontext = SEL.planerkontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon';
   showTab_direct('screen-story');
-  setTimeout(()=>{ const el=document.getElementById('story-moment'); el.value=d.story; el.dispatchEvent(new Event('input')); },150);
+  setTimeout(()=>{
+    setChipRow('story-kontext-row', 'storykontext', kontext);
+    const el=document.getElementById('story-moment'); el.value=d.story; el.dispatchEvent(new Event('input'));
+  },150);
 }
 function planerZuReel(idx) {
-  const d = PLANER_TAGE[idx];
+  const d = currentPlanerTage()[idx];
+  const kontext = SEL.planerkontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon';
   showTab_direct('screen-reel');
-  setTimeout(()=>{ const el=document.getElementById('reel-moment'); el.value=d.post; el.dispatchEvent(new Event('input')); reelCheck(); },150);
+  setTimeout(()=>{
+    setChipRow('reel-kontext-row', 'reelkontext', kontext);
+    const el=document.getElementById('reel-moment'); el.value=d.post; el.dispatchEvent(new Event('input')); reelCheck();
+  },150);
 }
 
 // ════════════════════════════════════════════

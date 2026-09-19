@@ -1688,6 +1688,7 @@ function tabnavScrollBy(direction) {
   </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
   <div id="post-result" style="display:none;margin-top:16px;">
+    <div id="post-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
     <div class="output-wrap">
       <div class="output-header">
         <span class="output-label">Textvorschlag <span id="post-ki-badge"></span></span>
@@ -3492,6 +3493,13 @@ async function generatePost() {
   document.getElementById('post-result').style.display = 'block';
   setKiBadge('post-ki-badge', istKi);
   updateCharCount('post-text-main', 'post-char');
+  const postFehlerHinweis = document.getElementById('post-fehler-hinweis');
+  if(!istKi && letzterKIFehler) {
+    postFehlerHinweis.textContent = 'Wörni war gerade nicht erreichbar, hier eine Vorlage aus deinem Text. Technischer Hinweis: ' + letzterKIFehler;
+    postFehlerHinweis.style.display = 'block';
+  } else {
+    postFehlerHinweis.style.display = 'none';
+  }
 
   // Structured Blocks befüllen (Overlay, Sticker, Hashtags)
   if(postStructured) {

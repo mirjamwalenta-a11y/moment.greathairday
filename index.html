@@ -1656,6 +1656,7 @@ function tabnavScrollBy(direction) {
     <div class="chip-row">
       <button class="chip-select on" data-val="instagram" onclick="pickSel(this,'postkanal')">📷 Instagram</button>
       <button class="chip-select" data-val="facebook" onclick="pickSel(this,'postkanal')">👍 Facebook</button>
+      <button class="chip-select" data-val="alle" onclick="pickSel(this,'postkanal')">🌐 Alle Kanäle</button>
     </div>
   </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
@@ -1711,6 +1712,64 @@ function tabnavScrollBy(direction) {
     <div class="cta-row abschluss-row" style="margin-top:10px;">
       <button class="btn-copy" onclick="abschlussEntscheidung('post-result','gepostet',this)">✓ Gepostet</button>
       <button class="btn-edit" onclick="abschlussEntscheidung('post-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
+  </div>
+
+  <!-- Ergebnis bei Kanal "Alle Kanäle": drei Textvorschläge untereinander -->
+  <div id="post-result-multi" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">📷 Instagram <span id="multi-ig-badge"></span></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="multi-ig-text"></div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">#️⃣</span><span class="meta-text" id="multi-ig-hashtags"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="multi-ig-copy" onclick="copyEl('multi-ig-text','multi-ig-copy')">📋 Kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('multi-ig-text').focus()">✏️ Bearbeiten</button>
+    </div>
+
+    <div class="output-wrap" style="margin-top:14px;">
+      <div class="output-header">
+        <span class="output-label">👍 Facebook <span id="multi-fb-badge"></span></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="multi-fb-text"></div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">#️⃣</span><span class="meta-text" id="multi-fb-hashtags"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="multi-fb-copy" onclick="copyEl('multi-fb-text','multi-fb-copy')">📋 Kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('multi-fb-text').focus()">✏️ Bearbeiten</button>
+    </div>
+
+    <div class="output-wrap" style="margin-top:14px;">
+      <div class="output-header">
+        <span class="output-label">📍 Google <span id="multi-google-badge"></span></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="multi-google-text"></div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">🔘</span><span class="meta-text" id="multi-google-cta"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="multi-google-copy" onclick="copyEl('multi-google-text','multi-google-copy')">📋 Kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('multi-google-text').focus()">✏️ Bearbeiten</button>
+    </div>
+
+    <button class="btn-ghost-sm" style="margin-top:14px;" onclick="generatePost()">↺ Neue Varianten</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('post-result-multi','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('post-result-multi','spaeter',this)">Später</button>
     </div>
     <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
   </div>
@@ -3098,27 +3157,16 @@ const POST_T = {
   }
 };
 
-async function generatePost() {
-  const m = document.getElementById('post-moment').value.trim();
-  if(m.length < 5) return;
-  const ton = SEL.postton || 'nahbar';
-  const wer = SEL.postwer || 'kundinnen';
-  const kanal = SEL.postkanal || 'instagram';
-
-  // Tonalität & Zielgruppe als Text
+// Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
+// Kanal (Instagram oder Facebook). Wiederverwendet vom Einzel-Kanal-Flow
+// und vom "Alle Kanäle"-Flow (generatePostAlleKanaele).
+async function buildKanalPost(kanal, m, ton, wer) {
   const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
   const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
   const kanalMap = {
     instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
     facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas ausführlicher und persönlicher erzählen als auf Instagram (bis zu 2 Sätze mehr), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und Standort im Fließtext nennen.' }
   };
-  document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
-  document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
-
-  // Button in Loading-State
-  const btn = document.getElementById('btn-post');
-  btn.disabled = true;
-  btn.textContent = '✦ Wörni schreibt …';
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
@@ -3163,12 +3211,40 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
     }
   } catch(e) { postText = null; }
 
+  const istKi = !!postText;
+
   // Fallback auf Template wenn KI nicht antwortet
   if(!postText) {
     const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
     const r = fn(m);
     postText = r.hook + '\n\n' + r.body;
   }
+
+  return { text: postText, structured: postStructured, istKi };
+}
+
+async function generatePost() {
+  const m = document.getElementById('post-moment').value.trim();
+  if(m.length < 5) return;
+  const kanal = SEL.postkanal || 'instagram';
+
+  if(kanal === 'alle') {
+    return generatePostAlleKanaele(m);
+  }
+
+  const ton = SEL.postton || 'nahbar';
+  const wer = SEL.postwer || 'kundinnen';
+
+  document.getElementById('post-result-multi').style.display = 'none';
+  document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
+  document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
+
+  // Button in Loading-State
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const { text: postText, structured: postStructured, istKi } = await buildKanalPost(kanal, m, ton, wer);
 
   // Bildidee & CTA via KI oder Fallback
   const ctaMap = {
@@ -3188,7 +3264,7 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   document.getElementById('post-bild-hint').innerHTML = `<strong>Bildidee:</strong> ${bildMap[ton] || bildMap.nahbar}`;
   document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${ctaMap[wer] || ctaMap.kundinnen}`;
   document.getElementById('post-result').style.display = 'block';
-  setKiBadge('post-ki-badge', !!postText && !POST_T[ton]?.[wer]);
+  setKiBadge('post-ki-badge', istKi);
   updateCharCount('post-text-main', 'post-char');
 
   // Structured Blocks befüllen (Overlay, Sticker, Hashtags)
@@ -3214,6 +3290,42 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
+// "Alle Kanäle": ein Moment → Instagram-, Facebook- und Google-Vorschlag
+// gleichzeitig, parallel abgefragt statt kanalweise nacheinander zu klicken.
+async function generatePostAlleKanaele(m) {
+  const ton = SEL.postton || 'nahbar';
+  const wer = SEL.postwer || 'kundinnen';
+
+  document.getElementById('post-result').style.display = 'none';
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt für alle Kanäle …';
+
+  const [ig, fb, google] = await Promise.all([
+    buildKanalPost('instagram', m, ton, wer),
+    buildKanalPost('facebook', m, ton, wer),
+    buildGooglePost(m, 'neuigkeit')
+  ]);
+
+  document.getElementById('multi-ig-text').textContent = ig.text;
+  document.getElementById('multi-ig-hashtags').textContent = ig.structured?.hashtags || '—';
+  setKiBadge('multi-ig-badge', ig.istKi);
+
+  document.getElementById('multi-fb-text').textContent = fb.text;
+  document.getElementById('multi-fb-hashtags').textContent = fb.structured?.hashtags || '—';
+  setKiBadge('multi-fb-badge', fb.istKi);
+
+  document.getElementById('multi-google-text').textContent = google.text;
+  document.getElementById('multi-google-cta').innerHTML = `<strong>Empfohlener Google-Button:</strong> ${google.ctaTyp}`;
+  setKiBadge('multi-google-badge', google.istKi);
+
+  document.getElementById('post-result-multi').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = 'Post erstellen';
+  setTimeout(()=>document.getElementById('post-result-multi').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
 // ════════════════════════════════════════════
 // GOOGLE-BEITRAG-GENERATOR
 // ════════════════════════════════════════════
@@ -3221,10 +3333,9 @@ function googlePostCheck() {
   document.getElementById('btn-google').disabled = document.getElementById('google-moment').value.trim().length < 5;
 }
 
-async function generateGooglePost() {
-  const m = document.getElementById('google-moment').value.trim();
-  if(m.length < 5) return;
-  const typ = SEL.googletyp || 'neuigkeit';
+// Erzeugt einen Google-Unternehmensprofil-Beitrag. Wiederverwendet vom
+// Google-Tab und vom "Alle Kanäle"-Flow im Post-Generator.
+async function buildGooglePost(m, typ) {
   const typMap = {
     neuigkeit: 'Neuigkeit — eine aktuelle Info aus dem Salon',
     angebot: 'Angebot — eine konkrete Aktion oder ein Sonderpreis',
@@ -3235,10 +3346,6 @@ async function generateGooglePost() {
     neuigkeit: 'Mehr erfahren', angebot: 'Termin vereinbaren',
     event: 'Termin vereinbaren', 'freier-termin': 'Anrufen'
   };
-
-  const btn = document.getElementById('btn-google');
-  btn.disabled = true;
-  btn.textContent = '✦ Wörni schreibt …';
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
@@ -3277,6 +3384,20 @@ Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfo
   if(!text) {
     text = `${m}\n\nA Great Hair Day, Rechte Wienzeile 47, 1050 Wien-Margareten.`;
   }
+
+  return { text, ctaTyp, istKi };
+}
+
+async function generateGooglePost() {
+  const m = document.getElementById('google-moment').value.trim();
+  if(m.length < 5) return;
+  const typ = SEL.googletyp || 'neuigkeit';
+
+  const btn = document.getElementById('btn-google');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const { text, ctaTyp, istKi } = await buildGooglePost(m, typ);
 
   document.getElementById('google-text-main').textContent = text;
   document.getElementById('google-cta-hint').innerHTML = `<strong>Empfohlener Google-Button:</strong> ${ctaTyp}`;

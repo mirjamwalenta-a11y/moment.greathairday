@@ -354,6 +354,11 @@
     background: var(--gold); color: white;
     font-size: 11px; font-weight: 600; padding: 2px 9px; border-radius: 20px;
   }
+  .ki-status-chip {
+    font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
+    background: var(--gold); color: white; white-space: nowrap; flex-shrink: 0;
+  }
+  .ki-status-chip.live { background: #edf5f0; color: #2d6a4f; }
   .output-body { padding: 18px 16px; }
   .output-text {
     font-size: 15px; line-height: 1.65; color: var(--black);
@@ -1167,6 +1172,8 @@
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
   <button class="tab" onclick="showTab('planer')">📅 Planer</button>
   <button class="tab" onclick="showTab('cta')">📣 CTA</button>
+  <button class="tab" onclick="showTab('google')">📍 Google</button>
+  <button class="tab" onclick="showTab('ki-sichtbarkeit')">🤖 KI-Sichtbarkeit</button>
   <button class="tab" onclick="showTab('ideen')">💡 Ideen</button>
   <button class="tab" onclick="showTab('rahmen')">🖼 Rahmen</button>
   <button class="tab" onclick="showTab('recherche')">🔍 Recherche</button>
@@ -1535,6 +1542,11 @@ function tabnavScrollBy(direction) {
       <span class="heute-quick-label">Trend recherchieren</span>
       <span class="heute-quick-sub">Was ist gerade relevant</span>
     </div>
+    <div class="heute-quick-card" onclick="showTab_direct('screen-google')">
+      <span class="heute-quick-icon">📍</span>
+      <span class="heute-quick-label">Google-Beitrag</span>
+      <span class="heute-quick-sub">Für die lokale Suche</span>
+    </div>
     <div class="heute-quick-card" onclick="showTab_direct('screen-rahmen')">
       <span class="heute-quick-icon">🖼️</span>
       <span class="heute-quick-label">Goldrahmen</span>
@@ -1554,6 +1566,13 @@ function tabnavScrollBy(direction) {
     <div class="card-tag">Einstiege finden</div>
     <div class="card-title">Worum geht's gerade?</div>
     <div class="card-body">Wähle einen Bereich und einen konkreten Moment daraus — die App macht daraus 3 natürliche Einstiege.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="selectHookKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectHookKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Bereich</div>
@@ -1614,6 +1633,13 @@ function tabnavScrollBy(direction) {
         <div class="far-row"><div class="far-label">Was Wörni sieht</div><div class="far-val" id="far-beschreibung">—</div></div>
         <div class="far-row"><div class="far-label">Fachbegriffe</div><div class="far-val" id="far-begriffe">—</div></div>
         <div class="far-row"><div class="far-label">Hook-Vorschlag</div><div class="far-val" id="far-hook">—</div></div>
+        <div class="far-row">
+          <div class="section-copy-row" style="margin-bottom:3px;">
+            <span class="far-label" style="margin-bottom:0;">Alt-Text (Barrierefreiheit &amp; Bild-SEO)</span>
+            <button class="btn-section-copy" id="copy-far-alttext" aria-label="Alt-Text kopieren" onclick="copySectionBlock('far-alttext','copy-far-alttext')">📋 Kopieren</button>
+          </div>
+          <div class="far-val" id="far-alttext">—</div>
+        </div>
         <button class="btn-analyse-zu-post" onclick="analyseZuPost()">✍ In Post übernehmen</button>
       </div>
     </div>
@@ -1644,12 +1670,27 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="branche" onclick="pickSel(this,'postwer')">Branche</button>
     </div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Kanal</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="instagram" onclick="pickSel(this,'postkanal')">📷 Instagram</button>
+      <button class="chip-select" data-val="facebook" onclick="pickSel(this,'postkanal')">👍 Facebook</button>
+      <button class="chip-select" data-val="alle" onclick="pickSel(this,'postkanal')">🌐 Alle Kanäle</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen schreibst du?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'postkontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'postkontext')">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
   <div id="post-result" style="display:none;margin-top:16px;">
     <div class="output-wrap">
       <div class="output-header">
         <span class="output-label">Textvorschlag <span id="post-ki-badge"></span></span>
-        <span class="output-format-badge">Post</span>
+        <span class="output-format-badge" id="post-format-badge">Post</span>
       </div>
       <div class="output-body">
         <div class="output-text" contenteditable="true" id="post-text-main" oninput="updateCharCount('post-text-main','post-char')"></div>
@@ -1672,7 +1713,7 @@ function tabnavScrollBy(direction) {
       </div>
       <div class="story-section-block">
         <div class="section-copy-row">
-          <span class="sc-label">🎯 Interaktiver Sticker</span>
+          <span class="sc-label" id="post-sticker-label">🎯 Interaktiver Sticker</span>
           <button class="btn-section-copy" id="copy-sticker" aria-label="Sticker-Idee kopieren" onclick="copySectionBlock('post-sticker-val','copy-sticker')">📋 Kopieren</button>
         </div>
         <div class="sc-val" id="post-sticker-val">—</div>
@@ -1697,6 +1738,66 @@ function tabnavScrollBy(direction) {
     <div class="cta-row abschluss-row" style="margin-top:10px;">
       <button class="btn-copy" onclick="abschlussEntscheidung('post-result','gepostet',this)">✓ Gepostet</button>
       <button class="btn-edit" onclick="abschlussEntscheidung('post-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
+  </div>
+
+  <!-- Ergebnis bei Kanal "Alle Kanäle": drei Textvorschläge untereinander -->
+  <div id="post-result-multi" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">📷 Instagram <span id="multi-ig-badge"></span></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="multi-ig-text"></div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">#️⃣</span><span class="meta-text" id="multi-ig-hashtags"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="multi-ig-copy" onclick="copyEl('multi-ig-text','multi-ig-copy')">📋 Kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('multi-ig-text').focus()">✏️ Bearbeiten</button>
+    </div>
+
+    <div class="output-wrap" style="margin-top:14px;">
+      <div class="output-header">
+        <span class="output-label">👍 Facebook <span id="multi-fb-badge"></span></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="multi-fb-text"></div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">#️⃣</span><span class="meta-text" id="multi-fb-hashtags"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="multi-fb-copy" onclick="copyEl('multi-fb-text','multi-fb-copy')">📋 Kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('multi-fb-text').focus()">✏️ Bearbeiten</button>
+    </div>
+
+    <div id="multi-google-block">
+      <div class="output-wrap" style="margin-top:14px;">
+        <div class="output-header">
+          <span class="output-label">📍 Google <span id="multi-google-badge"></span></span>
+        </div>
+        <div class="output-body">
+          <div class="output-text" contenteditable="true" id="multi-google-text"></div>
+        </div>
+        <div class="output-meta">
+          <div class="output-meta-row"><span class="meta-icon">🔘</span><span class="meta-text" id="multi-google-cta"></span></div>
+        </div>
+      </div>
+      <div class="cta-row">
+        <button class="btn-copy" id="multi-google-copy" onclick="copyEl('multi-google-text','multi-google-copy')">📋 Kopieren</button>
+        <button class="btn-edit" onclick="document.getElementById('multi-google-text').focus()">✏️ Bearbeiten</button>
+      </div>
+    </div>
+
+    <button class="btn-ghost-sm" style="margin-top:14px;" onclick="generatePost()">↺ Neue Varianten</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('post-result-multi','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('post-result-multi','spaeter',this)">Später</button>
     </div>
     <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
   </div>
@@ -1732,6 +1833,13 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="reichweite" onclick="pickSel(this,'storyziel')">Reichweite</button>
       <button class="chip-select" data-val="termin" onclick="pickSel(this,'storyziel')">Termin</button>
       <button class="chip-select" data-val="lehrling" onclick="pickSel(this,'storyziel')">Lehrling</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen schreibst du?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'storykontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'storykontext')">🤝 Haarnetzwerk</button>
     </div>
   </div>
   <button class="btn-main" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
@@ -1776,6 +1884,13 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="behind" onclick="pickSel(this,'reelziel')">Behind the Scenes</button>
       <button class="chip-select" data-val="expertise" onclick="pickSel(this,'reelziel')">Expertise</button>
       <button class="chip-select" data-val="recruiting" onclick="pickSel(this,'reelziel')">Recruiting</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen schreibst du?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'reelkontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'reelkontext')">🤝 Haarnetzwerk</button>
     </div>
   </div>
   <button class="btn-main" id="btn-reel" onclick="generateReel()" disabled>Script erstellen</button>
@@ -1825,7 +1940,7 @@ function tabnavScrollBy(direction) {
     <div class="card-body">Buchung, Engagement oder Recruiting — kopieren und direkt verwenden.</div>
   </div>
   <div class="input-wrap">
-    <div class="input-label">Kontext (optional)</div>
+    <div class="input-label">Details (optional)</div>
     <input type="text" id="cta-kontext" placeholder="z.B. Vorher-Nachher-Foto, Balayage, freier Termin …" oninput="ctaCheck()">
   </div>
   <div class="input-wrap">
@@ -1837,10 +1952,156 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="recruiting" onclick="pickSel(this,'ctaformat')">Recruiting</button>
     </div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen schreibst du?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'ctakontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'ctakontext')">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
   <button class="btn-main" id="btn-cta" onclick="generateCTA()">CTAs erstellen</button>
   <div id="cta-result" style="display:none;margin-top:16px;">
     <div id="cta-variant-list"></div>
     <button class="btn-ghost-sm" onclick="generateCTA()">↺ Neue Varianten</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: GOOGLE ══ -->
+<section class="screen" id="screen-google">
+  <div class="card">
+    <div class="card-tag">Google-Sichtbarkeit</div>
+    <div class="card-title">Sichtbar für alle, die "Friseur Wien" suchen.</div>
+    <div class="card-body">Kein Hashtag nötig — hier zählt Klartext mit Ort und Leistung. Text danach im Google Unternehmensprofil unter „Beiträge" einfügen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Beitragstyp</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="neuigkeit" onclick="pickSel(this,'googletyp')">Neuigkeit</button>
+      <button class="chip-select" data-val="angebot" onclick="pickSel(this,'googletyp')">Angebot</button>
+      <button class="chip-select" data-val="event" onclick="pickSel(this,'googletyp')">Event</button>
+      <button class="chip-select" data-val="freier-termin" onclick="pickSel(this,'googletyp')">Freier Termin</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was gibt's Neues?</div>
+    <div class="input-with-mic">
+      <textarea id="google-moment" placeholder="z.B. Ab sofort bieten wir auch Balayage-Beratung am Samstag an ..." rows="4" oninput="googlePostCheck()"></textarea>
+      <button class="btn-mic" id="mic-google" onclick="toggleMic('google-moment','mic-google')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google" onclick="generateGooglePost()" disabled>Google-Beitrag erstellen</button>
+
+  <div id="google-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Textvorschlag <span id="google-ki-badge"></span></span>
+        <span class="output-format-badge">Google-Beitrag</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-text-main" oninput="updateGoogleCharCount()"></div>
+        <div class="char-counter" id="google-char">0 / 1500</div>
+      </div>
+      <div class="output-meta">
+        <div class="output-meta-row"><span class="meta-icon">🔘</span><span class="meta-text" id="google-cta-hint"></span></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-copy-btn" onclick="copyEl('google-text-main','google-copy-btn')">📋 Text kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGooglePost()">↺ Neue Variante</button>
+    <div class="cta-row abschluss-row" style="margin-top:10px;">
+      <button class="btn-copy" onclick="abschlussEntscheidung('google-result','gepostet',this)">✓ Gepostet</button>
+      <button class="btn-edit" onclick="abschlussEntscheidung('google-result','spaeter',this)">Später</button>
+    </div>
+    <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
+  </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-tag">Bewertungsantwort</div>
+    <div class="card-title">Auf eine Google-Bewertung antworten.</div>
+    <div class="card-body">Eine persönliche Antwort zählt für Google genauso als frischer, lokaler Inhalt wie ein eigener Beitrag.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Art der Bewertung</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="positiv" onclick="pickSel(this,'googlebewertung')">😊 Positiv</button>
+      <button class="chip-select" data-val="gemischt" onclick="pickSel(this,'googlebewertung')">😐 Gemischt</button>
+      <button class="chip-select" data-val="negativ" onclick="pickSel(this,'googlebewertung')">😟 Kritisch</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was steht in der Bewertung?</div>
+    <div class="input-with-mic">
+      <textarea id="google-review-text" placeholder="Text der Bewertung einfügen oder kurz zusammenfassen ..." rows="4" oninput="googleReviewCheck()"></textarea>
+      <button class="btn-mic" id="mic-google-review" onclick="toggleMic('google-review-text','mic-google-review')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google-review" onclick="generateGoogleReviewReply()" disabled>Antwort vorschlagen</button>
+  <div id="google-review-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Antwortvorschlag <span id="google-review-ki-badge"></span></span>
+        <span class="output-format-badge">Bewertung</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-review-text-main"></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-review-copy-btn" onclick="copyEl('google-review-text-main','google-review-copy-btn')">📋 Antwort kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-review-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGoogleReviewReply()">↺ Neue Variante</button>
+  </div>
+</section>
+
+<!-- ══ SCREEN: KI-SICHTBARKEIT ══ -->
+<section class="screen" id="screen-ki-sichtbarkeit">
+  <div class="card">
+    <div class="card-tag">KI-Sichtbarkeit</div>
+    <div class="card-title">Damit ChatGPT & Co. euch empfehlen.</div>
+    <div class="card-body" id="ki-sichtbarkeit-intro">Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Für wen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="selectKiKontext('salon', this)">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="selectKiKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Themenbereich</div>
+    <div class="recherche-category-row" id="ki-cat-row"></div>
+  </div>
+
+  <div class="input-wrap" style="margin-bottom:8px;">
+    <div class="input-label">Konkrete Frage (optional)</div>
+    <input type="text" id="ki-fokus" placeholder="z.B. Macht ihr auch Männerhaarschnitte? …">
+  </div>
+
+  <button class="btn-main" id="btn-ki-sichtbarkeit" onclick="generateKiSichtbarkeit()">FAQ-Text erstellen</button>
+
+  <div id="ki-sichtbarkeit-result-area" style="display:none;">
+    <div id="ki-sichtbarkeit-loading" class="recherche-loading" style="display:none;">
+      <div style="margin-bottom:10px;">Wörni schreibt</div>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+      <span class="recherche-loading-dot"></span>
+    </div>
+    <div id="ki-sichtbarkeit-list"></div>
+  </div>
+
+  <div id="ki-sichtbarkeit-ablage-wrap" style="display:none;margin-top:24px;">
+    <div class="card">
+      <div class="card-tag">Deine Ablage</div>
+      <div class="card-title">Was steht schon wo?</div>
+      <div class="card-body">Abgelegte FAQ-Texte — markiere sie als platziert, sobald sie auf der Website oder bei Google stehen. <span id="ki-sichtbarkeit-ablage-zaehler" style="font-weight:600;"></span></div>
+    </div>
+    <div id="ki-sichtbarkeit-ablage-list"></div>
   </div>
 </section>
 
@@ -1889,6 +2150,13 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap" style="margin-bottom:8px;">
     <div class="input-label">Fokus eingrenzen (optional)</div>
     <input type="text" id="recherche-fokus" placeholder="z.B. Balayage, Gen Z, Herbst 2025 …">
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Für wen recherchierst du?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'recherchekontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'recherchekontext')">🤝 Haarnetzwerk</button>
+    </div>
   </div>
 
   <button class="btn-main" id="btn-recherche" onclick="startRecherche()">🔍 Jetzt recherchieren</button>
@@ -2171,7 +2439,44 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',postton:'nahbar',postwer:'kundinnen',storymood:'emotional',storyziel:'vertrauen'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+
+// ════════════════════════════════════════════
+// KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
+// Ein und derselbe Generator (Post/Story/Reel/CTA/Recherche) kann für
+// beide Rollen von Mirjam schreiben — der Kontext bestimmt nur, welche
+// Persona/Zielgruppe/Kontaktregeln in den System-Prompt einfließen.
+// ════════════════════════════════════════════
+const KONTEXT_INFO = {
+  salon: {
+    label: '🏠 Mein Salon',
+    persona: `Mirjam Walenta ist:
+- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
+- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
+- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
+- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
+
+Ihr Content deckt deshalb mehrere Kontexte ab:
+- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
+- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
+- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
+- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
+    hinweis: `Dieser Text ist für Mirjams eigenen Salon "A Great Hair Day".`,
+    kontakt: `Kontakt/Ort, wenn passend: Rechte Wienzeile 47, 1050 Wien, Telefon 01 5863130.`,
+    abschluss: `Wenn ein Abschluss-Satz passt: "A great hair day." oder die Adresse.`
+  },
+  haarnetzwerk: {
+    label: '🤝 Haarnetzwerk',
+    persona: `Mirjam Walenta ist Mitglied & stellvertretende Obfrau beim Haarnetzwerk, einem Branchennetzwerk für Friseurinnen & Friseure in Österreich. Das Haarnetzwerk veranstaltet Events für Friseurunternehmer:innen, deren Mitarbeiter:innen und Kund:innen.`,
+    hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — wie von einer Kollegin im Vorstand, nicht wie Werbung für einen einzelnen Betrieb.`,
+    kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
+    abschluss: `Erfinde keinen festen Abschluss-Satz mit Adresse — falls ein Abschluss passt, bleibt er allgemein auf das Haarnetzwerk bezogen.`
+  }
+};
+function kontextTeil(kontext) {
+  const k = KONTEXT_INFO[kontext] || KONTEXT_INFO.salon;
+  return `${k.persona}\n\n${k.hinweis}\n\n${k.kontakt}`;
+}
 let tabNavVisible = false;
 
 // ════════════════════════════════════════════
@@ -2228,6 +2533,7 @@ function showTab(id) {
   if(id === 'heute') initHeuteTab();
   if(id === 'planer') initPlaner();
   if(id === 'hook') initHookScreen();
+  if(id === 'ki-sichtbarkeit') { renderKiCatRow(); renderKiSichtbarkeitAblage(); }
   window.scrollTo(0, 0);
 }
 
@@ -2844,6 +3150,43 @@ const HOOK_BEREICHE = {
   ]},
 };
 
+// Haarnetzwerk-Variante derselben Struktur — Themen und Fakten
+// recherchiert (haarnetzwerk.at): Netzwerktreffen, Workshops, Zusammenhalt
+// (u.a. gemeinsamer Lauf für Sichtbarkeit der Branche). Keine erfundenen
+// Details (Zahlen, Zitate, Termine), nur allgemein gehaltene Momente.
+const HOOK_BEREICHE_HAARNETZWERK = {
+  treffen: { label:'Netzwerktreffen', momente:[
+    { key:'austausch', label:'im Austausch', varianten:{
+      ruhig: ['Ein Abend, an dem einfach nur zugehört und erzählt wird.', 'Genau das ist der Kern eines Netzwerktreffens: Austausch ohne Agenda.', 'Ruhige Gespräche, die trotzdem viel bewegen.'],
+      warm: ['Wieder ein Abend voller Gespräche, die man so im Alltag selten führt.', 'Genau deshalb treffen wir uns: um voneinander zu lernen, nicht nur nebeneinander zu arbeiten.', 'Ein Abend, der zeigt, wie viel Kraft in echtem Austausch steckt.'],
+    }},
+    { key:'neuegesichter', label:'neue Gesichter', varianten:{
+      ruhig: ['Wieder jemand Neues am Tisch, wieder eine neue Perspektive.', 'Ein Netzwerk wächst genau so: ein Gesicht nach dem anderen.', 'Unaufgeregt, aber genau deshalb einladend.'],
+      warm: ['Schön zu sehen, wer heute zum ersten Mal dabei war.', 'Genau das macht unser Netzwerk aus: offen für alle, die dazugehören wollen.', 'Ein Abend, an dem aus Kolleg:innen langsam Vertraute werden.'],
+    }},
+  ]},
+  workshop: { label:'Workshop', momente:[
+    { key:'lernen', label:'gemeinsam lernen', varianten:{
+      ruhig: ['Ein Workshop, konzentriert und mit vollem Raum.', 'Weiterbildung sieht bei uns oft genau so aus: gemeinsam, nicht allein.', 'Ruhige Konzentration, die man in der Branche selten findet.'],
+      warm: ['Wieder ein Raum voller Menschen, die dazulernen wollen.', 'Genau dafür gibt es uns: damit Weiterbildung nicht allein passieren muss.', 'Ein Nachmittag, der zeigt, wie viel Energie in gemeinsamem Lernen steckt.'],
+    }},
+    { key:'input', label:'neuer Input', varianten:{
+      ruhig: ['Ein Impuls, der noch länger nachwirkt als der Workshop selbst.', 'Manchmal reicht ein einziger Satz, um eine neue Perspektive zu öffnen.', 'Ruhig vermittelt, aber mit echtem Gewicht.'],
+      warm: ['Genau der Input, den man gebraucht hat, ohne es vorher zu wissen.', 'Neue Ideen entstehen bei uns oft genau in solchen Momenten.', 'Ein kleiner Denkanstoß mit großer Wirkung.'],
+    }},
+  ]},
+  zusammenhalt: { label:'Zusammenhalt', momente:[
+    { key:'gemeinsam', label:'gemeinsam unterwegs', varianten:{
+      ruhig: ['Gemeinsam unterwegs, für einmal nicht im eigenen Salon.', 'Zusammenhalt zeigt sich bei uns nicht nur in Worten.', 'Ein ruhiger, aber starker Moment der Solidarität.'],
+      warm: ['Gemeinsam am Start, alle für dieselbe Sache.', 'Genau das ist die Kraft unseres Netzwerks: zusammen sind wir sichtbarer.', 'Ein Moment, der zeigt, wie viel Zusammenhalt in unserer Branche steckt.'],
+    }},
+    { key:'sichtbarkeit', label:'Branche sichtbar machen', varianten:{
+      ruhig: ['Ein Zeichen dafür, dass unsere Branche mehr ist als einzelne Salons.', 'Sichtbarkeit entsteht, wenn viele an einem Strang ziehen.', 'Unaufgeregt, aber mit klarer Haltung.'],
+      warm: ['Gemeinsam zeigen wir, wofür unsere Branche steht.', 'Genau deshalb engagieren wir uns: für mehr Sichtbarkeit für das ganze Handwerk.', 'Ein Moment mit echtem Stolz auf das, was wir gemeinsam aufbauen.'],
+    }},
+  ]},
+};
+
 // Wirkung bestimmt nur, welche der zwei Stimmungsfamilien verwendet
 // wird — "ruhig" (plain, zurückhaltend) oder "warm" (einladender,
 // stärker auf Miteinander/Verbindung). Beide Familien enthalten pro
@@ -2852,16 +3195,22 @@ const HOOK_BEREICHE = {
 const EINSTIEG_LABEL = { vertrauen:'Vertrauen', einblick:'Einblick', interesse:'Interesse', anziehung:'Anziehung', naehe:'Nähe', klarheit:'Klarheit' };
 const HOOK_WIRKUNG_FAMILIE = { vertrauen:'ruhig', einblick:'ruhig', klarheit:'ruhig', interesse:'warm', anziehung:'warm', naehe:'warm' };
 
+function currentHookBereiche() {
+  return SEL.hookkontext === 'haarnetzwerk' ? HOOK_BEREICHE_HAARNETZWERK : HOOK_BEREICHE;
+}
+
 function renderHookBereichRow() {
+  const bereiche = currentHookBereiche();
+  if (!bereiche[SEL.hookbereich]) SEL.hookbereich = Object.keys(bereiche)[0];
   const row = document.getElementById('hook-bereich-row');
-  row.innerHTML = Object.keys(HOOK_BEREICHE).map(key => {
+  row.innerHTML = Object.keys(bereiche).map(key => {
     const on = key === SEL.hookbereich ? ' on' : '';
-    return `<button class="chip-select${on}" onclick="selectHookBereich('${key}', this)">${HOOK_BEREICHE[key].label}</button>`;
+    return `<button class="chip-select${on}" onclick="selectHookBereich('${key}', this)">${bereiche[key].label}</button>`;
   }).join('');
 }
 
 function renderHookMomentRow() {
-  const momente = HOOK_BEREICHE[SEL.hookbereich].momente;
+  const momente = currentHookBereiche()[SEL.hookbereich].momente;
   if (!momente.some(m => m.key === SEL.hookmoment)) SEL.hookmoment = momente[0].key;
   const row = document.getElementById('hook-moment-row');
   row.innerHTML = momente.map(m => {
@@ -2884,13 +3233,24 @@ function selectHookMoment(key, el) {
   el.classList.add('on');
 }
 
+function selectHookKontext(val, el) {
+  SEL.hookkontext = val;
+  SEL.hookbereich = '';
+  SEL.hookmoment = '';
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  renderHookBereichRow();
+  renderHookMomentRow();
+}
+
 function initHookScreen() {
   renderHookBereichRow();
   renderHookMomentRow();
 }
 
 function generateEinstiege() {
-  const moment = HOOK_BEREICHE[SEL.hookbereich].momente.find(m => m.key === SEL.hookmoment) || HOOK_BEREICHE[SEL.hookbereich].momente[0];
+  const bereiche = currentHookBereiche();
+  const moment = bereiche[SEL.hookbereich].momente.find(m => m.key === SEL.hookmoment) || bereiche[SEL.hookbereich].momente[0];
   const ziel = SEL.hookziel || 'vertrauen';
   const familie = HOOK_WIRKUNG_FAMILIE[ziel] || 'ruhig';
   const einstiege = [...moment.varianten[familie]].sort(() => Math.random() - .5);
@@ -2945,43 +3305,29 @@ const POST_T = {
   }
 };
 
-async function generatePost() {
-  const m = document.getElementById('post-moment').value.trim();
-  if(m.length < 5) return;
-  const ton = SEL.postton || 'nahbar';
-  const wer = SEL.postwer || 'kundinnen';
-
-  // Tonalität & Zielgruppe als Text
+// Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
+// Kanal (Instagram oder Facebook). Wiederverwendet vom Einzel-Kanal-Flow
+// und vom "Alle Kanäle"-Flow (generatePostAlleKanaele).
+async function buildKanalPost(kanal, m, ton, wer, kontext) {
   const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
   const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
-
-  // Button in Loading-State
-  const btn = document.getElementById('btn-post');
-  btn.disabled = true;
-  btn.textContent = '✦ Wörni schreibt …';
+  const kanalMap = {
+    instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
+    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas ausführlicher und persönlicher erzählen als auf Instagram (bis zu 2 Sätze mehr), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und Standort im Fließtext nennen.' }
+  };
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 
 Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
 
-Erstelle einen vollständigen Social-Media-Post als JSON-Objekt mit folgenden Feldern:
+Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der Instagram-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
-- "sticker": Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?".
-- "hashtags": 5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe.
+- "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
+- "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe'}.
 
 Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
@@ -3003,6 +3349,8 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
     }
   } catch(e) { postText = null; }
 
+  const istKi = !!postText;
+
   // Fallback auf Template wenn KI nicht antwortet
   if(!postText) {
     const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
@@ -3010,8 +3358,40 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
     postText = r.hook + '\n\n' + r.body;
   }
 
+  return { text: postText, structured: postStructured, istKi };
+}
+
+async function generatePost() {
+  const m = document.getElementById('post-moment').value.trim();
+  if(m.length < 5) return;
+  const kanal = SEL.postkanal || 'instagram';
+
+  if(kanal === 'alle') {
+    return generatePostAlleKanaele(m);
+  }
+
+  const ton = SEL.postton || 'nahbar';
+  const wer = SEL.postwer || 'kundinnen';
+  const kontext = SEL.postkontext || 'salon';
+
+  document.getElementById('post-result-multi').style.display = 'none';
+  document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
+  document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
+
+  // Button in Loading-State
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const { text: postText, structured: postStructured, istKi } = await buildKanalPost(kanal, m, ton, wer, kontext);
+
   // Bildidee & CTA via KI oder Fallback
-  const ctaMap = {
+  const ctaMap = kontext === 'haarnetzwerk' ? {
+    kundinnen: 'Mehr dazu beim Haarnetzwerk.',
+    neu: 'Interesse? Sprecht uns beim nächsten Event an.',
+    lehrlinge: 'Mehr Infos beim Haarnetzwerk.',
+    branche: 'Was denkst du dazu?'
+  } : {
     kundinnen: 'Termin: Link in Bio oder 01 5863130 · Rechte Wienzeile 47, 1050 Wien',
     neu: 'Erstes Gespräch? Einfach melden — DM oder 01 5863130.',
     lehrlinge: 'Interesse an der Ausbildung? Schreib uns direkt.',
@@ -3028,7 +3408,7 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   document.getElementById('post-bild-hint').innerHTML = `<strong>Bildidee:</strong> ${bildMap[ton] || bildMap.nahbar}`;
   document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${ctaMap[wer] || ctaMap.kundinnen}`;
   document.getElementById('post-result').style.display = 'block';
-  setKiBadge('post-ki-badge', !!postText && !POST_T[ton]?.[wer]);
+  setKiBadge('post-ki-badge', istKi);
   updateCharCount('post-text-main', 'post-char');
 
   // Structured Blocks befüllen (Overlay, Sticker, Hashtags)
@@ -3052,6 +3432,440 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   btn.textContent = 'Post erstellen';
 
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// "Alle Kanäle": ein Moment → Instagram-, Facebook- und Google-Vorschlag
+// gleichzeitig, parallel abgefragt statt kanalweise nacheinander zu klicken.
+async function generatePostAlleKanaele(m) {
+  const ton = SEL.postton || 'nahbar';
+  const wer = SEL.postwer || 'kundinnen';
+  const kontext = SEL.postkontext || 'salon';
+  // Google-Unternehmensprofil gibt's nur für den Salon (eigenes, bekanntes
+  // Profil) — fürs Haarnetzwerk fehlen verlässliche Standort-/Kontaktdaten,
+  // also lieber weglassen statt zu raten.
+  const mitGoogle = kontext === 'salon';
+
+  document.getElementById('post-result').style.display = 'none';
+  document.getElementById('multi-google-block').style.display = mitGoogle ? 'block' : 'none';
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt für alle Kanäle …';
+
+  const [ig, fb, google] = await Promise.all([
+    buildKanalPost('instagram', m, ton, wer, kontext),
+    buildKanalPost('facebook', m, ton, wer, kontext),
+    mitGoogle ? buildGooglePost(m, 'neuigkeit') : Promise.resolve(null)
+  ]);
+
+  document.getElementById('multi-ig-text').textContent = ig.text;
+  document.getElementById('multi-ig-hashtags').textContent = ig.structured?.hashtags || '—';
+  setKiBadge('multi-ig-badge', ig.istKi);
+
+  document.getElementById('multi-fb-text').textContent = fb.text;
+  document.getElementById('multi-fb-hashtags').textContent = fb.structured?.hashtags || '—';
+  setKiBadge('multi-fb-badge', fb.istKi);
+
+  if(mitGoogle && google) {
+    document.getElementById('multi-google-text').textContent = google.text;
+    document.getElementById('multi-google-cta').innerHTML = `<strong>Empfohlener Google-Button:</strong> ${google.ctaTyp}`;
+    setKiBadge('multi-google-badge', google.istKi);
+  }
+
+  document.getElementById('post-result-multi').style.display = 'block';
+
+  btn.disabled = false;
+  btn.textContent = 'Post erstellen';
+  setTimeout(()=>document.getElementById('post-result-multi').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEITRAG-GENERATOR
+// ════════════════════════════════════════════
+function googlePostCheck() {
+  document.getElementById('btn-google').disabled = document.getElementById('google-moment').value.trim().length < 5;
+}
+
+// Erzeugt einen Google-Unternehmensprofil-Beitrag. Wiederverwendet vom
+// Google-Tab und vom "Alle Kanäle"-Flow im Post-Generator.
+async function buildGooglePost(m, typ) {
+  const typMap = {
+    neuigkeit: 'Neuigkeit — eine aktuelle Info aus dem Salon',
+    angebot: 'Angebot — eine konkrete Aktion oder ein Sonderpreis',
+    event: 'Event — eine Veranstaltung oder ein besonderer Termin',
+    'freier-termin': 'Freier Termin — kurzfristig ist ein Platz frei geworden'
+  };
+  const ctaTypFallback = {
+    neuigkeit: 'Mehr erfahren', angebot: 'Termin vereinbaren',
+    event: 'Termin vereinbaren', 'freier-termin': 'Anrufen'
+  };
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+
+Mirjam Walenta ist Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993), Prüferin & Ausbilderin bei der Wiener Innung der Friseure.
+
+Schreibe einen Beitrag für das Google Unternehmensprofil (Kategorie: ${typMap[typ]}).
+
+Regeln für Google-Unternehmensprofil-Beiträge:
+- Klartext, KEIN Markdown, KEINE Hashtags, kaum Emoji (max 1)
+- Maximal 1200 Zeichen, idealerweise 400–700 Zeichen
+- Nenne im Fließtext natürlich eingebaut den Salonnamen "A Great Hair Day", den Standort ("Wien-Margareten" oder "1050 Wien") und die konkrete Leistung — das hilft bei der lokalen Google-Suche
+- Ruhige, gehobene, klare Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Marketing-Floskeln
+- Letzter Satz: eine klare Handlungsaufforderung passend zur Kategorie
+
+Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfohlener Google-Button-Typ, einer von: "Termin vereinbaren", "Anrufen", "Mehr erfahren"). Antworte NUR mit dem JSON-Objekt, kein Text drumherum, kein Markdown.`;
+
+  const userText = `Anlass: ${m}`;
+
+  let text = null;
+  let ctaTyp = ctaTypFallback[typ];
+  try {
+    const raw = await claudeAnfrage(system, userText, 500);
+    if(raw) {
+      const clean = raw.replace(/```json|```/g,'').trim();
+      try {
+        const parsed = JSON.parse(clean);
+        text = parsed.text || null;
+        ctaTyp = parsed.cta_typ || ctaTyp;
+      } catch(e) {
+        text = raw;
+      }
+    }
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = `${m}\n\nA Great Hair Day, Rechte Wienzeile 47, 1050 Wien-Margareten.`;
+  }
+
+  return { text, ctaTyp, istKi };
+}
+
+async function generateGooglePost() {
+  const m = document.getElementById('google-moment').value.trim();
+  if(m.length < 5) return;
+  const typ = SEL.googletyp || 'neuigkeit';
+
+  const btn = document.getElementById('btn-google');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const { text, ctaTyp, istKi } = await buildGooglePost(m, typ);
+
+  document.getElementById('google-text-main').textContent = text;
+  document.getElementById('google-cta-hint').innerHTML = `<strong>Empfohlener Google-Button:</strong> ${ctaTyp}`;
+  document.getElementById('google-result').style.display = 'block';
+  setKiBadge('google-ki-badge', istKi);
+  updateGoogleCharCount();
+
+  btn.disabled = false;
+  btn.textContent = 'Google-Beitrag erstellen';
+  setTimeout(()=>document.getElementById('google-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function updateGoogleCharCount() {
+  const text = document.getElementById('google-text-main')?.textContent || '';
+  const len = text.length;
+  const el = document.getElementById('google-char');
+  if(!el) return;
+  el.textContent = len + ' / 1500';
+  el.classList.remove('warn','over');
+  if(len > 1500) el.classList.add('over');
+  else if(len > 1200) el.classList.add('warn');
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEWERTUNGSANTWORT-GENERATOR
+// ════════════════════════════════════════════
+function googleReviewCheck() {
+  document.getElementById('btn-google-review').disabled = document.getElementById('google-review-text').value.trim().length < 5;
+}
+
+async function generateGoogleReviewReply() {
+  const bewertung = document.getElementById('google-review-text').value.trim();
+  if(bewertung.length < 5) return;
+  const art = SEL.googlebewertung || 'positiv';
+  const artMap = {
+    positiv: 'Positive Bewertung — dankbar, persönlich, kurz',
+    gemischt: 'Gemischte Bewertung — Kritikpunkt ernst nehmen, ohne sich zu rechtfertigen, Lösung anbieten',
+    negativ: 'Negative/kritische Bewertung — ruhig, professionell, keine Rechtfertigung, Einladung zum persönlichen Gespräch'
+  };
+
+  const btn = document.getElementById('btn-google-review');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten).
+
+Schreibe eine Antwort auf eine Google-Bewertung. Art der Bewertung: ${artMap[art]}.
+
+Regeln:
+- Persönlich, Namen aus der Bewertung aufgreifen falls erkennbar, sonst neutral bleiben
+- Ruhige, gehobene, klare Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Floskeln wie "Vielen lieben Dank"
+- 2–4 Sätze, nie länger
+- Bei negativer/gemischter Bewertung: nie rechtfertigen oder widersprechen, sondern ernst nehmen und zu einem persönlichen Gespräch einladen (Telefon 01 5863130)
+- Bei positiver Bewertung: konkret auf etwas Genanntes eingehen, nicht generisch bleiben
+
+Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anführungszeichen drumherum.`;
+
+  const userText = `Bewertungstext: ${bewertung}`;
+
+  let text = null;
+  try {
+    text = await claudeAnfrage(system, userText, 300);
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = art === 'positiv'
+      ? 'Vielen Dank für deine Zeit und dein Vertrauen — das freut uns wirklich. Mirjam & das Team von A Great Hair Day.'
+      : 'Danke, dass du dir die Zeit für dieses Feedback genommen hast. Wir nehmen das ernst und würden uns freuen, kurz persönlich mit dir zu sprechen — unter 01 5863130 erreichst du uns direkt.';
+  }
+
+  document.getElementById('google-review-text-main').textContent = text.trim();
+  document.getElementById('google-review-result').style.display = 'block';
+  setKiBadge('google-review-ki-badge', istKi);
+
+  btn.disabled = false;
+  btn.textContent = 'Antwort vorschlagen';
+  setTimeout(()=>document.getElementById('google-review-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// KI-SICHTBARKEIT (FAQ-TEXTE FÜR KI-ANTWORTMASCHINEN)
+// ════════════════════════════════════════════
+let currentKiCat = 'leistungen';
+const KI_KAT_LABELS = {
+  leistungen: 'Leistungen & Spezialisierung',
+  standort: 'Standort & Erreichbarkeit',
+  team: 'Team & Ausbildung',
+  philosophie: 'Philosophie & Werte',
+  was: 'Was ist das Haarnetzwerk',
+  mitmachen: 'Mitmachen & Kontakt',
+  events: 'Events & Angebote',
+  werte: 'Werte & Ziele'
+};
+// Icon + Kategorie-Buttons je Kontext — Haarnetzwerk hat keine "Leistungen"
+// oder "Standort" wie ein Salon, deshalb eigene, passende Themenbereiche.
+const KI_KAT_OPTIONEN = {
+  salon: [
+    { key:'leistungen', icon:'✂️' },
+    { key:'standort', icon:'📍' },
+    { key:'team', icon:'🤝' },
+    { key:'philosophie', icon:'💬' }
+  ],
+  haarnetzwerk: [
+    { key:'was', icon:'🤝' },
+    { key:'mitmachen', icon:'📩' },
+    { key:'events', icon:'📅' },
+    { key:'werte', icon:'💬' }
+  ]
+};
+function renderKiCatRow() {
+  const optionen = KI_KAT_OPTIONEN[SEL.kikontext] || KI_KAT_OPTIONEN.salon;
+  if (!optionen.some(o => o.key === currentKiCat)) currentKiCat = optionen[0].key;
+  const row = document.getElementById('ki-cat-row');
+  row.innerHTML = optionen.map(o => {
+    const on = o.key === currentKiCat ? ' on' : '';
+    return `<button class="recherche-cat-btn${on}" onclick="selectKiCat(this,'${o.key}')">
+      <span class="cat-icon">${o.icon}</span>
+      <span class="cat-label">${KI_KAT_LABELS[o.key]}</span>
+    </button>`;
+  }).join('');
+}
+function selectKiCat(el, cat) {
+  document.querySelectorAll('#screen-ki-sichtbarkeit .recherche-cat-btn').forEach(b => b.classList.remove('on'));
+  el.classList.add('on');
+  currentKiCat = cat;
+}
+function selectKiKontext(val, el) {
+  SEL.kikontext = val;
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  currentKiCat = '';
+  renderKiCatRow();
+  document.getElementById('ki-sichtbarkeit-intro').textContent = val === 'haarnetzwerk'
+    ? 'Wenn jemand eine KI fragt „was ist das Haarnetzwerk" oder „Friseur-Netzwerk Wien", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf haarnetzwerk.at oder in der Instagram-Bio (@haar.netzwerk) verwenden.'
+    : 'Wenn jemand eine KI fragt „guter Friseur in Wien-Margareten", entscheiden klare Fakten in ganzen Sätzen, ob ihr genannt werdet. Den erzeugten Text auf die Website (FAQ/Über uns) oder ins Google Unternehmensprofil unter „Fragen & Antworten" stellen.';
+}
+
+async function generateKiSichtbarkeit() {
+  const fokus = document.getElementById('ki-fokus').value.trim();
+  const btn = document.getElementById('btn-ki-sichtbarkeit');
+  const area = document.getElementById('ki-sichtbarkeit-result-area');
+  const loading = document.getElementById('ki-sichtbarkeit-loading');
+  const list = document.getElementById('ki-sichtbarkeit-list');
+
+  const kontext = SEL.kikontext || 'salon';
+
+  const catPromptLabels = kontext === 'haarnetzwerk' ? {
+    was: 'Was das Haarnetzwerk ist, wer dahintersteht, welches Ziel es verfolgt',
+    mitmachen: 'Wie man Teil des Netzwerks wird oder Kontakt aufnimmt',
+    events: 'Welche Events und Angebote es gibt (Netzwerktreffen, Workshops, gemeinsame Aktionen)',
+    werte: 'Werte und Ziele des Netzwerks (Vernetzung, Zusammenhalt, neue Perspektiven fürs Handwerk)'
+  } : {
+    leistungen: 'Leistungen & Spezialisierung (z.B. Balayage, Farbe, Schnitt, für wen der Salon geeignet ist)',
+    standort: 'Standort, Erreichbarkeit, Terminvereinbarung',
+    team: 'Team, Ausbildung, Lehrlinge, wie man bei ihr lernt',
+    philosophie: 'Philosophie, Werte, was den Salon von anderen unterscheidet'
+  };
+
+  const ziel = kontext === 'haarnetzwerk'
+    ? 'Text für die Haarnetzwerk-Website (haarnetzwerk.at) oder die Social-Media-Bio (Instagram @haar.netzwerk).'
+    : 'Text für die Salon-Website (FAQ oder "Über uns") oder das Google Unternehmensprofil unter "Fragen & Antworten".';
+  const faktenRegel = kontext === 'haarnetzwerk'
+    ? 'Nenne wo passend den Namen "Haarnetzwerk" und die konkrete Aktivität (Netzwerktreffen, Workshop, Vernetzung) explizit. Als Kontaktweg NUR den Instagram-Account @haar.netzwerk oder "über die Website" nennen — erfinde KEINE Adresse, Telefonnummer oder E-Mail-Adresse.'
+    : 'Nenne wo passend den Salonnamen "A Great Hair Day", den Standort "Wien-Margareten" oder "1050 Wien" und die konkrete Leistung explizit (das hilft KI-Systemen, den Text der richtigen Suche zuzuordnen).';
+
+  const system = `Du bist Wörni, Assistent von Mirjam Walenta für Inhalte, die von KI-Systemen (ChatGPT, Perplexity, Google Gemini, Google-KI-Übersichten) gelesen und zitiert werden, wenn Menschen ${kontext === 'haarnetzwerk' ? 'nach einem Branchennetzwerk für Friseur:innen in Österreich suchen' : 'nach einem Friseur in Wien suchen'}.
+
+${kontextTeil(kontext)}
+
+Ziel: ${ziel} KI-Systeme bevorzugen klare, vollständige Sätze mit konkreten Fakten statt Marketing-Sprache.
+
+Schreibe genau 4 Frage-Antwort-Paare zum Themenbereich: ${catPromptLabels[currentKiCat]}${fokus ? `. Berücksichtige dabei besonders diese konkrete Frage: "${fokus}"` : ''}.
+
+Jede Antwort: 2–4 vollständige Sätze, sachlich, in Mirjams ruhiger Stimme, OHNE Ausrufezeichen, OHNE Emoji, OHNE Hashtags. ${faktenRegel}
+
+Antworte als kompaktes JSON-Array ohne Zeilenumbrüche, jedes Element mit "frage" und "antwort". Antworte NUR mit dem JSON-Array.`;
+
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+  area.style.display = 'block';
+  loading.style.display = 'block';
+  list.innerHTML = '';
+
+  let items = null;
+  try {
+    const raw = await claudeAnfrage(system, fokus ? `Fokus: ${fokus}` : 'Allgemein', 1200);
+    if(raw) {
+      let clean = raw.replace(/```json|```/g,'').trim();
+      const start = clean.indexOf('[');
+      if(start !== -1) clean = clean.slice(start);
+      const end = clean.lastIndexOf(']');
+      clean = end !== -1 ? clean.slice(0, end + 1) : clean;
+      items = JSON.parse(clean);
+    }
+  } catch(e) {
+    items = null;
+    if(!letzterKIFehler) letzterKIFehler = 'Antwort konnte nicht gelesen werden: ' + (e?.message || e);
+  }
+
+  loading.style.display = 'none';
+
+  if(!items || !Array.isArray(items) || items.length === 0) {
+    list.innerHTML = `<div class="card" style="border-left:3px solid var(--gold-light);">
+      <div class="card-body">Wörni konnte den Text gerade nicht erstellen. Bitte versuche es nochmal.</div>
+      ${letzterKIFehler ? `<div class="card-body" style="margin-top:8px;font-size:11px;color:var(--soft);word-break:break-word;">Technischer Hinweis: ${letzterKIFehler}</div>` : ''}
+    </div>`;
+  } else {
+    window._kiSichtbarkeitItems = items;
+    window._kiSichtbarkeitKat = currentKiCat;
+    list.innerHTML = items.map((item, i) => `
+      <div class="story-section-block">
+        <div class="section-copy-row">
+          <span class="sc-label">❓ ${item.frage || ''}</span>
+          <button class="btn-section-copy" id="ki-copy-${i}" aria-label="Antwort kopieren" onclick="copySectionBlock('ki-antwort-${i}','ki-copy-${i}')">📋 Kopieren</button>
+        </div>
+        <div class="sc-val" id="ki-antwort-${i}">${item.antwort || ''}</div>
+        <button class="btn-ghost-sm" id="ki-ablegen-${i}" style="margin-top:8px;" onclick="kiSichtbarkeitAblegen(${i})">💾 In Ablage speichern</button>
+      </div>
+    `).join('') + `<button class="btn-ghost-sm" style="margin-top:10px;" onclick="copyAlleKiSichtbarkeit()">📋 Alles zusammen kopieren</button>`;
+  }
+
+  btn.disabled = false;
+  btn.textContent = 'Neue Variante erstellen';
+  setTimeout(()=>area.scrollIntoView({behavior:'smooth',block:'start'}),80);
+}
+
+function copyAlleKiSichtbarkeit() {
+  const items = window._kiSichtbarkeitItems || [];
+  if(!items.length) return;
+  const text = items.map(i => `${i.frage}\n${i.antwort}`).join('\n\n');
+  navigator.clipboard.writeText(text).catch(()=>{});
+}
+
+// ════════════════════════════════════════════
+// KI-SICHTBARKEIT: ABLAGE (welche FAQ-Texte stehen schon wo?)
+// ════════════════════════════════════════════
+const KI_SICHTBARKEIT_KEY = 'ghd_ki_sichtbarkeit_v1';
+
+function ladeKiSichtbarkeitAblage() {
+  try { return JSON.parse(localStorage.getItem(KI_SICHTBARKEIT_KEY)) || []; } catch { return []; }
+}
+function speichereKiSichtbarkeitAblage(liste) {
+  localStorage.setItem(KI_SICHTBARKEIT_KEY, JSON.stringify(liste));
+}
+
+function kiSichtbarkeitAblegen(i) {
+  const item = window._kiSichtbarkeitItems?.[i];
+  if(!item) return;
+  const liste = ladeKiSichtbarkeitAblage();
+  liste.unshift({
+    id: Date.now(),
+    kategorie: window._kiSichtbarkeitKat || currentKiCat,
+    frage: item.frage || '',
+    antwort: item.antwort || '',
+    status: 'offen',
+    datum: new Date().toLocaleDateString('de-AT')
+  });
+  speichereKiSichtbarkeitAblage(liste);
+
+  const btn = document.getElementById(`ki-ablegen-${i}`);
+  if(btn) { btn.textContent = '✓ Abgelegt'; btn.disabled = true; }
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitStatusUmschalten(id) {
+  const liste = ladeKiSichtbarkeitAblage();
+  const eintrag = liste.find(e => e.id === id);
+  if(!eintrag) return;
+  eintrag.status = eintrag.status === 'live' ? 'offen' : 'live';
+  speichereKiSichtbarkeitAblage(liste);
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitLoeschen(id) {
+  speichereKiSichtbarkeitAblage(ladeKiSichtbarkeitAblage().filter(e => e.id !== id));
+  renderKiSichtbarkeitAblage();
+}
+
+function kiSichtbarkeitAblageKopieren(id) {
+  const eintrag = ladeKiSichtbarkeitAblage().find(e => e.id === id);
+  if(!eintrag) return;
+  navigator.clipboard.writeText(`${eintrag.frage}\n${eintrag.antwort}`).catch(()=>{});
+}
+
+function renderKiSichtbarkeitAblage() {
+  const wrap = document.getElementById('ki-sichtbarkeit-ablage-wrap');
+  const list = document.getElementById('ki-sichtbarkeit-ablage-list');
+  if(!wrap || !list) return;
+  const alle = ladeKiSichtbarkeitAblage();
+
+  if(alle.length === 0) {
+    wrap.style.display = 'none';
+    return;
+  }
+  wrap.style.display = 'block';
+
+  const offenCount = alle.filter(e => e.status !== 'live').length;
+  const zaehler = document.getElementById('ki-sichtbarkeit-ablage-zaehler');
+  if(zaehler) zaehler.textContent = offenCount > 0 ? `${offenCount} noch offen` : 'Alle platziert';
+
+  list.innerHTML = alle.map(e => `
+    <div class="story-section-block">
+      <div class="section-copy-row">
+        <span class="sc-label">${KI_KAT_LABELS[e.kategorie] || e.kategorie} · ${e.datum}</span>
+        <span class="ki-status-chip ${e.status === 'live' ? 'live' : 'offen'}">${e.status === 'live' ? '✓ Platziert' : 'Offen'}</span>
+      </div>
+      <div class="sc-val" style="font-weight:600;">${e.frage}</div>
+      <div class="sc-val">${e.antwort}</div>
+      <div class="cta-row" style="margin-top:8px;">
+        <button class="btn-copy" onclick="kiSichtbarkeitAblageKopieren(${e.id})">📋 Kopieren</button>
+        <button class="btn-edit" onclick="kiSichtbarkeitStatusUmschalten(${e.id})">${e.status === 'live' ? '↺ Als offen markieren' : '✓ Als platziert markieren'}</button>
+      </div>
+      <button class="btn-ghost-sm" style="margin-top:6px;color:var(--rot,#a13a3a);" onclick="kiSichtbarkeitLoeschen(${e.id})">🗑 Löschen</button>
+    </div>
+  `).join('');
 }
 
 // ════════════════════════════════════════════
@@ -3125,6 +3939,7 @@ async function generateStory() {
   if(m.length < 5) return;
   const mood = SEL.storymood || 'emotional';
   const ziel = SEL.storyziel || 'vertrauen';
+  const kontext = SEL.storykontext || 'salon';
 
   const moodMap = { emotional:'emotional und nah', neugier:'neugierig und spannend', behind:'hinter die Kulissen', haltung:'selbstbewusst und klar' };
   const zielMap = { vertrauen:'Vertrauen aufbauen', reichweite:'Reichweite gewinnen', termin:'Terminanfragen auslösen', lehrling:'Lehrlinge ansprechen' };
@@ -3136,17 +3951,7 @@ async function generateStory() {
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 
 Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 - "label": kurzer Titel des Frames (z.B. "Einstieg", "Der Moment", "Warum", "Einladung", "Abschluss")
@@ -3158,7 +3963,7 @@ Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 Stimmung: ${moodMap[mood] || 'emotional und nah'}
 Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
 
-Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. Der letzte Frame endet immer mit "A great hair day." oder der Adresse.
+Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. ${KONTEXT_INFO[kontext]?.abschluss || KONTEXT_INFO.salon.abschluss}
 
 WICHTIG — Input-Verarbeitung:
 - Der Input kann ein rohes Sprach-Diktat sein. Gib diesen Rohtext NIEMALS direkt als Frame-Text aus.
@@ -3180,10 +3985,18 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
     }
   } catch(e) { frames = null; }
 
-  // Fallback auf Template
+  // Fallback auf Template — fürs Haarnetzwerk ein neutraler Fallback statt
+  // der Salon-Vorlagen (die nennen Adresse/Kundinnen, passt hier nicht).
   if(!frames || !Array.isArray(frames) || frames.length < 2) {
-    const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
-    frames = getFn(m);
+    if(kontext === 'haarnetzwerk') {
+      frames = [
+        { label:'Einstieg', text: m, tip:'Ein Bild vom Event/Anlass.', overlay:'', sticker:'' },
+        { label:'Abschluss', text:'Mehr dazu beim Haarnetzwerk.', tip:'Ruhiger Abschluss.', overlay:'', sticker:'' }
+      ];
+    } else {
+      const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
+      frames = getFn(m);
+    }
   }
 
   document.getElementById('story-list').innerHTML = frames.map((f,i) => {
@@ -4202,6 +5015,10 @@ function selectRcat(el, cat) {
 
 async function startRecherche() {
   const fokus = document.getElementById('recherche-fokus').value.trim();
+  const kontext = SEL.recherchekontext || 'salon';
+  const rechercheZiel = kontext === 'haarnetzwerk'
+    ? 'Wie ihr das als Haarnetzwerk-Content (Event, Vernetzung, Branchenthema) aufgreifen könntet'
+    : 'Wie Mirjam das als Salon-Moment zeigen könnte';
   const btn = document.getElementById('btn-recherche');
   const area = document.getElementById('recherche-result-area');
   const loading = document.getElementById('recherche-loading');
@@ -4212,92 +5029,52 @@ async function startRecherche() {
       label: 'Friseur-Trends',
       prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 Recherchiere die aktuell relevantesten Friseur-Trends ${fokus ? 'mit Fokus auf: ' + fokus : '(Farbe, Schnitt, Pflege, Styling)'}.
 Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Sei dabei extrem knapp — das gesamte JSON-Array darf insgesamt nicht länger als 900 Zeichen sein. Jede Erkenntnis hat:
 - "tag": Kurzes Label (z.B. "Trend 2025", "Instagram-Trend")
 - "titel": Prägnanter Titel der Erkenntnis (max 50 Zeichen)
 - "text": Genau 1 kurzer Satz: Was ist der Trend und warum relevant
-- "postidee": Ein konkreter Moment/Anlass, wenige Worte (kein ganzer Satz)
+- "postidee": ${rechercheZiel}, wenige Worte (kein ganzer Satz)
 Antworte NUR mit dem kompakten JSON-Array, ohne Zeilenumbrüche oder Einrückung.`
     },
     recruiting: {
       label: 'Recruiting & Ausbildung',
       prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 Recherchiere aktuelle Entwicklungen zu Fachkräftemangel, Lehrlingssuche und Arbeitgeberattraktivität im österreichischen Friseurhandwerk${fokus ? ', Fokus: ' + fokus : ''}.
 Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Sei dabei extrem knapp — das gesamte JSON-Array darf insgesamt nicht länger als 900 Zeichen sein. Jede Erkenntnis hat:
 - "tag": Kurzes Label (z.B. "Österreich 2025", "Lehrlingssituation")
 - "titel": Prägnanter Titel (max 50 Zeichen)
 - "text": Genau 1 kurzer Satz: Was ist die Entwicklung und warum wichtig
-- "postidee": Wie Mirjam das ansprechen könnte, wenige Worte (kein ganzer Satz)
+- "postidee": ${rechercheZiel}, wenige Worte (kein ganzer Satz)
 Antworte NUR mit dem kompakten JSON-Array, ohne Zeilenumbrüche oder Einrückung.`
     },
     wien: {
       label: 'Wien & Margareten',
       prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
-Recherchiere aktuelle lokale Themen, Ereignisse oder Entwicklungen in Wien / im 5. Bezirk die für einen Friseursalon relevant sein könnten${fokus ? ', Fokus: ' + fokus : ''}.
+${kontextTeil(kontext)}
+Recherchiere aktuelle lokale Themen, Ereignisse oder Entwicklungen in Wien / im 5. Bezirk die für ${kontext === 'haarnetzwerk' ? 'das Haarnetzwerk' : 'einen Friseursalon'} relevant sein könnten${fokus ? ', Fokus: ' + fokus : ''}.
 Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Sei dabei extrem knapp — das gesamte JSON-Array darf insgesamt nicht länger als 900 Zeichen sein. Jede Erkenntnis hat:
 - "tag": Kurzes Label (z.B. "Wien aktuell", "Margareten")
 - "titel": Prägnanter Titel (max 50 Zeichen)
-- "text": Genau 1 kurzer Satz: Was passiert und warum relevant für den lokalen Salon
-- "postidee": Wie Mirjam das lokal aufgreifen könnte, wenige Worte (kein ganzer Satz)
+- "text": Genau 1 kurzer Satz: Was passiert und warum relevant
+- "postidee": ${rechercheZiel}, wenige Worte (kein ganzer Satz)
 Antworte NUR mit dem kompakten JSON-Array, ohne Zeilenumbrüche oder Einrückung.`
     },
     produkte: {
       label: 'Produkte & Pflege',
       prompt: `Du bist Wörni, Recherche-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 Recherchiere aktuelle Trends bei Haarpflegeprodukten, Inhaltsstoffen und Behandlungen${fokus ? ', Fokus: ' + fokus : ''}.
 Erstelle genau 3 konkrete Erkenntnisse als JSON-Array. Sei dabei extrem knapp — das gesamte JSON-Array darf insgesamt nicht länger als 900 Zeichen sein. Jede Erkenntnis hat:
 - "tag": Kurzes Label (z.B. "Pflegetrend", "Inhaltsstoff")
 - "titel": Prägnanter Titel (max 50 Zeichen)
 - "text": Genau 1 kurzer Satz: Was ist der Trend und warum relevant
-- "postidee": Wie Mirjam das als Salon-Moment zeigen könnte, wenige Worte (kein ganzer Satz)
+- "postidee": ${rechercheZiel}, wenige Worte (kein ganzer Satz)
 Antworte NUR mit dem kompakten JSON-Array, ohne Zeilenumbrüche oder Einrückung.`
     }
   };
@@ -4517,6 +5294,7 @@ async function generateReel() {
   if(m.length < 5) return;
   const laenge  = SEL.reellaenge  || '15';
   const ziel    = SEL.reelziel    || 'transformation';
+  const kontext = SEL.reelkontext || 'salon';
 
   const zielMap = {
     transformation: 'Vorher-Nachher-Transformation zeigen',
@@ -4530,17 +5308,7 @@ async function generateReel() {
 
   const system = `Du bist Wörni, Reel-Script-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 
 Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Objekt mit:
 - "scenes": Array von Szenen. Jede Szene hat:
@@ -4569,7 +5337,14 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
 
   // Fallback
   if(!result || !result.scenes) {
-    result = {
+    result = kontext === 'haarnetzwerk' ? {
+      scenes: [
+        { timing:'0–3 Sek', label:'Hook', action:'Nahaufnahme vom Event/Anlass', text:m.slice(0,40), tip:'Klare Einstellung, kein Zoom.' },
+        { timing:'3–' + laenge + ' Sek', label:'Inhalt', action:m, text:'', tip:'Situation zeigen statt erklären.' }
+      ],
+      caption: m + '\n\nMehr dazu beim Haarnetzwerk.',
+      hashtags: '#Haarnetzwerk #Friseurhandwerk'
+    } : {
       scenes: [
         { timing:'0–2 Sek', label:'Hook', action:'Nahaufnahme des Ergebnisses', text:'So geht das.', tip:'Extreme Nahaufnahme, Licht von der Seite.' },
         { timing:'2–6 Sek', label:'Vorher', action:'Das Problem oder der Ausgangszustand', text:'Vorher:', tip:'Ruhige Einstellung, kein Zoom.' },
@@ -4697,8 +5472,9 @@ const CTA_STATIC = {
 function ctaCheck() { /* immer aktiv */ }
 
 async function generateCTA() {
-  const kontext = document.getElementById('cta-kontext').value.trim();
+  const ctaFreitext = document.getElementById('cta-kontext').value.trim();
   const format  = SEL.ctaformat || 'alle';
+  const kontext = SEL.ctakontext || 'salon';
 
   const btn = document.getElementById('btn-cta');
   btn.disabled = true; btn.textContent = '✦ Wörni formuliert …';
@@ -4709,38 +5485,30 @@ async function generateCTA() {
 
   const system = `Du bist Wörni, CTA-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
-
-Kontakt Salon: Rechte Wienzeile 47, 1050 Wien, 01 5863130.
+${kontextTeil(kontext)}
 
 Erstelle Call-to-Action-Texte als JSON-Objekt. Für jeden der folgenden Typen liefere einen prägnanten CTA-Satz in Mirjams ruhiger Stimme (kein Ausrufezeichen, kein Marketingsprech, max 25 Wörter):
-- "buchung": Zum Termin buchen oder Kontakt aufnehmen
+- "buchung": ${kontext === 'haarnetzwerk' ? 'Zu einem Haarnetzwerk-Event anmelden oder Interesse zeigen' : 'Zum Termin buchen oder Kontakt aufnehmen'}
 - "engagement": Kommentar, Speichern, Teilen oder Frage
-- "recruiting": Mitarbeiter:innen oder Lehrlinge ansprechen
+- "recruiting": ${kontext === 'haarnetzwerk' ? 'Andere Friseurunternehmer:innen zur Mitgliedschaft/Vernetzung einladen' : 'Mitarbeiter:innen oder Lehrlinge ansprechen'}
 
-${kontext ? `Kontext: ${kontext}` : ''}
+${ctaFreitext ? `Kontext: ${ctaFreitext}` : ''}
 
 Antworte NUR mit JSON: {"buchung":"...","engagement":"...","recruiting":"..."}`;
 
   let result = null;
   try {
-    const raw = await claudeAnfrage(system, kontext || 'Allgemein', 300);
+    const raw = await claudeAnfrage(system, ctaFreitext || 'Allgemein', 300);
     if(raw) { const clean = raw.replace(/```json|```/g,'').trim(); result = JSON.parse(clean); }
   } catch(e) { result = null; }
 
-  // Fallback
+  // Fallback — fürs Haarnetzwerk keine Salon-Vorlagen mit erfundenen Kontaktdaten
   if(!result) {
-    result = {
+    result = kontext === 'haarnetzwerk' ? {
+      buchung: 'Mehr dazu beim Haarnetzwerk.',
+      engagement: 'Was denkst du dazu? Schreib es in die Kommentare.',
+      recruiting: 'Interesse an einer Mitgliedschaft? Sprich uns beim nächsten Event an.',
+    } : {
       buchung:    CTA_STATIC.buchung[Math.floor(Math.random()*3)],
       engagement: CTA_STATIC.engagement[Math.floor(Math.random()*3)],
       recruiting: CTA_STATIC.recruiting[Math.floor(Math.random()*3)],
@@ -4816,12 +5584,13 @@ function handleFotoAnalyse(input) {
     // Analyse starten
     document.getElementById('foto-analyse-loading').style.display = 'flex';
     try {
-      const result = await analysiereFoto(fotoAnalyseBase64, mediaType);
+      const result = await analysiereFoto(fotoAnalyseBase64, mediaType, SEL.postkontext || 'salon');
       fotoAnalyseResult = result;
       if(result) {
         document.getElementById('far-beschreibung').textContent = result.beschreibung || '—';
         document.getElementById('far-begriffe').textContent = result.begriffe || '—';
         document.getElementById('far-hook').textContent = result.hook || '—';
+        document.getElementById('far-alttext').textContent = result.alt_text || '—';
         document.getElementById('foto-analyse-result').style.display = 'block';
       }
     } catch(err) {
@@ -4832,7 +5601,8 @@ function handleFotoAnalyse(input) {
   reader.readAsDataURL(file);
 }
 
-async function analysiereFoto(base64, mediaType) {
+async function analysiereFoto(base64, mediaType, kontext) {
+  kontext = kontext || 'salon';
   try {
     const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
     const token = sessionData?.session?.access_token || AUTH_KEY;
@@ -4847,21 +5617,12 @@ async function analysiereFoto(base64, mediaType) {
         max_tokens: 600,
         system: `Du bist Wörni, Bildanalyse-Assistent von Mirjam Walenta.
 
-Mirjam Walenta ist:
-- Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993)
-- Prüferin & Ausbilderin bei der Wiener Innung der Friseure
-- Trainerin (Fitnesstrainerin, Pilatestrainerin, Ernährungstrainerin, Sportmentaltrainerin, Functional Strength Master Trainerin)
-- Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
-
-Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
-- Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
-- Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
-- Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)
+${kontextTeil(kontext)}
 Analysiere das hochgeladene Foto und antworte NUR mit einem JSON-Objekt mit diesen Feldern:
 - "beschreibung": Was ist auf dem Bild zu sehen? (1–2 Sätze, Fachsprache, z.B. Haarfarbe, Technik, Schnitt, Atmosphäre)
 - "begriffe": Die wichtigsten Fachbegriffe als kommaseparierte Liste (z.B. "Balayage, Kupferton, Stufenschnitt, Glossing")
 - "hook": Ein konkreter Instagram-Hook-Satz passend zum Bild, in Mirjams ruhiger Stimme (max 15 Wörter)
+- "alt_text": Ein Alt-Text für Screenreader (Bildbeschreibung für blinde/sehbehinderte Nutzer:innen), max. 125 Zeichen. Beschreibt sachlich und konkret, was zu sehen ist (Technik, Ergebnis, Setting) — KEINE Werbesprache, KEIN "Bild von"/"Foto von" am Anfang. ${kontext === 'haarnetzwerk' ? 'Erfinde KEINEN Ort/Adresse — nur wenn im Bild eindeutig erkennbar.' : 'Wo es ehrlich zum Bildinhalt passt, den Ort ("Wien-Margareten") oder die Leistung natürlich einbauen, das hilft zusätzlich bei der Google-Bildersuche — aber die Barrierefreiheit hat Vorrang vor der Keyword-Platzierung.'}
 Antworte NUR mit dem JSON. Kein Text drumherum.`,
         messages: [{
           role: 'user',
@@ -4870,7 +5631,7 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`,
               type: 'image',
               source: { type: 'base64', media_type: mediaType, data: base64 }
             },
-            { type: 'text', text: 'Analysiere dieses Foto für Mirjams Instagram.' }
+            { type: 'text', text: kontext === 'haarnetzwerk' ? 'Analysiere dieses Foto für Haarnetzwerk-Content.' : 'Analysiere dieses Foto für Mirjams Instagram.' }
           ]
         }]
       })

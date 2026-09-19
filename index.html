@@ -1970,7 +1970,12 @@ function tabnavScrollBy(direction) {
         <div class="input-label">Tag</div>
         <input type="number" id="termin-tag" class="login-input" min="1" max="31" placeholder="15" style="max-width:100%;text-align:left;">
       </div>
+      <div style="width:100px;">
+        <div class="input-label">Jahr (optional)</div>
+        <input type="number" id="termin-jahr" class="login-input" min="2026" placeholder="einmalig" style="max-width:100%;text-align:left;">
+      </div>
     </div>
+    <div style="font-size:11px;color:var(--soft);margin-top:4px;">Jahr leer lassen = wiederkehrt jedes Jahr. Jahr angeben = einmaliger Termin, verschwindet danach automatisch.</div>
     <div class="input-label" style="margin-top:10px;">Für wen?</div>
     <div class="chip-row" id="termin-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="pickSel(this,'terminkontext')">🏠 Mein Salon</button>
@@ -5059,8 +5064,10 @@ function stimmeHinzufuegen() {
 // FEATURE 7: HEUTE-TAB INIT + EMPFEHLUNG
 // ════════════════════════════════════════════
 // ════════════════════════════════════════════
-// WICHTIGE TERMINE (wiederkehrende Anlässe, z.B. Haarnetzwerk-Treffen)
-// Rein lokal gespeichert (Monat+Tag, jährlich wiederkehrend, kein Jahr).
+// WICHTIGE TERMINE (wiederkehrende oder einmalige Anlässe, z.B.
+// Haarnetzwerk-Treffen). Rein lokal gespeichert. Ohne Jahr: wiederkehrt
+// jedes Jahr (Monat+Tag). Mit Jahr: einmaliger Termin, fällt nach dem
+// Datum aus der Liste der anstehenden Termine (kein "nächstes Jahr" mehr).
 // Erscheint nur als Vorschlag im Heute-Tab wenn der Termin näher rückt —
 // kein Push, keine Benachrichtigung, kein Zwang.
 // ════════════════════════════════════════════
@@ -5068,16 +5075,38 @@ const TERMINE_KEY = 'ghd_termine_v1';
 const TERMINE_VORLAUF_TAGE = 21;
 const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
 
+// Bekannte, von Mirjam genannte Haarnetzwerk-Termine — werden beim
+// allerersten Öffnen (leere Ablage) einmalig vorbefüllt.
+const TERMINE_DEFAULTS = [
+  { id: 1, titel: 'Genusstreffen: Käse- und Weinverkostung', monat: 11, tag: 9, jahr: 2026, kontext: 'haarnetzwerk' },
+  { id: 2, titel: 'Maria Theresia – Das Musical', monat: 1, tag: 24, jahr: 2027, kontext: 'haarnetzwerk' },
+  { id: 3, titel: 'Jahrestreffen', monat: 10, tag: 19, jahr: 2026, kontext: 'haarnetzwerk' },
+];
+
 function ladeTermine() {
-  try { return JSON.parse(localStorage.getItem(TERMINE_KEY)) || []; } catch { return []; }
+  try {
+    const raw = localStorage.getItem(TERMINE_KEY);
+    if (raw === null) {
+      speichereTermine(TERMINE_DEFAULTS);
+      return TERMINE_DEFAULTS;
+    }
+    return JSON.parse(raw) || [];
+  } catch { return []; }
 }
 function speichereTermine(liste) {
   localStorage.setItem(TERMINE_KEY, JSON.stringify(liste));
 }
 
-function tageBisTermin(monat, tag) {
+// Gibt die Tage bis zum Termin zurück, oder null wenn ein einmaliger
+// (mit Jahr versehener) Termin bereits vorbei ist.
+function tageBisTermin(monat, tag, jahr) {
   const heute = new Date();
   const heuteMitternacht = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate());
+  if (jahr) {
+    const ziel = new Date(jahr, monat - 1, tag);
+    if (ziel < heuteMitternacht) return null;
+    return Math.round((ziel - heuteMitternacht) / 86400000);
+  }
   let ziel = new Date(heute.getFullYear(), monat - 1, tag);
   if (ziel < heuteMitternacht) ziel = new Date(heute.getFullYear() + 1, monat - 1, tag);
   return Math.round((ziel - heuteMitternacht) / 86400000);
@@ -5086,35 +5115,39 @@ function tageBisTermin(monat, tag) {
 function renderTermineListe() {
   const list = document.getElementById('termine-list');
   if (!list) return;
-  const alle = ladeTermine();
+  const alle = ladeTermine()
+    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag, t.jahr) }))
+    .filter(t => t.tage !== null);
   if (alle.length === 0) {
     list.innerHTML = '<div class="card-body" style="color:var(--soft);">Noch keine Termine gespeichert.</div>';
     return;
   }
-  const sortiert = [...alle].sort((a, b) => tageBisTermin(a.monat, a.tag) - tageBisTermin(b.monat, b.tag));
-  list.innerHTML = sortiert.map(t => {
-    const tage = tageBisTermin(t.monat, t.tag);
-    return `<div class="modal-item" style="flex-direction:column;align-items:flex-start;">
+  const sortiert = alle.sort((a, b) => a.tage - b.tage);
+  list.innerHTML = sortiert.map(t => `
+    <div class="modal-item" style="flex-direction:column;align-items:flex-start;">
       <div style="display:flex;justify-content:space-between;width:100%;">
         <strong style="font-size:13px;">${t.kontext === 'haarnetzwerk' ? '🤝' : '🏠'} ${t.titel}</strong>
         <button class="modal-item-del" onclick="terminLoeschen(${t.id})">✕</button>
       </div>
-      <div style="font-size:12px;color:var(--mid);margin-top:2px;">${t.tag}. ${MONATSNAMEN[t.monat - 1]} · in ${tage} Tag${tage === 1 ? '' : 'en'}</div>
-    </div>`;
-  }).join('');
+      <div style="font-size:12px;color:var(--mid);margin-top:2px;">${t.tag}. ${MONATSNAMEN[t.monat - 1]}${t.jahr ? ' ' + t.jahr : ' (jedes Jahr)'} · in ${t.tage} Tag${t.tage === 1 ? '' : 'en'}</div>
+    </div>`
+  ).join('');
 }
 
 function termineHinzufuegen() {
   const titel = document.getElementById('termin-titel').value.trim();
   const monat = parseInt(document.getElementById('termin-monat').value, 10);
   const tag = parseInt(document.getElementById('termin-tag').value, 10);
+  const jahrRoh = document.getElementById('termin-jahr').value.trim();
+  const jahr = jahrRoh ? parseInt(jahrRoh, 10) : null;
   const kontext = SEL.terminkontext || 'salon';
   if (!titel || !tag || tag < 1 || tag > 31) return;
   const liste = ladeTermine();
-  liste.push({ id: Date.now(), titel, monat, tag, kontext });
+  liste.push({ id: Date.now(), titel, monat, tag, jahr, kontext });
   speichereTermine(liste);
   document.getElementById('termin-titel').value = '';
   document.getElementById('termin-tag').value = '';
+  document.getElementById('termin-jahr').value = '';
   renderTermineListe();
 }
 
@@ -5130,8 +5163,8 @@ function renderHeuteTermin() {
   if (!wrap) return;
   const alle = ladeTermine();
   const anstehend = alle
-    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag) }))
-    .filter(t => t.tage <= TERMINE_VORLAUF_TAGE)
+    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag, t.jahr) }))
+    .filter(t => t.tage !== null && t.tage <= TERMINE_VORLAUF_TAGE)
     .sort((a, b) => a.tage - b.tage);
 
   if (anstehend.length === 0) {

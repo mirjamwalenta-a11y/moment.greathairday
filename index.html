@@ -1516,6 +1516,7 @@ function tabnavScrollBy(direction) {
 <!-- ══ SCREEN: HOOK ══ -->
 <!-- ══ SCREEN: HEUTE ══ -->
 <section class="screen" id="screen-heute">
+  <div id="heute-termin-wrap"></div>
   <div id="heute-emp-wrap"></div>
 
   <div id="heute-woche-wrap">
@@ -1937,6 +1938,46 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
   <div class="planer-week" id="planer-week"></div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-tag">Wichtige Termine</div>
+    <div class="card-title">Wiederkehrende Anlässe vormerken.</div>
+    <div class="card-body">Trag feste Termine ein (z.B. ein Haarnetzwerk-Treffen) — sie werden dir im "Heute"-Tab als Vorschlag angezeigt, sobald sie näher rücken. Kein Reminder, keine Benachrichtigung — nur ein Hinweis, wenn du die App ohnehin öffnest.</div>
+  </div>
+  <div id="termine-list"></div>
+  <div class="kandidat-pre-form" style="margin-top:14px;">
+    <div class="input-label">Titel</div>
+    <input type="text" id="termin-titel" class="login-input" placeholder="z.B. Netzwerktreffen Frühling" style="max-width:100%;text-align:left;">
+    <div style="display:flex;gap:10px;margin-top:10px;">
+      <div style="flex:1;">
+        <div class="input-label">Monat</div>
+        <select id="termin-monat" class="login-input" style="max-width:100%;text-align:left;">
+          <option value="1">Januar</option>
+          <option value="2">Februar</option>
+          <option value="3">März</option>
+          <option value="4">April</option>
+          <option value="5">Mai</option>
+          <option value="6">Juni</option>
+          <option value="7">Juli</option>
+          <option value="8">August</option>
+          <option value="9">September</option>
+          <option value="10">Oktober</option>
+          <option value="11">November</option>
+          <option value="12">Dezember</option>
+        </select>
+      </div>
+      <div style="width:90px;">
+        <div class="input-label">Tag</div>
+        <input type="number" id="termin-tag" class="login-input" min="1" max="31" placeholder="15" style="max-width:100%;text-align:left;">
+      </div>
+    </div>
+    <div class="input-label" style="margin-top:10px;">Für wen?</div>
+    <div class="chip-row" id="termin-kontext-row">
+      <button class="chip-select on" data-val="salon" onclick="pickSel(this,'terminkontext')">🏠 Mein Salon</button>
+      <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'terminkontext')">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
+  <button class="btn-add" onclick="termineHinzufuegen()">+ Termin speichern</button>
 </section>
 
 <!-- ══ SCREEN: CTA ══ -->
@@ -2453,7 +2494,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -2545,7 +2586,7 @@ function showTab(id) {
   if(event && event.currentTarget) event.currentTarget.classList.add('active');
   tabNavVisible = true;
   if(id === 'heute') initHeuteTab();
-  if(id === 'planer') initPlaner();
+  if(id === 'planer') { initPlaner(); renderTermineListe(); }
   if(id === 'hook') initHookScreen();
   if(id === 'ki-sichtbarkeit') { renderKiCatRow(); renderKiSichtbarkeitAblage(); }
   window.scrollTo(0, 0);
@@ -5017,6 +5058,116 @@ function stimmeHinzufuegen() {
 // ════════════════════════════════════════════
 // FEATURE 7: HEUTE-TAB INIT + EMPFEHLUNG
 // ════════════════════════════════════════════
+// ════════════════════════════════════════════
+// WICHTIGE TERMINE (wiederkehrende Anlässe, z.B. Haarnetzwerk-Treffen)
+// Rein lokal gespeichert (Monat+Tag, jährlich wiederkehrend, kein Jahr).
+// Erscheint nur als Vorschlag im Heute-Tab wenn der Termin näher rückt —
+// kein Push, keine Benachrichtigung, kein Zwang.
+// ════════════════════════════════════════════
+const TERMINE_KEY = 'ghd_termine_v1';
+const TERMINE_VORLAUF_TAGE = 21;
+const MONATSNAMEN = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+
+function ladeTermine() {
+  try { return JSON.parse(localStorage.getItem(TERMINE_KEY)) || []; } catch { return []; }
+}
+function speichereTermine(liste) {
+  localStorage.setItem(TERMINE_KEY, JSON.stringify(liste));
+}
+
+function tageBisTermin(monat, tag) {
+  const heute = new Date();
+  const heuteMitternacht = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate());
+  let ziel = new Date(heute.getFullYear(), monat - 1, tag);
+  if (ziel < heuteMitternacht) ziel = new Date(heute.getFullYear() + 1, monat - 1, tag);
+  return Math.round((ziel - heuteMitternacht) / 86400000);
+}
+
+function renderTermineListe() {
+  const list = document.getElementById('termine-list');
+  if (!list) return;
+  const alle = ladeTermine();
+  if (alle.length === 0) {
+    list.innerHTML = '<div class="card-body" style="color:var(--soft);">Noch keine Termine gespeichert.</div>';
+    return;
+  }
+  const sortiert = [...alle].sort((a, b) => tageBisTermin(a.monat, a.tag) - tageBisTermin(b.monat, b.tag));
+  list.innerHTML = sortiert.map(t => {
+    const tage = tageBisTermin(t.monat, t.tag);
+    return `<div class="modal-item" style="flex-direction:column;align-items:flex-start;">
+      <div style="display:flex;justify-content:space-between;width:100%;">
+        <strong style="font-size:13px;">${t.kontext === 'haarnetzwerk' ? '🤝' : '🏠'} ${t.titel}</strong>
+        <button class="modal-item-del" onclick="terminLoeschen(${t.id})">✕</button>
+      </div>
+      <div style="font-size:12px;color:var(--mid);margin-top:2px;">${t.tag}. ${MONATSNAMEN[t.monat - 1]} · in ${tage} Tag${tage === 1 ? '' : 'en'}</div>
+    </div>`;
+  }).join('');
+}
+
+function termineHinzufuegen() {
+  const titel = document.getElementById('termin-titel').value.trim();
+  const monat = parseInt(document.getElementById('termin-monat').value, 10);
+  const tag = parseInt(document.getElementById('termin-tag').value, 10);
+  const kontext = SEL.terminkontext || 'salon';
+  if (!titel || !tag || tag < 1 || tag > 31) return;
+  const liste = ladeTermine();
+  liste.push({ id: Date.now(), titel, monat, tag, kontext });
+  speichereTermine(liste);
+  document.getElementById('termin-titel').value = '';
+  document.getElementById('termin-tag').value = '';
+  renderTermineListe();
+}
+
+function terminLoeschen(id) {
+  speichereTermine(ladeTermine().filter(t => t.id !== id));
+  renderTermineListe();
+}
+
+// Nächsten anstehenden Termin (falls innerhalb des Vorlaufs) als Karte im
+// Heute-Tab zeigen — zusätzlich zur normalen Empfehlung, nicht ersetzend.
+function renderHeuteTermin() {
+  const wrap = document.getElementById('heute-termin-wrap');
+  if (!wrap) return;
+  const alle = ladeTermine();
+  const anstehend = alle
+    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag) }))
+    .filter(t => t.tage <= TERMINE_VORLAUF_TAGE)
+    .sort((a, b) => a.tage - b.tage);
+
+  if (anstehend.length === 0) {
+    wrap.innerHTML = '';
+    return;
+  }
+  const t = anstehend[0];
+  const wannText = t.tage === 0 ? 'Heute' : t.tage === 1 ? 'Morgen' : `In ${t.tage} Tagen`;
+  wrap.innerHTML = `<div class="heute-empfehlung" style="background:var(--gold);">
+    <div class="heute-emp-tag">📅 ${wannText}</div>
+    <div class="heute-emp-title">${t.titel}</div>
+    <div class="heute-emp-why">Jetzt schon Content dafür vorbereiten?</div>
+    <div class="heute-emp-btns">
+      <button class="heute-emp-btn" onclick="heuteTerminZuPost('${t.titel.replace(/'/g,"\\'")}','${t.kontext}')">✍ Als Post</button>
+      <button class="heute-emp-btn" onclick="heuteTerminZuStory('${t.titel.replace(/'/g,"\\'")}','${t.kontext}')">📱 Als Story</button>
+    </div>
+  </div>`;
+}
+
+function heuteTerminZuPost(titel, kontext) {
+  showTab_direct('screen-post');
+  setTimeout(() => {
+    setChipRow('post-kontext-row', 'postkontext', kontext);
+    const el = document.getElementById('post-moment');
+    if (el) { el.value = `Bald steht "${titel}" an — `; el.dispatchEvent(new Event('input')); el.focus(); }
+  }, 150);
+}
+function heuteTerminZuStory(titel, kontext) {
+  showTab_direct('screen-story');
+  setTimeout(() => {
+    setChipRow('story-kontext-row', 'storykontext', kontext);
+    const el = document.getElementById('story-moment');
+    if (el) { el.value = `Bald steht "${titel}" an — `; el.dispatchEvent(new Event('input')); el.focus(); }
+  }, 150);
+}
+
 const HEUTE_EMPFEHLUNGEN = [
   { tag: 'Heute empfohlen', title: 'Zeig einen echten Moment aus dem Salon', why: 'Authentische Einblicke bauen mehr Vertrauen als jede Werbung.', post: 'Heute im Salon — ein echter, ungestellter Moment.', story: 'Ein ruhiger Blick hinter die Kulissen.' },
   { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Mazen, Alina, Hassan — Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
@@ -5026,6 +5177,7 @@ const HEUTE_EMPFEHLUNGEN = [
 ];
 
 function initHeuteTab() {
+  renderHeuteTermin();
   // Empfehlung — täglich wechselnd
   const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
   const emp = HEUTE_EMPFEHLUNGEN[idx];

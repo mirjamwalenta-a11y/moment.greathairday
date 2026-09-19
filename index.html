@@ -5612,8 +5612,14 @@ Antworte NUR mit JSON: {"buchung":"...","engagement":"...","recruiting":"..."}`;
     };
   }
 
-  const typLabels = { buchung:'📅 Buchung', engagement:'💬 Engagement', recruiting:'🤝 Recruiting' };
-  const typHints  = {
+  const typLabels = kontext === 'haarnetzwerk'
+    ? { buchung:'📅 Anmeldung', engagement:'💬 Engagement', recruiting:'🤝 Vernetzung' }
+    : { buchung:'📅 Buchung', engagement:'💬 Engagement', recruiting:'🤝 Recruiting' };
+  const typHints = kontext === 'haarnetzwerk' ? {
+    buchung:'Für Posts zu einem Haarnetzwerk-Event oder Treffen.',
+    engagement:'Für Posts die Austausch oder Reichweite auslösen sollen.',
+    recruiting:'Für Vernetzung und neue Mitglieder im Haarnetzwerk.'
+  } : {
     buchung:'Für Posts mit Ergebnis oder freiem Termin.',
     engagement:'Für Posts die Diskussion oder Reichweite auslösen sollen.',
     recruiting:'Für Team-Momente und Einblicke in den Salon-Alltag.'

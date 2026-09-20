@@ -169,6 +169,12 @@
     margin-top: 6px;
   }
 
+  /* ── FOKUS: SICHTBARKEITSLÜCKEN (V1-Führungsebene auf dem Startscreen) ── */
+  .fokus-luecken-list { display: flex; flex-direction: column; gap: 9px; margin-top: 6px; }
+  .fokus-luecke-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--mid); line-height: 1.5; }
+  .fokus-luecke-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin-top: 6px; flex-shrink: 0; }
+  .fokus-divider { margin: 30px 0 16px; padding-top: 18px; border-top: 1px solid #e5ddd0; text-align: left; }
+
   /* ── STARTSCREEN ── */
   .start-eyebrow {
     font-size: 11px;
@@ -1223,7 +1229,9 @@ function tabnavScrollBy(direction) {
 
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
-  <p class="start-eyebrow">Was ist gerade dran?</p>
+  <div id="fokus-wrap"></div>
+
+  <p class="start-eyebrow fokus-divider">Oder direkt wählen</p>
   <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
   <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
 
@@ -2111,6 +2119,43 @@ function tabnavScrollBy(direction) {
     </div>
     <button class="btn-ghost-sm" onclick="generateGoogleReviewReply()">↺ Neue Variante</button>
   </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-tag">Bewertungsanfrage</div>
+    <div class="card-title">Aktiv um eine Google-Bewertung bitten.</div>
+    <div class="card-body">Ein kurzer Text für zufriedene Kund:innen direkt nach dem Termin — per WhatsApp oder als Kärtchen zum Mitgeben.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Wie soll die Anfrage ankommen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="whatsapp" onclick="pickSel(this,'googleanfragekanal')">📱 WhatsApp</button>
+      <button class="chip-select" data-val="kaertchen" onclick="pickSel(this,'googleanfragekanal')">🗂 Kärtchen</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was wurde gemacht? <span style="font-weight:400;color:var(--soft);">optional</span></div>
+    <div class="input-with-mic">
+      <textarea id="google-anfrage-kontext" placeholder="z.B. Balayage bei Frau Huber ..." rows="2"></textarea>
+      <button class="btn-mic" id="mic-google-anfrage" onclick="toggleMic('google-anfrage-kontext','mic-google-anfrage')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google-anfrage" onclick="generateGoogleAnfrage()">Anfrage-Text erstellen</button>
+  <div id="google-anfrage-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Textvorschlag <span id="google-anfrage-ki-badge"></span></span>
+        <span class="output-format-badge">Bewertungsanfrage</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-anfrage-text-main"></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-anfrage-copy-btn" onclick="copyEl('google-anfrage-text-main','google-anfrage-copy-btn')">📋 Text kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-anfrage-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGoogleAnfrage()">↺ Neue Variante</button>
+  </div>
 </section>
 
 <!-- ══ SCREEN: KI-SICHTBARKEIT ══ -->
@@ -2485,6 +2530,8 @@ function starteApp() {
   initHeuteTab();
   msSyncLogos();
   initRahmenSprueche();
+  renderFokus();
+  initDraftCache();
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -2502,7 +2549,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv',googleanfragekanal:'whatsapp'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -2564,6 +2611,7 @@ function goBack() {
     document.getElementById(prev).classList.add('active');
     const isStart = prev === 'screen-start';
     document.getElementById('backBtn').classList.toggle('visible', !isStart);
+    if (isStart) renderFokus();
     if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
       showTabNav();
     }
@@ -3718,6 +3766,62 @@ Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anfü
   btn.disabled = false;
   btn.textContent = 'Antwort vorschlagen';
   setTimeout(()=>document.getElementById('google-review-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEWERTUNGSANFRAGE-GENERATOR
+// ════════════════════════════════════════════
+// Umgekehrte Richtung zum Bewertungsantwort-Generator: nicht auf eine
+// bestehende Bewertung antworten, sondern zufriedene Kund:innen direkt
+// nach dem Termin aktiv um eine Google-Bewertung bitten (WhatsApp/Kärtchen).
+async function generateGoogleAnfrage() {
+  const kanal = SEL.googleanfragekanal || 'whatsapp';
+  const kontext = document.getElementById('google-anfrage-kontext').value.trim();
+  const kanalMap = {
+    whatsapp: 'WhatsApp-Nachricht — persönlich, darf 3-4 Sätze haben, inklusive der Bitte um eine Google-Bewertung',
+    kaertchen: 'Text für ein kleines Kärtchen zum Mitgeben — sehr kurz (max. 2 Sätze), da wenig Platz'
+  };
+
+  const btn = document.getElementById('btn-google-anfrage');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten).
+
+Schreibe eine kurze Nachricht, mit der eine zufriedene Kundin/ein zufriedener Kunde direkt nach dem Termin aktiv um eine Google-Bewertung gebeten wird.
+
+Format: ${kanalMap[kanal]}
+
+Regeln:
+- Ruhige, gehobene, persönliche Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Floskeln wie "Vielen lieben Dank"
+- Klingt wie eine ehrliche, persönliche Bitte — nicht bettelnd oder aufdringlich
+- Wenn ein konkreter Anlass genannt ist, diesen natürlich einbauen, sonst allgemein halten
+- Kurz erwähnen, dass eine Bewertung anderen hilft, den richtigen Salon zu finden
+- Erfinde KEINEN Link und KEINE URL — nur allgemein "über Google" oder "im Google-Profil" erwähnen, den Link ergänzt Mirjam selbst
+
+Antworte NUR mit dem fertigen Text. Kein JSON, kein Markdown, keine Anführungszeichen drumherum.`;
+
+  const userText = kontext ? `Anlass: ${kontext}` : 'Kein spezifischer Anlass genannt — allgemein halten.';
+
+  let text = null;
+  try {
+    text = await claudeAnfrage(system, userText, 250);
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = kanal === 'whatsapp'
+      ? 'Danke, dass du heute bei uns warst — wir hoffen, du gehst mit einem guten Gefühl raus. Wenn du kurz Zeit hast, würden wir uns sehr über eine ehrliche Bewertung auf Google freuen. Das hilft anderen, uns zu finden.'
+      : 'Danke für deinen Besuch! Eine kurze Bewertung auf Google würde uns sehr freuen.';
+  }
+
+  document.getElementById('google-anfrage-text-main').textContent = text.trim();
+  document.getElementById('google-anfrage-result').style.display = 'block';
+  setKiBadge('google-anfrage-ki-badge', istKi);
+
+  btn.disabled = false;
+  btn.textContent = 'Anfrage-Text erstellen';
+  setTimeout(()=>document.getElementById('google-anfrage-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
 // ════════════════════════════════════════════
@@ -4951,6 +5055,9 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
+    if (containerId === 'google-result') localStorage.setItem(GOOGLE_LAST_POST_KEY, new Date().toISOString());
+    const geposteterDraft = DRAFT_FELDER.find(d => d.wrapper === containerId);
+    if (geposteterDraft) localStorage.removeItem(DRAFT_KEY_PREFIX + geposteterDraft.feld);
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -4959,6 +5066,55 @@ function abschlussEntscheidung(containerId, status, btn) {
     if (hint) hint.textContent = 'Später vorgemerkt — kein Druck, kein Reminder.';
   }
   if (hint) hint.style.display = 'block';
+}
+
+// ════════════════════════════════════════════
+// DRAFT-CACHE: fertige Texte überleben einen Reload
+// ════════════════════════════════════════════
+// Nur für die drei Ergebnis-Textfelder mit eigenem Wrapper, in denen von
+// Hand nachbearbeitet wird (Post, Google-Beitrag, Google-Bewertungsantwort).
+// Story/Reel/CTA rendern nicht editierbare Listen aus den Rohdaten der
+// KI-Antwort — dort gibt es keinen Bearbeitungsstand, der verloren gehen
+// könnte, deshalb bewusst nicht Teil dieses Caches.
+const DRAFT_KEY_PREFIX = 'ghd_draft_';
+const DRAFT_FELDER = [
+  { feld: 'post-text-main', wrapper: 'post-result' },
+  { feld: 'google-text-main', wrapper: 'google-result' },
+  { feld: 'google-review-text-main', wrapper: 'google-review-result' },
+  { feld: 'google-anfrage-text-main', wrapper: 'google-anfrage-result' }
+];
+
+function speichereAlleDrafts() {
+  DRAFT_FELDER.forEach(({ feld }) => {
+    const el = document.getElementById(feld);
+    if (!el) return;
+    const text = el.innerHTML.trim();
+    if (text) localStorage.setItem(DRAFT_KEY_PREFIX + feld, text);
+    else localStorage.removeItem(DRAFT_KEY_PREFIX + feld);
+  });
+}
+
+// Läuft einmal beim App-Start: stellt einen vorhandenen Draft wieder her
+// (nur wenn das Feld noch leer ist) und sichert ab dann bei jeder echten
+// Bearbeitung. Bewusst nur auf 'input', nicht zusätzlich auf
+// beforeunload/visibilitychange: Nach "✓ Gepostet" bleibt der Text im Feld
+// stehen (siehe abschlussEntscheidung), ein Reload danach würde den gerade
+// gelöschten Draft sonst sofort wieder speichern.
+function initDraftCache() {
+  DRAFT_FELDER.forEach(({ feld, wrapper }) => {
+    const el = document.getElementById(feld);
+    const wrap = document.getElementById(wrapper);
+    if (!el || !wrap) return;
+    if (!el.innerHTML.trim()) {
+      const draft = localStorage.getItem(DRAFT_KEY_PREFIX + feld);
+      if (draft) {
+        el.innerHTML = draft;
+        wrap.style.display = 'block';
+        el.dispatchEvent(new Event('input')); // bestehende Zähler/Badges nachziehen
+      }
+    }
+    el.addEventListener('input', speichereAlleDrafts);
+  });
 }
 
 // ════════════════════════════════════════════
@@ -5282,6 +5438,161 @@ function heuteZuStory(idx) {
     const el = document.getElementById('story-moment');
     if(el) { el.value = emp.story; el.dispatchEvent(new Event('input')); }
   }, 150);
+}
+
+// ════════════════════════════════════════════
+// FOKUS: SICHTBARKEITSLÜCKEN + 1 EMPFOHLENES THEMA (Startscreen-Führung, V1)
+// ════════════════════════════════════════════
+// Regelbasiert, ohne Score und ohne neue Datenstruktur — nutzt drei bereits
+// vorhandene Signale: die Wochenübersicht (WOCHE_KEY), die KI-Sichtbarkeits-
+// Ablage (KI_SICHTBARKEIT_KEY) und den Zeitpunkt des letzten Google-Beitrags
+// (neu, einzige Ergänzung: siehe GOOGLE_LAST_POST_KEY unten). Maximal 3
+// Lücken, genau 1 empfohlenes Thema — die App entscheidet, es wird nicht
+// zur Auswahl gestellt.
+const GOOGLE_LAST_POST_KEY = 'ghd_google_last_post';
+const GOOGLE_LUECKE_SCHWELLE_TAGE = 7;
+
+function getWochePostCount() {
+  const { data, key } = getWocheData();
+  return Object.values(data[key] || {}).filter(Boolean).length;
+}
+
+function getTageSeitGooglePost() {
+  const raw = localStorage.getItem(GOOGLE_LAST_POST_KEY);
+  if (!raw) return null;
+  return Math.floor((Date.now() - new Date(raw).getTime()) / 86400000);
+}
+
+// Feste Prioritätsreihenfolge: erst die eigene Reichweite (Woche ohne
+// Post), dann KI-Sichtbarkeit (offene Frage), dann Google. Maximal 3
+// Einträge sind durch die drei Prüfungen ohnehin gegeben.
+function getSichtbarkeitsLuecken() {
+  const luecken = [];
+
+  // Reihenfolge entspricht der Priorität in getEmpfohlenesThema() (Konkretheit
+  // vor Kanal): KI-Frage vor Reichweite vor Google, damit die dringlichste
+  // gelistete Lücke immer dieselbe ist, die auch das Thema bestimmt hat.
+  const kiOffen = ladeKiSichtbarkeitAblage().filter(e => e.status !== 'live');
+  if (kiOffen.length > 0) {
+    const text = kiOffen.length === 1
+      ? '1 offene Frage für die KI-Sichtbarkeit ist noch nicht platziert.'
+      : `${kiOffen.length} offene Fragen für die KI-Sichtbarkeit sind noch nicht platziert.`;
+    luecken.push({ id: 'ki', text, entry: kiOffen[kiOffen.length - 1] });
+  }
+
+  if (getWochePostCount() === 0) {
+    luecken.push({ id: 'reichweite', text: 'Diese Woche noch kein sichtbarer Beitrag veröffentlicht.' });
+  }
+
+  const tageGoogle = getTageSeitGooglePost();
+  if (tageGoogle === null) {
+    luecken.push({ id: 'google', text: 'Noch kein Google-Beitrag über die App erstellt.' });
+  } else if (tageGoogle >= GOOGLE_LUECKE_SCHWELLE_TAGE) {
+    luecken.push({ id: 'google', text: `Seit ${tageGoogle} Tagen kein Google-Beitrag.` });
+  }
+
+  return luecken.slice(0, 3);
+}
+
+// Genau 1 Thema — abgeleitet aus der dringlichsten Lücke. Ohne Lücke:
+// dieselbe tageweise rotierende Empfehlung, die auch der Heute-Tab zeigt
+// (kein zweites Empfehlungssystem).
+// Priorität nach Konkretheit/Bearbeitbarkeit, nicht nach Kanal: eine
+// offene Frage ist bereits ein fertiges Thema und schlägt deshalb die
+// allgemeine Reichweiten-Lücke ("diese Woche nichts gepostet"). Liegt nur
+// die Google-Lücke vor, bekommt sie zur Konkretisierung denselben
+// Tagesvorschlag als inhaltlichen Aufhänger mit, statt nur an den leeren
+// Kanal zu erinnern. Der generische Tagesvorschlag bleibt Fallback für
+// Reichweite-Lücke und den Fall ganz ohne Lücke.
+function getEmpfohlenesThema(luecken) {
+  const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
+  const emp = HEUTE_EMPFEHLUNGEN[idx];
+
+  // "secondary" ist bewusst nur ein zweiter Eintrittspunkt für dasselbe Thema
+  // in einen bereits bestehenden Generator — keine neue Content-Kette, keine
+  // neue Generierung. Bei der KI-Frage gibt es bewusst keinen zweiten Kanal:
+  // eine konkrete Kundenfrage lässt sich nicht sinnvoll in eine generische
+  // Story/einen Post umwidmen, ohne den eigentlichen Inhalt zu verwässern.
+  const kiLuecke = luecken.find(l => l.id === 'ki');
+  if (kiLuecke) {
+    return {
+      tag: 'Heute priorisiert', titel: kiLuecke.entry.frage,
+      why: 'Diese Frage entscheidet mit, ob euch KI-Systeme wie ChatGPT empfehlen — noch nicht auf der Website oder bei Google platziert.',
+      action: () => fokusZuKi(kiLuecke.entry)
+    };
+  }
+  if (luecken.some(l => l.id === 'reichweite')) {
+    return {
+      tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx),
+      secondary: { label: 'Auch als Story', action: () => heuteZuStory(idx) }
+    };
+  }
+  if (luecken.some(l => l.id === 'google')) {
+    return {
+      tag: 'Heute priorisiert', titel: emp.title,
+      why: `${emp.why} Passt heute auch als Google-Beitrag für die lokale Suche.`,
+      action: () => fokusZuGoogle(emp),
+      secondary: { label: 'Auch als Post', action: () => heuteZuPost(idx) }
+    };
+  }
+  return {
+    tag: 'Heute empfohlen', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx),
+    secondary: { label: 'Auch als Story', action: () => heuteZuStory(idx) }
+  };
+}
+
+function fokusZuKi(entry) {
+  showTab_direct('screen-ki-sichtbarkeit');
+  setTimeout(() => {
+    const kontext = KI_KAT_OPTIONEN.haarnetzwerk.some(o => o.key === entry.kategorie) ? 'haarnetzwerk' : 'salon';
+    const chipEl = document.querySelector(`#screen-ki-sichtbarkeit .chip-row .chip-select[data-val="${kontext}"]`);
+    if (chipEl) selectKiKontext(kontext, chipEl);
+    currentKiCat = entry.kategorie;
+    renderKiCatRow();
+    const el = document.getElementById('ki-fokus');
+    if (el) { el.value = entry.frage; el.focus(); }
+  }, 150);
+}
+
+function fokusZuGoogle(emp) {
+  showTab_direct('screen-google');
+  setTimeout(() => {
+    const el = document.getElementById('google-moment');
+    if (el) {
+      if (emp) { el.value = emp.post; el.dispatchEvent(new Event('input')); }
+      el.focus();
+    }
+  }, 150);
+}
+
+function renderFokus() {
+  const wrap = document.getElementById('fokus-wrap');
+  if (!wrap) return;
+  const luecken = getSichtbarkeitsLuecken();
+  const thema = getEmpfohlenesThema(luecken);
+
+  const lueckenHtml = luecken.length > 0
+    ? `<div class="card">
+         <div class="card-tag">Sichtbarkeitslücken</div>
+         <div class="fokus-luecken-list">${luecken.map(l => `<div class="fokus-luecke-row"><span class="fokus-luecke-dot"></span><span>${l.text}</span></div>`).join('')}</div>
+       </div>`
+    : `<div class="card">
+         <div class="card-tag">Sichtbarkeitslücken</div>
+         <div class="card-body">Gerade keine akute Lücke — gute Basis.</div>
+       </div>`;
+
+  wrap.innerHTML = `
+    ${lueckenHtml}
+    <div class="heute-empfehlung">
+      <div class="heute-emp-tag">✦ ${thema.tag}</div>
+      <div class="heute-emp-title">${thema.titel}</div>
+      <div class="heute-emp-why">${thema.why}</div>
+    </div>
+    <button class="btn-main" id="fokus-cta-btn">Für dieses Thema erstellen →</button>
+    ${thema.secondary ? `<button class="btn-ghost-sm" id="fokus-secondary-btn" style="margin-bottom:24px;">${thema.secondary.label}</button>` : '<div style="margin-bottom:24px;"></div>'}
+  `;
+  document.getElementById('fokus-cta-btn').onclick = thema.action;
+  if (thema.secondary) document.getElementById('fokus-secondary-btn').onclick = thema.secondary.action;
 }
 
 // ════════════════════════════════════════════

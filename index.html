@@ -5349,13 +5349,17 @@ function getSichtbarkeitsLuecken() {
 // Genau 1 Thema — abgeleitet aus der dringlichsten Lücke. Ohne Lücke:
 // dieselbe tageweise rotierende Empfehlung, die auch der Heute-Tab zeigt
 // (kein zweites Empfehlungssystem).
+// Priorität nach Konkretheit/Bearbeitbarkeit, nicht nach Kanal: eine
+// offene Frage ist bereits ein fertiges Thema und schlägt deshalb die
+// allgemeine Reichweiten-Lücke ("diese Woche nichts gepostet"). Liegt nur
+// die Google-Lücke vor, bekommt sie zur Konkretisierung denselben
+// Tagesvorschlag als inhaltlichen Aufhänger mit, statt nur an den leeren
+// Kanal zu erinnern. Der generische Tagesvorschlag bleibt Fallback für
+// Reichweite-Lücke und den Fall ganz ohne Lücke.
 function getEmpfohlenesThema(luecken) {
   const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
   const emp = HEUTE_EMPFEHLUNGEN[idx];
 
-  if (luecken.some(l => l.id === 'reichweite')) {
-    return { tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
-  }
   const kiLuecke = luecken.find(l => l.id === 'ki');
   if (kiLuecke) {
     return {
@@ -5364,11 +5368,14 @@ function getEmpfohlenesThema(luecken) {
       action: () => fokusZuKi(kiLuecke.entry)
     };
   }
+  if (luecken.some(l => l.id === 'reichweite')) {
+    return { tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
+  }
   if (luecken.some(l => l.id === 'google')) {
     return {
-      tag: 'Heute priorisiert', titel: 'Ein Google-Beitrag für die lokale Suche',
-      why: 'Frischer Inhalt bei Google hilft dabei, bei „Friseur Wien" gefunden zu werden.',
-      action: () => fokusZuGoogle()
+      tag: 'Heute priorisiert', titel: emp.title,
+      why: `${emp.why} Passt heute auch als Google-Beitrag für die lokale Suche.`,
+      action: () => fokusZuGoogle(emp)
     };
   }
   return { tag: 'Heute empfohlen', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
@@ -5387,11 +5394,14 @@ function fokusZuKi(entry) {
   }, 150);
 }
 
-function fokusZuGoogle() {
+function fokusZuGoogle(emp) {
   showTab_direct('screen-google');
   setTimeout(() => {
     const el = document.getElementById('google-moment');
-    if (el) el.focus();
+    if (el) {
+      if (emp) { el.value = emp.post; el.dispatchEvent(new Event('input')); }
+      el.focus();
+    }
   }, 150);
 }
 

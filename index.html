@@ -169,6 +169,12 @@
     margin-top: 6px;
   }
 
+  /* ── FOKUS: SICHTBARKEITSLÜCKEN (V1-Führungsebene auf dem Startscreen) ── */
+  .fokus-luecken-list { display: flex; flex-direction: column; gap: 9px; margin-top: 6px; }
+  .fokus-luecke-row { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; color: var(--mid); line-height: 1.5; }
+  .fokus-luecke-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); margin-top: 6px; flex-shrink: 0; }
+  .fokus-divider { margin: 30px 0 16px; padding-top: 18px; border-top: 1px solid #e5ddd0; text-align: left; }
+
   /* ── STARTSCREEN ── */
   .start-eyebrow {
     font-size: 11px;
@@ -1223,7 +1229,9 @@ function tabnavScrollBy(direction) {
 
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
-  <p class="start-eyebrow">Was ist gerade dran?</p>
+  <div id="fokus-wrap"></div>
+
+  <p class="start-eyebrow fokus-divider">Oder direkt wählen</p>
   <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
   <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
 
@@ -2485,6 +2493,7 @@ function starteApp() {
   initHeuteTab();
   msSyncLogos();
   initRahmenSprueche();
+  renderFokus();
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -2564,6 +2573,7 @@ function goBack() {
     document.getElementById(prev).classList.add('active');
     const isStart = prev === 'screen-start';
     document.getElementById('backBtn').classList.toggle('visible', !isStart);
+    if (isStart) renderFokus();
     if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
       showTabNav();
     }
@@ -4951,6 +4961,7 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
+    if (containerId === 'google-result') localStorage.setItem(GOOGLE_LAST_POST_KEY, new Date().toISOString());
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -5282,6 +5293,134 @@ function heuteZuStory(idx) {
     const el = document.getElementById('story-moment');
     if(el) { el.value = emp.story; el.dispatchEvent(new Event('input')); }
   }, 150);
+}
+
+// ════════════════════════════════════════════
+// FOKUS: SICHTBARKEITSLÜCKEN + 1 EMPFOHLENES THEMA (Startscreen-Führung, V1)
+// ════════════════════════════════════════════
+// Regelbasiert, ohne Score und ohne neue Datenstruktur — nutzt drei bereits
+// vorhandene Signale: die Wochenübersicht (WOCHE_KEY), die KI-Sichtbarkeits-
+// Ablage (KI_SICHTBARKEIT_KEY) und den Zeitpunkt des letzten Google-Beitrags
+// (neu, einzige Ergänzung: siehe GOOGLE_LAST_POST_KEY unten). Maximal 3
+// Lücken, genau 1 empfohlenes Thema — die App entscheidet, es wird nicht
+// zur Auswahl gestellt.
+const GOOGLE_LAST_POST_KEY = 'ghd_google_last_post';
+const GOOGLE_LUECKE_SCHWELLE_TAGE = 7;
+
+function getWochePostCount() {
+  const { data, key } = getWocheData();
+  return Object.values(data[key] || {}).filter(Boolean).length;
+}
+
+function getTageSeitGooglePost() {
+  const raw = localStorage.getItem(GOOGLE_LAST_POST_KEY);
+  if (!raw) return null;
+  return Math.floor((Date.now() - new Date(raw).getTime()) / 86400000);
+}
+
+// Feste Prioritätsreihenfolge: erst die eigene Reichweite (Woche ohne
+// Post), dann KI-Sichtbarkeit (offene Frage), dann Google. Maximal 3
+// Einträge sind durch die drei Prüfungen ohnehin gegeben.
+function getSichtbarkeitsLuecken() {
+  const luecken = [];
+
+  if (getWochePostCount() === 0) {
+    luecken.push({ id: 'reichweite', text: 'Diese Woche noch kein sichtbarer Beitrag veröffentlicht.' });
+  }
+
+  const kiOffen = ladeKiSichtbarkeitAblage().filter(e => e.status !== 'live');
+  if (kiOffen.length > 0) {
+    const text = kiOffen.length === 1
+      ? '1 offene Frage für die KI-Sichtbarkeit ist noch nicht platziert.'
+      : `${kiOffen.length} offene Fragen für die KI-Sichtbarkeit sind noch nicht platziert.`;
+    luecken.push({ id: 'ki', text, entry: kiOffen[kiOffen.length - 1] });
+  }
+
+  const tageGoogle = getTageSeitGooglePost();
+  if (tageGoogle === null) {
+    luecken.push({ id: 'google', text: 'Noch kein Google-Beitrag über die App erstellt.' });
+  } else if (tageGoogle >= GOOGLE_LUECKE_SCHWELLE_TAGE) {
+    luecken.push({ id: 'google', text: `Seit ${tageGoogle} Tagen kein Google-Beitrag.` });
+  }
+
+  return luecken.slice(0, 3);
+}
+
+// Genau 1 Thema — abgeleitet aus der dringlichsten Lücke. Ohne Lücke:
+// dieselbe tageweise rotierende Empfehlung, die auch der Heute-Tab zeigt
+// (kein zweites Empfehlungssystem).
+function getEmpfohlenesThema(luecken) {
+  const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
+  const emp = HEUTE_EMPFEHLUNGEN[idx];
+
+  if (luecken.some(l => l.id === 'reichweite')) {
+    return { tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
+  }
+  const kiLuecke = luecken.find(l => l.id === 'ki');
+  if (kiLuecke) {
+    return {
+      tag: 'Heute priorisiert', titel: kiLuecke.entry.frage,
+      why: 'Diese Frage entscheidet mit, ob euch KI-Systeme wie ChatGPT empfehlen — noch nicht auf der Website oder bei Google platziert.',
+      action: () => fokusZuKi(kiLuecke.entry)
+    };
+  }
+  if (luecken.some(l => l.id === 'google')) {
+    return {
+      tag: 'Heute priorisiert', titel: 'Ein Google-Beitrag für die lokale Suche',
+      why: 'Frischer Inhalt bei Google hilft dabei, bei „Friseur Wien" gefunden zu werden.',
+      action: () => fokusZuGoogle()
+    };
+  }
+  return { tag: 'Heute empfohlen', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
+}
+
+function fokusZuKi(entry) {
+  showTab_direct('screen-ki-sichtbarkeit');
+  setTimeout(() => {
+    const kontext = KI_KAT_OPTIONEN.haarnetzwerk.some(o => o.key === entry.kategorie) ? 'haarnetzwerk' : 'salon';
+    const chipEl = document.querySelector(`#screen-ki-sichtbarkeit .chip-row .chip-select[data-val="${kontext}"]`);
+    if (chipEl) selectKiKontext(kontext, chipEl);
+    currentKiCat = entry.kategorie;
+    renderKiCatRow();
+    const el = document.getElementById('ki-fokus');
+    if (el) { el.value = entry.frage; el.focus(); }
+  }, 150);
+}
+
+function fokusZuGoogle() {
+  showTab_direct('screen-google');
+  setTimeout(() => {
+    const el = document.getElementById('google-moment');
+    if (el) el.focus();
+  }, 150);
+}
+
+function renderFokus() {
+  const wrap = document.getElementById('fokus-wrap');
+  if (!wrap) return;
+  const luecken = getSichtbarkeitsLuecken();
+  const thema = getEmpfohlenesThema(luecken);
+
+  const lueckenHtml = luecken.length > 0
+    ? `<div class="card">
+         <div class="card-tag">Sichtbarkeitslücken</div>
+         <div class="fokus-luecken-list">${luecken.map(l => `<div class="fokus-luecke-row"><span class="fokus-luecke-dot"></span><span>${l.text}</span></div>`).join('')}</div>
+       </div>`
+    : `<div class="card">
+         <div class="card-tag">Sichtbarkeitslücken</div>
+         <div class="card-body">Gerade keine akute Lücke — gute Basis.</div>
+       </div>`;
+
+  wrap.innerHTML = `
+    ${lueckenHtml}
+    <div class="heute-empfehlung">
+      <div class="heute-emp-tag">✦ ${thema.tag}</div>
+      <div class="heute-emp-title">${thema.titel}</div>
+      <div class="heute-emp-why">${thema.why}</div>
+    </div>
+    <button class="btn-main" id="fokus-cta-btn" style="margin-bottom:24px;">Für dieses Thema erstellen →</button>
+  `;
+  document.getElementById('fokus-cta-btn').onclick = thema.action;
 }
 
 // ════════════════════════════════════════════

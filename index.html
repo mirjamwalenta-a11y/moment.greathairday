@@ -2494,6 +2494,7 @@ function starteApp() {
   msSyncLogos();
   initRahmenSprueche();
   renderFokus();
+  initDraftCache();
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -4962,6 +4963,8 @@ function abschlussEntscheidung(containerId, status, btn) {
     btn.classList.add('copied');
     markHeuteGepostet();
     if (containerId === 'google-result') localStorage.setItem(GOOGLE_LAST_POST_KEY, new Date().toISOString());
+    const geposteterDraft = DRAFT_FELDER.find(d => d.wrapper === containerId);
+    if (geposteterDraft) localStorage.removeItem(DRAFT_KEY_PREFIX + geposteterDraft.feld);
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -4970,6 +4973,54 @@ function abschlussEntscheidung(containerId, status, btn) {
     if (hint) hint.textContent = 'Später vorgemerkt — kein Druck, kein Reminder.';
   }
   if (hint) hint.style.display = 'block';
+}
+
+// ════════════════════════════════════════════
+// DRAFT-CACHE: fertige Texte überleben einen Reload
+// ════════════════════════════════════════════
+// Nur für die drei Ergebnis-Textfelder mit eigenem Wrapper, in denen von
+// Hand nachbearbeitet wird (Post, Google-Beitrag, Google-Bewertungsantwort).
+// Story/Reel/CTA rendern nicht editierbare Listen aus den Rohdaten der
+// KI-Antwort — dort gibt es keinen Bearbeitungsstand, der verloren gehen
+// könnte, deshalb bewusst nicht Teil dieses Caches.
+const DRAFT_KEY_PREFIX = 'ghd_draft_';
+const DRAFT_FELDER = [
+  { feld: 'post-text-main', wrapper: 'post-result' },
+  { feld: 'google-text-main', wrapper: 'google-result' },
+  { feld: 'google-review-text-main', wrapper: 'google-review-result' }
+];
+
+function speichereAlleDrafts() {
+  DRAFT_FELDER.forEach(({ feld }) => {
+    const el = document.getElementById(feld);
+    if (!el) return;
+    const text = el.innerHTML.trim();
+    if (text) localStorage.setItem(DRAFT_KEY_PREFIX + feld, text);
+    else localStorage.removeItem(DRAFT_KEY_PREFIX + feld);
+  });
+}
+
+// Läuft einmal beim App-Start: stellt einen vorhandenen Draft wieder her
+// (nur wenn das Feld noch leer ist) und sichert ab dann bei jeder echten
+// Bearbeitung. Bewusst nur auf 'input', nicht zusätzlich auf
+// beforeunload/visibilitychange: Nach "✓ Gepostet" bleibt der Text im Feld
+// stehen (siehe abschlussEntscheidung), ein Reload danach würde den gerade
+// gelöschten Draft sonst sofort wieder speichern.
+function initDraftCache() {
+  DRAFT_FELDER.forEach(({ feld, wrapper }) => {
+    const el = document.getElementById(feld);
+    const wrap = document.getElementById(wrapper);
+    if (!el || !wrap) return;
+    if (!el.innerHTML.trim()) {
+      const draft = localStorage.getItem(DRAFT_KEY_PREFIX + feld);
+      if (draft) {
+        el.innerHTML = draft;
+        wrap.style.display = 'block';
+        el.dispatchEvent(new Event('input')); // bestehende Zähler/Badges nachziehen
+      }
+    }
+    el.addEventListener('input', speichereAlleDrafts);
+  });
 }
 
 // ════════════════════════════════════════════

@@ -5324,16 +5324,19 @@ function getTageSeitGooglePost() {
 function getSichtbarkeitsLuecken() {
   const luecken = [];
 
-  if (getWochePostCount() === 0) {
-    luecken.push({ id: 'reichweite', text: 'Diese Woche noch kein sichtbarer Beitrag veröffentlicht.' });
-  }
-
+  // Reihenfolge entspricht der Priorität in getEmpfohlenesThema() (Konkretheit
+  // vor Kanal): KI-Frage vor Reichweite vor Google, damit die dringlichste
+  // gelistete Lücke immer dieselbe ist, die auch das Thema bestimmt hat.
   const kiOffen = ladeKiSichtbarkeitAblage().filter(e => e.status !== 'live');
   if (kiOffen.length > 0) {
     const text = kiOffen.length === 1
       ? '1 offene Frage für die KI-Sichtbarkeit ist noch nicht platziert.'
       : `${kiOffen.length} offene Fragen für die KI-Sichtbarkeit sind noch nicht platziert.`;
     luecken.push({ id: 'ki', text, entry: kiOffen[kiOffen.length - 1] });
+  }
+
+  if (getWochePostCount() === 0) {
+    luecken.push({ id: 'reichweite', text: 'Diese Woche noch kein sichtbarer Beitrag veröffentlicht.' });
   }
 
   const tageGoogle = getTageSeitGooglePost();

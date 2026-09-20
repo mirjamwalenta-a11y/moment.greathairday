@@ -5363,6 +5363,11 @@ function getEmpfohlenesThema(luecken) {
   const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
   const emp = HEUTE_EMPFEHLUNGEN[idx];
 
+  // "secondary" ist bewusst nur ein zweiter Eintrittspunkt für dasselbe Thema
+  // in einen bereits bestehenden Generator — keine neue Content-Kette, keine
+  // neue Generierung. Bei der KI-Frage gibt es bewusst keinen zweiten Kanal:
+  // eine konkrete Kundenfrage lässt sich nicht sinnvoll in eine generische
+  // Story/einen Post umwidmen, ohne den eigentlichen Inhalt zu verwässern.
   const kiLuecke = luecken.find(l => l.id === 'ki');
   if (kiLuecke) {
     return {
@@ -5372,16 +5377,23 @@ function getEmpfohlenesThema(luecken) {
     };
   }
   if (luecken.some(l => l.id === 'reichweite')) {
-    return { tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
+    return {
+      tag: 'Heute priorisiert', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx),
+      secondary: { label: 'Auch als Story', action: () => heuteZuStory(idx) }
+    };
   }
   if (luecken.some(l => l.id === 'google')) {
     return {
       tag: 'Heute priorisiert', titel: emp.title,
       why: `${emp.why} Passt heute auch als Google-Beitrag für die lokale Suche.`,
-      action: () => fokusZuGoogle(emp)
+      action: () => fokusZuGoogle(emp),
+      secondary: { label: 'Auch als Post', action: () => heuteZuPost(idx) }
     };
   }
-  return { tag: 'Heute empfohlen', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx) };
+  return {
+    tag: 'Heute empfohlen', titel: emp.title, why: emp.why, action: () => heuteZuPost(idx),
+    secondary: { label: 'Auch als Story', action: () => heuteZuStory(idx) }
+  };
 }
 
 function fokusZuKi(entry) {
@@ -5431,9 +5443,11 @@ function renderFokus() {
       <div class="heute-emp-title">${thema.titel}</div>
       <div class="heute-emp-why">${thema.why}</div>
     </div>
-    <button class="btn-main" id="fokus-cta-btn" style="margin-bottom:24px;">Für dieses Thema erstellen →</button>
+    <button class="btn-main" id="fokus-cta-btn">Für dieses Thema erstellen →</button>
+    ${thema.secondary ? `<button class="btn-ghost-sm" id="fokus-secondary-btn" style="margin-bottom:24px;">${thema.secondary.label}</button>` : '<div style="margin-bottom:24px;"></div>'}
   `;
   document.getElementById('fokus-cta-btn').onclick = thema.action;
+  if (thema.secondary) document.getElementById('fokus-secondary-btn').onclick = thema.secondary.action;
 }
 
 // ════════════════════════════════════════════

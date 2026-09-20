@@ -2119,6 +2119,43 @@ function tabnavScrollBy(direction) {
     </div>
     <button class="btn-ghost-sm" onclick="generateGoogleReviewReply()">↺ Neue Variante</button>
   </div>
+
+  <div class="card" style="margin-top:24px;">
+    <div class="card-tag">Bewertungsanfrage</div>
+    <div class="card-title">Aktiv um eine Google-Bewertung bitten.</div>
+    <div class="card-body">Ein kurzer Text für zufriedene Kund:innen direkt nach dem Termin — per WhatsApp oder als Kärtchen zum Mitgeben.</div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Wie soll die Anfrage ankommen?</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="whatsapp" onclick="pickSel(this,'googleanfragekanal')">📱 WhatsApp</button>
+      <button class="chip-select" data-val="kaertchen" onclick="pickSel(this,'googleanfragekanal')">🗂 Kärtchen</button>
+    </div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Was wurde gemacht? <span style="font-weight:400;color:var(--soft);">optional</span></div>
+    <div class="input-with-mic">
+      <textarea id="google-anfrage-kontext" placeholder="z.B. Balayage bei Frau Huber ..." rows="2"></textarea>
+      <button class="btn-mic" id="mic-google-anfrage" onclick="toggleMic('google-anfrage-kontext','mic-google-anfrage')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+  </div>
+  <button class="btn-main" id="btn-google-anfrage" onclick="generateGoogleAnfrage()">Anfrage-Text erstellen</button>
+  <div id="google-anfrage-result" style="display:none;margin-top:16px;">
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label">Textvorschlag <span id="google-anfrage-ki-badge"></span></span>
+        <span class="output-format-badge">Bewertungsanfrage</span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="google-anfrage-text-main"></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="google-anfrage-copy-btn" onclick="copyEl('google-anfrage-text-main','google-anfrage-copy-btn')">📋 Text kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('google-anfrage-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <button class="btn-ghost-sm" onclick="generateGoogleAnfrage()">↺ Neue Variante</button>
+  </div>
 </section>
 
 <!-- ══ SCREEN: KI-SICHTBARKEIT ══ -->
@@ -2512,7 +2549,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv',googleanfragekanal:'whatsapp'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -3729,6 +3766,62 @@ Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anfü
   btn.disabled = false;
   btn.textContent = 'Antwort vorschlagen';
   setTimeout(()=>document.getElementById('google-review-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// ════════════════════════════════════════════
+// GOOGLE-BEWERTUNGSANFRAGE-GENERATOR
+// ════════════════════════════════════════════
+// Umgekehrte Richtung zum Bewertungsantwort-Generator: nicht auf eine
+// bestehende Bewertung antworten, sondern zufriedene Kund:innen direkt
+// nach dem Termin aktiv um eine Google-Bewertung bitten (WhatsApp/Kärtchen).
+async function generateGoogleAnfrage() {
+  const kanal = SEL.googleanfragekanal || 'whatsapp';
+  const kontext = document.getElementById('google-anfrage-kontext').value.trim();
+  const kanalMap = {
+    whatsapp: 'WhatsApp-Nachricht — persönlich, darf 3-4 Sätze haben, inklusive der Bitte um eine Google-Bewertung',
+    kaertchen: 'Text für ein kleines Kärtchen zum Mitgeben — sehr kurz (max. 2 Sätze), da wenig Platz'
+  };
+
+  const btn = document.getElementById('btn-google-anfrage');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta, Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten).
+
+Schreibe eine kurze Nachricht, mit der eine zufriedene Kundin/ein zufriedener Kunde direkt nach dem Termin aktiv um eine Google-Bewertung gebeten wird.
+
+Format: ${kanalMap[kanal]}
+
+Regeln:
+- Ruhige, gehobene, persönliche Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Floskeln wie "Vielen lieben Dank"
+- Klingt wie eine ehrliche, persönliche Bitte — nicht bettelnd oder aufdringlich
+- Wenn ein konkreter Anlass genannt ist, diesen natürlich einbauen, sonst allgemein halten
+- Kurz erwähnen, dass eine Bewertung anderen hilft, den richtigen Salon zu finden
+- Erfinde KEINEN Link und KEINE URL — nur allgemein "über Google" oder "im Google-Profil" erwähnen, den Link ergänzt Mirjam selbst
+
+Antworte NUR mit dem fertigen Text. Kein JSON, kein Markdown, keine Anführungszeichen drumherum.`;
+
+  const userText = kontext ? `Anlass: ${kontext}` : 'Kein spezifischer Anlass genannt — allgemein halten.';
+
+  let text = null;
+  try {
+    text = await claudeAnfrage(system, userText, 250);
+  } catch(e) { text = null; }
+
+  const istKi = !!text;
+  if(!text) {
+    text = kanal === 'whatsapp'
+      ? 'Danke, dass du heute bei uns warst — wir hoffen, du gehst mit einem guten Gefühl raus. Wenn du kurz Zeit hast, würden wir uns sehr über eine ehrliche Bewertung auf Google freuen. Das hilft anderen, uns zu finden.'
+      : 'Danke für deinen Besuch! Eine kurze Bewertung auf Google würde uns sehr freuen.';
+  }
+
+  document.getElementById('google-anfrage-text-main').textContent = text.trim();
+  document.getElementById('google-anfrage-result').style.display = 'block';
+  setKiBadge('google-anfrage-ki-badge', istKi);
+
+  btn.disabled = false;
+  btn.textContent = 'Anfrage-Text erstellen';
+  setTimeout(()=>document.getElementById('google-anfrage-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
 // ════════════════════════════════════════════
@@ -4987,7 +5080,8 @@ const DRAFT_KEY_PREFIX = 'ghd_draft_';
 const DRAFT_FELDER = [
   { feld: 'post-text-main', wrapper: 'post-result' },
   { feld: 'google-text-main', wrapper: 'google-result' },
-  { feld: 'google-review-text-main', wrapper: 'google-review-result' }
+  { feld: 'google-review-text-main', wrapper: 'google-review-result' },
+  { feld: 'google-anfrage-text-main', wrapper: 'google-anfrage-result' }
 ];
 
 function speichereAlleDrafts() {

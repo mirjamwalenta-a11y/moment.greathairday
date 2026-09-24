@@ -1686,6 +1686,13 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'postkontext')">🤝 Haarnetzwerk</button>
     </div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Salon-Adresse als letzte Zeile?</div>
+    <div class="chip-row" id="post-adresse-row">
+      <button class="chip-select on" data-val="nein" onclick="pickSel(this,'postadresse')">Nein</button>
+      <button class="chip-select" data-val="ja" onclick="pickSel(this,'postadresse')">📍 Ja</button>
+    </div>
+  </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
   <div id="post-result" style="display:none;margin-top:16px;">
     <div id="post-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
@@ -2502,7 +2509,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',postadresse:'nein',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -2526,7 +2533,6 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
 - Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
     hinweis: `Dieser Text ist für Mirjams eigenen Salon "A Great Hair Day".`,
     kontakt: `Kontakt/Ort, wenn passend: Rechte Wienzeile 47, 1050 Wien, Telefon 01 5863130.`,
-    abschluss: `Wenn ein Abschluss-Satz passt: "A great hair day." oder die Adresse.`,
     reichweite: `Reichweite (Instagram/Facebook):
 - Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1–2 passende Suchbegriffe natürlich in einen Satz ein, z.B. "in unserem Salon in Wien-Margareten", "Friseur in 1050 Wien" und die konkrete Leistung, wenn sie zum Moment passt (Balayage, Strähnen, Haarschnitt, Herrenschnitt, Farbe, Hochsteckfrisur, Haarverlängerung, Brow & Lash Lifting, Make-up). Nie als Aufzählung, nie gezwungen.
 - Online-Terminbuchung (für Link-Sticker): https://stylisten.eu/pranz#online-buchung
@@ -2538,7 +2544,6 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
     persona: `Mirjam Walenta ist Mitglied & stellvertretende Obfrau beim Haarnetzwerk, einem Branchennetzwerk für Friseurinnen & Friseure in Österreich. Das Haarnetzwerk veranstaltet Events für Friseurunternehmer:innen, deren Mitarbeiter:innen und Kund:innen.`,
     hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — wie von einer Kollegin im Vorstand, nicht wie Werbung für einen einzelnen Betrieb.`,
     kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
-    abschluss: `Erfinde keinen festen Abschluss-Satz mit Adresse — falls ein Abschluss passt, bleibt er allgemein auf das Haarnetzwerk bezogen.`,
     reichweite: `Reichweite (Instagram/Facebook):
 - Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen". KEINE Begriffe oder Adressen von Mirjams Salon.
 - Link-Sticker nur, wenn im eingegebenen Text ein Link steht; sonst keinen erfinden.`,
@@ -2682,9 +2687,9 @@ const outputs = {
   },
   'direkt-offen': {
     ziel:'recruiting', format:'Post',
-    text:`Aktuell ist bei uns Platz für eine:n Stylist:in.\n\nWas wir bieten: Stammkundschaft, ein respektvolles Miteinander und klare Führung.\nWas wir uns wünschen: Handwerk mit Haltung und Freude an guter Arbeit.\n\nRechte Wienzeile 47, 1050 Wien.\nMirjam Walenta.`,
+    text:`Aktuell ist bei uns Platz für eine:n Stylist:in.\n\nWas wir bieten: Stammkundschaft, ein respektvolles Miteinander und klare Führung.\nWas wir uns wünschen: Handwerk mit Haltung und Freude an guter Arbeit.\n\nMirjam`,
     foto:'Salon-Außenansicht oder ein ruhiges Innenbild — professionell und einladend.',
-    story_interaktion:null, cta:'Meld dich direkt — per DM oder unter 01 5863130.', cta_kanal:'DM / 01 5863130'
+    story_interaktion:null, cta:'Meld dich direkt per Nachricht.', cta_kanal:'DM / 01 5863130'
   },
   'lehrling-alltag': {
     ziel:'recruiting', format:'Story',
@@ -2704,21 +2709,23 @@ const outputs = {
     text:`Du bist bald fertig mit der Schule und weißt noch nicht, was als Nächstes kommt?\n\nFriseur:in ist ein Handwerk, das bleibt.\nUnd wir bilden aus — in Wien-Margareten, in einem Salon der es ernst meint.\n\nMeld dich einfach. Ein kurzes Gespräch kostet nichts.`,
     foto:'Ein einladendes Bild vom Salon-Eingang oder vom Arbeitsplatz.',
     story_interaktion:'Frage-Sticker: „Überlegst du dir eine Ausbildung?" Ja / Noch nicht sicher',
-    cta:'DM oder 01 5863130 — wir sind offen.', cta_kanal:'DM / 01 5863130'
+    cta:'Schreib mir einfach eine Nachricht.', cta_kanal:'DM / 01 5863130'
   },
   'freier-termin': {
+    adresse:true,
     ziel:'neukunden', format:'Story + WhatsApp',
-    text:`Heute noch einen Termin bekommen?\n\nWir haben heute Nachmittag noch einen freien Platz.\nRechte Wienzeile 47, 1050 Wien.\n01 5863130 — einfach anrufen oder schreiben.`,
+    text:`Heute noch einen Termin bekommen?\n\nWir haben heute Nachmittag noch einen freien Platz.`,
     foto:'Story-Format: Helles, einladendes Bild vom Salon — Text groß drüber.',
     story_interaktion:'Story-Sticker: „Termin anfragen" (Link oder DM)',
     cta:'Jetzt melden — solange der Platz frei ist.', cta_kanal:'Anruf / DM'
   },
   'ergebnis-fertig': {
+    adresse:true,
     ziel:'neukunden', format:'Post + Reel',
-    text:`Genau so soll's aussehen.\n\nHeute fertig geworden — und wir sind sehr zufrieden.\nWenn du dir sowas vorstellst: du weißt, wo wir sind.\n\nRechte Wienzeile 47 · 1050 Wien`,
+    text:`Genau so soll's aussehen.\n\nHeute fertig geworden — und wir sind sehr zufrieden.\nWenn du dir sowas vorstellst: du weißt, wo wir sind.`,
     foto:'Vorher/Nachher oder nur Nachher: gutes natürliches Licht, scharfes Bild.',
     story_interaktion:'Frage-Sticker: „Welche Farbe interessiert dich?"',
-    cta:'Termin? 01 5863130 oder einfach per DM.', cta_kanal:'Anruf / DM'
+    cta:'Termin? Schreib mir einfach eine Nachricht.', cta_kanal:'Anruf / DM'
   },
   'haarproblem': {
     ziel:'neukunden', format:'Post',
@@ -2753,7 +2760,7 @@ function generateOutput(key) {
         <span class="output-format-badge">${data.format}</span>
       </div>
       <div class="output-body">
-        <div class="output-text" contenteditable="true" id="output-text-main">${data.text}</div>
+        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(data.text, data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
       </div>
       <div class="output-meta">
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text"><strong>Foto/Video:</strong> ${data.foto}</span></div>
@@ -2931,34 +2938,31 @@ const FLOW_CONTENT = {
     ], abschluss:'Heute noch Zeit?', cta:'Schreib uns — wir schauen, was frei ist.' }
   },
   'freier-termin': {
-    vertrauen: { bildidee:'Ruhiges Bild vom leeren, aufgeräumten Stuhl — einladend, nicht hektisch.', ersterSatz:'Ein Platz, der auf dich wartet.', kernaussage:'Kurzfristig frei — aber genauso sorgfältig wie jeder andere Termin.', cta:'Schreib uns oder ruf an: 01 5863130.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    vertrauen: { bildidee:'Ruhiges Bild vom leeren, aufgeräumten Stuhl — einladend, nicht hektisch.', ersterSatz:'Ein Platz, der auf dich wartet.', kernaussage:'Kurzfristig frei — aber genauso sorgfältig wie jeder andere Termin.', cta:'Schreib mir einfach eine Nachricht.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     interesse: { einstieg:'Heute noch ein Platz frei.', frames:[
       'Kurzer Blick in den Kalender.',
       'Ein Termin heute Nachmittag ist offen.',
       'Perfekt, wenn\'s bei dir spontan sein darf.'
-    ], abschluss:'Wer zuerst kommt …', cta:'Jetzt schreiben oder anrufen — 01 5863130.' },
+    ], abschluss:'Wer zuerst kommt …', cta:'Schreib mir gleich eine Nachricht.' },
     anfrage: { einstieg:'Kurzfristig ein Termin frei geworden.', frames:[
       'Heute Nachmittag ist noch Platz.',
-      'Rechte Wienzeile 47, 1050 Wien.',
       'Einfach melden, wenn\'s passt.'
-    ], abschluss:'Kein langes Warten nötig.', cta:'Jetzt anfragen: DM oder 01 5863130.' },
+    ], abschluss:'Kein langes Warten nötig.', cta:'Jetzt per Nachricht anfragen.' },
     'lehrling-ansprechen': { bildidee:'Bild vom Arbeitsplatz, an dem heute noch gearbeitet wird.', ersterSatz:'Heute ist noch Platz — auch für dein erstes Kennenlernen bei uns.', kernaussage:'Wenn du überlegst, bei uns reinzuschnuppern: heute wäre ein guter Tag.', cta:'Schreib uns kurz.', begleittext:'Kein Druck — einfach vorbeischauen.' },
-    'mitarbeiterin-anziehen': { bildidee:'Bild vom Salon, ruhig und einladend, mit Blick auf einen freien Arbeitsplatz.', ersterSatz:'Heute ist bei uns noch Platz — für Kund:innen und vielleicht bald für dich.', kernaussage:'Wir haben gerade viel zu tun. Und suchen Verstärkung.', cta:'Interesse? Meld dich einfach.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    'mitarbeiterin-anziehen': { bildidee:'Bild vom Salon, ruhig und einladend, mit Blick auf einen freien Arbeitsplatz.', ersterSatz:'Heute ist bei uns noch Platz — für Kund:innen und vielleicht bald für dich.', kernaussage:'Wir haben gerade viel zu tun. Und suchen Verstärkung.', cta:'Interesse? Meld dich einfach.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     'termine-fuellen': { einstieg:'Heute noch einen Termin bekommen?', frames:[
       'Wir haben heute Nachmittag noch einen freien Platz.',
-      'Rechte Wienzeile 47, 1050 Wien.',
-      '01 5863130 — einfach anrufen oder schreiben.'
     ], abschluss:'Solange der Platz frei ist.', cta:'Jetzt melden.' }
   },
   'kundenergebnis': {
-    vertrauen: { bildidee:'Nachher-Foto bei gutem, natürlichem Licht — scharf, ehrlich, ohne Filter.', ersterSatz:'Genau so soll\'s aussehen.', kernaussage:'Heute fertig geworden — und wir sind sehr zufrieden.', cta:'Termin? 01 5863130 oder per DM.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    vertrauen: { bildidee:'Nachher-Foto bei gutem, natürlichem Licht — scharf, ehrlich, ohne Filter.', ersterSatz:'Genau so soll\'s aussehen.', kernaussage:'Heute fertig geworden — und wir sind sehr zufrieden.', cta:'Termin? Schreib mir eine Nachricht.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     interesse: { hook:'Von hier bis hierhin — in einem Termin.', szenen:[
       'Vorher: kurzer Blick auf den Ausgangspunkt.',
       'Mittendrin: konzentrierte Arbeitsschritte.',
       'Fast fertig: letzte Details.',
       'Nachher: das fertige Ergebnis.'
     ], kernaussage:'Manche Veränderungen sieht man sofort.', cta:'Du willst auch so ein Ergebnis? Schreib uns.', caption:'Ein Ergebnis, das für sich spricht.' },
-    anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: DM oder 01 5863130.', begleittext:'Rechte Wienzeile 47 · 1050 Wien' },
+    anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: per Nachricht oder online über den Link in der Bio.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem auch Ronya mitgearbeitet hat.', frames:[
       'Gemeinsame Vorbereitung, Schritt für Schritt.',
       'Konzentrierte Zusammenarbeit im Team.',
@@ -2973,8 +2977,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Heute fertig geworden.', frames:[
       'Ein Ergebnis, das für sich spricht.',
       'Noch Plätze diese Woche frei.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Auch dein nächster guter Haartag ist buchbar.', cta:'Termin? 01 5863130 oder DM.' }
+    ], abschluss:'Auch dein nächster guter Haartag ist buchbar.', cta:'Termin? Schreib mir eine Nachricht.' }
   },
   'produkt-behandlung': {
     vertrauen: { einstieg:'Warum wir gerade diese Behandlung oft empfehlen.', frames:[
@@ -2988,7 +2991,7 @@ const FLOW_CONTENT = {
       'Ausspülen, erste Ergebnisse sichtbar.',
       'Fertiges Ergebnis: glänzend, gepflegt.'
     ], kernaussage:'Die richtige Pflege zur richtigen Zeit.', cta:'Interesse? Wir haben diese Woche noch Termine.', caption:'Was dein Haar gerade wirklich braucht.' },
-    anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'DM / Anruf: 01 5863130' },
+    anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'Schreib mir eine Nachricht.' },
     'lehrling-ansprechen': { bildidee:'Bild von Ronya, die die Behandlung unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
     'mitarbeiterin-anziehen': { einstieg:'So bringen wir neue Behandlungen ins Team.', frames:[
       'Kurze interne Einschulung vorab.',
@@ -2998,8 +3001,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Diese Behandlung passt gerade besonders gut.', frames:[
       'Saisonal genau richtig.',
       'Wir haben diese Woche noch Termine.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Nicht zu lange warten.', cta:'Termin? DM oder 01 5863130.' }
+    ], abschluss:'Nicht zu lange warten.', cta:'Termin? Schreib mir eine Nachricht.' }
   },
   'besonderer-moment': {
     vertrauen: { einstieg:'Es gibt Tage, die bleiben.', frames:[
@@ -3032,8 +3034,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Ein guter Tag bei uns — und noch Platz für dich.', frames:[
       'So sieht\'s gerade bei uns aus.',
       'Ein freier Termin heute oder morgen.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Werd Teil eines guten Tages.', cta:'Termin? 01 5863130 oder DM.' }
+    ], abschluss:'Werd Teil eines guten Tages.', cta:'Termin? Schreib mir eine Nachricht.' }
   }
 };
 
@@ -3082,27 +3083,38 @@ function flowShowOutput() {
 
   let bodyHtml = '';
   let fullText = '';
+  // Schreibregeln: Adresse nur als 📍-Zeile ganz am Ende, Post endet mit "Mirjam"
+  const adressZeile = /^📍/.test(data.begleittext || '') ? data.begleittext : '';
+  const begleittext = adressZeile ? '' : data.begleittext;
+  const caption = data.caption ? postAbschliessen(data.caption, !!adressZeile) : '';
 
   if (format === 'story') {
     bodyHtml += flowSectionBlock('Einstiegssatz', data.einstieg, 'flow-einstieg');
     bodyHtml += flowFrameList(data.frames, 'Frame');
     bodyHtml += flowSectionBlock('Abschlusszeile', data.abschluss, 'flow-abschluss');
     bodyHtml += flowSectionBlock('Handlungsaufforderung', data.cta, 'flow-cta');
-    fullText = [data.einstieg, '', ...data.frames, '', data.abschluss, '', data.cta].join('\n');
+    fullText = [data.einstieg, '', ...data.frames, '', data.abschluss, '', data.cta, '', 'Mirjam'].join('\n');
   } else if (format === 'reel') {
     bodyHtml += flowSectionBlock('Hook', data.hook, 'flow-hook');
     bodyHtml += flowFrameList(data.szenen, 'Szene');
     bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
     bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
-    if (data.caption) bodyHtml += flowSectionBlock('Caption-Vorschlag', data.caption, 'flow-caption');
-    fullText = [data.hook, '', ...data.szenen, '', data.kernaussage, '', data.cta, data.caption ? '\n' + data.caption : ''].join('\n');
+    if (caption) bodyHtml += flowSectionBlock('Caption-Vorschlag', caption, 'flow-caption');
+    fullText = [data.hook, '', ...data.szenen, '', data.kernaussage, '', data.cta, '', caption || 'Mirjam'].join('\n');
   } else {
     bodyHtml += flowSectionBlock('Bildidee', data.bildidee, 'flow-bild');
     bodyHtml += flowSectionBlock('Starker erster Satz', data.ersterSatz, 'flow-satz');
     bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
     bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
-    if (data.begleittext) bodyHtml += flowSectionBlock('Begleittext', data.begleittext, 'flow-begleit');
-    fullText = [data.ersterSatz, '', data.kernaussage, '', data.cta, data.begleittext ? '\n' + data.begleittext : '', '', '📷 ' + data.bildidee].join('\n');
+    if (begleittext) bodyHtml += flowSectionBlock('Begleittext', begleittext, 'flow-begleit');
+    fullText = ['📷 Bildidee: ' + data.bildidee, '———', data.ersterSatz, '', data.kernaussage, '', data.cta, ...(begleittext ? ['', begleittext] : []), '', 'Mirjam'].join('\n');
+  }
+  if (!caption) {
+    bodyHtml += flowSectionBlock('Unterschrift', 'Mirjam', 'flow-unterschrift');
+    if (adressZeile) {
+      bodyHtml += flowSectionBlock('Adresse (letzte Zeile)', adressZeile, 'flow-adresse');
+      fullText += '\n\n' + adressZeile;
+    }
   }
 
   const bodyEl = document.getElementById('flow-output-body');
@@ -3393,12 +3405,82 @@ const POST_T = {
 // Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
 // Kanal (Instagram oder Facebook). Wiederverwendet vom Einzel-Kanal-Flow
 // und vom "Alle Kanäle"-Flow (generatePostAlleKanaele).
+
+// Verbindliche Schreibregeln für Posts — gelten für Feed-Posts
+// (Instagram/Facebook), Reel-Captions, Storys und Google-Beiträge.
+// format: 'post' | 'reel' | 'story' | 'google'
+const POST_ADRESSZEILE = '📍 A great hair day · Rechte Wienzeile 47, 1050 Wien';
+function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
+  // Schlussfrage an Kund:innen — außer bei Recruiting-, Ausbildungs- oder Haarnetzwerk-Posts.
+  const frageAnBranche = kontext === 'haarnetzwerk' || wer === 'lehrlinge' || wer === 'branche';
+  const istStory = format === 'story';
+  const was = { post:'DIESEN POST', reel:'DIE REEL-CAPTION', story:'DIESE STORY', google:'DIESEN GOOGLE-BEITRAG' }[format];
+  const ende = istStory
+    ? 'Der Text des letzten Frames endet mit einer eigenen Zeile "Mirjam".'
+    : 'Der Text endet mit einer eigenen Zeile "Mirjam".';
+  const adresse = format === 'google'
+    ? 'Salonname und Bezirk ("Wien-Margareten" oder "1050 Wien") dürfen im Text stehen — Straße, Hausnummer und Telefonnummer nicht, die zeigt das Google-Profil ohnehin an.'
+    : mitAdresse
+      ? 'Die Adresszeile wird von der App automatisch als letzte Zeile ergänzt — schreib sie nicht selbst.'
+      : istStory
+        ? 'Den Ort zeigt der Standort-Sticker, nicht der Frame-Text.'
+        : 'In diesem Text kommt keine Adresse vor.';
+  const frage = frageAnBranche
+    ? 'darf sich an Friseur:innen, Kolleg:innen oder mögliche Lehrlinge richten (Recruiting-, Ausbildungs- bzw. Haarnetzwerk-Inhalt).'
+    : 'richtet sich an Kund:innen, nicht an Friseur:innen oder Kolleg:innen.';
+  const emoji = istStory
+    ? 'keine Emoji im Frame-Text'
+    : format === 'google'
+      ? 'höchstens 1 Emoji'
+      : `höchstens 2 Emoji${mitAdresse ? ' — das 📍 der Adresszeile zählt mit, also höchstens 1 Emoji im Text' : ''}`;
+  const kurz = istStory
+    ? 'Kurz: jeder Frame 1 bis 3 kurze Sätze.'
+    : format === 'google'
+      ? 'Kurz: 3 bis 4 kurze Absätze, der letzte davon mit der Handlungsaufforderung, danach die Zeile "Mirjam".'
+      : 'Kurz: 3 bis 4 kurze Absätze (die Hook-Zeile ist der erste davon), danach die Zeile "Mirjam".';
+  return `SCHREIBREGELN FÜR ${was} (verbindlich):
+1. Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist. ${ende}
+2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
+3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
+4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
+5. Ruhig und klar: vollständige Sätze, keine Floskeln (wie "den man nicht oft genug würdigt"), ${emoji}.
+6. ${kurz}
+7. Vor der Ausgabe prüfen: Ist klar, wer spricht? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
+}
+
+// Entfernt Adresse/Telefon aus einem Text (gehört nie in den Fließtext).
+function ohneAdresse(text) {
+  return String(text || '').split('\n')
+    .filter(z => !/Rechte Wienzeile|5863130|^\s*📍/.test(z))
+    .join('\n');
+}
+
+// Setzt Unterschrift und (optional) Adresszeile verlässlich — auch dann,
+// wenn die KI die Regeln nicht exakt einhält oder die Vorlage greift.
+function postAbschliessen(text, mitAdresse) {
+  let zeilen = ohneAdresse(text).split('\n');
+  // Hashtag-Block am Ende (nur Vorlagen) nach der Unterschrift behalten
+  const tags = [];
+  while (zeilen.length && (zeilen[zeilen.length-1].trim() === '' || /^(#\S+\s*)+$/.test(zeilen[zeilen.length-1].trim()))) {
+    const z = zeilen.pop().trim();
+    if (z) tags.unshift(z);
+  }
+  while (zeilen.length && /^mirjam( walenta)?\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
+  while (zeilen.length && zeilen[zeilen.length-1].trim() === '') zeilen.pop();
+  let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\nMirjam';
+  if (tags.length) out += '\n\n' + tags.join('\n');
+  if (mitAdresse) out += '\n\n' + POST_ADRESSZEILE;
+  return out;
+}
+
 async function buildKanalPost(kanal, m, ton, wer, kontext) {
+  // Adresszeile nur für den eigenen Salon, nie fürs Haarnetzwerk
+  const mitAdresse = kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
   const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
   const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
   const kanalMap = {
     instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
-    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas ausführlicher und persönlicher erzählen als auf Instagram (bis zu 2 Sätze mehr), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und Standort im Fließtext nennen.' }
+    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas persönlicher erzählen als auf Instagram (etwas längere Absätze, aber weiterhin 3 bis 4), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und den Bezirk (Wien-Margareten) im Fließtext nennen — aber nie die Straßenadresse.' }
   };
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
@@ -3409,9 +3491,11 @@ Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Ma
 
 ${reichweiteTeil(kontext)}
 
+${postSchreibregeln(kontext, wer, mitAdresse)}
+
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 kurze Absätze → Schluss mit leiser Einladung zum Mitmachen: eine echte Frage an die Leser:innen ODER ein Grund, den Post zu speichern oder jemandem zu schicken (z.B. „Merk dir das für deinen nächsten Termin.“). Kein Verkaufs-CTA, kein „Jetzt buchen“.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "Mirjam". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
 - "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), immer mit #GreatHairDay #Wien, Rest passend zum Thema'}.
@@ -3454,6 +3538,7 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
       postText = r.hook + '\n\n' + r.body;
     }
   }
+  postText = postAbschliessen(postText, mitAdresse);
 
   return { text: postText, structured: postStructured, istKi };
 }
@@ -3607,7 +3692,7 @@ async function buildGooglePost(m, typ) {
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
-Mirjam Walenta ist Friseurmeisterin & Inhaberin von "A Great Hair Day" (Rechte Wienzeile 47, 1050 Wien-Margareten, seit 1993), Prüferin & Ausbilderin bei der Wiener Innung der Friseure.
+Mirjam Walenta ist Friseurmeisterin & Inhaberin von "A Great Hair Day" (Wien-Margareten, seit 1993), Prüferin & Ausbilderin bei der Wiener Innung der Friseure.
 
 Schreibe einen Beitrag für das Google Unternehmensprofil (Kategorie: ${typMap[typ]}).
 
@@ -3616,7 +3701,9 @@ Regeln für Google-Unternehmensprofil-Beiträge:
 - Maximal 1200 Zeichen, idealerweise 400–700 Zeichen
 - Nenne im Fließtext natürlich eingebaut den Salonnamen "A Great Hair Day", den Standort ("Wien-Margareten" oder "1050 Wien") und die konkrete Leistung — das hilft bei der lokalen Google-Suche
 - Ruhige, gehobene, klare Sprache in Mirjams Stimme: keine Ausrufezeichen, keine Marketing-Floskeln
-- Letzter Satz: eine klare Handlungsaufforderung passend zur Kategorie
+- Letzter Absatz: eine klare Handlungsaufforderung passend zur Kategorie, danach die Zeile "Mirjam"
+
+${postSchreibregeln('salon', 'kundinnen', false, 'google')}
 
 Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfohlener Google-Button-Typ, einer von: "Termin vereinbaren", "Anrufen", "Mehr erfahren"). Antworte NUR mit dem JSON-Objekt, kein Text drumherum, kein Markdown.`;
 
@@ -3640,8 +3727,9 @@ Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfo
 
   const istKi = !!text;
   if(!text) {
-    text = `${m}\n\nA Great Hair Day, Rechte Wienzeile 47, 1050 Wien-Margareten.`;
+    text = `${m}\n\nA Great Hair Day in Wien-Margareten.`;
   }
+  text = postAbschliessen(text, false);
 
   return { text, ctaTyp, istKi };
 }
@@ -4015,7 +4103,7 @@ const STORY_T = {
       {label:'Einstieg', text: storyHookAusText(m), tip:'Großes Foto, Text groß darüber — kein Filter.'},
       {label:'Der Moment darunter', text:`Solche Momente passieren nicht zufällig.\nSie entstehen, wenn man seinen Job wirklich liebt.`, tip:'Kein Gesicht nötig — Stimmung reicht.'},
       {label:'Was das bedeutet', text:`Das ist der Grund, warum wir hier sind.\nNach 33 Jahren immer noch.`, tip:'Text auf hellem Hintergrund — ruhig und klar.'},
-      {label:'Einladung', text:`Wenn du sowas auch erleben willst:\nDu weißt, wo wir sind.\nRechte Wienzeile 47.`, tip:'Adresse groß — klarer CTA.'},
+      {label:'Einladung', text:`Wenn du so etwas auch erleben möchtest: Ich freue mich auf dich.`, tip:'Standort-Sticker setzen — klarer CTA.'},
       {label:'Abschluss', text:`A great hair day.\n→ Link in Bio für Termin`, tip:'Slide mit Logo oder Salon-Bild.'},
     ],
     reichweite: m => [
@@ -4029,7 +4117,7 @@ const STORY_T = {
       {label:'Einstieg', text: storyHookAusText(m), tip:'Bild des Ergebnisses oder Moments.'},
       {label:'Was steckt dahinter', text:`So sieht Qualität aus, wenn man sich wirklich Zeit nimmt.`, tip:'Text auf ruhigem Hintergrund.'},
       {label:'Für wen das ist', text:`Für alle, die wissen, dass gutes Haar kein Zufall ist.`, tip:'Identifikation ermöglichen.'},
-      {label:'Einladung', text:`Wenn du das willst: Wir haben noch Termine diese Woche.\nRechte Wienzeile 47 · 01 5863130`, tip:'Konkreter CTA.'},
+      {label:'Einladung', text:`Wenn du das möchtest: Diese Woche sind noch Termine frei.`, tip:'Link-Sticker zur Online-Terminbuchung — konkreter CTA.'},
       {label:'Abschluss', text:`A great hair day — für dich.`, tip:'Persönlicher Abschluss.'},
     ],
     lehrling: m => [
@@ -4037,7 +4125,7 @@ const STORY_T = {
       {label:'Was wir glauben', text: storyThemaAusText(m) || 'Lernen passiert nicht im Lehrbuch. Sondern im echten Moment.', tip:'Authentisch und direkt.'},
       {label:'Was das bedeutet', text:`Das ist nicht selbstverständlich. Aber es ist unser Anspruch.`, tip:'Haltung zeigen.'},
       {label:'Für wen das ist', text:`Wenn du nach der Schule nicht weißt, wo du hingehörst — vielleicht passt du zu uns.`, tip:'Direkte Ansprache.'},
-      {label:'Abschluss', text:`Einfach melden.\nDM oder 01 5863130.`, tip:'Niedrigschwelliger CTA.'},
+      {label:'Abschluss', text:`Schreib mir einfach eine Nachricht.`, tip:'Niedrigschwelliger CTA.'},
     ],
   }
 };
@@ -4076,7 +4164,9 @@ Reichweite für Storys:
 ${ziel === 'termin' && kontext !== 'haarnetzwerk' ? '- Der letzte Frame hat einen Link-Sticker zur Online-Terminbuchung: "Link: Termin buchen → https://stylisten.eu/pranz#online-buchung".' : ''}
 ${reichweiteTeil(kontext)}
 
-Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. ${KONTEXT_INFO[kontext]?.abschluss || KONTEXT_INFO.salon.abschluss}
+Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze.
+
+${postSchreibregeln(kontext, ziel === 'lehrling' ? 'lehrlinge' : 'kundinnen', false, 'story')}
 
 WICHTIG — Input-Verarbeitung:
 - Der Input kann ein rohes Sprach-Diktat sein. Gib diesen Rohtext NIEMALS direkt als Frame-Text aus.
@@ -4120,6 +4210,11 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
       frames = getFn(m);
     }
   }
+  // Schreibregeln absichern: keine Adresse im Frame-Text, letzter Frame endet mit "Mirjam"
+  frames = frames.map(f => ({ ...f, text: ohneAdresse(f.text).trim() }));
+  const letzter = frames[frames.length - 1];
+  letzter.text = letzter.text.replace(/\n*\s*Mirjam\.?\s*$/i, '');
+  letzter.text = (letzter.text ? letzter.text + '\n' : '') + 'Mirjam';
 
   document.getElementById('story-list').innerHTML = frames.map((f,i) => {
     const safeText = (f.text||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
@@ -5622,7 +5717,7 @@ Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Obj
   - "action": Was gezeigt/gefilmt wird (1 klarer Satz)
   - "text": Text-Overlay oder gesprochener Text für diese Szene (max 6 Wörter, oder leer "")
   - "tip": Konkreter Kamera-/Regie-Hinweis (1 Satz)
-- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage oder einem Grund zum Speichern/Teilen.
+- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage (siehe Regel 3), danach die Zeile "Mirjam". Die Schreibregeln unten gelten für die Caption.
 - "hashtags": 3–5 Hashtags passend zum Ziel
 
 Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht folgen):
@@ -5630,6 +5725,8 @@ Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht fol
 - Jede Szene hat ein kurzes Text-Overlay, weil viele ohne Ton schauen.
 - Der "tip" der letzten Szene erwähnt: Als „Test-Reel“ posten (wird zuerst nur Nicht-Follower:innen gezeigt), wenn das Ziel neue Menschen erreichen soll.
 ${reichweiteTeil(kontext)}
+
+${postSchreibregeln(kontext, ziel === 'recruiting' ? 'lehrlinge' : 'kundinnen', false, 'reel')}
 
 Ziel: ${zielMap[ziel]}
 Anzahl Szenen: ${laenge === '15' ? '4–5' : laenge === '30' ? '6–7' : '8–10'} Szenen
@@ -5668,9 +5765,9 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
         { timing:'2–6 Sek', label:'Vorher', action:'Das Problem oder der Ausgangszustand', text:'Vorher:', tip:'Ruhige Einstellung, kein Zoom.' },
         { timing:'6–11 Sek', label:'Prozess', action:m, text:'', tip:'Handgriffe filmen, kein Gesicht nötig.' },
         { timing:'11–14 Sek', label:'Ergebnis', action:'Das fertige Ergebnis in bestem Licht', text:'Nachher.', tip:'Goldstunde-Licht wenn möglich.' },
-        { timing:'14–15 Sek', label:'CTA', action:'Salon-Name oder Adresse einblenden', text:'A great hair day.', tip:'Text-Overlay, ruhiger Abschluss.' }
+        { timing:'14–15 Sek', label:'CTA', action:'Salon-Name einblenden', text:'A great hair day.', tip:'Text-Overlay, ruhiger Abschluss.' }
       ],
-      caption: m + '\n\nSo sieht echte Handwerkskunst aus.\n\nRechte Wienzeile 47, Wien.',
+      caption: m + '\n\nSo sieht echte Handwerkskunst aus.',
       hashtags: '#GreatHairDay #Wien #Friseur #Haare #Salon #Handwerk'
     };
   }
@@ -5692,6 +5789,7 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
     </div>`).join('');
 
   if(result.caption) {
+    result.caption = postAbschliessen(result.caption, false);
     document.getElementById('reel-caption-val').textContent = result.caption;
     document.getElementById('reel-hash-val').textContent    = result.hashtags || '';
     document.getElementById('reel-caption-block').style.display = 'block';

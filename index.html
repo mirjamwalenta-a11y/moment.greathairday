@@ -1686,6 +1686,13 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'postkontext')">🤝 Haarnetzwerk</button>
     </div>
   </div>
+  <div class="input-wrap">
+    <div class="input-label">Salon-Adresse als letzte Zeile?</div>
+    <div class="chip-row" id="post-adresse-row">
+      <button class="chip-select on" data-val="nein" onclick="pickSel(this,'postadresse')">Nein</button>
+      <button class="chip-select" data-val="ja" onclick="pickSel(this,'postadresse')">📍 Ja</button>
+    </div>
+  </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
   <div id="post-result" style="display:none;margin-top:16px;">
     <div id="post-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
@@ -2502,7 +2509,7 @@ function starteApp() {
 // ════════════════════════════════════════════
 let screenHistory = ['screen-start'];
 let selectedRolle = 'stylistin';
-const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
+const SEL = {hookziel:'vertrauen',hookbereich:'lehrling',hookmoment:'',hookkontext:'salon',postton:'nahbar',postwer:'kundinnen',postkanal:'instagram',postkontext:'salon',postadresse:'nein',storymood:'emotional',storyziel:'vertrauen',storykontext:'salon',reelkontext:'salon',ctakontext:'salon',recherchekontext:'salon',kikontext:'salon',ideakontext:'salon',planerkontext:'salon',terminkontext:'salon',googletyp:'neuigkeit',googlebewertung:'positiv'};
 
 // ════════════════════════════════════════════
 // KONTEXT: "Mein Salon" (A Great Hair Day) vs. "Haarnetzwerk"
@@ -3393,12 +3400,52 @@ const POST_T = {
 // Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
 // Kanal (Instagram oder Facebook). Wiederverwendet vom Einzel-Kanal-Flow
 // und vom "Alle Kanäle"-Flow (generatePostAlleKanaele).
+
+// Verbindliche Schreibregeln für Feed-Posts (Instagram/Facebook).
+const POST_ADRESSZEILE = '📍 A great hair day · Rechte Wienzeile 47, 1050 Wien';
+function postSchreibregeln(kontext, wer, mitAdresse) {
+  // Schlussfrage an Kund:innen — außer bei Recruiting-, Ausbildungs- oder Haarnetzwerk-Posts.
+  const frageAnBranche = kontext === 'haarnetzwerk' || wer === 'lehrlinge' || wer === 'branche';
+  return `SCHREIBREGELN FÜR DIESEN POST (verbindlich):
+1. Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist. Der Post endet mit einer eigenen Zeile "Mirjam".
+2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${mitAdresse ? 'Die Adresszeile wird von der App automatisch als letzte Zeile ergänzt — schreib sie nicht selbst.' : 'In diesem Post kommt keine Adresse vor.'}
+3. ${frageAnBranche
+    ? 'Die Schlussfrage darf sich an Friseur:innen, Kolleg:innen oder mögliche Lehrlinge richten (Recruiting-, Ausbildungs- bzw. Haarnetzwerk-Post).'
+    : 'Die Schlussfrage richtet sich an Kund:innen, nicht an Friseur:innen oder Kolleg:innen.'}
+4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
+5. Ruhig und klar: vollständige Sätze, keine Floskeln (wie "den man nicht oft genug würdigt"), höchstens 2 Emoji${mitAdresse ? ' — das 📍 der Adresszeile zählt mit, also höchstens 1 Emoji im Text' : ''}.
+6. Kurz: 3 bis 4 kurze Absätze (die Hook-Zeile ist der erste davon), danach die Zeile "Mirjam".
+7. Vor der Ausgabe prüfen: Ist klar, wer spricht? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
+}
+
+// Setzt Unterschrift und (optional) Adresszeile verlässlich — auch dann,
+// wenn die KI die Regeln nicht exakt einhält oder die Vorlage greift.
+function postAbschliessen(text, mitAdresse) {
+  let zeilen = String(text || '').split('\n')
+    // Adresse gehört nie in den Fließtext
+    .filter(z => !/Rechte Wienzeile|5863130|^\s*📍/.test(z));
+  // Hashtag-Block am Ende (nur Vorlagen) nach der Unterschrift behalten
+  const tags = [];
+  while (zeilen.length && (zeilen[zeilen.length-1].trim() === '' || /^(#\S+\s*)+$/.test(zeilen[zeilen.length-1].trim()))) {
+    const z = zeilen.pop().trim();
+    if (z) tags.unshift(z);
+  }
+  while (zeilen.length && /^mirjam\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
+  while (zeilen.length && zeilen[zeilen.length-1].trim() === '') zeilen.pop();
+  let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\nMirjam';
+  if (tags.length) out += '\n\n' + tags.join('\n');
+  if (mitAdresse) out += '\n\n' + POST_ADRESSZEILE;
+  return out;
+}
+
 async function buildKanalPost(kanal, m, ton, wer, kontext) {
+  // Adresszeile nur für den eigenen Salon, nie fürs Haarnetzwerk
+  const mitAdresse = kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
   const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
   const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
   const kanalMap = {
     instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
-    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas ausführlicher und persönlicher erzählen als auf Instagram (bis zu 2 Sätze mehr), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und Standort im Fließtext nennen.' }
+    facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas persönlicher erzählen als auf Instagram (etwas längere Absätze, aber weiterhin 3 bis 4), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und den Bezirk (Wien-Margareten) im Fließtext nennen — aber nie die Straßenadresse.' }
   };
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
@@ -3409,9 +3456,11 @@ Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Ma
 
 ${reichweiteTeil(kontext)}
 
+${postSchreibregeln(kontext, wer, mitAdresse)}
+
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 kurze Absätze → Schluss mit leiser Einladung zum Mitmachen: eine echte Frage an die Leser:innen ODER ein Grund, den Post zu speichern oder jemandem zu schicken (z.B. „Merk dir das für deinen nächsten Termin.“). Kein Verkaufs-CTA, kein „Jetzt buchen“.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "Mirjam". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
 - "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), immer mit #GreatHairDay #Wien, Rest passend zum Thema'}.
@@ -3454,6 +3503,7 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
       postText = r.hook + '\n\n' + r.body;
     }
   }
+  postText = postAbschliessen(postText, mitAdresse);
 
   return { text: postText, structured: postStructured, istKi };
 }

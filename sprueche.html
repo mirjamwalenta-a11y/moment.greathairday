@@ -97,6 +97,8 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="nachdenklich">Zum Nachdenken</button>
       <button class="chip" data-val="edel">Edel</button>
       <button class="chip" data-val="maenner">Für Männer</button>
+      <button class="chip" data-val="kinder">Für Kinder</button>
+      <button class="chip" data-val="anlaesse">Anlässe</button>
     </div>
     <div class="liste" id="liste"></div>
   </section>
@@ -215,6 +217,59 @@ const SPRUECHE = [
   { k:'maenner', a:'Nicht jeder Mann braucht Haarspray.', b:'Aber jeder einen guten Schnitt.', c:'' },
   { k:'maenner', a:'Papas Frisur ist peinlich?', b:'Nicht mehr lange.', c:'' },
   { k:'maenner', a:'Ruhe, ein guter Stuhl', b:'und niemand fragt nach der Arbeit.', c:'Außer, du willst darüber reden.' },
+  // Für Kinder
+  { k:'kinder', a:'Der erste Haarschnitt', b:'ist ein großer Moment.', c:'Für Kinder. Und für Eltern.' },
+  { k:'kinder', a:'Stillsitzen ist schwer.', b:'Wir wissen das.', c:'Deshalb nehmen wir uns Zeit.' },
+  { k:'kinder', a:'Kleine Kund:innen,', b:'große Auftritte.', c:'' },
+  { k:'kinder', a:'Heute mutig gewesen.', b:'Und stolz darauf.', c:'' },
+  { k:'kinder', a:'Eine Locke zum Aufheben,', b:'ein Lächeln zum Mitnehmen.', c:'' },
+  { k:'kinder', a:'Mama, schau!', b:'Ich sehe aus wie neu.', c:'' },
+  { k:'kinder', a:'Kamm, Schere', b:'und ganz viel Geduld.', c:'Mehr brauchen wir nicht.' },
+  { k:'kinder', a:'Der schönste Lohn', b:'ist ein Lachen im Spiegel.', c:'' },
+  { k:'kinder', a:'Nicht wackeln,', b:'sonst wird der Pony schief.', c:'Keine Sorge, wir passen gut auf.' },
+  { k:'kinder', a:'Kinder sagen ehrlich,', b:'was sie vom Ergebnis halten.', c:'Wir hören genau hin.' },
+  { k:'kinder', a:'Kleine Köpfe,', b:'große Wünsche.', c:'Heute: bitte wie ein Superheld.' },
+  { k:'kinder', a:'Groß werden', b:'beginnt manchmal beim Friseur.', c:'' },
+  { k:'kinder', a:'Schulstart?', b:'Frisch geschnitten geht es leichter.', c:'', h:'#Schulstart' },
+  // Anlässe
+  { k:'anlaesse', a:'Ja, ich will.', b:'Und zwar diese Frisur.', c:'', h:'#Brautfrisur #Hochzeit' },
+  { k:'anlaesse', a:'Der schönste Tag', b:'verdient die schönste Frisur.', c:'', h:'#Brautfrisur #Hochzeit' },
+  { k:'anlaesse', a:'Ballsaison in Wien.', b:'Die Frisur tanzt mit.', c:'', h:'#Ballfrisur #Ballsaison' },
+  { k:'anlaesse', a:'Walzer bis zum Morgen.', b:'Die Hochsteckfrisur hält durch.', c:'', h:'#Hochsteckfrisur #Ballsaison' },
+  { k:'anlaesse', a:'Matura geschafft.', b:'Jetzt wird gefeiert.', c:'', h:'#Maturaball' },
+  { k:'anlaesse', a:'Große Feste', b:'brauchen kleine Kunstwerke.', c:'Frisuren für Kommunion und Firmung.', h:'#Kommunion #Firmung' },
+  { k:'anlaesse', a:'Alle Jahre wieder:', b:'frisch geschnitten unter den Christbaum.', c:'', h:'#Weihnachten' },
+  { k:'anlaesse', a:'Das schönste Geschenk', b:'ist Zeit für dich.', c:'', h:'#Weihnachten' },
+  { k:'anlaesse', a:'Neues Jahr,', b:'neuer Look?', c:'', h:'#Silvester #NeuesJahr' },
+  { k:'anlaesse', a:'Um Mitternacht', b:'sitzt die Frisur noch.', c:'', h:'#Silvester' },
+  { k:'anlaesse', a:'Verliebt?', b:'In deine Haare vielleicht.', c:'', h:'#Valentinstag' },
+  { k:'anlaesse', a:'Für die Frau, die immer', b:'an alle anderen denkt.', c:'Heute darf sie an sich denken.', h:'#Muttertag' },
+  { k:'anlaesse', a:'Ein Jahr älter', b:'und schöner denn je.', c:'', h:'#Geburtstag' },
+  { k:'anlaesse', a:'Frühling im Kopf?', b:'Wir machen ihn sichtbar.', c:'', h:'#Frühling' },
+  { k:'anlaesse', a:'Sonne, Salz und Chlor:', b:'Auch Haare brauchen Urlaub.', c:'', h:'#Sommer #Haarpflege' },
+  { k:'anlaesse', a:'Die Blätter fallen.', b:'Deine Frisur bleibt.', c:'', h:'#Herbst' },
+  { k:'anlaesse', a:'Vor dem Urlaub', b:'noch schnell zu uns.', c:'Damit die Fotos schön werden.', h:'#Urlaub' },
+  { k:'anlaesse', a:"O'zapft is.", b:'Die Flechtfrisur auch.', c:'', h:'#Oktoberfest #Wiesn #Flechtfrisur' },
+  { k:'anlaesse', a:'Das Dirndl sitzt.', b:'Jetzt noch die Zöpfe.', c:'', h:'#Wiesn #Dirndlfrisur' },
+  { k:'anlaesse', a:'Gruselig?', b:'Nur das Kostüm.', c:'', h:'#Halloween' },
+  { k:'anlaesse', a:'Hexe, Vampir oder Zombie:', b:'Die Haare machen mit.', c:'', h:'#Halloween' },
+  { k:'anlaesse', a:'Das einzig Gruselige', b:'ist Spliss.', c:'', h:'#Halloween' },
+  { k:'anlaesse', a:'Im Fasching darfst du alles sein.', b:'Danach wieder du selbst.', c:'', h:'#Fasching' },
+  { k:'anlaesse', a:'Konfetti im Haar?', b:'Wir kennen das.', c:'Ab Aschermittwoch helfen wir gern.', h:'#Fasching #Aschermittwoch' },
+  { k:'anlaesse', a:'Ein Osternest ist schön.', b:'Auf dem Kopf eher nicht.', c:'', h:'#Ostern' },
+  { k:'anlaesse', a:'Frohe Ostern.', b:'Frisch geschnitten ins Frühjahr.', c:'', h:'#Ostern #Frühling' },
+  { k:'anlaesse', a:'Advent, Advent,', b:'die Frisur, sie glänzt.', c:'', h:'#Advent' },
+  { k:'anlaesse', a:'Der Nikolaus bringt Nüsse.', b:'Wir bringen Glanz.', c:'', h:'#Nikolaus' },
+  { k:'anlaesse', a:'Weihnachtsfeier im Büro?', b:'Die Frisur feiert mit.', c:'', h:'#Weihnachtsfeier' },
+  { k:'anlaesse', a:'Rosen verwelken.', b:'Ein guter Schnitt bleibt.', c:'', h:'#Valentinstag' },
+  { k:'anlaesse', a:'Zum Weltfrauentag:', b:'Auf alle Frauen mit eigenem Stil.', c:'', h:'#Weltfrauentag' },
+  { k:'anlaesse', a:'Zum Vatertag:', b:'ein frischer Schnitt statt Krawatte.', c:'', h:'#Vatertag' },
+  { k:'anlaesse', a:'Zum Hochzeitstag', b:'verliebt wie am ersten Tag.', c:'', h:'#Hochzeitstag' },
+  { k:'anlaesse', a:'Kleiner Mensch, großes Fest.', b:'Die ganze Familie strahlt.', c:'', h:'#Taufe' },
+  { k:'anlaesse', a:'Zeugnis in der Tasche,', b:'Sommerschnitt auf dem Kopf.', c:'', h:'#Schulschluss #Sommerferien' },
+  { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
+  { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
+  { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
 ];
 
 // Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
@@ -223,6 +278,8 @@ const FRAGEN = {
   nachdenklich: 'Wann hast du dir zuletzt eine Stunde nur für dich genommen?',
   edel: 'Was macht für dich einen guten Haartag aus?',
   maenner: 'Wie oft gönnst du dir einen frischen Schnitt?',
+  kinder: 'Wie war der erste Friseurbesuch bei euch zu Hause?',
+  anlaesse: 'Welcher besondere Tag steht bei dir als Nächstes an?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -361,7 +418,9 @@ function updateCaption() {
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || FRAGEN.eigen);
   teile.push('Mirjam');
-  teile.push('#GreatHairDay #Friseur #Wien' + (state.k === 'maenner' ? ' #Herrenschnitt' : ''));
+  const extra = { maenner:'#Herrenschnitt', kinder:'#Kinderhaarschnitt' }[state.k] || '';
+  const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
+  teile.push(['#GreatHairDay #Friseur #Wien', extra, eigene].filter(Boolean).join(' '));
   document.getElementById('caption').value = teile.join('\n\n');
 }
 

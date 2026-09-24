@@ -92,6 +92,12 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span>Link hinter dem QR-Code</span><input id="f-qr" inputmode="url"></label>
   </section>
 
+  <section id="team-section" style="display:none;">
+    <div class="label">Wer hat frisiert?</div>
+    <div class="chips" id="team-chips"></div>
+    <label class="feld" style="margin-top:10px;"><span>Oder anderer Name</span><input id="f-name" autocomplete="off"></label>
+  </section>
+
   <div class="preview" id="preview"><canvas id="cv" aria-label="Vorschau der Vorlage"></canvas></div>
 
   <div class="buttons">
@@ -299,6 +305,19 @@ const SPRUECHE = [
   { k:'bewertung', a:'Deine Meinung', b:'hilft anderen, uns zu finden.', c:'' },
   { k:'bewertung', a:'Kurz vor dem Gehen', b:'noch schnell die Kamera zücken?', c:'' },
   { k:'bewertung', a:'Wir lesen jede Bewertung.', b:'Wirklich jede.', c:'' },
+  // Bewerte uns — mit Namen aus dem Team ({name} wird durch die Auswahl „Wer hat frisiert?“ ersetzt)
+  { k:'bewertung', a:'Schere: {name}.', b:'Sterne: du.', c:'' },
+  { k:'bewertung', a:'{name} kann Haare.', b:'Kannst du Bewertungen?', c:'' },
+  { k:'bewertung', a:'{name} liest mit.', b:'Kein Druck.', c:'' },
+  { k:'bewertung', a:'Heute bei {name} gewesen?', b:'Erzähl es weiter.', c:'Gern mit Namen in der Bewertung.' },
+  { k:'bewertung', a:'Dein Schnitt von {name}.', b:'Deine Worte auf Google.', c:'' },
+  { k:'bewertung', a:'{name} gibt jeden Tag alles.', b:'Gib ein paar Worte zurück.', c:'' },
+  { k:'bewertung', a:'Komplimente für {name}?', b:'Am besten auf Google.', c:'' },
+  { k:'bewertung', a:'{name} wartet schon gespannt.', b:'Auf deine Bewertung.', c:'Und auf deinen nächsten Termin.' },
+  { k:'bewertung', a:'Hinter jedem Great Hair Day', b:'steht ein Mensch. Heute: {name}.', c:'' },
+  { k:'bewertung', a:'{name} freut sich', b:'über jede Zeile.', c:'Und liest sie alle.' },
+  { k:'bewertung', a:'Bei {name} gesessen,', b:'mit Great Hair aufgestanden.', c:'Erzähl es gern auf Google.' },
+  { k:'bewertung', a:'{name} hat geschnitten.', b:'Du hast das letzte Wort.', c:'' },
 ];
 
 // Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
@@ -321,7 +340,12 @@ const STILE = {
   dunkel: { bg:'#1C1B19', ink:'#F5F0EA', gold:'#C8A96E', sub:'#CFC8BC' }
 };
 
-const state = { format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
+// Team für die Namen-Sprüche bei „Bewerte uns“
+const TEAM = ['Mazen', 'Alina', 'Hassan'];
+const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
+const mitName = t => t.replace(/\{name\}/g, state.name);
+
+const state = { name:TEAM[0], format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 
@@ -489,22 +513,27 @@ function draw() {
   const areaH = areaBottom - areaTop;
   const subFont = `400 ${story ? 42 : 38}px Inter, system-ui, sans-serif`;
   const subLH = story ? 62 : 56;
-  let size = story || a4 ? 108 : 100;
-  let la, lb, lc, lh, blockH;
-  for (; size >= 48; size -= 4) {
-    lh = size * 1.2;
-    la = state.a ? wrapBalanced(state.a, `700 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
-    lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
-    lc = state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
-    blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0);
-    // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
-    const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
-      if (l.includes(' ')) return false;
-      ctx.font = `${st}${wt} ${size}px "Playfair Display", Georgia, serif`;
-      return ctx.measureText(l).width < maxW * 0.4;
-    }));
-    if (blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
-  }
+  let size, la, lb, lc, lh, blockH;
+  const layout = mitC => {
+    size = story || a4 ? 108 : 100;
+    for (; size >= 48; size -= 4) {
+      lh = size * 1.2;
+      la = state.a ? wrapBalanced(state.a, `700 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
+      lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
+      lc = mitC && state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
+      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0);
+      // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
+      const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
+        if (l.includes(' ')) return false;
+        ctx.font = `${st}${wt} ${size}px "Playfair Display", Georgia, serif`;
+        return ctx.measureText(l).width < maxW * 0.4;
+      }));
+      if (blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
+    }
+  };
+  layout(true);
+  // Mit QR-Code ist wenig Platz: lieber den kleinen Zusatztext weglassen als die Überschrift winzig machen
+  if (qrTop !== null && lc.length && size < 76) layout(false);
   let y = areaTop + (areaH - blockH) / 2 + size * 0.95;
 
   ctx.fillStyle = s.ink;
@@ -540,11 +569,12 @@ function updateCaption() {
 // ── Auswahl ──
 function waehle(i) {
   const sp = SPRUECHE[i];
-  state.idx = i; state.a = sp.a; state.b = sp.b; state.c = sp.c; state.k = sp.k;
+  state.idx = i; state.a = mitName(sp.a); state.b = mitName(sp.b); state.c = mitName(sp.c); state.k = sp.k;
+  document.getElementById('team-section').style.display = hatName(sp) ? 'block' : 'none';
   setQr(sp.k === 'bewertung');
-  document.getElementById('f-a').value = sp.a;
-  document.getElementById('f-b').value = sp.b;
-  document.getElementById('f-c').value = sp.c;
+  document.getElementById('f-a').value = state.a;
+  document.getElementById('f-b').value = state.b;
+  document.getElementById('f-c').value = state.c;
   renderListe();
   draw();
   updateCaption();
@@ -556,8 +586,8 @@ function renderListe() {
     if (state.kat !== 'alle' && sp.k !== state.kat) return;
     const b = document.createElement('button');
     b.className = 'spruch' + (i === state.idx ? ' on' : '');
-    const t1 = document.createElement('b'); t1.textContent = sp.a + ' ';
-    const t2 = document.createElement('i'); t2.textContent = sp.b;
+    const t1 = document.createElement('b'); t1.textContent = mitName(sp.a) + ' ';
+    const t2 = document.createElement('i'); t2.textContent = mitName(sp.b);
     b.append(t1, t2);
     b.onclick = () => waehle(i);
     el.appendChild(b);
@@ -583,6 +613,28 @@ document.getElementById('f-qr').addEventListener('input', e => {
   draw();
   updateCaption();
 });
+// „Wer hat frisiert?“ — setzt den Namen in die Namen-Sprüche ein
+function setName(name) {
+  state.name = name || TEAM[0];
+  document.querySelectorAll('#team-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === state.name));
+  if (state.idx >= 0 && hatName(SPRUECHE[state.idx])) {
+    const qr = state.qr;
+    waehle(state.idx);
+    setQr(qr);
+    draw();
+  } else {
+    renderListe();
+  }
+}
+TEAM.forEach(n => {
+  const b = document.createElement('button');
+  b.className = 'chip' + (n === state.name ? ' on' : '');
+  b.dataset.val = n;
+  b.textContent = n;
+  b.onclick = () => { document.getElementById('f-name').value = ''; setName(n); };
+  document.getElementById('team-chips').appendChild(b);
+});
+document.getElementById('f-name').addEventListener('input', e => setName(e.target.value.trim()));
 chipGroup('format-chips', 'format', draw);
 chipGroup('stil-chips', 'stil', draw);
 chipGroup('kat-chips', 'kat', renderListe);

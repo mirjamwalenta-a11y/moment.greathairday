@@ -2687,9 +2687,9 @@ const outputs = {
   },
   'direkt-offen': {
     ziel:'recruiting', format:'Post',
-    text:`Aktuell ist bei uns Platz für eine:n Stylist:in.\n\nWas wir bieten: Stammkundschaft, ein respektvolles Miteinander und klare Führung.\nWas wir uns wünschen: Handwerk mit Haltung und Freude an guter Arbeit.\n\nRechte Wienzeile 47, 1050 Wien.\nMirjam Walenta.`,
+    text:`Aktuell ist bei uns Platz für eine:n Stylist:in.\n\nWas wir bieten: Stammkundschaft, ein respektvolles Miteinander und klare Führung.\nWas wir uns wünschen: Handwerk mit Haltung und Freude an guter Arbeit.\n\nMirjam`,
     foto:'Salon-Außenansicht oder ein ruhiges Innenbild — professionell und einladend.',
-    story_interaktion:null, cta:'Meld dich direkt — per DM oder unter 01 5863130.', cta_kanal:'DM / 01 5863130'
+    story_interaktion:null, cta:'Meld dich direkt per Nachricht.', cta_kanal:'DM / 01 5863130'
   },
   'lehrling-alltag': {
     ziel:'recruiting', format:'Story',
@@ -2709,21 +2709,23 @@ const outputs = {
     text:`Du bist bald fertig mit der Schule und weißt noch nicht, was als Nächstes kommt?\n\nFriseur:in ist ein Handwerk, das bleibt.\nUnd wir bilden aus — in Wien-Margareten, in einem Salon der es ernst meint.\n\nMeld dich einfach. Ein kurzes Gespräch kostet nichts.`,
     foto:'Ein einladendes Bild vom Salon-Eingang oder vom Arbeitsplatz.',
     story_interaktion:'Frage-Sticker: „Überlegst du dir eine Ausbildung?" Ja / Noch nicht sicher',
-    cta:'DM oder 01 5863130 — wir sind offen.', cta_kanal:'DM / 01 5863130'
+    cta:'Schreib mir einfach eine Nachricht.', cta_kanal:'DM / 01 5863130'
   },
   'freier-termin': {
+    adresse:true,
     ziel:'neukunden', format:'Story + WhatsApp',
-    text:`Heute noch einen Termin bekommen?\n\nWir haben heute Nachmittag noch einen freien Platz.\nRechte Wienzeile 47, 1050 Wien.\n01 5863130 — einfach anrufen oder schreiben.`,
+    text:`Heute noch einen Termin bekommen?\n\nWir haben heute Nachmittag noch einen freien Platz.`,
     foto:'Story-Format: Helles, einladendes Bild vom Salon — Text groß drüber.',
     story_interaktion:'Story-Sticker: „Termin anfragen" (Link oder DM)',
     cta:'Jetzt melden — solange der Platz frei ist.', cta_kanal:'Anruf / DM'
   },
   'ergebnis-fertig': {
+    adresse:true,
     ziel:'neukunden', format:'Post + Reel',
-    text:`Genau so soll's aussehen.\n\nHeute fertig geworden — und wir sind sehr zufrieden.\nWenn du dir sowas vorstellst: du weißt, wo wir sind.\n\nRechte Wienzeile 47 · 1050 Wien`,
+    text:`Genau so soll's aussehen.\n\nHeute fertig geworden — und wir sind sehr zufrieden.\nWenn du dir sowas vorstellst: du weißt, wo wir sind.`,
     foto:'Vorher/Nachher oder nur Nachher: gutes natürliches Licht, scharfes Bild.',
     story_interaktion:'Frage-Sticker: „Welche Farbe interessiert dich?"',
-    cta:'Termin? 01 5863130 oder einfach per DM.', cta_kanal:'Anruf / DM'
+    cta:'Termin? Schreib mir einfach eine Nachricht.', cta_kanal:'Anruf / DM'
   },
   'haarproblem': {
     ziel:'neukunden', format:'Post',
@@ -2758,7 +2760,7 @@ function generateOutput(key) {
         <span class="output-format-badge">${data.format}</span>
       </div>
       <div class="output-body">
-        <div class="output-text" contenteditable="true" id="output-text-main">${data.text}</div>
+        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(data.text, data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
       </div>
       <div class="output-meta">
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text"><strong>Foto/Video:</strong> ${data.foto}</span></div>
@@ -2936,34 +2938,31 @@ const FLOW_CONTENT = {
     ], abschluss:'Heute noch Zeit?', cta:'Schreib uns — wir schauen, was frei ist.' }
   },
   'freier-termin': {
-    vertrauen: { bildidee:'Ruhiges Bild vom leeren, aufgeräumten Stuhl — einladend, nicht hektisch.', ersterSatz:'Ein Platz, der auf dich wartet.', kernaussage:'Kurzfristig frei — aber genauso sorgfältig wie jeder andere Termin.', cta:'Schreib uns oder ruf an: 01 5863130.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    vertrauen: { bildidee:'Ruhiges Bild vom leeren, aufgeräumten Stuhl — einladend, nicht hektisch.', ersterSatz:'Ein Platz, der auf dich wartet.', kernaussage:'Kurzfristig frei — aber genauso sorgfältig wie jeder andere Termin.', cta:'Schreib mir einfach eine Nachricht.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     interesse: { einstieg:'Heute noch ein Platz frei.', frames:[
       'Kurzer Blick in den Kalender.',
       'Ein Termin heute Nachmittag ist offen.',
       'Perfekt, wenn\'s bei dir spontan sein darf.'
-    ], abschluss:'Wer zuerst kommt …', cta:'Jetzt schreiben oder anrufen — 01 5863130.' },
+    ], abschluss:'Wer zuerst kommt …', cta:'Schreib mir gleich eine Nachricht.' },
     anfrage: { einstieg:'Kurzfristig ein Termin frei geworden.', frames:[
       'Heute Nachmittag ist noch Platz.',
-      'Rechte Wienzeile 47, 1050 Wien.',
       'Einfach melden, wenn\'s passt.'
-    ], abschluss:'Kein langes Warten nötig.', cta:'Jetzt anfragen: DM oder 01 5863130.' },
+    ], abschluss:'Kein langes Warten nötig.', cta:'Jetzt per Nachricht anfragen.' },
     'lehrling-ansprechen': { bildidee:'Bild vom Arbeitsplatz, an dem heute noch gearbeitet wird.', ersterSatz:'Heute ist noch Platz — auch für dein erstes Kennenlernen bei uns.', kernaussage:'Wenn du überlegst, bei uns reinzuschnuppern: heute wäre ein guter Tag.', cta:'Schreib uns kurz.', begleittext:'Kein Druck — einfach vorbeischauen.' },
-    'mitarbeiterin-anziehen': { bildidee:'Bild vom Salon, ruhig und einladend, mit Blick auf einen freien Arbeitsplatz.', ersterSatz:'Heute ist bei uns noch Platz — für Kund:innen und vielleicht bald für dich.', kernaussage:'Wir haben gerade viel zu tun. Und suchen Verstärkung.', cta:'Interesse? Meld dich einfach.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    'mitarbeiterin-anziehen': { bildidee:'Bild vom Salon, ruhig und einladend, mit Blick auf einen freien Arbeitsplatz.', ersterSatz:'Heute ist bei uns noch Platz — für Kund:innen und vielleicht bald für dich.', kernaussage:'Wir haben gerade viel zu tun. Und suchen Verstärkung.', cta:'Interesse? Meld dich einfach.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     'termine-fuellen': { einstieg:'Heute noch einen Termin bekommen?', frames:[
       'Wir haben heute Nachmittag noch einen freien Platz.',
-      'Rechte Wienzeile 47, 1050 Wien.',
-      '01 5863130 — einfach anrufen oder schreiben.'
     ], abschluss:'Solange der Platz frei ist.', cta:'Jetzt melden.' }
   },
   'kundenergebnis': {
-    vertrauen: { bildidee:'Nachher-Foto bei gutem, natürlichem Licht — scharf, ehrlich, ohne Filter.', ersterSatz:'Genau so soll\'s aussehen.', kernaussage:'Heute fertig geworden — und wir sind sehr zufrieden.', cta:'Termin? 01 5863130 oder per DM.', begleittext:'Rechte Wienzeile 47, 1050 Wien.' },
+    vertrauen: { bildidee:'Nachher-Foto bei gutem, natürlichem Licht — scharf, ehrlich, ohne Filter.', ersterSatz:'Genau so soll\'s aussehen.', kernaussage:'Heute fertig geworden — und wir sind sehr zufrieden.', cta:'Termin? Schreib mir eine Nachricht.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     interesse: { hook:'Von hier bis hierhin — in einem Termin.', szenen:[
       'Vorher: kurzer Blick auf den Ausgangspunkt.',
       'Mittendrin: konzentrierte Arbeitsschritte.',
       'Fast fertig: letzte Details.',
       'Nachher: das fertige Ergebnis.'
     ], kernaussage:'Manche Veränderungen sieht man sofort.', cta:'Du willst auch so ein Ergebnis? Schreib uns.', caption:'Ein Ergebnis, das für sich spricht.' },
-    anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: DM oder 01 5863130.', begleittext:'Rechte Wienzeile 47 · 1050 Wien' },
+    anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: per Nachricht oder online über den Link in der Bio.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
     'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem auch Ronya mitgearbeitet hat.', frames:[
       'Gemeinsame Vorbereitung, Schritt für Schritt.',
       'Konzentrierte Zusammenarbeit im Team.',
@@ -2978,8 +2977,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Heute fertig geworden.', frames:[
       'Ein Ergebnis, das für sich spricht.',
       'Noch Plätze diese Woche frei.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Auch dein nächster guter Haartag ist buchbar.', cta:'Termin? 01 5863130 oder DM.' }
+    ], abschluss:'Auch dein nächster guter Haartag ist buchbar.', cta:'Termin? Schreib mir eine Nachricht.' }
   },
   'produkt-behandlung': {
     vertrauen: { einstieg:'Warum wir gerade diese Behandlung oft empfehlen.', frames:[
@@ -2993,7 +2991,7 @@ const FLOW_CONTENT = {
       'Ausspülen, erste Ergebnisse sichtbar.',
       'Fertiges Ergebnis: glänzend, gepflegt.'
     ], kernaussage:'Die richtige Pflege zur richtigen Zeit.', cta:'Interesse? Wir haben diese Woche noch Termine.', caption:'Was dein Haar gerade wirklich braucht.' },
-    anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'DM / Anruf: 01 5863130' },
+    anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'Schreib mir eine Nachricht.' },
     'lehrling-ansprechen': { bildidee:'Bild von Ronya, die die Behandlung unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
     'mitarbeiterin-anziehen': { einstieg:'So bringen wir neue Behandlungen ins Team.', frames:[
       'Kurze interne Einschulung vorab.',
@@ -3003,8 +3001,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Diese Behandlung passt gerade besonders gut.', frames:[
       'Saisonal genau richtig.',
       'Wir haben diese Woche noch Termine.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Nicht zu lange warten.', cta:'Termin? DM oder 01 5863130.' }
+    ], abschluss:'Nicht zu lange warten.', cta:'Termin? Schreib mir eine Nachricht.' }
   },
   'besonderer-moment': {
     vertrauen: { einstieg:'Es gibt Tage, die bleiben.', frames:[
@@ -3037,8 +3034,7 @@ const FLOW_CONTENT = {
     'termine-fuellen': { einstieg:'Ein guter Tag bei uns — und noch Platz für dich.', frames:[
       'So sieht\'s gerade bei uns aus.',
       'Ein freier Termin heute oder morgen.',
-      'Rechte Wienzeile 47, 1050 Wien.'
-    ], abschluss:'Werd Teil eines guten Tages.', cta:'Termin? 01 5863130 oder DM.' }
+    ], abschluss:'Werd Teil eines guten Tages.', cta:'Termin? Schreib mir eine Nachricht.' }
   }
 };
 
@@ -3087,27 +3083,38 @@ function flowShowOutput() {
 
   let bodyHtml = '';
   let fullText = '';
+  // Schreibregeln: Adresse nur als 📍-Zeile ganz am Ende, Post endet mit "Mirjam"
+  const adressZeile = /^📍/.test(data.begleittext || '') ? data.begleittext : '';
+  const begleittext = adressZeile ? '' : data.begleittext;
+  const caption = data.caption ? postAbschliessen(data.caption, !!adressZeile) : '';
 
   if (format === 'story') {
     bodyHtml += flowSectionBlock('Einstiegssatz', data.einstieg, 'flow-einstieg');
     bodyHtml += flowFrameList(data.frames, 'Frame');
     bodyHtml += flowSectionBlock('Abschlusszeile', data.abschluss, 'flow-abschluss');
     bodyHtml += flowSectionBlock('Handlungsaufforderung', data.cta, 'flow-cta');
-    fullText = [data.einstieg, '', ...data.frames, '', data.abschluss, '', data.cta].join('\n');
+    fullText = [data.einstieg, '', ...data.frames, '', data.abschluss, '', data.cta, '', 'Mirjam'].join('\n');
   } else if (format === 'reel') {
     bodyHtml += flowSectionBlock('Hook', data.hook, 'flow-hook');
     bodyHtml += flowFrameList(data.szenen, 'Szene');
     bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
     bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
-    if (data.caption) bodyHtml += flowSectionBlock('Caption-Vorschlag', data.caption, 'flow-caption');
-    fullText = [data.hook, '', ...data.szenen, '', data.kernaussage, '', data.cta, data.caption ? '\n' + data.caption : ''].join('\n');
+    if (caption) bodyHtml += flowSectionBlock('Caption-Vorschlag', caption, 'flow-caption');
+    fullText = [data.hook, '', ...data.szenen, '', data.kernaussage, '', data.cta, '', caption || 'Mirjam'].join('\n');
   } else {
     bodyHtml += flowSectionBlock('Bildidee', data.bildidee, 'flow-bild');
     bodyHtml += flowSectionBlock('Starker erster Satz', data.ersterSatz, 'flow-satz');
     bodyHtml += flowSectionBlock('Kernaussage', data.kernaussage, 'flow-kern');
     bodyHtml += flowSectionBlock('Call-to-Action', data.cta, 'flow-cta');
-    if (data.begleittext) bodyHtml += flowSectionBlock('Begleittext', data.begleittext, 'flow-begleit');
-    fullText = [data.ersterSatz, '', data.kernaussage, '', data.cta, data.begleittext ? '\n' + data.begleittext : '', '', '📷 ' + data.bildidee].join('\n');
+    if (begleittext) bodyHtml += flowSectionBlock('Begleittext', begleittext, 'flow-begleit');
+    fullText = ['📷 Bildidee: ' + data.bildidee, '———', data.ersterSatz, '', data.kernaussage, '', data.cta, ...(begleittext ? ['', begleittext] : []), '', 'Mirjam'].join('\n');
+  }
+  if (!caption) {
+    bodyHtml += flowSectionBlock('Unterschrift', 'Mirjam', 'flow-unterschrift');
+    if (adressZeile) {
+      bodyHtml += flowSectionBlock('Adresse (letzte Zeile)', adressZeile, 'flow-adresse');
+      fullText += '\n\n' + adressZeile;
+    }
   }
 
   const bodyEl = document.getElementById('flow-output-body');
@@ -3458,7 +3465,7 @@ function postAbschliessen(text, mitAdresse) {
     const z = zeilen.pop().trim();
     if (z) tags.unshift(z);
   }
-  while (zeilen.length && /^mirjam\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
+  while (zeilen.length && /^mirjam( walenta)?\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
   while (zeilen.length && zeilen[zeilen.length-1].trim() === '') zeilen.pop();
   let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\nMirjam';
   if (tags.length) out += '\n\n' + tags.join('\n');

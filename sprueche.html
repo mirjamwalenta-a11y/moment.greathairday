@@ -71,6 +71,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip on" data-val="post">Post 4:5</button>
       <button class="chip" data-val="quadrat">Quadrat</button>
       <button class="chip" data-val="story">Story</button>
+      <button class="chip" data-val="a4">A4 Aushang</button>
     </div>
   </section>
 
@@ -80,6 +81,15 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip on" data-val="hell">Hell</button>
       <button class="chip" data-val="dunkel">Dunkel</button>
     </div>
+  </section>
+
+  <section>
+    <div class="label">QR-Code zur Google-Bewertung</div>
+    <div class="chips" id="qr-chips">
+      <button class="chip on" data-val="aus">Aus</button>
+      <button class="chip" data-val="an">An</button>
+    </div>
+    <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span>Link hinter dem QR-Code</span><input id="f-qr" inputmode="url"></label>
   </section>
 
   <div class="preview" id="preview"><canvas id="cv" aria-label="Vorschau der Vorlage"></canvas></div>
@@ -99,6 +109,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="maenner">Für Männer</button>
       <button class="chip" data-val="kinder">Für Kinder</button>
       <button class="chip" data-val="anlaesse">Anlässe</button>
+      <button class="chip" data-val="bewertung">Bewerte uns</button>
     </div>
     <div class="liste" id="liste"></div>
   </section>
@@ -119,6 +130,8 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <p class="hinweis">Am Handy öffnet „Bild speichern“ das Teilen-Menü — dort „Bild sichern“ wählen.</p>
 </div>
 
+<!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
+<script src="qrcode-generator.js"></script>
 <script>
 // ════════════════════════════════════════════
 // SPRÜCHE — a = schwarze Zeile, b = goldene kursive Zeile, c = kleiner Text
@@ -270,6 +283,22 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
   { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
   { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
+  // Bewerte uns (mit QR-Code) — bewusst ohne Bitte um bestimmte Sternezahl
+  { k:'bewertung', a:'Wie war dein', b:'Great Hair Day?', c:'' },
+  { k:'bewertung', a:'Zufrieden mit deinen Haaren?', b:'Erzähl es nicht nur dem Spiegel.', c:'' },
+  { k:'bewertung', a:'Dein Spiegel ist begeistert.', b:'Google weiß es noch nicht.', c:'' },
+  { k:'bewertung', a:'Deine Haare sehen großartig aus.', b:'Das darf die Welt ruhig wissen.', c:'' },
+  { k:'bewertung', a:'Wir schneiden Haare.', b:'Die Sterne vergibst du.', c:'' },
+  { k:'bewertung', a:'Komplimente bekommen?', b:'Gib uns eines zurück.', c:'' },
+  { k:'bewertung', a:'Ein Selfie für dich,', b:'eine Bewertung für uns?', c:'' },
+  { k:'bewertung', a:'Wir sind nicht eitel.', b:'Nur ein bisschen neugierig.', c:'' },
+  { k:'bewertung', a:'Scannen dauert zehn Sekunden.', b:'Der Schnitt hält Wochen.', c:'' },
+  { k:'bewertung', a:'Sterne sind unser', b:'liebstes Trinkgeld.', c:'' },
+  { k:'bewertung', a:'Bad Hair Days bewertet man nicht.', b:'Great Hair Days schon.', c:'' },
+  { k:'bewertung', a:'Weitersagen erlaubt.', b:'Weiterempfehlen erwünscht.', c:'' },
+  { k:'bewertung', a:'Deine Meinung', b:'hilft anderen, uns zu finden.', c:'' },
+  { k:'bewertung', a:'Kurz vor dem Gehen', b:'noch schnell die Kamera zücken?', c:'' },
+  { k:'bewertung', a:'Wir lesen jede Bewertung.', b:'Wirklich jede.', c:'' },
 ];
 
 // Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
@@ -280,16 +309,19 @@ const FRAGEN = {
   maenner: 'Wie oft gönnst du dir einen frischen Schnitt?',
   kinder: 'Wie war der erste Friseurbesuch bei euch zu Hause?',
   anlaesse: 'Welcher besondere Tag steht bei dir als Nächstes an?',
+  bewertung: 'Wie war dein letzter Besuch bei uns?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
-const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920] };
+const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754] };
+const QR_LINK_STANDARD = 'https://www.greathairday.at/bewertung/';   // wie auf dem gedruckten Bewertungs-Aushang
+const linkKurz = url => url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 const STILE = {
   hell:   { bg:'#F5F0EA', ink:'#1C1B19', gold:'#8A7346', sub:'#45433F' },
   dunkel: { bg:'#1C1B19', ink:'#F5F0EA', gold:'#C8A96E', sub:'#CFC8BC' }
 };
 
-const state = { format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor' };
+const state = { format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 
@@ -334,11 +366,88 @@ function spacedText(text, x, y, spacing) {
   ctx.textAlign = 'center';
 }
 
+function roundRectPath(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+function stern(cx, cy, r) {
+  ctx.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const rad = i % 2 ? r * 0.45 : r;
+    const a = -Math.PI / 2 + i * Math.PI / 5;
+    ctx.lineTo(cx + rad * Math.cos(a), cy + rad * Math.sin(a));
+  }
+  ctx.closePath();
+  ctx.fill();
+}
+function qrMatrix(text) {
+  if (typeof qrcode !== 'function' || !text) return null;
+  try {
+    const qr = qrcode(0, 'M');
+    qr.addData(text);
+    qr.make();
+    return qr;
+  } catch (e) { return null; }
+}
+
+// Bewertungs-Block unten: QR-Code auf heller Karte, Sterne, Hinweis, Link.
+// Gibt die Oberkante zurück, damit der Spruch darüber Platz findet.
+function drawBewertung(W, footY, s) {
+  const fmt = state.format;
+  const qr = qrMatrix(state.qrLink);
+  if (!qr) return null;
+  const qrSize = { post:320, quadrat:240, story:440, a4:520 }[fmt];
+  const n = qr.getModuleCount();
+  const m = qrSize / n;
+  const pad = Math.max(3 * m, qrSize * 0.08);   // Ruhezone rund um den Code
+  const kompakt = fmt === 'quadrat';
+
+  const linkText = linkKurz(state.qrLink);
+  const urlY = footY - 95;
+  const hinweisY = urlY - 58;
+  const sternY = kompakt ? urlY - 70 : hinweisY - 70;
+  const cardB = kompakt ? urlY - 55 : sternY - 50;
+  const cardW = qrSize + 2 * pad;
+  const cardT = cardB - cardW;
+  const cardX = W / 2 - cardW / 2;
+
+  // Karte immer hell, damit der Code auch im dunklen Stil gut scanbar ist
+  roundRectPath(cardX, cardT, cardW, cardW, 16);
+  ctx.fillStyle = '#FCFAF5';
+  ctx.fill();
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = s === STILE.dunkel ? '#C8A96E' : '#C9B48A';
+  ctx.stroke();
+
+  ctx.fillStyle = '#1C1B19';
+  for (let r = 0; r < n; r++) for (let c = 0; c < n; c++) {
+    if (qr.isDark(r, c)) ctx.fillRect(Math.floor(cardX + pad + c * m), Math.floor(cardT + pad + r * m), Math.ceil(m), Math.ceil(m));
+  }
+
+  if (!kompakt) {
+    ctx.fillStyle = s.gold;
+    for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+    ctx.fillStyle = s.sub;
+    ctx.font = '400 34px Inter, system-ui, sans-serif';
+    ctx.fillText('Mit der Handykamera scannen', W / 2, hinweisY);
+  }
+  ctx.fillStyle = s.gold;
+  ctx.font = '500 32px Inter, system-ui, sans-serif';
+  spacedText(linkText, W / 2, urlY, 2);
+  return cardT;
+}
+
 // ── Zeichnen ──
 function draw() {
   const [W, H] = FORMATE[state.format];
   const s = STILE[state.stil];
   const story = state.format === 'story';
+  const a4 = state.format === 'a4';
   cv.width = W; cv.height = H;
   ctx.textAlign = 'center';
   ctx.textBaseline = 'alphabetic';
@@ -347,7 +456,7 @@ function draw() {
   ctx.fillRect(0, 0, W, H);
 
   // Wortmarke oben: Great Hair.Day (Punkt in Gold)
-  const markY = story ? 330 : (state.format === 'quadrat' ? 150 : 170);
+  const markY = story ? 330 : a4 ? 230 : (state.format === 'quadrat' ? 150 : 170);
   ctx.font = '700 64px "Playfair Display", Georgia, serif';
   const p1 = 'Great Hair', p2 = '.', p3 = 'Day';
   const w1 = ctx.measureText(p1).width, w2 = ctx.measureText(p2).width, w3 = ctx.measureText(p3).width;
@@ -364,20 +473,23 @@ function draw() {
   ctx.fillRect(W / 2 - 95, ruleY, 190, 4);
 
   // Fuß: "A great hair day" — steht auf jeder Vorlage
-  const footY = story ? H - 360 : H - 120;
+  const footY = story ? H - 360 : a4 ? H - 170 : H - 120;
   ctx.fillStyle = s.gold;
   ctx.font = '500 34px Inter, system-ui, sans-serif';
   spacedText('A great hair day', W / 2, footY, 4);
-  ctx.fillRect(W / 2 - 30, footY - 70, 60, 2);
+
+  // Optional: QR-Code zur Bewertung — sonst kleine goldene Linie über dem Fuß
+  const qrTop = state.qr ? drawBewertung(W, footY, s) : null;
+  if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
 
   // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
   const maxW = W - 200;
   const areaTop = ruleY + 60;
-  const areaBottom = footY - 120;
+  const areaBottom = qrTop !== null ? qrTop - 50 : footY - 120;
   const areaH = areaBottom - areaTop;
   const subFont = `400 ${story ? 42 : 38}px Inter, system-ui, sans-serif`;
   const subLH = story ? 62 : 56;
-  let size = story ? 108 : 100;
+  let size = story || a4 ? 108 : 100;
   let la, lb, lc, lh, blockH;
   for (; size >= 48; size -= 4) {
     lh = size * 1.2;
@@ -408,7 +520,7 @@ function draw() {
     for (const l of lc) { ctx.fillText(l, W / 2, y); y += subLH; }
   }
 
-  document.getElementById('preview').classList.toggle('story', story);
+  document.getElementById('preview').classList.toggle('story', story || a4);
 }
 
 // ── Bildtext (nach den Schreibregeln: Ich-Form, Frage an Kund:innen, endet mit „Mirjam“) ──
@@ -416,7 +528,8 @@ function updateCaption() {
   const spruch = [state.a, state.b].filter(Boolean).join(' ');
   const teile = [spruch];
   if (state.c) teile.push(state.c);
-  teile.push(FRAGEN[state.k] || FRAGEN.eigen);
+  teile.push(FRAGEN[state.k] || (state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
+  if (state.qr) teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
   teile.push('Mirjam');
   const extra = { maenner:'#Herrenschnitt', kinder:'#Kinderhaarschnitt' }[state.k] || '';
   const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
@@ -428,6 +541,7 @@ function updateCaption() {
 function waehle(i) {
   const sp = SPRUECHE[i];
   state.idx = i; state.a = sp.a; state.b = sp.b; state.c = sp.c; state.k = sp.k;
+  setQr(sp.k === 'bewertung');
   document.getElementById('f-a').value = sp.a;
   document.getElementById('f-b').value = sp.b;
   document.getElementById('f-c').value = sp.c;
@@ -457,6 +571,18 @@ function chipGroup(id, key, after) {
     after();
   });
 }
+function setQr(an) {
+  state.qr = an;
+  document.querySelectorAll('#qr-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === (an ? 'an' : 'aus')));
+  document.getElementById('qr-link-feld').style.display = an ? 'flex' : 'none';
+}
+document.querySelectorAll('#qr-chips .chip').forEach(c => c.onclick = () => { setQr(c.dataset.val === 'an'); draw(); updateCaption(); });
+document.getElementById('f-qr').value = QR_LINK_STANDARD;
+document.getElementById('f-qr').addEventListener('input', e => {
+  state.qrLink = e.target.value.trim() || QR_LINK_STANDARD;
+  draw();
+  updateCaption();
+});
 chipGroup('format-chips', 'format', draw);
 chipGroup('stil-chips', 'stil', draw);
 chipGroup('kat-chips', 'kat', renderListe);

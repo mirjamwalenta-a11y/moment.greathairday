@@ -117,6 +117,8 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="anlaesse">Anlässe</button>
       <button class="chip" data-val="leistungen">Leistungen</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
+      <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
+      <button class="chip" data-val="stylist">Stylist:in gesucht</button>
     </div>
     <div class="liste" id="liste"></div>
   </section>
@@ -310,6 +312,36 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
   { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
   { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
+  // Lehrling gesucht
+  { k:'lehrstelle', a:'Lehrstelle frei.', b:'Talent gesucht.', c:'Werde Friseur:in bei uns in Wien.' },
+  { k:'lehrstelle', a:'Schule fertig?', b:'Dann fang bei uns an.', c:'Wir bilden Friseur:innen aus.' },
+  { k:'lehrstelle', a:'Du liebst Haare?', b:'Mach deinen Beruf daraus.', c:'' },
+  { k:'lehrstelle', a:'Kreativ, mit Menschen,', b:'mit den eigenen Händen.', c:'Die Friseurlehre verbindet alles.' },
+  { k:'lehrstelle', a:'Alle Profis', b:'haben einmal angefangen.', c:'Warum nicht bei uns?' },
+  { k:'lehrstelle', a:'Wir bringen dir alles bei.', b:'Außer Freude. Die bringst du mit.', c:'' },
+  { k:'lehrstelle', a:'Lernen mit Schere,', b:'Kamm und Herz.', c:'' },
+  { k:'lehrstelle', a:'Kein Job wie jeder andere.', b:'Ein Handwerk fürs Leben.', c:'' },
+  { k:'lehrstelle', a:'Du musst noch nichts können.', b:'Nur wollen.', c:'' },
+  { k:'lehrstelle', a:'Heute Lehrling,', b:'morgen Stylist:in.', c:'' },
+  { k:'lehrstelle', a:'Wir suchen keine Perfektion.', b:'Wir suchen Neugier.', c:'' },
+  { k:'lehrstelle', a:'Schnupperlehre?', b:'Komm vorbei und probier es aus.', c:'Wir freuen uns auf dich.' },
+  { k:'lehrstelle', a:'Ein Beruf mit Zukunft', b:'und mit Menschen.', c:'' },
+  { k:'lehrstelle', a:'Deine Lehre,', b:'unsere Leidenschaft.', c:'Ausbildung mit über 30 Jahren Erfahrung.' },
+  // Stylist:in gesucht
+  { k:'stylist', a:'Stylist:in gesucht.', b:'Für ein Team, das zusammenhält.', c:'' },
+  { k:'stylist', a:'Du liebst dein Handwerk?', b:'Wir auch.', c:'Werde Teil unseres Teams in Wien.' },
+  { k:'stylist', a:'Deine Schere sucht', b:'ein neues Zuhause?', c:'' },
+  { k:'stylist', a:'Gute Arbeit braucht Zeit.', b:'Bei uns nehmen wir sie uns.', c:'' },
+  { k:'stylist', a:'Stammkundschaft,', b:'die sich auf dich freut.', c:'' },
+  { k:'stylist', a:'Ein Salon mit Haltung', b:'sucht Stylist:in mit Herz.', c:'' },
+  { k:'stylist', a:'Balayage, Schnitt, Hochsteckfrisur:', b:'Zeig uns, was du kannst.', c:'' },
+  { k:'stylist', a:'Du willst dich weiterentwickeln?', b:'Wir wachsen gern gemeinsam.', c:'' },
+  { k:'stylist', a:'Wir suchen Verstärkung.', b:'Und Menschen, die gern lachen.', c:'' },
+  { k:'stylist', a:'Neuer Stuhl, neues Team,', b:'neue Energie.', c:'' },
+  { k:'stylist', a:'Handwerk mit Haltung', b:'sucht Hände mit Talent.', c:'' },
+  { k:'stylist', a:'Du bist gut in dem, was du tust?', b:'Dann sollten wir reden.', c:'' },
+  { k:'stylist', a:'Wiedereinstieg?', b:'Bei uns bist du willkommen.', c:'' },
+  { k:'stylist', a:'Ein guter Arbeitsplatz', b:'fühlt sich an wie ein guter Haartag.', c:'' },
   // Leistungen
   { k:'leistungen', a:'Hoch gesteckt,', b:'hoch gestimmt.', c:'', h:'#Hochsteckfrisur' },
   { k:'leistungen', a:'Hochgesteckt zum Oktoberfest.', b:'Jetzt ist der Dirndl-Look komplett.', c:'', h:'#Hochsteckfrisur #Oktoberfest #Wiesn' },
@@ -432,6 +464,8 @@ const FRAGEN = {
   kinder: 'Wie war der erste Friseurbesuch bei euch zu Hause?',
   anlaesse: 'Welcher besondere Tag steht bei dir als Nächstes an?',
   bewertung: 'Wie war dein letzter Besuch bei uns?',
+  lehrstelle: 'Kennst du jemanden, der gerade eine Lehrstelle sucht? Teile den Beitrag gern.',
+  stylist: 'Kennst du jemanden, der gut zu unserem Team passen würde? Teile den Beitrag gern.',
   leistungen: 'Welche Behandlung wolltest du schon immer einmal ausprobieren?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
@@ -664,7 +698,12 @@ function updateCaption() {
   teile.push(FRAGEN[state.k] || (state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
   if (state.qr) teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
   teile.push('Mirjam');
-  const extra = { maenner:'#Herrenschnitt', kinder:'#Kinderhaarschnitt' }[state.k] || '';
+  const extra = {
+    maenner:'#Herrenschnitt',
+    kinder:'#Kinderhaarschnitt',
+    lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
+    stylist:'#FriseurJob #Jobs #Team'
+  }[state.k] || '';
   const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
   teile.push(['#GreatHairDay #Friseur #Wien', extra, eigene].filter(Boolean).join(' '));
   document.getElementById('caption').value = teile.join('\n\n');

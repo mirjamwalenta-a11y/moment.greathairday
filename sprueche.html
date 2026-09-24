@@ -115,6 +115,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="maenner">Für Männer</button>
       <button class="chip" data-val="kinder">Für Kinder</button>
       <button class="chip" data-val="anlaesse">Anlässe</button>
+      <button class="chip" data-val="leistungen">Leistungen</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
     </div>
     <div class="liste" id="liste"></div>
@@ -289,6 +290,29 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
   { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
   { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
+  // Leistungen
+  { k:'leistungen', a:'Hoch gesteckt,', b:'hoch gestimmt.', c:'', h:'#Hochsteckfrisur' },
+  { k:'leistungen', a:'Hochgesteckt zum Oktoberfest.', b:'Jetzt ist der Dirndl-Look komplett.', c:'', h:'#Hochsteckfrisur #Oktoberfest #Wiesn' },
+  { k:'leistungen', a:'Alles sitzt.', b:'Bis zum letzten Walzer.', c:'', h:'#Hochsteckfrisur #Ballsaison' },
+  { k:'leistungen', a:'Manche Tage verdienen', b:'mehr als einen Zopf.', c:'', h:'#Hochsteckfrisur' },
+  { k:'leistungen', a:'Heiß geföhnt?', b:'Jetzt mal ganz cool.', c:'Alpha Cooling: die Kälteanwendung für dein Haar.', h:'#AlphaCooling' },
+  { k:'leistungen', a:'Cool bleiben.', b:'Auch deine Haare.', c:'Alpha Cooling bei uns im Salon.', h:'#AlphaCooling' },
+  { k:'leistungen', a:'Eiskalt verwöhnt.', b:'Alpha Cooling.', c:'', h:'#AlphaCooling' },
+  { k:'leistungen', a:'Kälte, die gut tut.', b:'Glanz, den man sieht.', c:'', h:'#AlphaCooling' },
+  { k:'leistungen', a:'Sommer in der Stadt?', b:'Deine Haare wollen Abkühlung.', c:'', h:'#AlphaCooling #Sommer' },
+  { k:'leistungen', a:'Sonnengeküsst,', b:'ganz ohne Urlaub.', c:'', h:'#Balayage' },
+  { k:'leistungen', a:'Balayage ist Handarbeit.', b:'Pinselstrich für Pinselstrich.', c:'', h:'#Balayage' },
+  { k:'leistungen', a:'Ein paar Strähnen', b:'bringen viel Licht.', c:'', h:'#Strähnen' },
+  { k:'leistungen', a:'Farbe ist mutig.', b:'Du auch.', c:'', h:'#Haarfarbe' },
+  { k:'leistungen', a:'Grau oder Farbe?', b:'Beides kann wunderschön sein.', c:'Wir beraten dich ehrlich.', h:'#Haarfarbe #GraueHaare' },
+  { k:'leistungen', a:'Glanz ist kein Filter.', b:'Glanz ist Glossing.', c:'', h:'#Glossing' },
+  { k:'leistungen', a:'Müde Haare?', b:'Zeit für eine Pflegepause.', c:'', h:'#Haarpflege' },
+  { k:'leistungen', a:'Keratin für dein Haar,', b:'Ruhe für dich.', c:'', h:'#Keratin #Haarpflege' },
+  { k:'leistungen', a:'Warten ist schön.', b:'Haarverlängerung ist schneller.', c:'', h:'#Haarverlängerung' },
+  { k:'leistungen', a:'Die Augen sagen alles.', b:'Brow & Lash Lifting hilft ein wenig nach.', c:'', h:'#BrowLifting #LashLifting' },
+  { k:'leistungen', a:'Wach aussehen', b:'ohne einen Schluck Kaffee.', c:'Brow & Lash Lifting.', h:'#BrowLifting #LashLifting' },
+  { k:'leistungen', a:'Make-up für besondere Tage,', b:'damit du dich nur noch freuen musst.', c:'', h:'#MakeUp' },
+  { k:'leistungen', a:'Ein guter Schnitt', b:'wächst schön heraus.', c:'', h:'#Haarschnitt' },
   // Bewerte uns (mit QR-Code) — bewusst ohne Bitte um bestimmte Sternezahl
   { k:'bewertung', a:'Wie war dein', b:'Great Hair Day?', c:'' },
   { k:'bewertung', a:'Zufrieden mit deinen Haaren?', b:'Erzähl es nicht nur dem Spiegel.', c:'' },
@@ -329,6 +353,7 @@ const FRAGEN = {
   kinder: 'Wie war der erste Friseurbesuch bei euch zu Hause?',
   anlaesse: 'Welcher besondere Tag steht bei dir als Nächstes an?',
   bewertung: 'Wie war dein letzter Besuch bei uns?',
+  leistungen: 'Welche Behandlung wolltest du schon immer einmal ausprobieren?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 

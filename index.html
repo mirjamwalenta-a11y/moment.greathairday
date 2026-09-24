@@ -2553,7 +2553,7 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
   haarnetzwerk: {
     label: '🤝 Haarnetzwerk',
     persona: `Mirjam Walenta ist Mitglied & stellvertretende Obfrau beim Haarnetzwerk, einem Branchennetzwerk für Friseurinnen & Friseure in Österreich. Das Haarnetzwerk veranstaltet Events für Friseurunternehmer:innen, deren Mitarbeiter:innen und Kund:innen.`,
-    hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — wie von einer Kollegin im Vorstand, nicht wie Werbung für einen einzelnen Betrieb.`,
+    hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — in der Wir-Form des Vereins, nicht wie Werbung für einen einzelnen Betrieb.`,
     kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
     reichweite: `Reichweite (Instagram/Facebook):
 - Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen". KEINE Begriffe oder Adressen von Mirjams Salon.
@@ -3421,14 +3421,23 @@ const POST_T = {
 // (Instagram/Facebook), Reel-Captions, Storys und Google-Beiträge.
 // format: 'post' | 'reel' | 'story' | 'google'
 const POST_ADRESSZEILE = '📍 A great hair day · Rechte Wienzeile 47, 1050 Wien';
+// Unterschrift: Salon-Posts von Mirjam, Haarnetzwerk-Posts vom Verein
+const unterschriftFuer = kontext => kontext === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam';
+// Stimme im Prompt: Salon = Mirjam (Ich-Form), Haarnetzwerk = der Verein (Wir-Form)
+const stimmeLabel = kontext => kontext === 'haarnetzwerk' ? 'Stimme des Haarnetzwerks (Wir-Form)' : 'Mirjams Stimme';
+
 function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
   // Schlussfrage an Kund:innen — außer bei Recruiting-, Ausbildungs- oder Haarnetzwerk-Posts.
   const frageAnBranche = kontext === 'haarnetzwerk' || wer === 'lehrlinge' || wer === 'branche';
   const istStory = format === 'story';
   const was = { post:'DIESEN POST', reel:'DIE REEL-CAPTION', story:'DIESE STORY', google:'DIESEN GOOGLE-BEITRAG' }[format];
+  const sig = unterschriftFuer(kontext);
   const ende = istStory
-    ? 'Der Text des letzten Frames endet mit einer eigenen Zeile "Mirjam".'
-    : 'Der Text endet mit einer eigenen Zeile "Mirjam".';
+    ? `Der Text des letzten Frames endet mit einer eigenen Zeile "${sig}".`
+    : `Der Text endet mit einer eigenen Zeile "${sig}".`;
+  const stimme = kontext === 'haarnetzwerk'
+    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen.'
+    : 'Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist.';
   const adresse = format === 'google'
     ? 'Salonname und Bezirk ("Wien-Margareten" oder "1050 Wien") dürfen im Text stehen — Straße, Hausnummer und Telefonnummer nicht, die zeigt das Google-Profil ohnehin an.'
     : mitAdresse
@@ -3447,10 +3456,10 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
   const kurz = istStory
     ? 'Kurz: jeder Frame 1 bis 3 kurze Sätze.'
     : format === 'google'
-      ? 'Kurz: 3 bis 4 kurze Absätze, der letzte davon mit der Handlungsaufforderung, danach die Zeile "Mirjam".'
-      : 'Kurz: 3 bis 4 kurze Absätze (die Hook-Zeile ist der erste davon), danach die Zeile "Mirjam".';
+      ? `Kurz: 3 bis 4 kurze Absätze, der letzte davon mit der Handlungsaufforderung, danach die Zeile "${sig}".`
+      : `Kurz: 3 bis 4 kurze Absätze (die Hook-Zeile ist der erste davon), danach die Zeile "${sig}".`;
   return `SCHREIBREGELN FÜR ${was} (verbindlich):
-1. Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist. ${ende}
+1. ${stimme} ${ende}
 2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
 3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
@@ -3468,7 +3477,7 @@ function ohneAdresse(text) {
 
 // Setzt Unterschrift und (optional) Adresszeile verlässlich — auch dann,
 // wenn die KI die Regeln nicht exakt einhält oder die Vorlage greift.
-function postAbschliessen(text, mitAdresse) {
+function postAbschliessen(text, mitAdresse, unterschrift = 'Mirjam') {
   let zeilen = ohneAdresse(text).split('\n');
   // Hashtag-Block am Ende (nur Vorlagen) nach der Unterschrift behalten
   const tags = [];
@@ -3476,9 +3485,9 @@ function postAbschliessen(text, mitAdresse) {
     const z = zeilen.pop().trim();
     if (z) tags.unshift(z);
   }
-  while (zeilen.length && /^mirjam( walenta)?\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
+  while (zeilen.length && /^(mirjam( walenta)?|euer haarnetzwerk)\.?$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
   while (zeilen.length && zeilen[zeilen.length-1].trim() === '') zeilen.pop();
-  let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\nMirjam';
+  let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\n' + unterschrift;
   if (tags.length) out += '\n\n' + tags.join('\n');
   if (mitAdresse) out += '\n\n' + POST_ADRESSZEILE;
   return out;
@@ -3494,11 +3503,17 @@ async function buildKanalPost(kanal, m, ton, wer, kontext) {
     facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas persönlicher erzählen als auf Instagram (etwas längere Absätze, aber weiterhin 3 bis 4), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und den Bezirk (Wien-Margareten) im Fließtext nennen — aber nie die Straßenadresse.' }
   };
 
+  // Haarnetzwerk bekommt eigene Hashtags — Salon und Verein nicht vermischen
+  const hn = kontext === 'haarnetzwerk';
+  const hashtagRegel = kanal === 'facebook'
+    ? `1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "${hn ? '#Haarnetzwerk' : '#GreatHairDay'}"`
+    : `3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), ${hn ? 'immer mit #Haarnetzwerk, Rest passend zum Thema, keine Salon-Hashtags wie #GreatHairDay' : 'immer mit #GreatHairDay #Wien, Rest passend zum Thema'}`;
+
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
 ${kontextTeil(kontext)}
 
-Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
+${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
 
 ${reichweiteTeil(kontext)}
 
@@ -3506,10 +3521,10 @@ ${postSchreibregeln(kontext, wer, mitAdresse)}
 
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "Mirjam". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
-- "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
+- "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, gleiche Tonalität wie der Post.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
-- "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), immer mit #GreatHairDay #Wien, Rest passend zum Thema'}.
+- "hashtags": ${hashtagRegel}.
 
 Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
@@ -3549,7 +3564,7 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
       postText = r.hook + '\n\n' + r.body;
     }
   }
-  postText = postAbschliessen(postText, mitAdresse);
+  postText = postAbschliessen(postText, mitAdresse, unterschriftFuer(kontext));
 
   return { text: postText, structured: postStructured, istKi };
 }
@@ -4161,7 +4176,7 @@ ${kontextTeil(kontext)}
 
 Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 - "label": kurzer Titel des Frames (z.B. "Einstieg", "Der Moment", "Warum", "Einladung", "Abschluss")
-- "text": der Text für diesen Frame (kurz, 1–3 Sätze, Mirjams Stimme: ruhig, echt, klar, gehoben)
+- "text": der Text für diesen Frame (kurz, 1–3 Sätze, ${stimmeLabel(kontext)}: ruhig, echt, klar, gehoben)
 - "tip": ein konkreter visueller Hinweis (was man zeigen/fotografieren könnte)
 - "overlay": Sehr kurzer Overlay-Text für diesen Frame (max 4–5 Wörter direkt aufs Bild/Video), oder leer ""
 - "sticker": Konkreter Sticker-Vorschlag mit Typ und Text (z.B. "Umfrage: Kürzer oder länger?", "Frage: Was wünscht ihr euch?", "Quiz: Was war es?", "Emoji-Slider: Wie sehr gefällt dir das Ergebnis?"), sonst leer ""
@@ -4175,7 +4190,7 @@ Reichweite für Storys:
 ${ziel === 'termin' && kontext !== 'haarnetzwerk' ? '- Der letzte Frame hat einen Link-Sticker zur Online-Terminbuchung: "Link: Termin buchen → https://stylisten.eu/pranz#online-buchung".' : ''}
 ${reichweiteTeil(kontext)}
 
-Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze.
+${kontext === 'haarnetzwerk' ? 'Sprache des Haarnetzwerks (Wir-Form)' : 'Mirjams Sprache'}: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze.
 
 ${postSchreibregeln(kontext, ziel === 'lehrling' ? 'lehrlinge' : 'kundinnen', false, 'story')}
 
@@ -4221,11 +4236,11 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
       frames = getFn(m);
     }
   }
-  // Schreibregeln absichern: keine Adresse im Frame-Text, letzter Frame endet mit "Mirjam"
+  // Schreibregeln absichern: keine Adresse im Frame-Text, letzter Frame endet mit der Unterschrift
   frames = frames.map(f => ({ ...f, text: ohneAdresse(f.text).trim() }));
   const letzter = frames[frames.length - 1];
-  letzter.text = letzter.text.replace(/\n*\s*Mirjam\.?\s*$/i, '');
-  letzter.text = (letzter.text ? letzter.text + '\n' : '') + 'Mirjam';
+  letzter.text = letzter.text.replace(/\n*\s*(Mirjam|Euer Haarnetzwerk)\.?\s*$/i, '');
+  letzter.text = (letzter.text ? letzter.text + '\n' : '') + unterschriftFuer(kontext);
 
   document.getElementById('story-list').innerHTML = frames.map((f,i) => {
     const safeText = (f.text||'').replace(/'/g,'&#39;').replace(/"/g,'&quot;');
@@ -5728,7 +5743,7 @@ Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Obj
   - "action": Was gezeigt/gefilmt wird (1 klarer Satz)
   - "text": Text-Overlay oder gesprochener Text für diese Szene (max 6 Wörter, oder leer "")
   - "tip": Konkreter Kamera-/Regie-Hinweis (1 Satz)
-- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage (siehe Regel 3), danach die Zeile "Mirjam". Die Schreibregeln unten gelten für die Caption.
+- "caption": Fertige Instagram-Caption, ${stimmeLabel(kontext)} (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage (siehe Regel 3), danach die Zeile "${unterschriftFuer(kontext)}". Die Schreibregeln unten gelten für die Caption.
 - "hashtags": 3–5 Hashtags passend zum Ziel
 
 Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht folgen):
@@ -5800,7 +5815,7 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
     </div>`).join('');
 
   if(result.caption) {
-    result.caption = postAbschliessen(result.caption, false);
+    result.caption = postAbschliessen(result.caption, false, unterschriftFuer(kontext));
     document.getElementById('reel-caption-val').textContent = result.caption;
     document.getElementById('reel-hash-val').textContent    = result.hashtags || '';
     document.getElementById('reel-caption-block').style.display = 'block';

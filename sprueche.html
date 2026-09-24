@@ -773,14 +773,15 @@ function draw() {
   document.getElementById('preview').classList.toggle('story', story || a4);
 }
 
-// ── Bildtext (nach den Schreibregeln: Ich-Form, Frage an Kund:innen, endet mit „Mirjam“) ──
+// ── Bildtext (nach den Schreibregeln: Frage an Kund:innen, endet mit „Mirjam“ bzw. beim Haarnetzwerk mit „Euer Haarnetzwerk“) ──
 function updateCaption() {
   const spruch = [state.a, state.b].filter(Boolean).join(' ');
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
   if (state.qr && state.marke !== 'haarnetzwerk') teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
-  teile.push('Mirjam');
+  // Unterschrift: Salon-Posts von Mirjam, Vereins-Posts vom Haarnetzwerk
+  teile.push(state.marke === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam');
   const extra = {
     maenner:'#Herrenschnitt',
     kinder:'#Kinderhaarschnitt',

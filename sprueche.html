@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sprüche">
+<meta name="theme-color" content="#F5F0EA">
+<title>Spruch-Vorlagen — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:480px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:16px;}
+
+header{text-align:center;padding:6px 0 2px;}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 13px var(--sans);padding:8px 13px;border-radius:999px;cursor:pointer;}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+
+.preview{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;justify-content:center;}
+canvas{width:100%;height:auto;border-radius:6px;box-shadow:0 2px 14px rgba(0,0,0,.08);}
+.preview.story canvas{width:62%;}
+
+.liste{display:flex;flex-direction:column;gap:8px;max-height:340px;overflow-y:auto;padding-right:2px;}
+.spruch{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px;cursor:pointer;text-align:left;font:inherit;color:inherit;}
+.spruch.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+.spruch b{font-family:var(--serif);font-weight:700;font-size:15px;}
+.spruch i{font-family:var(--serif);font-style:italic;color:var(--gold);font-size:15px;}
+
+.feld{display:flex;flex-direction:column;gap:6px;}
+.feld span{font-size:12px;color:var(--sub);}
+input,textarea{font:15px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;}
+textarea{resize:vertical;min-height:120px;line-height:1.5;}
+input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
+
+.buttons{display:flex;gap:10px;}
+.btn{flex:1;border:none;border-radius:12px;padding:14px 12px;font:600 15px var(--sans);cursor:pointer;}
+.btn-main{background:var(--ink);color:var(--bg);}
+.btn-alt{background:var(--gold-light);color:#5a4a28;}
+.hinweis{font-size:12.5px;color:var(--sub);line-height:1.5;text-align:center;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="wordmark">Great Hair<span>.</span>Day</div>
+    <div class="rule"></div>
+    <p class="intro">Spruch wählen oder selbst schreiben, Format aussuchen, Bild speichern.</p>
+  </header>
+
+  <section>
+    <div class="label">Format</div>
+    <div class="chips" id="format-chips">
+      <button class="chip on" data-val="post">Post 4:5</button>
+      <button class="chip" data-val="quadrat">Quadrat</button>
+      <button class="chip" data-val="story">Story</button>
+    </div>
+  </section>
+
+  <section>
+    <div class="label">Stil</div>
+    <div class="chips" id="stil-chips">
+      <button class="chip on" data-val="hell">Hell</button>
+      <button class="chip" data-val="dunkel">Dunkel</button>
+    </div>
+  </section>
+
+  <div class="preview" id="preview"><canvas id="cv" aria-label="Vorschau der Vorlage"></canvas></div>
+
+  <div class="buttons">
+    <button class="btn btn-main" id="btn-save">Bild speichern</button>
+    <button class="btn btn-alt" id="btn-random">Zufall</button>
+  </div>
+
+  <section>
+    <div class="label">Sprüche</div>
+    <div class="chips" id="kat-chips" style="margin-bottom:10px;">
+      <button class="chip on" data-val="alle">Alle</button>
+      <button class="chip" data-val="humor">Humorvoll</button>
+      <button class="chip" data-val="nachdenklich">Zum Nachdenken</button>
+      <button class="chip" data-val="edel">Edel</button>
+    </div>
+    <div class="liste" id="liste"></div>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:10px;">
+    <div class="label">Text anpassen</div>
+    <label class="feld"><span>Zeile 1 (schwarz)</span><input id="f-a"></label>
+    <label class="feld"><span>Zeile 2 (gold, kursiv)</span><input id="f-b"></label>
+    <label class="feld"><span>Kleiner Text darunter (optional)</span><input id="f-c"></label>
+  </section>
+
+  <section style="display:flex;flex-direction:column;gap:10px;">
+    <div class="label">Bildtext für den Post</div>
+    <textarea id="caption"></textarea>
+    <button class="btn btn-alt" id="btn-copy">Bildtext kopieren</button>
+  </section>
+
+  <p class="hinweis">Am Handy öffnet „Bild speichern“ das Teilen-Menü — dort „Bild sichern“ wählen.</p>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// SPRÜCHE — a = schwarze Zeile, b = goldene kursive Zeile, c = kleiner Text
+// ════════════════════════════════════════════
+const SPRUECHE = [
+  // Humorvoll
+  { k:'humor', a:'Wer schön sein will,', b:'muss sitzen bleiben.', c:'Den Rest machen wir.' },
+  { k:'humor', a:'Nur die Spitzen.', b:'Versprochen.', c:'Die berühmtesten Worte im Friseurstuhl.' },
+  { k:'humor', a:'Ein guter Haarschnitt ersetzt', b:'keine Therapie.', c:'Aber er hilft erstaunlich oft.' },
+  { k:'humor', a:'Bad hair day?', b:'Nicht mit uns.', c:'' },
+  { k:'humor', a:'Das Leben ist zu kurz', b:'für langweilige Haare.', c:'' },
+  { k:'humor', a:'Wir schneiden Haare.', b:'Die Geschichten gibt es gratis.', c:'' },
+  { k:'humor', a:'Deine Friseurin weiß mehr', b:'als dein Tagebuch.', c:'Und sie schweigt wie ein Grab.' },
+  { k:'humor', a:'Balayage heißt übersetzt:', b:'Ich sehe ausgeschlafen aus.', c:'Auch wenn ich es nicht bin.' },
+  { k:'humor', a:'Graue Haare?', b:'Weisheitssträhnen.', c:'' },
+  { k:'humor', a:'Heute ist ein', b:'Great Hair Day.', c:'Das haben wir so beschlossen.' },
+  { k:'humor', a:'Keine Sorge,', b:'Haare wachsen nach.', c:'Bei uns musst du das aber nicht ausprobieren.' },
+  { k:'humor', a:'Kaffee, ein guter Stuhl', b:'und eine Stunde nur für dich.', c:'Klingt nach Urlaub. Ist dein Termin.' },
+  // Zum Nachdenken
+  { k:'nachdenklich', a:'Ein neuer Schnitt verändert nicht dich.', b:'Nur, wie du dich siehst.', c:'' },
+  { k:'nachdenklich', a:'Manchmal braucht es nur', b:'einen neuen Anfang.', c:'Und manchmal beginnt er beim Haar.' },
+  { k:'nachdenklich', a:'Sorgfalt sieht man nicht sofort.', b:'Man spürt sie jeden Morgen.', c:'' },
+  { k:'nachdenklich', a:'Du musst niemandem gefallen.', b:'Nur dir selbst im Spiegel.', c:'' },
+  { k:'nachdenklich', a:'Echte Schönheit', b:'braucht keinen Filter.', c:'' },
+  { k:'nachdenklich', a:'Nimm dir Zeit.', b:'Du bist es wert.', c:'' },
+  { k:'nachdenklich', a:'Veränderung beginnt', b:'oft ganz oben.', c:'' },
+  { k:'nachdenklich', a:'Nicht jeder Tag ist gut.', b:'Aber jeder kann ein Great Hair Day sein.', c:'' },
+  { k:'nachdenklich', a:'Zuhören ist', b:'der erste Schnitt.', c:'Alles andere kommt danach.' },
+  // Edel
+  { k:'edel', a:'Weniger Haarspray.', b:'Mehr Haltung.', c:'' },
+  { k:'edel', a:'Stil ist, was bleibt,', b:'wenn der Trend geht.', c:'' },
+  { k:'edel', a:'Handwerk mit Haltung.', b:'Seit 1993.', c:'' },
+  { k:'edel', a:'Gutes Haar', b:'ist kein Zufall.', c:'Es ist Handwerk, Zeit und Sorgfalt.' },
+  { k:'edel', a:'Die schönste Frisur', b:'ist die, in der du dich wohlfühlst.', c:'' },
+  { k:'edel', a:'Glanz ist', b:'eine Frage der Pflege.', c:'' },
+  { k:'edel', a:'Leise Eleganz', b:'spricht für sich.', c:'' },
+];
+
+// Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
+const FRAGEN = {
+  humor: 'Welcher Satz ist dir im Friseurstuhl schon einmal herausgerutscht?',
+  nachdenklich: 'Wann hast du dir zuletzt eine Stunde nur für dich genommen?',
+  edel: 'Was macht für dich einen guten Haartag aus?',
+  eigen: 'Wie geht es dir mit diesem Satz?'
+};
+
+const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920] };
+const STILE = {
+  hell:   { bg:'#F5F0EA', ink:'#1C1B19', gold:'#8A7346', sub:'#45433F' },
+  dunkel: { bg:'#1C1B19', ink:'#F5F0EA', gold:'#C8A96E', sub:'#CFC8BC' }
+};
+
+const state = { format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor' };
+const cv = document.getElementById('cv');
+const ctx = cv.getContext('2d');
+
+// ── Text-Helfer ──
+function wrap(text, font, maxW) {
+  ctx.font = font;
+  const words = String(text).trim().split(/\s+/).filter(Boolean);
+  const lines = [];
+  let line = '';
+  for (const w of words) {
+    const test = line ? line + ' ' + w : w;
+    if (ctx.measureText(test).width > maxW && line) { lines.push(line); line = w; }
+    else line = test;
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+// Wie wrap(), aber mit möglichst gleich langen Zeilen — kein einzelnes Wort allein in der letzten Zeile
+function wrapBalanced(text, font, maxW) {
+  const lines = wrap(text, font, maxW);
+  if (lines.length < 2) return lines;
+  const spread = ls => {
+    const ws = ls.map(l => ctx.measureText(l).width);
+    return Math.max(...ws) - Math.min(...ws);
+  };
+  let best = lines, bestSpread = spread(lines);
+  for (let w = maxW - 10; w > maxW * 0.4; w -= 10) {
+    const test = wrap(text, font, w);
+    if (test.length !== lines.length) break;
+    const sp = spread(test);
+    if (sp < bestSpread) { best = test; bestSpread = sp; }
+  }
+  return best;
+}
+function spacedText(text, x, y, spacing) {
+  // Zentrierter Text mit Buchstabenabstand (funktioniert auch ohne ctx.letterSpacing)
+  const chars = [...text];
+  const total = chars.reduce((s, ch) => s + ctx.measureText(ch).width, 0) + spacing * (chars.length - 1);
+  let cx = x - total / 2;
+  ctx.textAlign = 'left';
+  for (const ch of chars) { ctx.fillText(ch, cx, y); cx += ctx.measureText(ch).width + spacing; }
+  ctx.textAlign = 'center';
+}
+
+// ── Zeichnen ──
+function draw() {
+  const [W, H] = FORMATE[state.format];
+  const s = STILE[state.stil];
+  const story = state.format === 'story';
+  cv.width = W; cv.height = H;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+
+  ctx.fillStyle = s.bg;
+  ctx.fillRect(0, 0, W, H);
+
+  // Wortmarke oben: Great Hair.Day (Punkt in Gold)
+  const markY = story ? 330 : (state.format === 'quadrat' ? 150 : 170);
+  ctx.font = '700 64px "Playfair Display", Georgia, serif';
+  const p1 = 'Great Hair', p2 = '.', p3 = 'Day';
+  const w1 = ctx.measureText(p1).width, w2 = ctx.measureText(p2).width, w3 = ctx.measureText(p3).width;
+  let x = W / 2 - (w1 + w2 + w3) / 2;
+  ctx.textAlign = 'left';
+  ctx.fillStyle = s.ink; ctx.fillText(p1, x, markY); x += w1;
+  ctx.fillStyle = s.gold; ctx.fillText(p2, x, markY); x += w2;
+  ctx.fillStyle = s.ink; ctx.fillText(p3, x, markY);
+  ctx.textAlign = 'center';
+
+  // Goldene Linie
+  const ruleY = markY + 72;
+  ctx.fillStyle = s.gold;
+  ctx.fillRect(W / 2 - 95, ruleY, 190, 4);
+
+  // Fuß: "A great hair day" — steht auf jeder Vorlage
+  const footY = story ? H - 360 : H - 120;
+  ctx.fillStyle = s.gold;
+  ctx.font = '500 34px Inter, system-ui, sans-serif';
+  spacedText('A great hair day', W / 2, footY, 4);
+  ctx.fillRect(W / 2 - 30, footY - 70, 60, 2);
+
+  // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
+  const maxW = W - 200;
+  const areaTop = ruleY + 60;
+  const areaBottom = footY - 120;
+  const areaH = areaBottom - areaTop;
+  const subFont = `400 ${story ? 42 : 38}px Inter, system-ui, sans-serif`;
+  const subLH = story ? 62 : 56;
+  let size = story ? 108 : 100;
+  let la, lb, lc, lh, blockH;
+  for (; size >= 48; size -= 4) {
+    lh = size * 1.2;
+    la = state.a ? wrapBalanced(state.a, `700 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
+    lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
+    lc = state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
+    blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0);
+    // Kein einzelnes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
+    const einsam = [la, lb].some(ls => ls.length > 1 && ls.some(l => !l.includes(' ')));
+    if (blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
+  }
+  let y = areaTop + (areaH - blockH) / 2 + size * 0.95;
+
+  ctx.fillStyle = s.ink;
+  ctx.font = `700 ${size}px "Playfair Display", Georgia, serif`;
+  for (const l of la) { ctx.fillText(l, W / 2, y); y += lh; }
+  ctx.fillStyle = s.gold;
+  ctx.font = `italic 500 ${size}px "Playfair Display", Georgia, serif`;
+  for (const l of lb) { ctx.fillText(l, W / 2, y); y += lh; }
+  if (lc.length) {
+    y += 44 - lh + subLH;
+    ctx.fillStyle = s.sub;
+    ctx.font = subFont;
+    for (const l of lc) { ctx.fillText(l, W / 2, y); y += subLH; }
+  }
+
+  document.getElementById('preview').classList.toggle('story', story);
+}
+
+// ── Bildtext (nach den Schreibregeln: Ich-Form, Frage an Kund:innen, endet mit „Mirjam“) ──
+function updateCaption() {
+  const spruch = [state.a, state.b].filter(Boolean).join(' ');
+  const teile = [spruch];
+  if (state.c) teile.push(state.c);
+  teile.push(FRAGEN[state.k] || FRAGEN.eigen);
+  teile.push('Mirjam');
+  teile.push('#GreatHairDay #Friseur #Wien');
+  document.getElementById('caption').value = teile.join('\n\n');
+}
+
+// ── Auswahl ──
+function waehle(i) {
+  const sp = SPRUECHE[i];
+  state.idx = i; state.a = sp.a; state.b = sp.b; state.c = sp.c; state.k = sp.k;
+  document.getElementById('f-a').value = sp.a;
+  document.getElementById('f-b').value = sp.b;
+  document.getElementById('f-c').value = sp.c;
+  renderListe();
+  draw();
+  updateCaption();
+}
+function renderListe() {
+  const el = document.getElementById('liste');
+  el.innerHTML = '';
+  SPRUECHE.forEach((sp, i) => {
+    if (state.kat !== 'alle' && sp.k !== state.kat) return;
+    const b = document.createElement('button');
+    b.className = 'spruch' + (i === state.idx ? ' on' : '');
+    const t1 = document.createElement('b'); t1.textContent = sp.a + ' ';
+    const t2 = document.createElement('i'); t2.textContent = sp.b;
+    b.append(t1, t2);
+    b.onclick = () => waehle(i);
+    el.appendChild(b);
+  });
+}
+function chipGroup(id, key, after) {
+  document.querySelectorAll(`#${id} .chip`).forEach(c => c.onclick = () => {
+    document.querySelectorAll(`#${id} .chip`).forEach(x => x.classList.remove('on'));
+    c.classList.add('on');
+    state[key] = c.dataset.val;
+    after();
+  });
+}
+chipGroup('format-chips', 'format', draw);
+chipGroup('stil-chips', 'stil', draw);
+chipGroup('kat-chips', 'kat', renderListe);
+
+['a', 'b', 'c'].forEach(f => document.getElementById('f-' + f).addEventListener('input', e => {
+  state[f] = e.target.value;
+  state.k = 'eigen';
+  state.idx = -1;
+  renderListe();
+  draw();
+  updateCaption();
+}));
+
+document.getElementById('btn-random').onclick = () => {
+  const pool = SPRUECHE.map((sp, i) => i).filter(i => state.kat === 'alle' || SPRUECHE[i].k === state.kat);
+  const andere = pool.filter(i => i !== state.idx);
+  const liste = andere.length ? andere : pool;
+  waehle(liste[Math.floor(Math.random() * liste.length)]);
+};
+
+document.getElementById('btn-save').onclick = () => {
+  const name = `great-hair-day-${state.format}-${state.stil}.png`;
+  cv.toBlob(async blob => {
+    if (!blob) return;
+    const file = new File([blob], name, { type: 'image/png' });
+    // Am Handy: Teilen-Menü (dort „Bild sichern“); am Computer: normaler Download
+    if (navigator.canShare && navigator.canShare({ files: [file] }) && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+      try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+    }
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = name;
+    a.click();
+    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+  }, 'image/png');
+};
+
+document.getElementById('btn-copy').onclick = e => {
+  const btn = e.target;
+  navigator.clipboard.writeText(document.getElementById('caption').value).then(() => {
+    btn.textContent = 'Kopiert ✓';
+    setTimeout(() => { btn.textContent = 'Bildtext kopieren'; }, 2000);
+  });
+};
+
+// Erst zeichnen, wenn die Schriften geladen sind — sonst landet eine Ersatzschrift im Bild
+waehle(0);
+Promise.all([
+  document.fonts.load('700 64px "Playfair Display"'),
+  document.fonts.load('italic 500 64px "Playfair Display"'),
+  document.fonts.load('400 38px Inter'),
+  document.fonts.load('500 34px Inter')
+]).then(draw, draw);
+</script>
+</body>
+</html>

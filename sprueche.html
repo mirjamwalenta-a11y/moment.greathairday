@@ -134,6 +134,18 @@ const SPRUECHE = [
   { k:'humor', a:'Heute ist ein', b:'Great Hair Day.', c:'Das haben wir so beschlossen.' },
   { k:'humor', a:'Keine Sorge,', b:'Haare wachsen nach.', c:'Bei uns musst du das aber nicht ausprobieren.' },
   { k:'humor', a:'Kaffee, ein guter Stuhl', b:'und eine Stunde nur für dich.', c:'Klingt nach Urlaub. Ist dein Termin.' },
+  { k:'humor', a:'Mein Haar hat heute', b:'eigene Pläne.', c:'Wir verhandeln gern für dich.' },
+  { k:'humor', a:'Föhnen ist Training', b:'für die Arme.', c:'Heute übernehmen wir das für dich.' },
+  { k:'humor', a:'Ich wollte nur', b:'ein bisschen was ändern.', c:'Sagte sie. Und ging als neuer Mensch.' },
+  { k:'humor', a:'Pony schneiden um Mitternacht?', b:'Lieber nicht.', c:'Komm am nächsten Morgen zu uns.' },
+  { k:'humor', a:'Mein Spiegel und ich', b:'sind wieder Freunde.', c:'' },
+  { k:'humor', a:'Haare sind wie das Wetter:', b:'Alle reden darüber.', c:'Wir machen etwas daraus.' },
+  { k:'humor', a:'Selbst geschnitten?', b:'Wir sehen das.', c:'Und helfen gern.' },
+  { k:'humor', a:'Kein Filter nötig.', b:'Nur ein guter Termin.', c:'' },
+  { k:'humor', a:'Ich brauche keinen Urlaub.', b:'Ich brauche einen Friseurtermin.', c:'' },
+  { k:'humor', a:'Messy Bun?', b:'Nur mit Absicht.', c:'' },
+  { k:'humor', a:'Trockenshampoo', b:'ist kein Lebensstil.', c:'Aber ein guter Notfallplan.' },
+  { k:'humor', a:'Glatt, lockig, wild:', b:'Wir mögen sie alle.', c:'' },
   // Zum Nachdenken
   { k:'nachdenklich', a:'Ein neuer Schnitt verändert nicht dich.', b:'Nur, wie du dich siehst.', c:'' },
   { k:'nachdenklich', a:'Manchmal braucht es nur', b:'einen neuen Anfang.', c:'Und manchmal beginnt er beim Haar.' },
@@ -144,6 +156,16 @@ const SPRUECHE = [
   { k:'nachdenklich', a:'Veränderung beginnt', b:'oft ganz oben.', c:'' },
   { k:'nachdenklich', a:'Nicht jeder Tag ist gut.', b:'Aber jeder kann ein Great Hair Day sein.', c:'' },
   { k:'nachdenklich', a:'Zuhören ist', b:'der erste Schnitt.', c:'Alles andere kommt danach.' },
+  { k:'nachdenklich', a:'Sich Zeit für sich zu nehmen,', b:'ist kein Luxus.', c:'' },
+  { k:'nachdenklich', a:'Manche Veränderungen sieht man.', b:'Die schönsten spürt man.', c:'' },
+  { k:'nachdenklich', a:'Du bist nie zu alt', b:'für etwas Neues.', c:'' },
+  { k:'nachdenklich', a:'Graue Haare erzählen', b:'Geschichten.', c:'Wir helfen, sie schön zu erzählen.' },
+  { k:'nachdenklich', a:'Wer gut zu sich ist,', b:'sieht es auch.', c:'' },
+  { k:'nachdenklich', a:'Ein Blick in den Spiegel', b:'kann den ganzen Tag verändern.', c:'' },
+  { k:'nachdenklich', a:'Mut beginnt manchmal', b:'mit fünf Zentimetern.', c:'' },
+  { k:'nachdenklich', a:'Du musst nicht perfekt sein.', b:'Nur du selbst.', c:'' },
+  { k:'nachdenklich', a:'Eine Stunde Ruhe', b:'ist manchmal das schönste Geschenk.', c:'' },
+  { k:'nachdenklich', a:'Loslassen', b:'kann sehr leicht aussehen.', c:'Besonders nach einem guten Schnitt.' },
   // Edel
   { k:'edel', a:'Weniger Haarspray.', b:'Mehr Haltung.', c:'' },
   { k:'edel', a:'Stil ist, was bleibt,', b:'wenn der Trend geht.', c:'' },
@@ -152,6 +174,15 @@ const SPRUECHE = [
   { k:'edel', a:'Die schönste Frisur', b:'ist die, in der du dich wohlfühlst.', c:'' },
   { k:'edel', a:'Glanz ist', b:'eine Frage der Pflege.', c:'' },
   { k:'edel', a:'Leise Eleganz', b:'spricht für sich.', c:'' },
+  { k:'edel', a:'Qualität flüstert.', b:'Sie schreit nie.', c:'' },
+  { k:'edel', a:'Zeitlos', b:'ist der schönste Trend.', c:'' },
+  { k:'edel', a:'Präzision', b:'ist unsere Handschrift.', c:'' },
+  { k:'edel', a:'Schlicht.', b:'Aber mit Absicht.', c:'' },
+  { k:'edel', a:'Farbe ist Gefühl,', b:'sichtbar gemacht.', c:'' },
+  { k:'edel', a:'Ein Schnitt.', b:'Eine Haltung.', c:'' },
+  { k:'edel', a:'Gute Pflege', b:'beginnt mit Zuhören.', c:'' },
+  { k:'edel', a:'Details', b:'machen den Unterschied.', c:'' },
+  { k:'edel', a:'Wiener Handwerk,', b:'mit ruhiger Hand.', c:'' },
 ];
 
 // Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
@@ -264,8 +295,12 @@ function draw() {
     lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
     lc = state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
     blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0);
-    // Kein einzelnes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
-    const einsam = [la, lb].some(ls => ls.length > 1 && ls.some(l => !l.includes(' ')));
+    // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
+    const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
+      if (l.includes(' ')) return false;
+      ctx.font = `${st}${wt} ${size}px "Playfair Display", Georgia, serif`;
+      return ctx.measureText(l).width < maxW * 0.4;
+    }));
     if (blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
   }
   let y = areaTop + (areaH - blockH) / 2 + size * 0.95;

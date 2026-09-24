@@ -2526,19 +2526,31 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
 - Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
     hinweis: `Dieser Text ist für Mirjams eigenen Salon "A Great Hair Day".`,
     kontakt: `Kontakt/Ort, wenn passend: Rechte Wienzeile 47, 1050 Wien, Telefon 01 5863130.`,
-    abschluss: `Wenn ein Abschluss-Satz passt: "A great hair day." oder die Adresse.`
+    abschluss: `Wenn ein Abschluss-Satz passt: "A great hair day." oder die Adresse.`,
+    reichweite: `Reichweite (Instagram/Facebook):
+- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1–2 passende Suchbegriffe natürlich in einen Satz ein, z.B. "in unserem Salon in Wien-Margareten", "Friseur in 1050 Wien" und die konkrete Leistung, wenn sie zum Moment passt (Balayage, Strähnen, Haarschnitt, Herrenschnitt, Farbe, Hochsteckfrisur, Haarverlängerung, Brow & Lash Lifting, Make-up). Nie als Aufzählung, nie gezwungen.
+- Online-Terminbuchung (für Link-Sticker): https://stylisten.eu/pranz#online-buchung
+- Standort-Tag: A Great Hair Day, Wien`,
+    standort: 'A Great Hair Day, Wien'
   },
   haarnetzwerk: {
     label: '🤝 Haarnetzwerk',
     persona: `Mirjam Walenta ist Mitglied & stellvertretende Obfrau beim Haarnetzwerk, einem Branchennetzwerk für Friseurinnen & Friseure in Österreich. Das Haarnetzwerk veranstaltet Events für Friseurunternehmer:innen, deren Mitarbeiter:innen und Kund:innen.`,
     hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — wie von einer Kollegin im Vorstand, nicht wie Werbung für einen einzelnen Betrieb.`,
     kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
-    abschluss: `Erfinde keinen festen Abschluss-Satz mit Adresse — falls ein Abschluss passt, bleibt er allgemein auf das Haarnetzwerk bezogen.`
+    abschluss: `Erfinde keinen festen Abschluss-Satz mit Adresse — falls ein Abschluss passt, bleibt er allgemein auf das Haarnetzwerk bezogen.`,
+    reichweite: `Reichweite (Instagram/Facebook):
+- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen". KEINE Begriffe oder Adressen von Mirjams Salon.
+- Link-Sticker nur, wenn im eingegebenen Text ein Link steht; sonst keinen erfinden.`,
+    standort: ''
   }
 };
 function kontextTeil(kontext) {
   const k = KONTEXT_INFO[kontext] || KONTEXT_INFO.salon;
   return `${k.persona}\n\n${k.hinweis}\n\n${k.kontakt}`;
+}
+function reichweiteTeil(kontext) {
+  return (KONTEXT_INFO[kontext] || KONTEXT_INFO.salon).reichweite;
 }
 let tabNavVisible = false;
 
@@ -3395,12 +3407,14 @@ ${kontextTeil(kontext)}
 
 Mirjams Stimme: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
 
+${reichweiteTeil(kontext)}
+
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Eröffnungssatz → 2–3 kurze Absätze → 1 Schlusssatz mit Haltung. KEIN CTA.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text in Mirjams Stimme. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – in Mirjams ruhiger Stimme, kein Clickbait. → 2–3 kurze Absätze → Schluss mit leiser Einladung zum Mitmachen: eine echte Frage an die Leser:innen ODER ein Grund, den Post zu speichern oder jemandem zu schicken (z.B. „Merk dir das für deinen nächsten Termin.“). Kein Verkaufs-CTA, kein „Jetzt buchen“.
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, Mirjams Tonalität.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
-- "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '5–7 relevante Hashtags als String, immer mit #GreatHairDay #Wien, Rest auf Deutsch/Englisch je nach Zielgruppe'}.
+- "hashtags": ${kanal === 'facebook' ? '1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "#GreatHairDay"' : '3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), immer mit #GreatHairDay #Wien, Rest passend zum Thema'}.
 
 Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
 
@@ -3489,7 +3503,9 @@ async function generatePost() {
 
   document.getElementById('post-text-main').textContent = postText;
   document.getElementById('post-bild-hint').innerHTML = `<strong>Bildidee:</strong> ${bildMap[ton] || bildMap.nahbar}`;
-  document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${ctaMap[wer] || ctaMap.kundinnen}`;
+  const standortTag = (KONTEXT_INFO[kontext] || KONTEXT_INFO.salon).standort;
+  document.getElementById('post-cta-hint').innerHTML = `<strong>CTA:</strong> ${ctaMap[wer] || ctaMap.kundinnen}` +
+    (standortTag ? `<br><strong>Standort markieren:</strong> ${standortTag}` : '');
   document.getElementById('post-result').style.display = 'block';
   setKiBadge('post-ki-badge', istKi);
   updateCharCount('post-text-main', 'post-char');
@@ -3694,6 +3710,7 @@ Regeln:
 - 2–4 Sätze, nie länger
 - Bei negativer/gemischter Bewertung: nie rechtfertigen oder widersprechen, sondern ernst nehmen und zu einem persönlichen Gespräch einladen (Telefon 01 5863130)
 - Bei positiver Bewertung: konkret auf etwas Genanntes eingehen, nicht generisch bleiben
+- Wenn die Bewertung eine Leistung nennt (z.B. Balayage, Haarschnitt, Farbe), diese Leistung in der Antwort natürlich wiederholen – das hilft bei der Google-Suche. Nie Begriffe hineinstopfen, die nicht in der Bewertung vorkommen.
 
 Antworte NUR mit dem fertigen Antworttext. Kein JSON, kein Markdown, keine Anführungszeichen drumherum.`;
 
@@ -4048,10 +4065,16 @@ Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 - "text": der Text für diesen Frame (kurz, 1–3 Sätze, Mirjams Stimme: ruhig, echt, klar, gehoben)
 - "tip": ein konkreter visueller Hinweis (was man zeigen/fotografieren könnte)
 - "overlay": Sehr kurzer Overlay-Text für diesen Frame (max 4–5 Wörter direkt aufs Bild/Video), oder leer ""
-- "sticker": Konkreter Sticker-Vorschlag nur wenn passend (z.B. "Umfrage: Stimmt ihr zu?", "Frage: Was wünscht ihr euch?", "Quiz: Was war es?"), sonst leer ""
+- "sticker": Konkreter Sticker-Vorschlag mit Typ und Text (z.B. "Umfrage: Kürzer oder länger?", "Frage: Was wünscht ihr euch?", "Quiz: Was war es?", "Emoji-Slider: Wie sehr gefällt dir das Ergebnis?"), sonst leer ""
 
 Stimmung: ${moodMap[mood] || 'emotional und nah'}
 Ziel: ${zielMap[ziel] || 'Vertrauen aufbauen'}
+
+Reichweite für Storys:
+- Frame 1 muss in unter 2 Sekunden neugierig machen (Gesicht, Ergebnis oder offene Frage) – sonst wird weggewischt.
+- Mindestens 1 Frame (am besten Frame 2 oder 3) hat einen Mitmach-Sticker (Umfrage, Quiz, Frage oder Emoji-Slider). Wer mitmacht, bekommt die nächsten Storys eher angezeigt.
+${ziel === 'termin' && kontext !== 'haarnetzwerk' ? '- Der letzte Frame hat einen Link-Sticker zur Online-Terminbuchung: "Link: Termin buchen → https://stylisten.eu/pranz#online-buchung".' : ''}
+${reichweiteTeil(kontext)}
 
 Mirjams Sprache: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze. ${KONTEXT_INFO[kontext]?.abschluss || KONTEXT_INFO.salon.abschluss}
 
@@ -5599,8 +5622,14 @@ Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Obj
   - "action": Was gezeigt/gefilmt wird (1 klarer Satz)
   - "text": Text-Overlay oder gesprochener Text für diese Szene (max 6 Wörter, oder leer "")
   - "tip": Konkreter Kamera-/Regie-Hinweis (1 Satz)
-- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter)
-- "hashtags": 6–8 Hashtags passend zum Ziel
+- "caption": Fertige Instagram-Caption in Mirjams Stimme (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage oder einem Grund zum Speichern/Teilen.
+- "hashtags": 3–5 Hashtags passend zum Ziel
+
+Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht folgen):
+- Die erste Szene (0–2 Sek) zeigt sofort das Spannendste: Ergebnis, Verwandlung oder eine Frage als Text-Overlay. Keine Einleitung, kein Logo am Anfang.
+- Jede Szene hat ein kurzes Text-Overlay, weil viele ohne Ton schauen.
+- Der "tip" der letzten Szene erwähnt: Als „Test-Reel“ posten (wird zuerst nur Nicht-Follower:innen gezeigt), wenn das Ziel neue Menschen erreichen soll.
+${reichweiteTeil(kontext)}
 
 Ziel: ${zielMap[ziel]}
 Anzahl Szenen: ${laenge === '15' ? '4–5' : laenge === '30' ? '6–7' : '8–10'} Szenen

@@ -96,6 +96,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="humor">Humorvoll</button>
       <button class="chip" data-val="nachdenklich">Zum Nachdenken</button>
       <button class="chip" data-val="edel">Edel</button>
+      <button class="chip" data-val="maenner">Für Männer</button>
     </div>
     <div class="liste" id="liste"></div>
   </section>
@@ -183,6 +184,37 @@ const SPRUECHE = [
   { k:'edel', a:'Gute Pflege', b:'beginnt mit Zuhören.', c:'' },
   { k:'edel', a:'Details', b:'machen den Unterschied.', c:'' },
   { k:'edel', a:'Wiener Handwerk,', b:'mit ruhiger Hand.', c:'' },
+  // Für Männer
+  { k:'maenner', a:'Nur kurz nachschneiden.', b:'Sagt er seit drei Monaten.', c:'Wir freuen uns trotzdem.' },
+  { k:'maenner', a:'Männer reden nicht über Gefühle.', b:'Außer beim Friseur.', c:'' },
+  { k:'maenner', a:'Geheimratsecken?', b:'Wir nennen das Charakter.', c:'' },
+  { k:'maenner', a:'Er sagt, er braucht nichts.', b:'Dann schaut er in den Spiegel.', c:'' },
+  { k:'maenner', a:'Bart ab?', b:'Das besprechen wir in Ruhe.', c:'Vorher. Nicht nachher.' },
+  { k:'maenner', a:'Ein Mann, ein Plan:', b:'Der Nacken muss sauber sein.', c:'' },
+  { k:'maenner', a:'Ein guter Bart', b:'braucht mehr als Geduld.', c:'Er braucht eine ruhige Hand.' },
+  { k:'maenner', a:'Hinter jedem gepflegten Mann', b:'steht ein guter Termin.', c:'' },
+  { k:'maenner', a:'Frisch geschnitten', b:'ist jeder Montag leichter.', c:'' },
+  { k:'maenner', a:'Weniger Worte.', b:'Sauberer Schnitt.', c:'' },
+  { k:'maenner', a:'Der beste Anzug', b:'beginnt beim Haarschnitt.', c:'' },
+  { k:'maenner', a:'Grau steht dir.', b:'Wir sorgen dafür, dass es so bleibt.', c:'' },
+  { k:'maenner', a:'Gepflegt sein', b:'ist kein Frauenthema.', c:'' },
+  { k:'maenner', a:'Auch Männer dürfen', b:'sich Zeit für sich nehmen.', c:'' },
+  { k:'maenner', a:'Kurz und klar.', b:'Aber mit Sorgfalt.', c:'' },
+  { k:'maenner', a:'Stil ist keine Frage', b:'des Alters.', c:'' },
+  { k:'maenner', a:'Einmal wie immer?', b:'Sehr gern.', c:'Und vielleicht ein kleines bisschen besser.' },
+  { k:'maenner', a:'Barthaare im Waschbecken?', b:'Ab jetzt bei uns.', c:'Deine Mitbewohner:innen danken dir.' },
+  { k:'maenner', a:'Sechs Wochen seit dem letzten Schnitt?', b:'Dein Nacken hat es bemerkt.', c:'' },
+  { k:'maenner', a:'Wir stellen keine Fragen.', b:'Außer: Wie kurz?', c:'' },
+  { k:'maenner', a:'Heute ohne Kappe.', b:'Endlich.', c:'' },
+  { k:'maenner', a:'Er wollte nur die Seiten kürzer.', b:'Jetzt fragt er nach dem Produkt.', c:'' },
+  { k:'maenner', a:'Ein Fade ist kein Zufall.', b:'Er ist Millimeterarbeit.', c:'' },
+  { k:'maenner', a:'Vor wichtigen Tagen', b:'kommt der Schnitt zuerst.', c:'Bewerbung, Hochzeit, erstes Date.' },
+  { k:'maenner', a:'Ein Schnitt, der sitzt,', b:'braucht keine Erklärung.', c:'' },
+  { k:'maenner', a:'Gepflegt', b:'ist das neue Lässig.', c:'' },
+  { k:'maenner', a:'Was du im Spiegel siehst,', b:'nimmst du mit in den Tag.', c:'' },
+  { k:'maenner', a:'Nicht jeder Mann braucht Haarspray.', b:'Aber jeder einen guten Schnitt.', c:'' },
+  { k:'maenner', a:'Papas Frisur ist peinlich?', b:'Nicht mehr lange.', c:'' },
+  { k:'maenner', a:'Ruhe, ein guter Stuhl', b:'und niemand fragt nach der Arbeit.', c:'Außer, du willst darüber reden.' },
 ];
 
 // Schlussfrage für den Bildtext — richtet sich immer an Kund:innen
@@ -190,6 +222,7 @@ const FRAGEN = {
   humor: 'Welcher Satz ist dir im Friseurstuhl schon einmal herausgerutscht?',
   nachdenklich: 'Wann hast du dir zuletzt eine Stunde nur für dich genommen?',
   edel: 'Was macht für dich einen guten Haartag aus?',
+  maenner: 'Wie oft gönnst du dir einen frischen Schnitt?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -328,7 +361,7 @@ function updateCaption() {
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || FRAGEN.eigen);
   teile.push('Mirjam');
-  teile.push('#GreatHairDay #Friseur #Wien');
+  teile.push('#GreatHairDay #Friseur #Wien' + (state.k === 'maenner' ? ' #Herrenschnitt' : ''));
   document.getElementById('caption').value = teile.join('\n\n');
 }
 

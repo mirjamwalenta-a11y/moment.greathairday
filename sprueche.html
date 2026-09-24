@@ -92,12 +92,14 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </section>
 
   <section id="qr-section">
-    <div class="label">QR-Code zur Google-Bewertung</div>
+    <div class="label">Google-Bewertung</div>
     <div class="chips" id="qr-chips">
       <button class="chip on" data-val="aus">Aus</button>
-      <button class="chip" data-val="an">An</button>
+      <button class="chip" data-val="qr">QR-Code</button>
+      <button class="chip" data-val="sticker">Link-Sticker (Story)</button>
     </div>
-    <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span>Link hinter dem QR-Code</span><input id="f-qr" inputmode="url"></label>
+    <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span>Bewertungslink</span><input id="f-qr" inputmode="url"></label>
+    <p class="hinweis" id="sticker-hinweis" style="display:none;margin-top:8px;text-align:left;">In Instagram: Story hochladen → Sticker → „Link“ → Bewertungslink einfügen → Sticker auf die markierte Stelle legen.</p>
   </section>
 
   <section id="team-section" style="display:none;">
@@ -552,7 +554,7 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD };
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 
@@ -628,7 +630,32 @@ function qrMatrix(text) {
 
 // Bewertungs-Block unten: QR-Code auf heller Karte, Sterne, Hinweis, Link.
 // Gibt die Oberkante zurück, damit der Spruch darüber Platz findet.
+// Story-Variante ohne QR-Code: markierte Stelle für den Instagram-Link-Sticker
+function drawStickerPlatz(W, footY, s) {
+  const pillW = 560, pillH = 128;
+  const pillB = footY - 95;
+  const pillT = pillB - pillH;
+  roundRectPath(W / 2 - pillW / 2, pillT, pillW, pillH, pillH / 2);
+  ctx.save();
+  ctx.setLineDash([14, 12]);
+  ctx.lineWidth = 3;
+  ctx.strokeStyle = s.gold;
+  ctx.globalAlpha = 0.55;
+  ctx.stroke();
+  ctx.restore();
+
+  const hinweisY = pillT - 48;
+  ctx.fillStyle = s.sub;
+  ctx.font = '400 38px Inter, system-ui, sans-serif';
+  ctx.fillText('Link antippen und bewerten', W / 2, hinweisY);
+  const sternY = hinweisY - 82;
+  ctx.fillStyle = s.gold;
+  for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+  return sternY - 40;
+}
+
 function drawBewertung(W, footY, s) {
+  if (state.sticker) return drawStickerPlatz(W, footY, s);
   const fmt = state.format;
   const qr = qrMatrix(state.qrLink);
   if (!qr) return null;
@@ -779,7 +806,10 @@ function updateCaption() {
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
-  if (state.qr && state.marke !== 'haarnetzwerk') teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
+  if (state.qr && state.marke !== 'haarnetzwerk') {
+    // Beim Link-Sticker den vollständigen Link, damit er direkt in den Sticker kopiert werden kann
+    teile.push(state.sticker ? 'Link für den Sticker: ' + state.qrLink : 'Zur Bewertung: ' + linkKurz(state.qrLink));
+  }
   // Unterschrift: Salon-Posts von Mirjam, Vereins-Posts vom Haarnetzwerk
   teile.push(state.marke === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam');
   const extra = {
@@ -840,13 +870,28 @@ function setMarke(m) {
   if (m === 'haarnetzwerk') setQr(false);
 }
 document.querySelectorAll('#marke-chips .chip').forEach(c => c.onclick = () => { setMarke(c.dataset.val); draw(); updateCaption(); });
-function setQr(an) {
-  state.qr = an && state.marke !== 'haarnetzwerk';
-  an = state.qr;
-  document.querySelectorAll('#qr-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === (an ? 'an' : 'aus')));
-  document.getElementById('qr-link-feld').style.display = an ? 'flex' : 'none';
+// Bewertungs-Block: 'aus' | 'qr' (QR-Code) | 'sticker' (Platz für den Instagram-Link-Sticker)
+function setBewertung(modus) {
+  if (state.marke === 'haarnetzwerk') modus = 'aus';
+  state.qr = modus !== 'aus';
+  state.sticker = modus === 'sticker';
+  document.querySelectorAll('#qr-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === modus));
+  document.getElementById('qr-link-feld').style.display = state.qr ? 'flex' : 'none';
+  document.getElementById('sticker-hinweis').style.display = state.sticker ? 'block' : 'none';
 }
-document.querySelectorAll('#qr-chips .chip').forEach(c => c.onclick = () => { setQr(c.dataset.val === 'an'); draw(); updateCaption(); });
+const bewertungsModus = () => !state.qr ? 'aus' : state.sticker ? 'sticker' : 'qr';
+// Kurzform für bestehende Aufrufe: an = QR-Code, aber einen gewählten Link-Sticker beibehalten
+function setQr(an) { setBewertung(an ? (state.sticker ? 'sticker' : 'qr') : 'aus'); }
+document.querySelectorAll('#qr-chips .chip').forEach(c => c.onclick = () => {
+  setBewertung(c.dataset.val);
+  // Link-Sticker gibt es nur in Instagram-Storys
+  if (c.dataset.val === 'sticker' && state.format !== 'story') {
+    state.format = 'story';
+    document.querySelectorAll('#format-chips .chip').forEach(x => x.classList.toggle('on', x.dataset.val === 'story'));
+  }
+  draw();
+  updateCaption();
+});
 document.getElementById('f-qr').value = QR_LINK_STANDARD;
 document.getElementById('f-qr').addEventListener('input', e => {
   state.qrLink = e.target.value.trim() || QR_LINK_STANDARD;
@@ -858,9 +903,9 @@ function setName(name) {
   state.name = name || TEAM[0];
   document.querySelectorAll('#team-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === state.name));
   if (state.idx >= 0 && hatName(SPRUECHE[state.idx])) {
-    const qr = state.qr;
+    const modus = bewertungsModus();
     waehle(state.idx);
-    setQr(qr);
+    setBewertung(modus);
     draw();
   } else {
     renderListe();

@@ -84,6 +84,14 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </section>
 
   <section>
+    <div class="label">Absender</div>
+    <div class="chips" id="marke-chips">
+      <button class="chip on" data-val="salon">A Great Hair Day</button>
+      <button class="chip" data-val="haarnetzwerk">Haarnetzwerk</button>
+    </div>
+  </section>
+
+  <section id="qr-section">
     <div class="label">QR-Code zur Google-Bewertung</div>
     <div class="chips" id="qr-chips">
       <button class="chip on" data-val="aus">Aus</button>
@@ -119,6 +127,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
       <button class="chip" data-val="stylist">Stylist:in gesucht</button>
+      <button class="chip" data-val="haarnetzwerk">Haarnetzwerk</button>
     </div>
     <div class="liste" id="liste"></div>
   </section>
@@ -312,6 +321,29 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
   { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
   { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
+  // Haarnetzwerk — Verein für Friseurunternehmer:innen (eigener Absender, nie mit dem Salon vermischen)
+  { k:'haarnetzwerk', a:'Allein schneidet man Haare.', b:'Gemeinsam gestaltet man die Branche.', c:'' },
+  { k:'haarnetzwerk', a:'Konkurrenz war gestern.', b:'Heute ist Netzwerk.', c:'' },
+  { k:'haarnetzwerk', a:'Kolleg:innen statt Konkurrenz.', b:'Das ist das Haarnetzwerk.', c:'' },
+  { k:'haarnetzwerk', a:'Starke Salons', b:'brauchen starke Verbindungen.', c:'' },
+  { k:'haarnetzwerk', a:'Unternehmer:in sein', b:'muss nicht einsam sein.', c:'' },
+  { k:'haarnetzwerk', a:'Jeder Salon ist anders.', b:'Die Herausforderungen sind es oft nicht.', c:'' },
+  { k:'haarnetzwerk', a:'Wer sich vernetzt,', b:'wächst nicht allein.', c:'' },
+  { k:'haarnetzwerk', a:'Ein Handwerk.', b:'Eine Stimme.', c:'' },
+  { k:'haarnetzwerk', a:'Zusammenhalt', b:'steht uns gut.', c:'' },
+  { k:'haarnetzwerk', a:'Voneinander lernen,', b:'miteinander wachsen.', c:'' },
+  { k:'haarnetzwerk', a:'Gute Ideen', b:'entstehen selten allein.', c:'' },
+  { k:'haarnetzwerk', a:'Von Salon zu Salon,', b:'von Mensch zu Mensch.', c:'' },
+  { k:'haarnetzwerk', a:'Wir führen Salons.', b:'Und wir halten zusammen.', c:'' },
+  { k:'haarnetzwerk', a:'Fachkräfte, Lehrlinge, Preise:', b:'Wir reden darüber. Gemeinsam.', c:'' },
+  { k:'haarnetzwerk', a:'Eine Branche, viele Talente,', b:'ein Netzwerk.', c:'' },
+  { k:'haarnetzwerk', a:'Wir teilen Wissen,', b:'nicht Kundschaft.', c:'' },
+  { k:'haarnetzwerk', a:'Unsere Branche braucht Nachwuchs.', b:'Und Menschen, die ihn fördern.', c:'' },
+  { k:'haarnetzwerk', a:'Hinter jedem Salon', b:'steht ein Mensch mit Mut.', c:'' },
+  { k:'haarnetzwerk', a:'Das nächste Treffen', b:'wartet schon auf dich.', c:'Komm vorbei und lern uns kennen.' },
+  { k:'haarnetzwerk', a:'Du führst einen Salon?', b:'Dann gehörst du zu uns.', c:'Werde Mitglied im Haarnetzwerk.' },
+  { k:'haarnetzwerk', a:'Gemeinsam sind wir mehr', b:'als die Summe unserer Scheren.', c:'' },
+  { k:'haarnetzwerk', a:'Probleme teilen', b:'macht sie kleiner.', c:'Erfolge teilen macht sie größer.' },
   // Lehrling gesucht
   { k:'lehrstelle', a:'Lehrstelle frei.', b:'Talent gesucht.', c:'Werde Friseur:in bei uns in Wien.' },
   { k:'lehrstelle', a:'Schule fertig?', b:'Dann fang bei uns an.', c:'Wir bilden Friseur:innen aus.' },
@@ -481,6 +513,7 @@ const FRAGEN = {
   kinder: 'Wie war der erste Friseurbesuch bei euch zu Hause?',
   anlaesse: 'Welcher besondere Tag steht bei dir als Nächstes an?',
   bewertung: 'Wie war dein letzter Besuch bei uns?',
+  haarnetzwerk: 'Was wünschst du dir von einem Netzwerk für Friseurunternehmer:innen?',
   lehrstelle: 'Kennst du jemanden, der gerade eine Lehrstelle sucht? Teile den Beitrag gern.',
   stylist: 'Kennst du jemanden, der gut zu unserem Team passen würde? Teile den Beitrag gern.',
   leistungen: 'Welche Behandlung wolltest du schon immer einmal ausprobieren?',
@@ -494,13 +527,32 @@ const STILE = {
   hell:   { bg:'#F5F0EA', ink:'#1C1B19', gold:'#8A7346', sub:'#45433F' },
   dunkel: { bg:'#1C1B19', ink:'#F5F0EA', gold:'#C8A96E', sub:'#CFC8BC' }
 };
+// Haarnetzwerk: schwarz-weiß wie das Logo, eigener Absender
+const STILE_HN = {
+  hell:   { bg:'#FFFFFF', ink:'#111111', gold:'#6F6F6F', sub:'#444444' },
+  dunkel: { bg:'#111111', ink:'#F5F5F5', gold:'#B8B8B8', sub:'#CFCFCF' }
+};
+const HN_LOGO = new Image();
+HN_LOGO.onload = () => draw();
+HN_LOGO.src = 'logo-haarnetzwerk.png';
+// Logo in der passenden Farbe (schwarz auf hell, weiß auf dunkel)
+function logoEingefaerbt(farbe) {
+  const off = document.createElement('canvas');
+  off.width = HN_LOGO.naturalWidth; off.height = HN_LOGO.naturalHeight;
+  const o = off.getContext('2d');
+  o.drawImage(HN_LOGO, 0, 0);
+  o.globalCompositeOperation = 'source-in';
+  o.fillStyle = farbe;
+  o.fillRect(0, 0, off.width, off.height);
+  return off;
+}
 
 // Team für die Namen-Sprüche bei „Bewerte uns“
 const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, qrLink:QR_LINK_STANDARD };
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 
@@ -624,7 +676,8 @@ function drawBewertung(W, footY, s) {
 // ── Zeichnen ──
 function draw() {
   const [W, H] = FORMATE[state.format];
-  const s = STILE[state.stil];
+  const hn = state.marke === 'haarnetzwerk';
+  const s = (hn ? STILE_HN : STILE)[state.stil];
   const story = state.format === 'story';
   const a4 = state.format === 'a4';
   cv.width = W; cv.height = H;
@@ -634,31 +687,41 @@ function draw() {
   ctx.fillStyle = s.bg;
   ctx.fillRect(0, 0, W, H);
 
-  // Wortmarke oben: Great Hair.Day (Punkt in Gold)
+  // Kopf: Wortmarke Great Hair.Day (Punkt in Gold) — oder Haarnetzwerk-Logo
   const markY = story ? 330 : a4 ? 230 : (state.format === 'quadrat' ? 150 : 170);
-  ctx.font = '700 64px "Playfair Display", Georgia, serif';
-  const p1 = 'Great Hair', p2 = '.', p3 = 'Day';
-  const w1 = ctx.measureText(p1).width, w2 = ctx.measureText(p2).width, w3 = ctx.measureText(p3).width;
-  let x = W / 2 - (w1 + w2 + w3) / 2;
-  ctx.textAlign = 'left';
-  ctx.fillStyle = s.ink; ctx.fillText(p1, x, markY); x += w1;
-  ctx.fillStyle = s.gold; ctx.fillText(p2, x, markY); x += w2;
-  ctx.fillStyle = s.ink; ctx.fillText(p3, x, markY);
-  ctx.textAlign = 'center';
+  let ruleY = markY + 72;
+  if (hn) {
+    const logoH = { post:210, quadrat:180, story:260, a4:260 }[state.format];
+    const logoTop = markY - (story || a4 ? 150 : 120);
+    if (HN_LOGO.complete && HN_LOGO.naturalWidth) {
+      const logoW = logoH * HN_LOGO.naturalWidth / HN_LOGO.naturalHeight;
+      ctx.drawImage(logoEingefaerbt(s.ink), W / 2 - logoW / 2, logoTop, logoW, logoH);
+    }
+    ruleY = logoTop + logoH;
+  } else {
+    ctx.font = '700 64px "Playfair Display", Georgia, serif';
+    const p1 = 'Great Hair', p2 = '.', p3 = 'Day';
+    const w1 = ctx.measureText(p1).width, w2 = ctx.measureText(p2).width, w3 = ctx.measureText(p3).width;
+    let x = W / 2 - (w1 + w2 + w3) / 2;
+    ctx.textAlign = 'left';
+    ctx.fillStyle = s.ink; ctx.fillText(p1, x, markY); x += w1;
+    ctx.fillStyle = s.gold; ctx.fillText(p2, x, markY); x += w2;
+    ctx.fillStyle = s.ink; ctx.fillText(p3, x, markY);
+    ctx.textAlign = 'center';
 
-  // Goldene Linie
-  const ruleY = markY + 72;
-  ctx.fillStyle = s.gold;
-  ctx.fillRect(W / 2 - 95, ruleY, 190, 4);
+    // Goldene Linie
+    ctx.fillStyle = s.gold;
+    ctx.fillRect(W / 2 - 95, ruleY, 190, 4);
+  }
 
-  // Fuß: "A great hair day" — steht auf jeder Vorlage
+  // Fuß: "A great hair day" steht auf jeder Salon-Vorlage (beim Haarnetzwerk: "Haarnetzwerk")
   const footY = story ? H - 360 : a4 ? H - 170 : H - 120;
   ctx.fillStyle = s.gold;
   ctx.font = '500 34px Inter, system-ui, sans-serif';
-  spacedText('A great hair day', W / 2, footY, 4);
+  spacedText(hn ? 'Haarnetzwerk' : 'A great hair day', W / 2, footY, 4);
 
-  // Optional: QR-Code zur Bewertung — sonst kleine goldene Linie über dem Fuß
-  const qrTop = state.qr ? drawBewertung(W, footY, s) : null;
+  // Optional: QR-Code zur Bewertung (nur Salon) — sonst kleine Linie über dem Fuß
+  const qrTop = state.qr && !hn ? drawBewertung(W, footY, s) : null;
   if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
 
   // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
@@ -683,7 +746,10 @@ function draw() {
         ctx.font = `${st}${wt} ${size}px "Playfair Display", Georgia, serif`;
         return ctx.measureText(l).width < maxW * 0.4;
       }));
-      if (blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
+      // Sehr lange Einzelwörter (z. B. „Friseurunternehmer:innen“) dürfen nicht über den Rand ragen
+      const passt = [[la, `700 ${size}px "Playfair Display", Georgia, serif`], [lb, `italic 500 ${size}px "Playfair Display", Georgia, serif`]]
+        .every(([ls, font]) => { ctx.font = font; return ls.every(l => ctx.measureText(l).width <= maxW + 20); });
+      if (passt && blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
     }
   };
   layout(true);
@@ -712,8 +778,8 @@ function updateCaption() {
   const spruch = [state.a, state.b].filter(Boolean).join(' ');
   const teile = [spruch];
   if (state.c) teile.push(state.c);
-  teile.push(FRAGEN[state.k] || (state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
-  if (state.qr) teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
+  teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
+  if (state.qr && state.marke !== 'haarnetzwerk') teile.push('Zur Bewertung: ' + linkKurz(state.qrLink));
   teile.push('Mirjam');
   const extra = {
     maenner:'#Herrenschnitt',
@@ -722,7 +788,10 @@ function updateCaption() {
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';
   const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
-  teile.push(['#GreatHairDay #Friseur #Wien', extra, eigene].filter(Boolean).join(' '));
+  // Haarnetzwerk: keine Salon-Hashtags (Salon und Verein nicht vermischen)
+  teile.push(state.marke === 'haarnetzwerk'
+    ? '#Haarnetzwerk #Friseurunternehmer #Friseurbranche #Österreich'
+    : ['#GreatHairDay #Friseur #Wien', extra, eigene].filter(Boolean).join(' '));
   document.getElementById('caption').value = teile.join('\n\n');
 }
 
@@ -731,6 +800,7 @@ function waehle(i) {
   const sp = SPRUECHE[i];
   state.idx = i; state.a = mitName(sp.a); state.b = mitName(sp.b); state.c = mitName(sp.c); state.k = sp.k;
   document.getElementById('team-section').style.display = hatName(sp) ? 'block' : 'none';
+  setMarke(sp.k === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon');
   setQr(sp.k === 'bewertung');
   document.getElementById('f-a').value = state.a;
   document.getElementById('f-b').value = state.b;
@@ -761,8 +831,17 @@ function chipGroup(id, key, after) {
     after();
   });
 }
+function setMarke(m) {
+  state.marke = m;
+  document.querySelectorAll('#marke-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === m));
+  // QR-Code zur Salon-Bewertung gibt es nur beim Salon
+  document.getElementById('qr-section').style.display = m === 'haarnetzwerk' ? 'none' : 'block';
+  if (m === 'haarnetzwerk') setQr(false);
+}
+document.querySelectorAll('#marke-chips .chip').forEach(c => c.onclick = () => { setMarke(c.dataset.val); draw(); updateCaption(); });
 function setQr(an) {
-  state.qr = an;
+  state.qr = an && state.marke !== 'haarnetzwerk';
+  an = state.qr;
   document.querySelectorAll('#qr-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === (an ? 'an' : 'aus')));
   document.getElementById('qr-link-feld').style.display = an ? 'flex' : 'none';
 }
@@ -816,7 +895,7 @@ document.getElementById('btn-random').onclick = () => {
 };
 
 document.getElementById('btn-save').onclick = () => {
-  const name = `great-hair-day-${state.format}-${state.stil}.png`;
+  const name = `${state.marke === 'haarnetzwerk' ? 'haarnetzwerk' : 'great-hair-day'}-${state.format}-${state.stil}.png`;
   cv.toBlob(async blob => {
     if (!blob) return;
     const file = new File([blob], name, { type: 'image/png' });

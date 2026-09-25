@@ -236,7 +236,16 @@ function teileText(t) {
   if (m) return [m[1].trim(), m[2].trim()];
   const w = t.split(/\s+/);
   if (w.length < 2) return [t, ''];
-  const h = Math.ceil(w.length / 2);
+  // Natürliche Trennstelle nahe der Mitte: nach einem Komma oder vor „bei“, „auf“, „für“ … — nicht mitten in einem Namen
+  const mitte = t.length / 2;
+  const WOERTER = ['bei', 'auf', 'für', 'mit', 'im', 'in', 'zum', 'zur', 'und', 'von', 'ab', 'gegen', 'ohne'];
+  let best = -1, bestAbstand = Infinity, pos = 0;
+  for (let i = 1; i < w.length; i++) {
+    pos += w[i - 1].length + 1;
+    const gut = /,$/.test(w[i - 1]) || WOERTER.includes(w[i].toLowerCase());
+    if (gut && Math.abs(pos - mitte) < bestAbstand && i >= 2 && w.length - i >= 2) { best = i; bestAbstand = Math.abs(pos - mitte); }
+  }
+  const h = best > 0 && bestAbstand < t.length * 0.3 ? best : Math.ceil(w.length / 2);
   return [w.slice(0, h).join(' '), w.slice(h).join(' ')];
 }
 
@@ -1444,10 +1453,12 @@ document.getElementById('btn-zeigen').onclick = () => {
   ], () => setTimeout(() => URL.revokeObjectURL(url), 1000));
 };
 
-// ── Varianten rendern: dieselbe Vorlage in anderem Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
-function renderVariante(stil, format) {
-  const alt = { stil: state.stil, format: state.format };
-  state.stil = stil; state.format = format;
+// ── Varianten rendern: dieselbe Vorlage mit anderem Text/Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
+const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format'];
+function renderMit(werte) {
+  const alt = {};
+  FOLIEN_FELDER.forEach(k => { alt[k] = state[k]; });
+  Object.assign(state, werte);
   draw();
   const c = document.createElement('canvas');
   c.width = cv.width; c.height = cv.height;
@@ -1456,6 +1467,7 @@ function renderVariante(stil, format) {
   draw();
   return c;
 }
+function renderVariante(stil, format) { return renderMit({ stil, format }); }
 
 // „Hell + Dunkel speichern“: beide Varianten im gewählten Format auf einmal (z. B. für ein Instagram-Reel mit Musik-Vorlage)
 document.getElementById('btn-beide').onclick = async () => {
@@ -1467,9 +1479,45 @@ document.getElementById('btn-beide').onclick = async () => {
   if (!(await dateienTeilen(files))) dateienHerunterladen(files);
 };
 
-// „Reel erstellen“: 8-Sekunden-Video 9:16 — helle Variante, sanfter Übergang zur dunklen, leichter Zoom.
-// Musik kommt in Instagram dazu (dort lizenziert). Video entsteht im Browser (MediaRecorder), nichts wird hochgeladen.
-const REEL_SEK = 8, REEL_FPS = 30;
+// ── Reel mit mehreren Folien: der Text wird automatisch auf passende Vorlagen verteilt, abwechselnd hell/dunkel ──
+// Aktion:      1. Überzeile + Titel + zweite Zeile · 2. Beschreibung · 3. Rabatt-Kreis (+ Gültigkeit) · 4. Abschluss
+// Eigener Text: Sätze auf Folien verteilt (je Folie erster Teil schwarz/weiß, Rest gold) · Abschluss
+// Spruch:      derselbe Spruch hell und dunkel
+const ABSCHLUSS = { ueber:'', a:'Wir freuen uns', b:'auf deinen Besuch.', c:'Rechte Wienzeile 47, 1050 Wien · 01 586 31 30', rabatt:'', gueltig:'' };
+function satzFolien(text) {
+  const saetze = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+/).filter(Boolean);
+  const gruppen = [];
+  for (const satz of saetze) {
+    const letzte = gruppen[gruppen.length - 1];
+    // Kurze Sätze zusammen auf eine Folie, damit keine Folie nur aus zwei Wörtern besteht
+    if (letzte && letzte.length < 50 && (letzte + ' ' + satz).length <= 110) gruppen[gruppen.length - 1] = letzte + ' ' + satz;
+    else gruppen.push(satz);
+  }
+  return gruppen.map(g => { const [a, b] = teileText(g); return { ueber:'', a, b, c:'', rabatt:'', gueltig:'' }; });
+}
+function reelFolien() {
+  const leer = { ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'' };
+  let folien;
+  if (AKTION) {
+    folien = [{ ...leer, ueber: state.ueber, a: state.a, b: state.b }];
+    if (state.c.trim()) { const [a, b] = teileText(state.c.trim()); folien.push({ ...leer, a, b }); }
+    if (rabattText()) folien.push({ ...leer, ueber: state.ueber, rabatt: state.rabatt, gueltig: state.gueltig });
+    else if (state.gueltig.trim()) folien[folien.length - 1].gueltig = state.gueltig;
+    folien.push({ ...ABSCHLUSS });
+  } else if (RAHMEN) {
+    folien = satzFolien([state.a, state.b, state.c].filter(Boolean).join(' '));
+    folien.push({ ...ABSCHLUSS });
+  } else {
+    folien = [{ a: state.a, b: state.b, c: state.c }];
+  }
+  folien = folien.filter(f => f.a || f.b || f.c || f.rabatt || f.ueber);
+  // Abwechselnd hell/dunkel, beginnend mit dem gewählten Stil; eine einzelne Folie wird hell und dunkel gezeigt
+  const stile = state.stil === 'dunkel' ? ['dunkel', 'hell'] : ['hell', 'dunkel'];
+  if (folien.length === 1) folien = [folien[0], folien[0]];
+  return folien.map((f, i) => ({ ...f, stil: stile[i % 2], format: 'story' }));
+}
+
+const REEL_FPS = 30, FOLIE_SEK = 2.8, UEBERGANG_SEK = 0.7;
 function reelFormat() {
   if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
   const kandidaten = [
@@ -1478,14 +1526,9 @@ function reelFormat() {
   ];
   return kandidaten.find(([m]) => MediaRecorder.isTypeSupported(m)) || null;
 }
-document.getElementById('btn-reel').onclick = () => {
-  const fmt = reelFormat();
-  if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Hell + Dunkel speichern“ und daraus in Instagram ein Reel machen.'); return; }
-  const btn = document.getElementById('btn-reel');
-  if (btn.disabled) return;
-  btn.disabled = true;
-  const hell = renderVariante('hell', 'story'), dunkel = renderVariante('dunkel', 'story');
-  const W = hell.width, H = hell.height;
+// Video aufnehmen: jede Folie FOLIE_SEK lang mit leichtem Zoom, weiche Überblendung zur nächsten
+function reelAufnehmen(bilder, fmt, fortschritt, fertig) {
+  const W = bilder[0].width, H = bilder[0].height, n = bilder.length, gesamt = n * FOLIE_SEK;
   const rc = document.createElement('canvas');
   rc.width = W; rc.height = H;
   const rx = rc.getContext('2d');
@@ -1495,47 +1538,74 @@ document.getElementById('btn-reel').onclick = () => {
     rx.drawImage(quelle, (W - w) / 2, (H - h) / 2, w, h);
     rx.globalAlpha = 1;
   };
-  // Ablauf: 0–3,5 s hell, 3,5–4,7 s Überblendung, danach dunkel; durchgehend langsamer Zoom 100 % → 106 %
   const frame = t => {
-    const zoom = 1 + 0.06 * Math.min(t / REEL_SEK, 1);
-    const mix = Math.min(Math.max((t - 3.5) / 1.2, 0), 1);
-    const weich = mix * mix * (3 - 2 * mix);
+    const i = Math.min(Math.floor(t / FOLIE_SEK), n - 1), lokal = t - i * FOLIE_SEK;
     rx.fillStyle = STILE.hell.bg; rx.fillRect(0, 0, W, H);
-    bild(hell, zoom, 1);
-    if (weich > 0) bild(dunkel, zoom, weich);
+    bild(bilder[i], 1 + 0.05 * (lokal / FOLIE_SEK), 1);
+    if (i < n - 1) {
+      const mix = Math.min(Math.max((lokal - (FOLIE_SEK - UEBERGANG_SEK)) / UEBERGANG_SEK, 0), 1);
+      const weich = mix * mix * (3 - 2 * mix);
+      if (weich > 0) bild(bilder[i + 1], 1 + 0.05 * Math.max(lokal - FOLIE_SEK, 0) / FOLIE_SEK, weich);
+    }
   };
   frame(0);
   const stream = rc.captureStream(REEL_FPS);
   const rec = new MediaRecorder(stream, { mimeType: fmt[0], videoBitsPerSecond: 8000000 });
   const teile = [];
   rec.ondataavailable = e => { if (e.data && e.data.size) teile.push(e.data); };
-  rec.onstop = () => {
-    stream.getTracks().forEach(tr => tr.stop());
-    btn.disabled = false;
-    btn.textContent = 'Reel erstellen';
-    const typ = fmt[0].split(';')[0];
-    const blob = new Blob(teile, { type: typ });
-    const name = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '') + `-reel.${fmt[1]}`;
-    const file = new File([blob], name, { type: typ });
-    const url = URL.createObjectURL(blob);
-    const video = document.createElement('video');
-    video.src = url; video.controls = true; video.loop = true; video.muted = true; video.playsInline = true; video.autoplay = true;
-    video.style.cssText = 'max-width:100%;max-height:calc(100vh - 260px);border-radius:6px;background:#000;';
-    const inhalt = [ebenenText('Dein Reel ist fertig. Speichern und in Instagram als Reel oder Story hochladen — Musik dort hinzufügen.'), video,
-      ebenenKnopf('Reel speichern', async () => { if (!(await dateienTeilen([file]))) bildHerunterladen(blob, name); }, true)];
-    if (fmt[1] === 'webm') inhalt.push(ebenenText('Hinweis: Dieser Browser erstellt nur WebM-Videos, die Instagram oft nicht annimmt. Am Handy mit Chrome oder Safari entsteht ein MP4.'));
-    zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
-  };
+  rec.onstop = () => { stream.getTracks().forEach(tr => tr.stop()); fertig(new Blob(teile, { type: fmt[0].split(';')[0] })); };
   rec.start(250);
   const start = performance.now();
   const schritt = () => {
     const t = (performance.now() - start) / 1000;
-    frame(Math.min(t, REEL_SEK));
-    btn.textContent = `Reel wird erstellt … ${Math.min(Math.ceil(t), REEL_SEK)}/${REEL_SEK} s`;
-    if (t < REEL_SEK) requestAnimationFrame(schritt);
+    frame(Math.min(t, gesamt));
+    fortschritt(Math.min(Math.ceil(t), Math.ceil(gesamt)), Math.ceil(gesamt));
+    if (t < gesamt) requestAnimationFrame(schritt);
     else setTimeout(() => rec.stop(), 150);
   };
   requestAnimationFrame(schritt);
+}
+function zeigeReel(blob, fmt) {
+  const typ = blob.type;
+  const name = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '') + `-reel.${fmt[1]}`;
+  const file = new File([blob], name, { type: typ });
+  const url = URL.createObjectURL(blob);
+  const video = document.createElement('video');
+  video.src = url; video.controls = true; video.loop = true; video.muted = true; video.playsInline = true; video.autoplay = true;
+  video.style.cssText = 'max-width:100%;max-height:calc(100vh - 260px);border-radius:6px;background:#000;';
+  const inhalt = [ebenenText('Dein Reel ist fertig. Speichern und in Instagram als Reel oder Story hochladen — Musik dort hinzufügen.'), video,
+    ebenenKnopf('Reel speichern', async () => { if (!(await dateienTeilen([file]))) bildHerunterladen(blob, name); }, true)];
+  if (fmt[1] === 'webm') inhalt.push(ebenenText('Hinweis: Dieser Browser erstellt nur WebM-Videos, die Instagram oft nicht annimmt. Am Handy mit Chrome oder Safari entsteht ein MP4.'));
+  zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
+}
+
+// „Reel erstellen“: zuerst die Folien zeigen, dann auf Knopfdruck das Video aufnehmen
+document.getElementById('btn-reel').onclick = () => {
+  const fmt = reelFormat();
+  if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Hell + Dunkel speichern“ und daraus in Instagram ein Reel machen.'); return; }
+  const folien = reelFolien();
+  const bilder = folien.map(f => renderMit(f));
+  const leiste = document.createElement('div');
+  leiste.style.cssText = 'display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:4px 2px;';
+  bilder.forEach((c, i) => {
+    const vorschau = document.createElement('img');
+    vorschau.src = c.toDataURL('image/jpeg', 0.7);
+    vorschau.alt = `Folie ${i + 1}`;
+    vorschau.style.cssText = 'height:min(46vh,340px);border-radius:6px;flex:none;';
+    leiste.appendChild(vorschau);
+  });
+  const sek = Math.ceil(bilder.length * FOLIE_SEK);
+  const los = ebenenKnopf(`Reel erstellen (${bilder.length} Folien, ${sek} s)`, () => {
+    if (los.disabled) return;
+    los.disabled = true;
+    reelAufnehmen(bilder, fmt,
+      (t, ges) => { los.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
+      blob => { document.querySelector('[role=dialog]')?.remove(); zeigeReel(blob, fmt); });
+  }, true);
+  zeigeEbene([
+    ebenenText(`Dein Text, automatisch auf ${bilder.length} Folien verteilt, abwechselnd hell und dunkel. Etwas ändern? Schließen, oben den Text anpassen und nochmal „Reel erstellen“.`),
+    leiste, los,
+  ]);
 };
 
 document.getElementById('btn-copy').onclick = e => {

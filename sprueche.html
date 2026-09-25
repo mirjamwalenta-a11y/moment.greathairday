@@ -1341,11 +1341,16 @@ function bildHerunterladen(blob, name) {
   a.click();
   setTimeout(() => URL.revokeObjectURL(a.href), 1000);
 }
+// Handy oder Tablet? Tablets geben sich oft als Computer aus (iPad seit iPadOS 13, Samsung-Tablets in der
+// Desktop-Ansicht) — daher zusätzlich nach Touchscreen fragen, sonst gibt es dort nur einen Download statt „In Galerie speichern“.
+function istTouchGeraet() {
+  return /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent) || navigator.maxTouchPoints > 1;
+}
 async function bildTeilen(blob) {
   const name = bildDateiname();
   const file = new File([blob], name, { type: 'image/png' });
   // Am Handy: Teilen-Menü (dort „Bild sichern“ bzw. „In Galerie speichern“); am Computer: normaler Download
-  if (navigator.canShare && navigator.canShare({ files: [file] }) && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+  if (navigator.canShare && navigator.canShare({ files: [file] }) && istTouchGeraet()) {
     try { await navigator.share({ files: [file] }); return; }
     catch (e) {
       if (e.name === 'AbortError') return;

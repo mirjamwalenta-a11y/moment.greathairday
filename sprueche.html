@@ -92,14 +92,19 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </section>
 
   <section id="qr-section">
-    <div class="label" id="qr-titel">Google-Bewertung</div>
+    <div class="label">QR-Code oder Link</div>
+    <div class="chips" id="zweck-chips" style="margin-bottom:10px;">
+      <button class="chip on" data-val="bewertung">Google-Bewertung</button>
+      <button class="chip" data-val="lehrstelle">Bewerbung Lehrling</button>
+      <button class="chip" data-val="stylist">Bewerbung Stylist:in</button>
+    </div>
     <div class="chips" id="qr-chips">
       <button class="chip on" data-val="aus">Aus</button>
       <button class="chip" data-val="qr">QR-Code</button>
       <button class="chip" data-val="sticker">Link-Sticker (Story)</button>
     </div>
     <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span id="qr-link-label">Bewertungslink</span><input id="f-qr" inputmode="url"></label>
-    <p class="hinweis" id="sticker-hinweis" style="display:none;margin-top:8px;text-align:left;">In Instagram: Story hochladen → Sticker → „Link“ → Bewertungslink einfügen → Sticker auf die markierte Stelle legen.</p>
+    <p class="hinweis" id="sticker-hinweis" style="display:none;margin-top:8px;text-align:left;">In Instagram: Story hochladen → Sticker → „Link“ → <span id="sticker-link-name">Bewertungslink</span> einfügen → Sticker auf die markierte Stelle legen.</p>
   </section>
 
   <section id="team-section" style="display:none;">
@@ -770,8 +775,8 @@ const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
 const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung' };
-// QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'bewerbung' (Karriere-Seite)
-const istBewerbung = () => state.qrZweck === 'bewerbung';
+// QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'lehrstelle' | 'stylist' (Bewerbung über die Karriere-Seite)
+const istBewerbung = () => state.qrZweck !== 'bewertung';
 const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
@@ -1035,7 +1040,9 @@ function updateCaption() {
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
-  if (GEHALT[state.k]) teile.push(GEHALT[state.k]);
+  // Gehaltszeile bei Stellen-Sprüchen und bei jedem Spruch mit Bewerbungs-QR
+  const gehalt = GEHALT[state.k] || (state.qr && istBewerbung() ? GEHALT[state.qrZweck] : '');
+  if (gehalt) teile.push(gehalt);
   if (state.qr && state.marke !== 'haarnetzwerk') {
     // Beim Link-Sticker den vollständigen Link, damit er direkt in den Sticker kopiert werden kann
     teile.push(state.sticker
@@ -1070,7 +1077,8 @@ function waehle(i) {
   state.idx = i; state.a = mitName(sp.a); state.b = mitName(sp.b); state.c = mitName(sp.c); state.k = sp.k;
   document.getElementById('team-section').style.display = hatName(sp) ? 'block' : 'none';
   setMarke(sp.k === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon');
-  setQrZweck(['lehrstelle', 'stylist'].includes(sp.k) ? 'bewerbung' : 'bewertung');
+  // Stellen- und Bewertungs-Sprüche wählen den passenden QR-Zweck; bei allen anderen bleibt die eigene Wahl
+  if (['bewertung', 'lehrstelle', 'stylist'].includes(sp.k)) setQrZweck(sp.k);
   setQr(['bewertung', 'lehrstelle', 'stylist'].includes(sp.k));
   document.getElementById('f-a').value = state.a;
   document.getElementById('f-b').value = state.b;
@@ -1120,10 +1128,19 @@ function setBewertung(modus) {
 }
 function setQrZweck(zweck) {
   state.qrZweck = zweck;
-  document.getElementById('qr-titel').textContent = zweck === 'bewerbung' ? 'Bewerbung (QR-Code oder Link)' : 'Google-Bewertung';
-  document.getElementById('qr-link-label').textContent = zweck === 'bewerbung' ? 'Bewerbungslink' : 'Bewertungslink';
+  document.querySelectorAll('#zweck-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === zweck));
+  const linkName = istBewerbung() ? 'Bewerbungslink' : 'Bewertungslink';
+  document.getElementById('qr-link-label').textContent = linkName;
+  document.getElementById('sticker-link-name').textContent = linkName;
   document.getElementById('f-qr').value = aktiverLink();
 }
+document.querySelectorAll('#zweck-chips .chip').forEach(c => c.onclick = () => {
+  setQrZweck(c.dataset.val);
+  // Wer einen Zweck wählt, will den QR-Code sehen
+  if (!state.qr) setQr(true);
+  draw();
+  updateCaption();
+});
 const bewertungsModus = () => !state.qr ? 'aus' : state.sticker ? 'sticker' : 'qr';
 // Kurzform für bestehende Aufrufe: an = QR-Code, aber einen gewählten Link-Sticker beibehalten
 function setQr(an) { setBewertung(an ? (state.sticker ? 'sticker' : 'qr') : 'aus'); }

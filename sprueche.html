@@ -130,6 +130,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="kopfhaut">Kopfhaut</button>
       <button class="chip" data-val="haartyp">Haartypen</button>
       <button class="chip" data-val="beruf">Über Friseur:innen</button>
+      <button class="chip" data-val="team">Team</button>
       <button class="chip" data-val="styling">Styling</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
@@ -545,6 +546,27 @@ const SPRUECHE = [
   { k:'beruf', a:'Wir hören zu,', b:'auch wenn der Föhn läuft.', c:'' },
   { k:'beruf', a:'Wir verändern keine Menschen.', b:'Wir helfen ihnen, sich selbst zu sehen.', c:'' },
   { k:'beruf', a:'Ein Beruf mit Schere,', b:'aber ohne Schablone.', c:'Jeder Kopf ist anders.' },
+  // Team — neutral, ohne Namen
+  { k:'team', a:'Ein Salon ist nur so gut', b:'wie sein Team.', c:'' },
+  { k:'team', a:'Hand in Hand,', b:'Kopf für Kopf.', c:'' },
+  { k:'team', a:'Wir lachen viel.', b:'Und arbeiten trotzdem genau.', c:'' },
+  { k:'team', a:'Jede und jeder hat eine Stärke.', b:'Zusammen haben wir alle.', c:'' },
+  { k:'team', a:'Der Kaffee am Morgen,', b:'das Lachen am Abend.', c:'Dazwischen: gute Arbeit.' },
+  { k:'team', a:'Wir feiern die Erfolge der anderen', b:'wie unsere eigenen.', c:'' },
+  { k:'team', a:'Ein Blick genügt,', b:'und wir wissen, wer übernimmt.', c:'' },
+  { k:'team', a:'Wir sind verschieden.', b:'Genau das macht uns stark.', c:'' },
+  { k:'team', a:'Gute Laune', b:'ist bei uns Teamsache.', c:'' },
+  { k:'team', a:'Hinter jedem Great Hair Day', b:'steht ein ganzes Team.', c:'' },
+  { k:'team', a:'Wir lernen voneinander.', b:'Jeden Tag.', c:'' },
+  { k:'team', a:'Einer föhnt, eine färbt,', b:'alle helfen.', c:'' },
+  { k:'team', a:'Ein eingespieltes Team', b:'erkennt man an der Ruhe im Salon.', c:'' },
+  { k:'team', a:'Wenn es stressig wird,', b:'halten wir zusammen.', c:'' },
+  { k:'team', a:'Verschiedene Hände,', b:'eine Haltung.', c:'' },
+  { k:'team', a:'Zusammen arbeiten,', b:'zusammen wachsen.', c:'' },
+  { k:'team', a:'Danke, Team.', b:'Ohne euch wäre das alles nichts.', c:'' },
+  { k:'team', a:'Unser bestes Werkzeug?', b:'Das Team.', c:'' },
+  { k:'team', a:'Allein ist man schnell.', b:'Zusammen kommt man weiter.', c:'' },
+  { k:'team', a:'Gute Arbeit ist Teamarbeit.', b:'Auch wenn nur eine Person schneidet.', c:'' },
   // Styling — vor dem Föhnen (Hitzeschutz, Halt, Volumen)
   { k:'styling', a:'Erst schützen,', b:'dann föhnen.', c:'Hitzeschutz ins handtuchtrockene Haar.', h:'#Hitzeschutz #Föhnen' },
   { k:'styling', a:'Hitzeschutz ist wie Sonnencreme,', b:'nur für die Haare.', c:'', h:'#Hitzeschutz' },
@@ -676,6 +698,7 @@ const FRAGEN = {
   kopfhaut: 'Welche Frage zur Kopfhaut wolltest du schon immer einmal stellen?',
   haartyp: 'Welcher Haartyp bist du: Locken, glatt oder irgendwo dazwischen?',
   beruf: 'Was schätzt du an deiner Friseurin oder deinem Friseur am meisten?',
+  team: 'Was fällt dir an unserem Team als Erstes auf?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -977,6 +1000,7 @@ function updateCaption() {
     kopfhaut:'#Kopfhaut #Kopfhautpflege',
     haartyp:'#Haarpflege',
     beruf:'#Friseurhandwerk #Friseurleben',
+    team:'#Team #Friseurteam',
     lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';

@@ -2272,6 +2272,9 @@ function tabnavScrollBy(direction) {
     <div class="card-body">Füge Text, Foto oder Video-Overlay hinzu. Der Rahmen macht es sofort erkennbar als deins.</div>
   </div>
 
+  <!-- Zweite Vorlage: Text im Stil der Spruch-Vorlagen (Schwarz/Weiß + Gold), öffnet sprueche.html im Rahmen-Modus -->
+  <button class="btn-zu-rahmen" style="margin:0 0 12px;" onclick="oeffneSpruchStil()">✨ Text im Spruch-Stil gestalten</button>
+
   <div class="rahmen-mode-row">
     <button class="rahmen-mode-btn on" id="mode-btn-text" onclick="setRahmenMode('text')">
       <span>✍️</span><span>Text</span>
@@ -4405,6 +4408,12 @@ function useSpruche(encoded) {
   const text = typeof encoded === 'string' && encoded.includes('%') ? decodeURIComponent(encoded) : encoded;
   document.getElementById('rahmen-text-input').value = text;
   updateRahmenText();
+}
+
+// Öffnet die Spruch-Vorlage mit eigenem Text; ein bereits eingegebener Rahmen-Text wird mitgenommen
+function oeffneSpruchStil() {
+  const txt = document.getElementById('rahmen-text-input').value.trim();
+  location.href = 'sprueche.html?rahmen=1' + (txt ? '&text=' + encodeURIComponent(txt) : '');
 }
 
 function setRahmenMode(mode) {

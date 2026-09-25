@@ -62,10 +62,10 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <header>
     <div class="wordmark">Great Hair<span>.</span>Day</div>
     <div class="rule"></div>
-    <p class="intro">Spruch wählen oder selbst schreiben, Format aussuchen, Bild speichern.</p>
+    <p class="intro" id="intro">Spruch wählen oder selbst schreiben, Format aussuchen, Bild speichern.</p>
   </header>
 
-  <section>
+  <section id="format-section">
     <div class="label">Format</div>
     <div class="chips" id="format-chips">
       <button class="chip on" data-val="post">Post 4:5</button>
@@ -83,7 +83,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     </div>
   </section>
 
-  <section>
+  <section id="marke-section">
     <div class="label">Absender</div>
     <div class="chips" id="marke-chips">
       <button class="chip on" data-val="salon">A Great Hair Day</button>
@@ -120,7 +120,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <button class="btn btn-alt" id="btn-random">Zufall</button>
   </div>
 
-  <section>
+  <section id="sprueche-section">
     <div class="label">Sprüche</div>
     <div class="chips" id="kat-chips" style="margin-bottom:10px;">
       <button class="chip on" data-val="alle">Alle</button>
@@ -145,14 +145,14 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <div class="liste" id="liste"></div>
   </section>
 
-  <section style="display:flex;flex-direction:column;gap:10px;">
-    <div class="label">Text anpassen</div>
-    <label class="feld"><span>Zeile 1 (schwarz)</span><input id="f-a"></label>
-    <label class="feld"><span>Zeile 2 (gold, kursiv)</span><input id="f-b"></label>
+  <section id="text-section" style="display:flex;flex-direction:column;gap:10px;">
+    <div class="label" id="text-label">Text anpassen</div>
+    <label class="feld"><span id="f-a-label">Zeile 1 (schwarz)</span><input id="f-a"></label>
+    <label class="feld"><span id="f-b-label">Zeile 2 (gold, kursiv)</span><input id="f-b"></label>
     <label class="feld"><span>Kleiner Text darunter (optional)</span><input id="f-c"></label>
   </section>
 
-  <section style="display:flex;flex-direction:column;gap:10px;">
+  <section id="caption-section" style="display:flex;flex-direction:column;gap:10px;">
     <div class="label">Bildtext für den Post</div>
     <textarea id="caption"></textarea>
     <button class="btn btn-alt" id="btn-copy">Bildtext kopieren</button>
@@ -164,6 +164,38 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 <!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
 <script src="qrcode-generator.js"></script>
 <script>
+// ── Rahmen-Modus: aus der App (Rahmen → „Im Spruch-Stil“) aufgerufen mit ?rahmen=1.
+// Gleicher Look wie die Sprüche, aber nur mit eigenem Text; Sprüche-Liste, QR-Code und Bildtext sind ausgeblendet.
+const URL_PARAMS = new URLSearchParams(location.search);
+const RAHMEN = URL_PARAMS.has('rahmen');
+if (RAHMEN) {
+  ['marke-section', 'qr-section', 'team-section', 'sprueche-section', 'caption-section', 'btn-random']
+    .forEach(id => { document.getElementById(id).style.display = 'none'; });
+  document.getElementById('intro').textContent = 'Eigenen Text eingeben: der erste Teil schwarz (bei Dunkel weiß), der zweite Teil gold. Format und Stil wählen, Bild speichern.';
+  document.getElementById('text-label').textContent = 'Dein Text';
+  document.getElementById('f-a-label').textContent = 'Erster Teil (schwarz, bei Dunkel weiß)';
+  document.getElementById('f-b-label').textContent = 'Zweiter Teil (gold, kursiv)';
+  // Längere Texte: mehrzeilige Felder statt einzeiliger
+  ['f-a', 'f-b'].forEach(id => {
+    const alt = document.getElementById(id);
+    const neu = document.createElement('textarea');
+    neu.id = id; neu.rows = 3; neu.style.minHeight = '0';
+    alt.replaceWith(neu);
+  });
+  // Textfelder ganz nach oben, damit man gleich lostippen kann
+  const text = document.getElementById('text-section');
+  text.parentNode.insertBefore(text, document.getElementById('format-section'));
+}
+// Eingefügten Text in zwei Teile teilen: erster Satz schwarz, der Rest gold (sonst in der Mitte)
+function teileText(t) {
+  const m = t.match(/^([\s\S]+?[.!?…:])\s+([\s\S]+)$/);
+  if (m) return [m[1].trim(), m[2].trim()];
+  const w = t.split(/\s+/);
+  if (w.length < 2) return [t, ''];
+  const h = Math.ceil(w.length / 2);
+  return [w.slice(0, h).join(' '), w.slice(h).join(' ')];
+}
+
 // ════════════════════════════════════════════
 // SPRÜCHE — a = schwarze Zeile, b = goldene kursive Zeile, c = kleiner Text
 // ════════════════════════════════════════════
@@ -995,7 +1027,9 @@ function draw() {
   let size, la, lb, lc, lh, blockH;
   const layout = mitC => {
     size = story || a4 ? 108 : 100;
-    for (; size >= 48; size -= 4) {
+    // Eigene Texte im Rahmen-Modus dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
+    const maxZeilen = RAHMEN ? 12 : 3, minSize = RAHMEN ? 36 : 48;
+    for (; size >= minSize; size -= 4) {
       lh = size * 1.2;
       la = state.a ? wrapBalanced(state.a, `700 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
       lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
@@ -1010,7 +1044,8 @@ function draw() {
       // Sehr lange Einzelwörter (z. B. „Friseurunternehmer:innen“) dürfen nicht über den Rand ragen
       const passt = [[la, `700 ${size}px "Playfair Display", Georgia, serif`], [lb, `italic 500 ${size}px "Playfair Display", Georgia, serif`]]
         .every(([ls, font]) => { ctx.font = font; return ls.every(l => ctx.measureText(l).width <= maxW + 20); });
-      if (passt && blockH <= areaH && la.length <= 3 && lb.length <= 3 && (!einsam || size <= 64)) break;
+      if (passt && blockH <= areaH && la.length <= maxZeilen && lb.length <= maxZeilen && (!einsam || size <= 64)) break;
+      if (RAHMEN && size - 4 < minSize) break;   // kleinste Größe behalten, damit Schrift und Zeilen zusammenpassen
     }
   };
   layout(true);
@@ -1229,7 +1264,20 @@ document.getElementById('btn-copy').onclick = e => {
 };
 
 // Erst zeichnen, wenn die Schriften geladen sind — sonst landet eine Ersatzschrift im Bild
-waehle(0);
+if (RAHMEN) {
+  // Start als Story (wie der bisherige Rahmen); Text aus der App übernehmen (?text=… oder ?a=…&b=…)
+  state.format = 'story';
+  document.querySelectorAll('#format-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'story'));
+  let a = URL_PARAMS.get('a') || '', b = URL_PARAMS.get('b') || '';
+  const t = (URL_PARAMS.get('text') || '').trim();
+  if (t && !a && !b) [a, b] = teileText(t);
+  Object.assign(state, { k:'eigen', idx:-1, a, b, c:'' });
+  document.getElementById('f-a').value = a;
+  document.getElementById('f-b').value = b;
+  draw();
+} else {
+  waehle(0);
+}
 Promise.all([
   document.fonts.load('700 64px "Playfair Display"'),
   document.fonts.load('italic 500 64px "Playfair Display"'),

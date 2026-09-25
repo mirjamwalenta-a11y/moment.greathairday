@@ -141,6 +141,9 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <button class="btn btn-alt" id="btn-random">Zufall</button>
     <button class="btn btn-alt" id="btn-print" style="display:none;">Drucken</button>
   </div>
+  <div class="buttons">
+    <button class="btn btn-alt" id="btn-zeigen">Bild anzeigen</button>
+  </div>
 
   <section id="sprueche-section">
     <div class="label">Sprüche</div>
@@ -180,7 +183,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <button class="btn btn-alt" id="btn-copy">Bildtext kopieren</button>
   </section>
 
-  <p class="hinweis">Am Handy öffnet „Bild speichern“ das Teilen-Menü — dort „Bild sichern“ wählen.</p>
+  <p class="hinweis">Am Handy öffnet „Bild speichern“ das Teilen-Menü — dort „Bild sichern“ wählen. Klappt das nicht (z. B. am Tablet): „Bild anzeigen“, dann lange auf das Bild drücken.</p>
 </div>
 
 <!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
@@ -1369,6 +1372,34 @@ async function bildTeilen(blob) {
 document.getElementById('btn-save').onclick = () => {
   if (fertigesBild) { bildTeilen(fertigesBild); return; }
   cv.toBlob(blob => { if (blob) bildTeilen(blob); }, 'image/png');
+};
+
+// „Bild anzeigen“: das fertige Bild groß über der Seite. Lange darauf drücken → „Bild speichern“ / „Zu Fotos hinzufügen“.
+// Funktioniert in jedem Browser, auch dort, wo das Teilen-Menü keine Galerie anbietet (manche Tablets).
+document.getElementById('btn-zeigen').onclick = () => {
+  const ebene = document.createElement('div');
+  ebene.setAttribute('role', 'dialog');
+  ebene.setAttribute('aria-label', 'Bild zum Speichern');
+  ebene.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(28,27,25,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;';
+  const hinweis = document.createElement('p');
+  hinweis.textContent = 'Lange auf das Bild drücken → „Bild speichern“ bzw. „Zu Fotos hinzufügen“';
+  hinweis.style.cssText = 'color:#F5F0EA;font:500 15px Inter,system-ui,sans-serif;text-align:center;margin:0;max-width:420px;';
+  const img = document.createElement('img');
+  img.src = cv.toDataURL('image/png');
+  img.alt = 'Fertiges Bild';
+  img.style.cssText = 'max-width:100%;max-height:calc(100vh - 150px);object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto;';
+  const zu = document.createElement('button');
+  zu.className = 'btn btn-alt';
+  zu.textContent = 'Schließen';
+  zu.style.cssText = 'flex:none;min-width:160px;';
+  const schliessen = () => { ebene.remove(); document.removeEventListener('keydown', esc); };
+  const esc = e => { if (e.key === 'Escape') schliessen(); };
+  zu.onclick = schliessen;
+  ebene.onclick = e => { if (e.target === ebene) schliessen(); };
+  document.addEventListener('keydown', esc);
+  ebene.append(hinweis, img, zu);
+  document.body.appendChild(ebene);
+  zu.focus();
 };
 
 document.getElementById('btn-copy').onclick = e => {

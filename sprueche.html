@@ -127,6 +127,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="anlaesse">Anlässe</button>
       <button class="chip" data-val="leistungen">Leistungen</button>
       <button class="chip" data-val="pflege">Haarpflege</button>
+      <button class="chip" data-val="styling">Styling</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
       <button class="chip" data-val="stylist">Stylist:in gesucht</button>
@@ -464,6 +465,42 @@ const SPRUECHE = [
   { k:'pflege', a:'Zu Hause pflegen,', b:'bei uns verwöhnen lassen.', c:'' },
   { k:'pflege', a:'Pflegefragen?', b:'Frag uns beim nächsten Termin.', c:'' },
   { k:'pflege', a:'Weniger Hitze,', b:'mehr Geduld.', c:'Deine Haare merken den Unterschied.' },
+  { k:'pflege', a:'Einmal pro Woche', b:'eine Pflegekur für die Längen.', c:'' },
+  { k:'pflege', a:'Nicht jedes Shampoo', b:'passt zu jedem Haar.', c:'Wir beraten dich gern.' },
+  { k:'pflege', a:'Heißes Wasser tut gut.', b:'Deinen Haaren tut lauwarm besser.', c:'' },
+  { k:'pflege', a:'Handtuch-Turban statt Rubbeln.', b:'Deine Längen danken es dir.', c:'' },
+  { k:'pflege', a:'Die Bürste regelmäßig reinigen.', b:'Auch sie braucht Pflege.', c:'' },
+  { k:'pflege', a:'Mit nassen Haaren schlafen?', b:'Lieber nicht.', c:'Vorher trocken föhnen, mit wenig Hitze.' },
+  { k:'pflege', a:'Die Spitzen sind das Älteste', b:'an deinem Haar.', c:'Behandle sie entsprechend.' },
+  { k:'pflege', a:'Zum Schluss kühl ausspülen', b:'für ein bisschen mehr Glanz.', c:'' },
+  { k:'pflege', a:'Leave-in:', b:'Pflege, die bleibt.', c:'' },
+  { k:'pflege', a:'Trockenshampoo rettet den Morgen.', b:'Aber nicht jeden Tag.', c:'' },
+  { k:'pflege', a:'Gesunde Haare', b:'brauchen vor allem Geduld.', c:'' },
+  // Styling — vor dem Föhnen (Hitzeschutz, Halt, Volumen)
+  { k:'styling', a:'Erst schützen,', b:'dann föhnen.', c:'Hitzeschutz ins handtuchtrockene Haar.', h:'#Hitzeschutz #Föhnen' },
+  { k:'styling', a:'Hitzeschutz ist wie Sonnencreme,', b:'nur für die Haare.', c:'', h:'#Hitzeschutz' },
+  { k:'styling', a:'Volumen beginnt', b:'vor dem Föhnen.', c:'Ein wenig Schaum am Ansatz genügt.', h:'#Volumen' },
+  { k:'styling', a:'Schaum am Ansatz,', b:'Fülle, die man sieht.', c:'', h:'#Volumen #Schaumfestiger' },
+  { k:'styling', a:'Föhnlotion:', b:'der unsichtbare Helfer für mehr Halt.', c:'', h:'#Föhnen' },
+  { k:'styling', a:'Die Frisur hält,', b:'was die Vorbereitung verspricht.', c:'' },
+  { k:'styling', a:'Gutes Styling beginnt', b:'im feuchten Haar.', c:'' },
+  { k:'styling', a:'Glatt föhnen?', b:'Mit Hitzeschutz und Rundbürste.', c:'', h:'#Föhnen #Hitzeschutz' },
+  { k:'styling', a:'Weniger ist mehr.', b:'Eine kleine Menge reicht. Meistens.', c:'' },
+  // Styling — nach dem Föhnen (Festigung, Fixierung)
+  { k:'styling', a:'Festigen, fixieren,', b:'fertig.', c:'' },
+  { k:'styling', a:'Ein Hauch Haarspray,', b:'und alles bleibt, wo es hingehört.', c:'', h:'#Haarspray' },
+  { k:'styling', a:'Paste für Struktur,', b:'Wachs für Glanz, Gel für Halt.', c:'', h:'#Stylingpaste #Wachs #Gel' },
+  { k:'styling', a:'Ein bisschen Paste,', b:'und der Look wirkt wie zufällig.', c:'Ist er aber nicht.', h:'#Stylingpaste' },
+  { k:'styling', a:'Gel ist nicht von gestern.', b:'Richtig eingesetzt ist es modern.', c:'', h:'#Gel' },
+  { k:'styling', a:'Wet Look?', b:'Mit Gel ganz einfach.', c:'', h:'#Gel #WetLook' },
+  { k:'styling', a:'Stylingcreme', b:'für Locken, die sich zeigen dürfen.', c:'', h:'#Locken #Stylingcreme' },
+  { k:'styling', a:'Pomade:', b:'für den klassischen Look.', c:'', h:'#Pomade' },
+  { k:'styling', a:'Fixieren ist die Kunst,', b:'die man nicht sieht.', c:'' },
+  { k:'styling', a:'Glanzspray', b:'für den letzten Schliff.', c:'', h:'#Glanz' },
+  { k:'styling', a:'Texturspray:', b:'lässig, aber mit Absicht.', c:'', h:'#Texturspray' },
+  { k:'styling', a:'Ein Spritzer zu viel?', b:'Kann passieren. Bei uns selten.', c:'' },
+  { k:'styling', a:'Styling zu Hause?', b:'Wir zeigen dir, wie es geht.', c:'Frag einfach beim nächsten Termin.' },
+  { k:'styling', a:'Das richtige Produkt', b:'spart dir zehn Minuten vor dem Spiegel.', c:'' },
   { k:'leistungen', a:'Erst reden,', b:'dann schneiden.', c:'Jede gute Frisur beginnt mit Beratung.', h:'#Beratung #Haarschnitt' },
   { k:'leistungen', a:'Spitzen schneiden', b:'ist keine Kleinigkeit.', c:'Hier beginnt jede gute Frisur.', h:'#Haarschnitt' },
   { k:'leistungen', a:'Kurz gewagt,', b:'nie bereut.', c:'', h:'#Kurzhaarschnitt' },
@@ -566,6 +603,7 @@ const FRAGEN = {
   stylist: 'Kennst du jemanden, der gut zu unserem Team passen würde? Teile den Beitrag gern.',
   leistungen: 'Welche Behandlung wolltest du schon immer einmal ausprobieren?',
   pflege: 'Welche Pflegefrage beschäftigt dich gerade?',
+  styling: 'Welches Stylingprodukt ist dein Liebling, und wofür?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -863,6 +901,7 @@ function updateCaption() {
     maenner:'#Herrenschnitt',
     kinder:'#Kinderhaarschnitt',
     pflege:'#Haarpflege',
+    styling:'#Haarstyling',
     lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';

@@ -270,6 +270,47 @@
   .goal-card-secondary .sec-desc { font-size: 13px; color: var(--mid); margin-top: 3px; }
   .goal-card-secondary .sec-arrow { color: var(--soft); flex-shrink: 0; }
 
+  /* ── HEUTE-FÜHRUNG (V1) ── */
+  .heute-fuehrung { margin-bottom: 30px; }
+  .heute-checkin {
+    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
+    padding: 14px 16px; margin: 18px 0 14px;
+  }
+  .heute-checkin-frage { font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 10px; }
+  .heute-karte {
+    background: var(--black); color: var(--white); border-radius: var(--radius);
+    padding: 20px 20px 16px; box-shadow: var(--shadow-md); margin-bottom: 14px;
+  }
+  .heute-karte-tag {
+    font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
+    color: var(--gold-light); margin-bottom: 8px;
+  }
+  .heute-karte-titel { font-size: 19px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
+  .heute-karte-warum { font-size: 13px; line-height: 1.5; color: rgba(255,253,248,.75); margin-bottom: 14px; }
+  .heute-karte-hinweis {
+    font-size: 12px; line-height: 1.45; color: rgba(255,253,248,.6);
+    border-top: 1px solid rgba(255,253,248,.15); padding-top: 10px; margin: -4px 0 14px;
+  }
+  .heute-karte-los {
+    width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm);
+    background: var(--gold); color: var(--white); font-family: var(--f);
+    font-size: 15px; font-weight: 600; cursor: pointer;
+  }
+  .heute-karte-weiter {
+    display: block; margin: 10px auto 0; background: none; border: none;
+    color: rgba(255,253,248,.6); font-family: var(--f); font-size: 12px;
+    text-decoration: underline; cursor: pointer;
+  }
+  .heute-karte-notiz { font-size: 12px; color: var(--mid); margin: 0 2px 10px; line-height: 1.45; }
+  .weitere-wege-label {
+    font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
+    color: var(--soft); margin: 0 2px 8px;
+  }
+  .weitere-wege .goal-card-secondary { padding: 12px 16px; margin-bottom: 8px; }
+  .weitere-wege .goal-card-secondary .sec-label,
+  .weitere-wege .goal-card-secondary .sec-desc { display: none; }
+  .weitere-wege .goal-card-secondary .sec-title { font-size: 14px; font-weight: 600; }
+
   /* ── RECRUITING/NEUKUNDEN SCREENS ── */
   .screen-eyebrow {
     font-size: 11px; font-weight: 600; letter-spacing: 0.10em;
@@ -1223,9 +1264,20 @@ function tabnavScrollBy(direction) {
 
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
-  <p class="start-eyebrow">Was ist gerade dran?</p>
-  <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
-  <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
+  <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, ein freiwilliger Check-in, genau eine Empfehlung -->
+  <div class="heute-fuehrung">
+    <p class="start-eyebrow" id="heute-datum">Heute</p>
+    <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
+    <div class="heute-checkin">
+      <div class="heute-checkin-frage">Was ist heute im Salon los?</div>
+      <div class="chip-row" id="heute-checkin-row"></div>
+    </div>
+    <div id="heute-start-wrap"></div>
+  </div>
+
+  <!-- Bisherige Wege bleiben erhalten, nur eine Ebene tiefer -->
+  <div class="weitere-wege-label">Weitere Wege</div>
+  <div class="weitere-wege">
 
   <div class="goal-card-secondary" onclick="showScreen('screen-flow-anlass')">
     <div class="sec-left">
@@ -1280,6 +1332,8 @@ function tabnavScrollBy(direction) {
     <div class="sec-arrow">
       <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
     </div>
+  </div>
+
   </div>
 
   <div style="margin-top:10px; text-align:center;">
@@ -5095,6 +5149,8 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
+    // Team-Empfehlung aus der Heute-Führung umgesetzt → Team gilt als sichtbar
+    if (heuteOffen && heuteOffen.team) { merkeTeamSichtbar(); heuteOffen = null; }
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -5384,47 +5440,188 @@ function heuteTerminZuStory(titel, kontext) {
 
 const HEUTE_EMPFEHLUNGEN = [
   { tag: 'Heute empfohlen', title: 'Zeig einen echten Moment aus dem Salon', why: 'Authentische Einblicke bauen mehr Vertrauen als jede Werbung.', post: 'Heute im Salon — ein echter, ungestellter Moment.', story: 'Ein ruhiger Blick hinter die Kulissen.' },
-  { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Mazen, Alina, Hassan — Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
+  { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
   { tag: 'Heute empfohlen', title: 'Ein Ergebnis das dich stolz macht', why: 'Ergebnisse zeigen, was du kannst — ohne Erklärung.', post: 'Ein Ergebnis das heute fertig wurde.', story: 'Vorher / Nachher — oder nur das Ergebnis.' },
-  { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Schnell Termin → Rechte Wienzeile 47.' },
+  { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Heute ist noch ein Termin frei.' },
   { tag: 'Heute empfohlen', title: 'Deine Haltung zu einem Thema', why: 'Eine klare Meinung macht dich erkennbar und menschlich.', post: 'Was mich gerade in unserem Handwerk beschäftigt.', story: 'Ein Satz der deine Haltung zeigt.' },
 ];
 
 function initHeuteTab() {
   renderHeuteTermin();
-  // Empfehlung — täglich wechselnd
-  const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  const wrap = document.getElementById('heute-emp-wrap');
-  if(wrap) {
-    wrap.innerHTML = `<div class="heute-empfehlung">
-      <div class="heute-emp-tag">✦ ${emp.tag}</div>
-      <div class="heute-emp-title">${emp.title}</div>
-      <div class="heute-emp-why">${emp.why}</div>
-      <div class="heute-emp-btns">
-        <button class="heute-emp-btn" onclick="heuteZuPost(${idx})">✍ Als Post</button>
-        <button class="heute-emp-btn" onclick="heuteZuStory(${idx})">📱 Als Story</button>
-      </div>
-    </div>`;
-  }
+  // Dieselbe eine Empfehlung wie auf der Startseite — keine zweite, abweichende Tagesidee
+  renderHeute();
   renderWoche();
 }
 
-function heuteZuPost(idx) {
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  showTab_direct('screen-post');
-  setTimeout(() => {
-    const el = document.getElementById('post-moment');
-    if(el) { el.value = emp.post; el.dispatchEvent(new Event('input')); }
-  }, 150);
+// ════════════════════════════════════════════
+// HEUTE-FÜHRUNG (V1)
+// Eine ruhige Frage, ein freiwilliger Check-in, genau eine Empfehlung.
+// Regelbasiert und nachvollziehbar: erste passende Regel gewinnt.
+// Keine KI, keine Analytics — Wörni schreibt erst im Generator.
+// ════════════════════════════════════════════
+const HEUTE_CHECKIN_KEY = 'ghd_heute_checkin_v1';
+// Stilles Team-Gedächtnis: nur EIN Datum — wann das Team zuletzt sichtbar war.
+// Keine Namen, keine Liste, keine Bewertung.
+const TEAM_SICHTBAR_KEY = 'ghd_team_sichtbar_v1';
+const TEAM_LANGE_TAGE = 14;
+const HEUTE_MOMENTE = [
+  { id: 'ergebnis',           label: 'Ein Ergebnis, auf das wir stolz sind' },
+  { id: 'termin-frei',        label: 'Kurzfristig ist ein Termin frei' },
+  { id: 'neues-ausprobieren', label: 'Jemand im Team probiert etwas Neues aus' },
+  { id: 'team-moment',        label: 'Ein ruhiger Moment im Team' },
+  { id: 'neuheit',            label: 'Etwas Neues: Produkt oder Behandlung' },
+  { id: 'nichts',             label: 'Nichts Besonderes' }
+];
+let heuteSkip = 0;         // „Passt heute nicht“ → nächstbeste Empfehlung
+let heuteAktuell = null;   // gerade angezeigte Empfehlung
+let heuteOffen = null;     // zuletzt gestartete Empfehlung (für „Gepostet“)
+
+function heuteDatumKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+function ladeHeuteCheckin() {
+  try {
+    const c = JSON.parse(localStorage.getItem(HEUTE_CHECKIN_KEY));
+    return c && c.datum === heuteDatumKey() ? c.wahl : null;
+  } catch { return null; }
+}
+function speichereHeuteCheckin(wahl) {
+  try { localStorage.setItem(HEUTE_CHECKIN_KEY, JSON.stringify({ datum: heuteDatumKey(), wahl })); } catch {}
+}
+function tageSeitTeamSichtbar() {
+  try {
+    const d = localStorage.getItem(TEAM_SICHTBAR_KEY);
+    return d ? Math.floor((Date.now() - new Date(d).getTime()) / 86400000) : null;
+  } catch { return null; }
+}
+function merkeTeamSichtbar() {
+  try { localStorage.setItem(TEAM_SICHTBAR_KEY, new Date().toISOString()); } catch {}
+}
+function heuteSchonGepostet() {
+  const { data, key } = getWocheData();
+  return !!(data[key] && data[key][getTodayIdx()]);
+}
+function heuteEsc(t) {
+  return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
-function heuteZuStory(idx) {
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  showTab_direct('screen-story');
+// Alle passenden Empfehlungen in fester Reihenfolge — angezeigt wird immer nur eine.
+function heuteKandidaten(wahl) {
+  const tage = tageSeitTeamSichtbar();
+  const teamLange = tage === null || tage > TEAM_LANGE_TAGE;
+  const liste = [];
+
+  // 1. Freier Termin heute — zeitkritisch
+  if (wahl === 'termin-frei') liste.push({
+    titel: 'Eine Story zum freien Termin',
+    warum: 'Eine kurzfristige Lücke füllt sich am ehesten über eine Story am selben Tag.',
+    format: 'story', moment: 'Heute ist kurzfristig ein Termin frei geworden.'
+  });
+  // 2. Anlass aus dem Planer in den nächsten 3 Tagen (nur Salon)
+  ladeTermine()
+    .filter(t => t.kontext !== 'haarnetzwerk')
+    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag, t.jahr) }))
+    .filter(t => t.tage !== null && t.tage <= 3)
+    .sort((a, b) => a.tage - b.tage)
+    .forEach(t => {
+      const wann = t.tage === 0 ? 'Heute' : t.tage === 1 ? 'Morgen' : `In ${t.tage} Tagen`;
+      liste.push({
+        titel: `Den Anlass vorbereiten: ${t.titel}`,
+        warum: `${wann} ist es so weit. Wer früh davon erfährt, kann sich den Tag freihalten.`,
+        format: 'post', termin: t
+      });
+    });
+  // 3.–6. Was heute im Salon los ist
+  if (wahl === 'ergebnis') liste.push({
+    titel: 'Das Ergebnis von heute zeigen',
+    warum: 'Ein fertiges Ergebnis zeigt ohne viele Worte, was ihr könnt, und bleibt im Feed sichtbar.',
+    format: 'post', moment: 'Heute ist ein Ergebnis fertig geworden, auf das wir stolz sind.'
+  });
+  if (wahl === 'neues-ausprobieren') liste.push({
+    titel: 'Zeigen, wie im Team Neues ausprobiert wird',
+    warum: 'Lernen und Ausprobieren machen sichtbar, dass hier mit Sorgfalt gearbeitet wird.',
+    format: 'story', moment: 'Heute probiert jemand aus unserem Team eine neue Technik aus.', team: true
+  });
+  if (wahl === 'neuheit') liste.push({
+    titel: 'Die Neuheit vorstellen',
+    warum: 'Etwas Neues gibt Stammkund:innen einen Grund, wieder vorbeizuschauen.',
+    format: 'post', moment: 'Bei uns gibt es etwas Neues: '
+  });
+  if (wahl === 'team-moment') liste.push({
+    titel: 'Einen ruhigen Team-Moment zeigen',
+    warum: 'Menschen folgen Menschen. Ein echter Moment aus dem Team schafft Nähe.',
+    format: 'story', moment: 'Ein ruhiger, echter Moment aus unserem Team heute.', team: true
+  });
+  // 7. Ruhiger Tag: das Team, wenn es länger nicht zu sehen war …
+  if (teamLange) liste.push({
+    titel: 'Das Team bei der Arbeit zeigen',
+    warum: 'Ein echter Einblick schafft Nähe, und das Team war eine Weile nicht zu sehen.',
+    format: 'story', moment: 'Ein echter Einblick: unser Team heute bei der Arbeit.', team: true, hinweisDrin: true
+  });
+  // … sonst die bisherige Tagesempfehlung
+  const e = HEUTE_EMPFEHLUNGEN[new Date().getDate() % HEUTE_EMPFEHLUNGEN.length];
+  liste.push({ titel: e.title, warum: e.why, format: 'post', moment: e.post });
+
+  // Team-Gedächtnis nur als leiser Satz, nie als eigenes Element
+  liste.forEach(k => {
+    if (k.team && teamLange && !k.hinweisDrin) k.hinweis = 'Jemand aus dem Team war länger nicht zu sehen. Das passt heute gut dazu.';
+  });
+  return liste.filter((k, i) => liste.findIndex(x => x.titel === k.titel) === i);
+}
+
+function renderHeute() {
+  const wahl = ladeHeuteCheckin();
+  const datumEl = document.getElementById('heute-datum');
+  if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.innerHTML = HEUTE_MOMENTE.map(m =>
+    `<button class="chip-select${m.id === wahl ? ' on' : ''}" onclick="heuteCheckin('${m.id}')">${m.label}</button>`
+  ).join('');
+
+  const liste = heuteKandidaten(wahl);
+  const k = heuteAktuell = liste[heuteSkip % liste.length];
+  const notiz = heuteSchonGepostet()
+    ? '<div class="heute-karte-notiz">Heute ist schon etwas online. Wenn du magst: noch eine kurze Story.</div>' : '';
+  const html = `${notiz}<div class="heute-karte">
+      <div class="heute-karte-tag">Heute · ${k.format === 'story' ? 'Story' : 'Post'}</div>
+      <div class="heute-karte-titel">${heuteEsc(k.titel)}</div>
+      <div class="heute-karte-warum">${heuteEsc(k.warum)}</div>
+      ${k.hinweis ? `<div class="heute-karte-hinweis">${heuteEsc(k.hinweis)}</div>` : ''}
+      <button class="heute-karte-los" onclick="heuteLos()">Los geht's</button>
+      ${liste.length > 1 ? '<button class="heute-karte-weiter" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
+    </div>`;
+  ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function heuteCheckin(id) {
+  speichereHeuteCheckin(ladeHeuteCheckin() === id ? null : id);   // nochmal tippen = abwählen
+  heuteSkip = 0;
+  renderHeute();
+}
+function heuteWeiter() {
+  heuteSkip++;
+  renderHeute();
+}
+// Öffnet den bestehenden Generator (Post oder Story) mit vorbefülltem Moment
+function heuteLos() {
+  const k = heuteAktuell;
+  if (!k) return;
+  heuteOffen = k;
+  if (k.termin) {
+    (k.format === 'story' ? heuteTerminZuStory : heuteTerminZuPost)(k.termin.titel, k.termin.kontext);
+    return;
+  }
+  const story = k.format === 'story';
+  showTab_direct(story ? 'screen-story' : 'screen-post');
   setTimeout(() => {
-    const el = document.getElementById('story-moment');
-    if(el) { el.value = emp.story; el.dispatchEvent(new Event('input')); }
+    setChipRow(story ? 'story-kontext-row' : 'post-kontext-row', story ? 'storykontext' : 'postkontext', 'salon');
+    const el = document.getElementById(story ? 'story-moment' : 'post-moment');
+    if (el) { el.value = k.moment; el.dispatchEvent(new Event('input')); el.focus(); }
   }, 150);
 }
 

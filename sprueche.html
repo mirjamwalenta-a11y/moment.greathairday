@@ -129,6 +129,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="pflege">Haarpflege</button>
       <button class="chip" data-val="kopfhaut">Kopfhaut</button>
       <button class="chip" data-val="haartyp">Haartypen</button>
+      <button class="chip" data-val="beruf">Über Friseur:innen</button>
       <button class="chip" data-val="styling">Styling</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
@@ -521,6 +522,29 @@ const SPRUECHE = [
   { k:'haartyp', a:'Kühles Blond, warmes Blond?', b:'Wir finden deins.', c:'', h:'#Blond' },
   { k:'haartyp', a:'Nach dem Färben', b:'ein, zwei Tage nicht waschen.', c:'So hat die Farbe Zeit.', h:'#Haarfarbe' },
   { k:'haartyp', a:'Sonne bleicht.', b:'Auch deine Haarfarbe.', c:'Ein Hut hilft.', h:'#Haarfarbe #Sommer' },
+  // Über Friseur:innen — der Beruf: stolz, humorvoll, nachdenklich
+  { k:'beruf', a:'Handwerk, Kunst', b:'und ein offenes Ohr.', c:'Das ist unser Beruf.' },
+  { k:'beruf', a:'Wir arbeiten mit den Händen,', b:'aber vor allem mit dem Herzen.', c:'' },
+  { k:'beruf', a:'Gute Friseur:innen', b:'hören mehr, als sie schneiden.', c:'' },
+  { k:'beruf', a:'Den ganzen Tag stehen', b:'und trotzdem gute Laune.', c:'Das ist Friseurhandwerk.' },
+  { k:'beruf', a:'Friseur:in sein', b:'ist mehr als ein Job.', c:'' },
+  { k:'beruf', a:'Unsere Hände', b:'haben Tausende Geschichten gehört.', c:'' },
+  { k:'beruf', a:'Schere, Kamm und Föhn sind unser Werkzeug.', b:'Menschen sind unser Antrieb.', c:'' },
+  { k:'beruf', a:'Kein Tag gleicht dem anderen.', b:'Kein Kopf auch nicht.', c:'' },
+  { k:'beruf', a:'Wer einmal Friseur:in war,', b:'schaut für immer auf Haare.', c:'' },
+  { k:'beruf', a:'Im Supermarkt, im Bus, im Kino:', b:'Wir schauen immer zuerst auf die Haare.', c:'' },
+  { k:'beruf', a:'Friseur:innen haben keinen Feierabend-Look.', b:'Nur müde Arme.', c:'' },
+  { k:'beruf', a:'Unsere Lieblingsfrage:', b:'Und, wie soll es heute werden?', c:'' },
+  { k:'beruf', a:'Wir können Farbe, Form und Schnitt.', b:'Und Trost, wenn es nötig ist.', c:'' },
+  { k:'beruf', a:'Hinter jedem Stuhl steht jemand,', b:'der sein Handwerk liebt.', c:'' },
+  { k:'beruf', a:'Friseurhandwerk', b:'ist Präzision mit Gefühl.', c:'' },
+  { k:'beruf', a:'Lernen hört nie auf.', b:'Trends auch nicht.', c:'Deshalb bleiben wir neugierig.' },
+  { k:'beruf', a:'Wir sind nicht nur für die Haare da.', b:'Sondern für den Menschen darunter.', c:'' },
+  { k:'beruf', a:'Ohne Friseur:innen', b:'wäre jeder Tag ein Bad Hair Day.', c:'' },
+  { k:'beruf', a:'Das schönste Kompliment für uns?', b:'Wenn du wiederkommst.', c:'' },
+  { k:'beruf', a:'Wir hören zu,', b:'auch wenn der Föhn läuft.', c:'' },
+  { k:'beruf', a:'Wir verändern keine Menschen.', b:'Wir helfen ihnen, sich selbst zu sehen.', c:'' },
+  { k:'beruf', a:'Ein Beruf mit Schere,', b:'aber ohne Schablone.', c:'Jeder Kopf ist anders.' },
   // Styling — vor dem Föhnen (Hitzeschutz, Halt, Volumen)
   { k:'styling', a:'Erst schützen,', b:'dann föhnen.', c:'Hitzeschutz ins handtuchtrockene Haar.', h:'#Hitzeschutz #Föhnen' },
   { k:'styling', a:'Hitzeschutz ist wie Sonnencreme,', b:'nur für die Haare.', c:'', h:'#Hitzeschutz' },
@@ -651,6 +675,7 @@ const FRAGEN = {
   styling: 'Welches Stylingprodukt ist dein Liebling, und wofür?',
   kopfhaut: 'Welche Frage zur Kopfhaut wolltest du schon immer einmal stellen?',
   haartyp: 'Welcher Haartyp bist du: Locken, glatt oder irgendwo dazwischen?',
+  beruf: 'Was schätzt du an deiner Friseurin oder deinem Friseur am meisten?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -951,6 +976,7 @@ function updateCaption() {
     styling:'#Haarstyling',
     kopfhaut:'#Kopfhaut #Kopfhautpflege',
     haartyp:'#Haarpflege',
+    beruf:'#Friseurhandwerk #Friseurleben',
     lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';

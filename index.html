@@ -1292,6 +1292,17 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
 
+  <div class="goal-card-secondary" onclick="location.href='sprueche.html?aktion=herbst'">
+    <div class="sec-left">
+      <div class="sec-label">Aktion &amp; Aushang</div>
+      <div class="sec-title">Ich will eine Aktion bewerben</div>
+      <div class="sec-desc">Herbst-, Winter-, Pflege-Aktion oder Gutschein — als A4-Aushang zum Drucken oder als Post.</div>
+    </div>
+    <div class="sec-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
 
   <div style="margin-top:10px; text-align:center;">
     <button onclick="showTabNav()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">
@@ -2273,7 +2284,8 @@ function tabnavScrollBy(direction) {
   </div>
 
   <!-- Zweite Vorlage: Text im Stil der Spruch-Vorlagen (Schwarz/Weiß + Gold), öffnet sprueche.html im Rahmen-Modus -->
-  <button class="btn-zu-rahmen" style="margin:0 0 12px;" onclick="oeffneSpruchStil()">✨ Text im Spruch-Stil gestalten</button>
+  <button class="btn-zu-rahmen" style="margin:0 0 8px;" onclick="oeffneSpruchStil()">✨ Text im Spruch-Stil gestalten</button>
+  <button class="btn-zu-rahmen" style="margin:0 0 12px;" onclick="location.href='sprueche.html?aktion=herbst'">🏷️ Aktion / Aushang zum Drucken</button>
 
   <div class="rahmen-mode-row">
     <button class="rahmen-mode-btn on" id="mode-btn-text" onclick="setRahmenMode('text')">

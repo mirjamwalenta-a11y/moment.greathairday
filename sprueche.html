@@ -65,6 +65,14 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <p class="intro" id="intro">Spruch wählen oder selbst schreiben, Format aussuchen, Bild speichern.</p>
   </header>
 
+  <section id="aktion-section" style="display:none;flex-direction:column;gap:10px;">
+    <div class="label">Aktion wählen</div>
+    <div class="chips" id="aktion-chips"></div>
+    <label class="feld"><span>Überzeile (klein, gold)</span><input id="f-ueber"></label>
+    <label class="feld"><span>Rabatt im Kreis (z. B. 20 für −20 %, leer = kein Kreis)</span><input id="f-rabatt"></label>
+    <label class="feld"><span>Gültigkeit (optional, z. B. „Gültig bis 31. Oktober“)</span><input id="f-gueltig"></label>
+  </section>
+
   <section id="format-section">
     <div class="label">Format</div>
     <div class="chips" id="format-chips">
@@ -118,6 +126,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <div class="buttons">
     <button class="btn btn-main" id="btn-save">Bild speichern</button>
     <button class="btn btn-alt" id="btn-random">Zufall</button>
+    <button class="btn btn-alt" id="btn-print" style="display:none;">Drucken</button>
   </div>
 
   <section id="sprueche-section">
@@ -165,10 +174,13 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 <script src="qrcode-generator.js"></script>
 <script>
 // ── Rahmen-Modus: aus der App (Rahmen → „Im Spruch-Stil“) aufgerufen mit ?rahmen=1.
+// Aktions-Modus: aus der App (Aktion / Aushang) mit ?aktion=1 — Aushang oder Post für Salon-Aktionen, mit Rabatt-Kreis.
 // Gleicher Look wie die Sprüche, aber nur mit eigenem Text; Sprüche-Liste, QR-Code und Bildtext sind ausgeblendet.
 const URL_PARAMS = new URLSearchParams(location.search);
-const RAHMEN = URL_PARAMS.has('rahmen');
-if (RAHMEN) {
+const AKTION = URL_PARAMS.has('aktion');
+const RAHMEN = URL_PARAMS.has('rahmen') && !AKTION;
+const EIGEN = RAHMEN || AKTION;   // eigener Text statt Spruch-Liste
+if (EIGEN) {
   ['marke-section', 'qr-section', 'team-section', 'sprueche-section', 'caption-section', 'btn-random']
     .forEach(id => { document.getElementById(id).style.display = 'none'; });
   document.getElementById('intro').textContent = 'Eigenen Text eingeben: der erste Teil schwarz (bei Dunkel weiß), der zweite Teil gold. Format und Stil wählen, Bild speichern.';
@@ -185,6 +197,18 @@ if (RAHMEN) {
   // Textfelder ganz nach oben, damit man gleich lostippen kann
   const text = document.getElementById('text-section');
   text.parentNode.insertBefore(text, document.getElementById('format-section'));
+}
+if (AKTION) {
+  document.getElementById('intro').textContent = 'Aktion wählen, Text anpassen, als A4-Aushang drucken oder als Bild für einen Post speichern.';
+  document.getElementById('text-label').textContent = 'Text der Aktion';
+  document.getElementById('f-a-label').textContent = 'Titel (schwarz, bei Dunkel weiß)';
+  document.getElementById('f-b-label').textContent = 'Zweite Zeile (gold, kursiv)';
+  document.getElementById('f-c').previousElementSibling.textContent = 'Beschreibung (kleiner Text)';
+  const c = document.getElementById('f-c'), cNeu = document.createElement('textarea');
+  cNeu.id = 'f-c'; cNeu.rows = 3; cNeu.style.minHeight = '0';
+  c.replaceWith(cNeu);
+  document.getElementById('aktion-section').style.display = 'flex';
+  document.getElementById('btn-print').style.display = 'block';
 }
 // Eingefügten Text in zwei Teile teilen: erster Satz schwarz, der Rest gold (sonst in der Mitte)
 function teileText(t) {
@@ -806,7 +830,7 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung' };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'' };
 // QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'lehrstelle' | 'stylist' (Bewerbung über die Karriere-Seite)
 const istBewerbung = () => state.qrZweck !== 'bewertung';
 const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
@@ -914,6 +938,31 @@ function drawStickerPlatz(W, footY, s) {
   return sternY - 40;
 }
 
+// Aktions-Modus: goldener Kreis mit dem Rabatt (z. B. „−20 %“) über dem Fuß; gibt die Oberkante zurück
+function rabattText() {
+  const r = state.rabatt.trim().replace(/^[-–−]\s*/, '').replace(/\s*%$/, '');
+  if (!r) return '';
+  return /^\d+([,.]\d+)?$/.test(r) ? `−${r} %` : state.rabatt.trim();
+}
+function drawRabatt(W, footY, s) {
+  const text = rabattText();
+  if (!text) return null;
+  const r = { post:135, quadrat:82, story:175, a4:200 }[state.format];
+  const cy = footY - (state.format === 'quadrat' ? 80 : 110) - r;
+  ctx.beginPath();
+  ctx.arc(W / 2, cy, r, 0, Math.PI * 2);
+  ctx.fillStyle = s.gold;
+  ctx.fill();
+  let size = Math.round(r * 0.62);
+  ctx.fillStyle = s.bg;
+  do { ctx.font = `700 ${size}px "Playfair Display", Georgia, serif`; size -= 2; }
+  while (ctx.measureText(text).width > r * 1.6 && size > 20);
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, W / 2, cy + 4);
+  ctx.textBaseline = 'alphabetic';
+  return cy - r;
+}
+
 function drawBewertung(W, footY, s) {
   if (state.sticker) return drawStickerPlatz(W, footY, s);
   const fmt = state.format;
@@ -1014,7 +1063,7 @@ function draw() {
   spacedText(hn ? 'Haarnetzwerk' : 'A great hair day', W / 2, footY, 4);
 
   // Optional: QR-Code zur Bewertung (nur Salon) — sonst kleine Linie über dem Fuß
-  const qrTop = state.qr && !hn ? drawBewertung(W, footY, s) : null;
+  const qrTop = state.qr && !hn ? drawBewertung(W, footY, s) : AKTION ? drawRabatt(W, footY, s) : null;
   if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
 
   // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
@@ -1025,16 +1074,20 @@ function draw() {
   const subFont = `400 ${story ? 42 : 38}px Inter, system-ui, sans-serif`;
   const subLH = story ? 62 : 56;
   let size, la, lb, lc, lh, blockH;
+  // Aktions-Modus: kleine goldene Überzeile (z. B. „NUR FÜR KURZE ZEIT“) über dem Titel
+  const ueber = AKTION ? state.ueber.trim().toUpperCase() : '';
+  const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' ? 64 : 84) : 0;
   const layout = mitC => {
     size = story || a4 ? 108 : 100;
-    // Eigene Texte im Rahmen-Modus dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
-    const maxZeilen = RAHMEN ? 12 : 3, minSize = RAHMEN ? 36 : 48;
+    // Eigene Texte (Rahmen/Aktion) dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
+    const maxZeilen = EIGEN ? 12 : 3, minSize = EIGEN ? 36 : 48;
     for (; size >= minSize; size -= 4) {
       lh = size * 1.2;
       la = state.a ? wrapBalanced(state.a, `700 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
       lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
       lc = mitC && state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
-      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0);
+      if (AKTION && state.gueltig.trim()) lc = lc.concat(wrap(state.gueltig.trim(), subFont, maxW - 60));
+      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0) + ueberH;
       // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
       const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
         if (l.includes(' ')) return false;
@@ -1045,13 +1098,19 @@ function draw() {
       const passt = [[la, `700 ${size}px "Playfair Display", Georgia, serif`], [lb, `italic 500 ${size}px "Playfair Display", Georgia, serif`]]
         .every(([ls, font]) => { ctx.font = font; return ls.every(l => ctx.measureText(l).width <= maxW + 20); });
       if (passt && blockH <= areaH && la.length <= maxZeilen && lb.length <= maxZeilen && (!einsam || size <= 64)) break;
-      if (RAHMEN && size - 4 < minSize) break;   // kleinste Größe behalten, damit Schrift und Zeilen zusammenpassen
+      if (EIGEN && size - 4 < minSize) break;   // kleinste Größe behalten, damit Schrift und Zeilen zusammenpassen
     }
   };
   layout(true);
   // Mit QR-Code ist wenig Platz: lieber den kleinen Zusatztext weglassen als die Überschrift winzig machen
-  if (qrTop !== null && lc.length && size < 76) layout(false);
+  if (qrTop !== null && lc.length && size < 76 && !AKTION) layout(false);
   let y = areaTop + (areaH - blockH) / 2 + size * 0.95;
+  if (ueber) {
+    ctx.fillStyle = s.gold;
+    ctx.font = `600 ${story || a4 ? 36 : 32}px Inter, system-ui, sans-serif`;
+    spacedText(ueber, W / 2, y - size * 0.95 + 36, 5);
+    y += ueberH;
+  }
 
   ctx.fillStyle = s.ink;
   ctx.font = `700 ${size}px "Playfair Display", Georgia, serif`;
@@ -1263,8 +1322,58 @@ document.getElementById('btn-copy').onclick = e => {
   });
 };
 
+// ── Aktionen: Vorlagen per Knopf, alles danach frei änderbar ──
+// Rabatt nur dort vorbelegt, wo die Aktion feststeht (L'Oréal Herbst-Aktion −20 %); sonst selbst eintragen.
+const AKTIONEN = [
+  { id:'herbst', name:'Herbst-Aktion', ueber:'Nur für kurze Zeit', a:'Herbst-Aktion', b:'Pflege für die kühle Jahreszeit.', c:'20 % Rabatt auf das gesamte L\u2019Oréal Professionnel Sortiment bei uns im Salon.', rabatt:'20' },
+  { id:'winter', name:'Winter-Aktion', ueber:'Nur für kurze Zeit', a:'Winter-Aktion', b:'Pflege gegen trockene Heizungsluft.', c:'Auf ausgewählte Pflegeprodukte bei uns im Salon.', rabatt:'' },
+  { id:'pflege', name:'Pflege-Aktion', ueber:'Aktion', a:'Pflege für zuhause', b:'jetzt zum Aktionspreis.', c:'Wir beraten dich gern, welche Pflege zu deinem Haar passt.', rabatt:'' },
+  { id:'gutschein', name:'Gutschein', ueber:'Geschenkidee', a:'Schenk einen', b:'Great Hair Day.', c:'Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon.', rabatt:'' },
+  { id:'eigene', name:'Eigene Aktion', ueber:'Aktion', a:'', b:'', c:'', rabatt:'' },
+];
+function waehleAktion(id) {
+  const ak = AKTIONEN.find(x => x.id === id) || AKTIONEN[0];
+  document.querySelectorAll('#aktion-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === ak.id));
+  Object.assign(state, { k:'eigen', idx:-1, ueber:ak.ueber, a:ak.a, b:ak.b, c:ak.c, rabatt:ak.rabatt });
+  document.getElementById('f-ueber').value = ak.ueber;
+  document.getElementById('f-rabatt').value = ak.rabatt;
+  document.getElementById('f-a').value = ak.a;
+  document.getElementById('f-b').value = ak.b;
+  document.getElementById('f-c').value = ak.c;
+  draw();
+}
+if (AKTION) {
+  const wrapAk = document.getElementById('aktion-chips');
+  AKTIONEN.forEach(ak => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.val = ak.id; b.textContent = ak.name;
+    b.onclick = () => waehleAktion(ak.id);
+    wrapAk.appendChild(b);
+  });
+  [['f-ueber', 'ueber'], ['f-rabatt', 'rabatt'], ['f-gueltig', 'gueltig']].forEach(([id, key]) =>
+    document.getElementById(id).addEventListener('input', e => { state[key] = e.target.value; draw(); }));
+}
+// Drucken: das fertige Bild allein auf eine Seite (A4 randlos, das Bild ist bereits im A4-Format)
+document.getElementById('btn-print').onclick = () => {
+  const url = cv.toDataURL('image/png');
+  const w = window.open('', '_blank');
+  if (!w) { alert('Bitte Pop-ups erlauben oder „Bild speichern“ nutzen und das Bild ausdrucken.'); return; }
+  w.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Aushang – Great Hair Day</title>
+<style>@page{size:A4;margin:0}html,body{margin:0;background:#fff}img{display:block;width:100%;height:auto}</style></head>
+<body><img src="${url}" alt="Aushang"></body></html>`);
+  w.document.close();
+  const img = w.document.querySelector('img');
+  const los = () => { w.focus(); w.print(); };
+  if (img.complete) setTimeout(los, 300); else img.onload = () => setTimeout(los, 300);
+};
+
 // Erst zeichnen, wenn die Schriften geladen sind — sonst landet eine Ersatzschrift im Bild
-if (RAHMEN) {
+if (AKTION) {
+  // Start als A4-Aushang zum Ausdrucken
+  state.format = 'a4';
+  document.querySelectorAll('#format-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'a4'));
+  waehleAktion(URL_PARAMS.get('aktion'));
+} else if (RAHMEN) {
   // Start als Story (wie der bisherige Rahmen); Text aus der App übernehmen (?text=… oder ?a=…&b=…)
   state.format = 'story';
   document.querySelectorAll('#format-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'story'));

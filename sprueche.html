@@ -144,6 +144,10 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <div class="buttons">
     <button class="btn btn-alt" id="btn-zeigen">Bild anzeigen</button>
   </div>
+  <div class="buttons">
+    <button class="btn btn-alt" id="btn-beide">Hell + Dunkel speichern</button>
+    <button class="btn btn-alt" id="btn-reel">Reel erstellen</button>
+  </div>
 
   <section id="sprueche-section">
     <div class="label">Sprüche</div>
@@ -1374,32 +1378,164 @@ document.getElementById('btn-save').onclick = () => {
   cv.toBlob(blob => { if (blob) bildTeilen(blob); }, 'image/png');
 };
 
-// „Bild anzeigen“: das fertige Bild groß über der Seite. Lange darauf drücken → „Bild speichern“ / „Zu Fotos hinzufügen“.
-// Funktioniert in jedem Browser, auch dort, wo das Teilen-Menü keine Galerie anbietet (manche Tablets).
-document.getElementById('btn-zeigen').onclick = () => {
+// ── Gemeinsame Ebene über der Seite (Bild anzeigen, Reel) ──
+function zeigeEbene(inhalt, aufZu) {
   const ebene = document.createElement('div');
   ebene.setAttribute('role', 'dialog');
-  ebene.setAttribute('aria-label', 'Bild zum Speichern');
-  ebene.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(28,27,25,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:16px;';
-  const hinweis = document.createElement('p');
-  hinweis.textContent = 'Lange auf das Bild drücken → „Bild speichern“ bzw. „Zu Fotos hinzufügen“';
-  hinweis.style.cssText = 'color:#F5F0EA;font:500 15px Inter,system-ui,sans-serif;text-align:center;margin:0;max-width:420px;';
-  const img = document.createElement('img');
-  img.src = cv.toDataURL('image/png');
-  img.alt = 'Fertiges Bild';
-  img.style.cssText = 'max-width:100%;max-height:calc(100vh - 150px);object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto;';
+  ebene.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(28,27,25,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;overflow:auto;';
   const zu = document.createElement('button');
   zu.className = 'btn btn-alt';
   zu.textContent = 'Schließen';
   zu.style.cssText = 'flex:none;min-width:160px;';
-  const schliessen = () => { ebene.remove(); document.removeEventListener('keydown', esc); };
   const esc = e => { if (e.key === 'Escape') schliessen(); };
+  const schliessen = () => { ebene.remove(); document.removeEventListener('keydown', esc); if (aufZu) aufZu(); };
   zu.onclick = schliessen;
   ebene.onclick = e => { if (e.target === ebene) schliessen(); };
   document.addEventListener('keydown', esc);
-  ebene.append(hinweis, img, zu);
+  ebene.append(...inhalt, zu);
   document.body.appendChild(ebene);
   zu.focus();
+}
+function ebenenText(text) {
+  const p = document.createElement('p');
+  p.textContent = text;
+  p.style.cssText = 'color:#F5F0EA;font:500 15px Inter,system-ui,sans-serif;text-align:center;margin:0;max-width:440px;line-height:1.5;';
+  return p;
+}
+function ebenenKnopf(text, onclick, haupt) {
+  const b = document.createElement('button');
+  b.className = 'btn ' + (haupt ? 'btn-main' : 'btn-alt');
+  b.textContent = text;
+  b.style.cssText = 'flex:none;min-width:220px;' + (haupt ? 'background:#F5F0EA;color:#1C1B19;' : '');
+  b.onclick = onclick;
+  return b;
+}
+// data:-URL → Blob, synchron (damit das Teilen-Menü noch im selben Tippen geöffnet werden darf)
+function dataUrlZuBlob(url) {
+  const [kopf, daten] = url.split(',');
+  const bin = atob(daten), arr = new Uint8Array(bin.length);
+  for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i);
+  return new Blob([arr], { type: kopf.match(/:(.*?);/)[1] });
+}
+async function dateienTeilen(files) {
+  if (navigator.canShare && navigator.canShare({ files }) && istTouchGeraet()) {
+    try { await navigator.share({ files }); return true; } catch (e) { if (e.name === 'AbortError') return true; }
+  }
+  return false;
+}
+function dateienHerunterladen(files) {
+  files.forEach((f, i) => setTimeout(() => bildHerunterladen(f, f.name), i * 400));
+}
+
+// „Bild anzeigen“: das fertige Bild groß über der Seite. Lange darauf drücken → „Bild speichern“ / „Zu Fotos hinzufügen“.
+// Zusätzlich „Herunterladen“: landet am Samsung-Tablet in der Galerie unter Alben → „Download“.
+document.getElementById('btn-zeigen').onclick = () => {
+  const blob = dataUrlZuBlob(cv.toDataURL('image/png'));
+  const url = URL.createObjectURL(blob);
+  const img = document.createElement('img');
+  img.src = url;
+  img.alt = 'Fertiges Bild';
+  img.style.cssText = 'max-width:100%;max-height:calc(100vh - 220px);object-fit:contain;border-radius:6px;box-shadow:0 8px 30px rgba(0,0,0,.4);-webkit-touch-callout:default;user-select:auto;';
+  zeigeEbene([
+    ebenenText('Lange auf das Bild drücken → „Bild speichern“ bzw. „Zu Fotos hinzufügen“. Oder:'),
+    img,
+    ebenenKnopf('Herunterladen', () => bildHerunterladen(blob, bildDateiname()), true),
+    ebenenText('Heruntergeladene Bilder findest du in der Galerie unter Alben → „Download“.'),
+  ], () => setTimeout(() => URL.revokeObjectURL(url), 1000));
+};
+
+// ── Varianten rendern: dieselbe Vorlage in anderem Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
+function renderVariante(stil, format) {
+  const alt = { stil: state.stil, format: state.format };
+  state.stil = stil; state.format = format;
+  draw();
+  const c = document.createElement('canvas');
+  c.width = cv.width; c.height = cv.height;
+  c.getContext('2d').drawImage(cv, 0, 0);
+  Object.assign(state, alt);
+  draw();
+  return c;
+}
+
+// „Hell + Dunkel speichern“: beide Varianten im gewählten Format auf einmal (z. B. für ein Instagram-Reel mit Musik-Vorlage)
+document.getElementById('btn-beide').onclick = async () => {
+  const basis = bildDateiname().replace(/-(hell|dunkel)\.png$/, '');
+  const files = ['hell', 'dunkel'].map(stil => {
+    const blob = dataUrlZuBlob(renderVariante(stil, state.format).toDataURL('image/png'));
+    return new File([blob], `${basis}-${stil}.png`, { type: 'image/png' });
+  });
+  if (!(await dateienTeilen(files))) dateienHerunterladen(files);
+};
+
+// „Reel erstellen“: 8-Sekunden-Video 9:16 — helle Variante, sanfter Übergang zur dunklen, leichter Zoom.
+// Musik kommt in Instagram dazu (dort lizenziert). Video entsteht im Browser (MediaRecorder), nichts wird hochgeladen.
+const REEL_SEK = 8, REEL_FPS = 30;
+function reelFormat() {
+  if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
+  const kandidaten = [
+    ['video/mp4;codecs=avc1.42E01E', 'mp4'], ['video/mp4;codecs=avc1', 'mp4'], ['video/mp4', 'mp4'],
+    ['video/webm;codecs=vp9', 'webm'], ['video/webm;codecs=vp8', 'webm'], ['video/webm', 'webm'],
+  ];
+  return kandidaten.find(([m]) => MediaRecorder.isTypeSupported(m)) || null;
+}
+document.getElementById('btn-reel').onclick = () => {
+  const fmt = reelFormat();
+  if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Hell + Dunkel speichern“ und daraus in Instagram ein Reel machen.'); return; }
+  const btn = document.getElementById('btn-reel');
+  if (btn.disabled) return;
+  btn.disabled = true;
+  const hell = renderVariante('hell', 'story'), dunkel = renderVariante('dunkel', 'story');
+  const W = hell.width, H = hell.height;
+  const rc = document.createElement('canvas');
+  rc.width = W; rc.height = H;
+  const rx = rc.getContext('2d');
+  const bild = (quelle, zoom, alpha) => {
+    rx.globalAlpha = alpha;
+    const w = W * zoom, h = H * zoom;
+    rx.drawImage(quelle, (W - w) / 2, (H - h) / 2, w, h);
+    rx.globalAlpha = 1;
+  };
+  // Ablauf: 0–3,5 s hell, 3,5–4,7 s Überblendung, danach dunkel; durchgehend langsamer Zoom 100 % → 106 %
+  const frame = t => {
+    const zoom = 1 + 0.06 * Math.min(t / REEL_SEK, 1);
+    const mix = Math.min(Math.max((t - 3.5) / 1.2, 0), 1);
+    const weich = mix * mix * (3 - 2 * mix);
+    rx.fillStyle = STILE.hell.bg; rx.fillRect(0, 0, W, H);
+    bild(hell, zoom, 1);
+    if (weich > 0) bild(dunkel, zoom, weich);
+  };
+  frame(0);
+  const stream = rc.captureStream(REEL_FPS);
+  const rec = new MediaRecorder(stream, { mimeType: fmt[0], videoBitsPerSecond: 8000000 });
+  const teile = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) teile.push(e.data); };
+  rec.onstop = () => {
+    stream.getTracks().forEach(tr => tr.stop());
+    btn.disabled = false;
+    btn.textContent = 'Reel erstellen';
+    const typ = fmt[0].split(';')[0];
+    const blob = new Blob(teile, { type: typ });
+    const name = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '') + `-reel.${fmt[1]}`;
+    const file = new File([blob], name, { type: typ });
+    const url = URL.createObjectURL(blob);
+    const video = document.createElement('video');
+    video.src = url; video.controls = true; video.loop = true; video.muted = true; video.playsInline = true; video.autoplay = true;
+    video.style.cssText = 'max-width:100%;max-height:calc(100vh - 260px);border-radius:6px;background:#000;';
+    const inhalt = [ebenenText('Dein Reel ist fertig. Speichern und in Instagram als Reel oder Story hochladen — Musik dort hinzufügen.'), video,
+      ebenenKnopf('Reel speichern', async () => { if (!(await dateienTeilen([file]))) bildHerunterladen(blob, name); }, true)];
+    if (fmt[1] === 'webm') inhalt.push(ebenenText('Hinweis: Dieser Browser erstellt nur WebM-Videos, die Instagram oft nicht annimmt. Am Handy mit Chrome oder Safari entsteht ein MP4.'));
+    zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
+  };
+  rec.start(250);
+  const start = performance.now();
+  const schritt = () => {
+    const t = (performance.now() - start) / 1000;
+    frame(Math.min(t, REEL_SEK));
+    btn.textContent = `Reel wird erstellt … ${Math.min(Math.ceil(t), REEL_SEK)}/${REEL_SEK} s`;
+    if (t < REEL_SEK) requestAnimationFrame(schritt);
+    else setTimeout(() => rec.stop(), 150);
+  };
+  requestAnimationFrame(schritt);
 };
 
 document.getElementById('btn-copy').onclick = e => {

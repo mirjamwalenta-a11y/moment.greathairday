@@ -1660,7 +1660,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Was ist passiert oder was willst du zeigen?</div>
     <div class="input-with-mic">
-      <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
+      <textarea id="post-moment" placeholder="z.B. Heute ist eine Balayage fertig geworden, auf die wir richtig stolz sind..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
       <button class="btn-mic" id="mic-post" onclick="toggleMic('post-moment','mic-post')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -1833,7 +1833,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Thema oder Moment</div>
     <div class="input-with-mic">
-      <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag dafür genutzt, mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+      <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag genutzt, um im Team eine neue Technik zu üben..." rows="3" oninput="storyCheck()"></textarea>
       <button class="btn-mic" id="mic-story" onclick="toggleMic('story-moment','mic-story')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -1886,7 +1886,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Was willst du zeigen?</div>
     <div class="input-with-mic">
-      <textarea id="reel-moment" placeholder="z.B. Vorher kaputtes Blond, dann Glossing-Behandlung, danach strahlend — Ronya hat es heute gemacht..." rows="4" oninput="reelCheck()"></textarea>
+      <textarea id="reel-moment" placeholder="z.B. Vorher kaputtes Blond, dann Glossing-Behandlung, danach strahlend — heute im Salon gemacht..." rows="4" oninput="reelCheck()"></textarea>
       <button class="btn-mic" id="mic-reel" onclick="toggleMic('reel-moment','mic-reel')" aria-label="Spracheingabe" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -2381,7 +2381,7 @@ function tabnavScrollBy(direction) {
     <div id="stimmen-modal-list"></div>
     <div class="kandidat-pre-form" style="margin-top:14px;">
       <div class="input-label">Wer sagt das?</div>
-      <input type="text" id="stimme-person" class="login-input" placeholder="z.B. Mazen, Alina, Ronya..." style="max-width:100%;text-align:left;">
+      <input type="text" id="stimme-person" class="login-input" placeholder="z.B. Mazen, Alina, Hassan..." style="max-width:100%;text-align:left;">
       <div class="input-label">Was wurde gesagt?</div>
       <textarea id="stimme-text" class="login-input" rows="3" style="max-width:100%;text-align:left;" placeholder="Der echte Satz, so wie er gesagt wurde..."></textarea>
       <div class="input-label">Passt eher zu</div>
@@ -2538,7 +2538,7 @@ const KONTEXT_INFO = {
 - Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
 
 Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
+- Salonalltag (Team, Kund:innen, Ergebnisse, Ausbildung)
 - Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
 - Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
 - Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
@@ -2673,7 +2673,7 @@ const outputs = {
   },
   'lernmoment': {
     ziel:'recruiting', format:'Story',
-    text:`Ronya hat heute etwas zum ersten Mal gemacht.\nNicht perfekt.\nAber mit vollem Einsatz.\nUnd das zählt.\n\nAusbildung bei uns bedeutet: echte Arbeit, echte Begleitung.`,
+    text:`Heute wurde bei uns etwas zum ersten Mal ausprobiert.\nNicht perfekt.\nAber mit vollem Einsatz.\nUnd das zählt.\n\nAusbildung bei uns bedeutet: echte Arbeit, echte Begleitung.`,
     foto:'Ein Foto vom Lehrling bei der Arbeit — konzentriert, authentisch.',
     story_interaktion:'Umfrage-Sticker: „Warst du auch mal Lehrling?" Ja / Nein',
     cta:'Interesse an einer Lehrstelle? Wir sind offen für ein Gespräch.', cta_kanal:'DM / Nachricht'
@@ -2704,7 +2704,7 @@ const outputs = {
   },
   'lehrling-alltag': {
     ziel:'recruiting', format:'Story',
-    text:`Heute: Ronya hat zum ersten Mal selbst eine Balayage-Technik ausprobiert.\n\nNicht perfekt.\nAber richtig gut daran.\n\nDas ist Lernen. Das ist Ausbildung bei uns.`,
+    text:`Heute wurde bei uns zum ersten Mal eine neue Balayage-Technik ausprobiert.\n\nNicht perfekt.\nAber richtig gut daran.\n\nDas ist Lernen. Das ist Ausbildung bei uns.`,
     foto:'Video-Clip: Hände beim Arbeiten, Konzentration im Gesicht — kurz und echt.',
     story_interaktion:'Frage-Sticker: „Was war dein erster großer Lernmoment?"',
     cta:null, cta_kanal:null
@@ -2712,7 +2712,7 @@ const outputs = {
   'lehrling-warum': {
     ziel:'recruiting', format:'Post',
     text:`Bei uns lernst du nicht nur, wie man Haare schneidet.\n\nDu lernst, wie man mit Menschen umgeht.\nWie man Qualität erkennt.\nWie man in einem kleinen Team trägt und getragen wird.\n\nWir begleiten — wirklich.`,
-    foto:'Ein Foto: Mirjam zeigt Ronya etwas — kein Posing, einfach ein echter Moment.',
+    foto:'Ein Foto: Mirjam zeigt jemandem aus dem Team etwas — kein Posing, einfach ein echter Moment.',
     story_interaktion:null, cta:'Interesse? Schreib uns — auch wenn du noch unsicher bist.', cta_kanal:'DM / Nachricht'
   },
   'lehrling-direkt': {
@@ -2889,7 +2889,7 @@ const FLOW_CONTENT = {
     ], abschluss:'Heute noch Zeit?', cta:'Schreib uns kurz — wir schauen, was geht.' }
   },
   'lehrling-lernt': {
-    vertrauen: { einstieg:'Ronya hat heute etwas zum ersten Mal gemacht.', frames:[
+    vertrauen: { einstieg:'Heute wurde bei uns etwas zum ersten Mal ausprobiert.', frames:[
       'Erste eigene Strähnchen-Technik, mit voller Konzentration.',
       'Ein kurzer Blick zur Kollegin — Bestätigung, dass es passt.',
       'Das fertige Ergebnis, mit sichtbarem Stolz.'
@@ -2901,7 +2901,7 @@ const FLOW_CONTENT = {
       'Fertiges Ergebnis im Spiegel.'
     ], kernaussage:'Lernen passiert bei uns live, nicht nebenbei.', cta:'Mehr davon? Folg uns für echte Einblicke.', caption:'Ein erstes Mal, das man sieht.' },
     anfrage: { einstieg:'Ein Lernmoment, den wir gern zeigen.', frames:[
-      'Ronya probiert eine neue Technik aus.',
+      'Eine neue Technik wird ausprobiert.',
       'Genaues Hinschauen, ruhige Anleitung.',
       'Ein Ergebnis, das sich sehen lassen kann.'
     ], abschluss:'Auch Lernschritte führen zu guten Ergebnissen.', cta:'Termin bei uns? Schreib uns kurz.' },
@@ -2916,7 +2916,7 @@ const FLOW_CONTENT = {
       'Geduld statt Zeitdruck.',
       'Ein Ergebnis, auf das beide stolz sind.'
     ], abschluss:'So bildet man aus, wenn man es ernst meint.', cta:'Du willst in einem Team arbeiten, das wirklich begleitet? Schreib uns.' },
-    'termine-fuellen': { bildidee:'Nahaufnahme vom fertigen Ergebnis, das Ronya heute selbst gemacht hat.', ersterSatz:'Auch Lernschritte bringen richtig gute Ergebnisse.', kernaussage:'Frisches Können, gute Betreuung — beides zusammen.', cta:'Heute noch ein Platz frei — schreib uns.', begleittext:'Ausbildung live bei uns im Salon.' }
+    'termine-fuellen': { bildidee:'Nahaufnahme vom fertigen Ergebnis, an dem heute im Team gelernt wurde.', ersterSatz:'Auch Lernschritte bringen richtig gute Ergebnisse.', kernaussage:'Frisches Können, gute Betreuung — beides zusammen.', cta:'Heute noch ein Platz frei — schreib uns.', begleittext:'Ausbildung live bei uns im Salon.' }
   },
   'mitarbeiterin-zeigen': {
     vertrauen: { einstieg:'Wer heute für dich da ist, wenn du zu uns kommst.', frames:[
@@ -2974,7 +2974,7 @@ const FLOW_CONTENT = {
       'Nachher: das fertige Ergebnis.'
     ], kernaussage:'Manche Veränderungen sieht man sofort.', cta:'Du willst auch so ein Ergebnis? Schreib uns.', caption:'Ein Ergebnis, das für sich spricht.' },
     anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: per Nachricht oder online über den Link in der Bio.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
-    'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem auch Ronya mitgearbeitet hat.', frames:[
+    'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem das ganze Team mitgearbeitet hat.', frames:[
       'Gemeinsame Vorbereitung, Schritt für Schritt.',
       'Konzentrierte Zusammenarbeit im Team.',
       'Das fertige Ergebnis — gemeinsam erreicht.'
@@ -3003,7 +3003,7 @@ const FLOW_CONTENT = {
       'Fertiges Ergebnis: glänzend, gepflegt.'
     ], kernaussage:'Die richtige Pflege zur richtigen Zeit.', cta:'Interesse? Wir haben diese Woche noch Termine.', caption:'Was dein Haar gerade wirklich braucht.' },
     anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'Schreib mir eine Nachricht.' },
-    'lehrling-ansprechen': { bildidee:'Bild von Ronya, die die Behandlung unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
+    'lehrling-ansprechen': { bildidee:'Bild aus dem Salon: Eine Behandlung wird unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
     'mitarbeiterin-anziehen': { einstieg:'So bringen wir neue Behandlungen ins Team.', frames:[
       'Kurze interne Einschulung vorab.',
       'Gemeinsames Ausprobieren, Fragen erlaubt.',
@@ -4285,7 +4285,7 @@ const IDEAS = [
   {icon:'✨',label:'Team-Moment',desc:'Gelächter, Stille, ein guter Morgen.',ziel:'Mitarbeiter:innen anziehen'},
   {icon:'✂️',label:'Qualität zeigen',desc:'Ein Handgriff, eine Technik, ein Ergebnis.',ziel:'Vertrauen aufbauen'},
   {icon:'💪',label:'Haltung zeigen',desc:'Etwas, wofür du eingestanden bist.',ziel:'Authentizität'},
-  {icon:'🎓',label:'Ausbildungs-Einblick',desc:'Ronya lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
+  {icon:'🎓',label:'Ausbildungs-Einblick',desc:'Jemand im Team lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
   {icon:'🤔',label:'Branchenfrage',desc:'Was läuft falsch? Was könnte besser sein?',ziel:'Diskussion + Reichweite'},
   {icon:'💡',label:'Expertentipp',desc:'Ein Fehler den fast alle machen.',ziel:'Expertise zeigen'},
   {icon:'🤝',label:'Team-Portrait',desc:'Mazen, Alina oder Hassan — was macht euch aus?',ziel:'Menschlichkeit'},

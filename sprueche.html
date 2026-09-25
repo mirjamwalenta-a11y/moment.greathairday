@@ -126,6 +126,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="kinder">Für Kinder</button>
       <button class="chip" data-val="anlaesse">Anlässe</button>
       <button class="chip" data-val="leistungen">Leistungen</button>
+      <button class="chip" data-val="pflege">Haarpflege</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
       <button class="chip" data-val="stylist">Stylist:in gesucht</button>
@@ -323,6 +324,28 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Abschluss geschafft.', b:'Und das Foto wird schön.', c:'', h:'#Sponsion #Abschluss' },
   { k:'anlaesse', a:'Hitzewelle in Wien?', b:'Kürzer ist auch eine Lösung.', c:'', h:'#Sommer' },
   { k:'anlaesse', a:'Mütze runter.', b:'Frisur sitzt.', c:'', h:'#Winter' },
+  { k:'anlaesse', a:'Guter Vorsatz fürs neue Jahr:', b:'öfter Zeit für dich.', c:'', h:'#NeuesJahr' },
+  { k:'anlaesse', a:'Grauer Jänner?', b:'Deine Haare dürfen trotzdem glänzen.', c:'', h:'#Jänner #Winter' },
+  { k:'anlaesse', a:'Liebe auf den ersten Blick', b:'beginnt oft im Spiegel.', c:'', h:'#Valentinstag' },
+  { k:'anlaesse', a:'Frühlingsputz', b:'auch für die Haare.', c:'', h:'#Frühling' },
+  { k:'anlaesse', a:'Danke, Mama.', b:'Heute bist du dran.', c:'', h:'#Muttertag' },
+  { k:'anlaesse', a:'Du sagst Ja.', b:'Wir sorgen für die Frisur.', c:'', h:'#Brautfrisur #Hochzeit' },
+  { k:'anlaesse', a:'Junggesellinnenabschied?', b:'Wenigstens die Haare sitzen.', c:'', h:'#JGA' },
+  { k:'anlaesse', a:'Der Sommer beginnt', b:'mit einem frischen Schnitt.', c:'', h:'#Sommer' },
+  { k:'anlaesse', a:'Gartenfest, Grillabend, Sommernacht:', b:'Die Frisur ist eingeladen.', c:'', h:'#Sommer' },
+  { k:'anlaesse', a:'Zurück aus dem Urlaub?', b:'Deine Haare auch.', c:'Zeit für Pflege nach Sonne und Salz.', h:'#Herbst #Haarpflege' },
+  { k:'anlaesse', a:'Neue Saison,', b:'neue Farbe?', c:'', h:'#Herbst #Haarfarbe' },
+  { k:'anlaesse', a:'Tanzkurs beginnt?', b:'Die Frisur macht jeden Schritt mit.', c:'', h:'#Tanzkurs' },
+  { k:'anlaesse', a:'Punsch am Christkindlmarkt,', b:'Frisur mit Haltung.', c:'', h:'#Advent #Wien' },
+  { k:'anlaesse', a:'Das Familienfoto zu Weihnachten', b:'wird heuer das schönste.', c:'', h:'#Weihnachten' },
+  { k:'anlaesse', a:'Das Jahr geht.', b:'Der Glanz bleibt.', c:'', h:'#Silvester' },
+  { k:'anlaesse', a:'Einmal im Jahr', b:'darf es ganz festlich sein.', c:'', h:'#Ballsaison #Hochsteckfrisur' },
+  { k:'anlaesse', a:'Kerzen auspusten', b:'mit frisch geföhnten Haaren.', c:'', h:'#Geburtstag' },
+  { k:'anlaesse', a:'Ein Jubiläum?', b:'Dann feiert die Frisur mit.', c:'', h:'#Jubiläum' },
+  { k:'anlaesse', a:'Neuer Job?', b:'Neuer Look für den ersten Tag.', c:'', h:'#NeuerJob' },
+  { k:'anlaesse', a:'Erstes Date?', b:'Die Nervosität bleibt. Die Frisur sitzt.', c:'', h:'#Date' },
+  { k:'anlaesse', a:'Regen in Wien?', b:'Zeit für einen Termin im Trockenen.', c:'', h:'#Wien' },
+  { k:'anlaesse', a:'Wiener Wiesn,', b:'Zöpfe mit Charme.', c:'', h:'#WienerWiesn #Flechtfrisur' },
   // Haarnetzwerk — Verein für Friseurunternehmer:innen (eigener Absender, nie mit dem Salon vermischen)
   { k:'haarnetzwerk', a:'Allein schneidet man Haare.', b:'Gemeinsam gestaltet man die Branche.', c:'' },
   { k:'haarnetzwerk', a:'Konkurrenz war gestern.', b:'Heute ist Netzwerk.', c:'' },
@@ -418,6 +441,29 @@ const SPRUECHE = [
   { k:'leistungen', a:'Wach aussehen', b:'ohne einen Schluck Kaffee.', c:'Brow & Lash Lifting.', h:'#BrowLifting #LashLifting' },
   { k:'leistungen', a:'Make-up für besondere Tage,', b:'damit du dich nur noch freuen musst.', c:'', h:'#MakeUp' },
   { k:'leistungen', a:'Ein guter Schnitt', b:'wächst schön heraus.', c:'', h:'#Haarschnitt' },
+  // Haarpflege — Tipps und Sprüche, bewusst ohne Produkt- oder Wirkversprechen
+  { k:'pflege', a:'Gute Pflege', b:'beginnt unter der Dusche.', c:'Und hört beim Föhnen nicht auf.' },
+  { k:'pflege', a:'Hitze ist kein Feind.', b:'Aber sie braucht Schutz.', c:'Hitzeschutz vor dem Föhnen nicht vergessen.' },
+  { k:'pflege', a:'Nasses Haar', b:'ist empfindlich.', c:'Sanft kämmen, nicht rubbeln.' },
+  { k:'pflege', a:'Kopfhaut ist Haut.', b:'Sie verdient Pflege.', c:'' },
+  { k:'pflege', a:'Spliss lässt sich nicht reparieren.', b:'Nur abschneiden.', c:'Gute Pflege hilft, ihn zu vermeiden.' },
+  { k:'pflege', a:'Nach dem Schwimmen', b:'gleich mit klarem Wasser spülen.', c:'Chlor und Salz mögen deine Haare nicht.', h:'#Sommer' },
+  { k:'pflege', a:'Die beste Pflege', b:'ist die, die zu deinem Haar passt.', c:'Wir beraten dich gern.' },
+  { k:'pflege', a:'Conditioner gehört in die Längen,', b:'nicht an den Ansatz.', c:'' },
+  { k:'pflege', a:'Blond braucht Liebe.', b:'Und die richtige Pflege.', c:'', h:'#Blond' },
+  { k:'pflege', a:'Farbe hält länger,', b:'wenn du sie pflegst.', c:'', h:'#Haarfarbe' },
+  { k:'pflege', a:'Locken wollen nicht gebändigt,', b:'sondern verstanden werden.', c:'', h:'#Locken' },
+  { k:'pflege', a:'Von unten nach oben kämmen.', b:'Deine Haare danken es dir.', c:'' },
+  { k:'pflege', a:'Winterluft ist trocken.', b:'Deine Haare merken das.', c:'Zeit für eine Pflegekur.', h:'#Winter' },
+  { k:'pflege', a:'Sommer ist schön.', b:'Für die Haare auch anstrengend.', c:'', h:'#Sommer' },
+  { k:'pflege', a:'Pflege ist kein Luxus.', b:'Sie ist Alltag.', c:'' },
+  { k:'pflege', a:'Ein Haargummi ohne Metall', b:'schont deine Längen.', c:'' },
+  { k:'pflege', a:'Regelmäßig schneiden', b:'hält die Spitzen gesund.', c:'' },
+  { k:'pflege', a:'Glanz entsteht nicht im Filter,', b:'sondern in der Pflege.', c:'' },
+  { k:'pflege', a:'Deine Haare verraten,', b:'wie du sie behandelst.', c:'' },
+  { k:'pflege', a:'Zu Hause pflegen,', b:'bei uns verwöhnen lassen.', c:'' },
+  { k:'pflege', a:'Pflegefragen?', b:'Frag uns beim nächsten Termin.', c:'' },
+  { k:'pflege', a:'Weniger Hitze,', b:'mehr Geduld.', c:'Deine Haare merken den Unterschied.' },
   { k:'leistungen', a:'Erst reden,', b:'dann schneiden.', c:'Jede gute Frisur beginnt mit Beratung.', h:'#Beratung #Haarschnitt' },
   { k:'leistungen', a:'Spitzen schneiden', b:'ist keine Kleinigkeit.', c:'Hier beginnt jede gute Frisur.', h:'#Haarschnitt' },
   { k:'leistungen', a:'Kurz gewagt,', b:'nie bereut.', c:'', h:'#Kurzhaarschnitt' },
@@ -519,6 +565,7 @@ const FRAGEN = {
   lehrstelle: 'Kennst du jemanden, der gerade eine Lehrstelle sucht? Teile den Beitrag gern.',
   stylist: 'Kennst du jemanden, der gut zu unserem Team passen würde? Teile den Beitrag gern.',
   leistungen: 'Welche Behandlung wolltest du schon immer einmal ausprobieren?',
+  pflege: 'Welche Pflegefrage beschäftigt dich gerade?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -815,6 +862,7 @@ function updateCaption() {
   const extra = {
     maenner:'#Herrenschnitt',
     kinder:'#Kinderhaarschnitt',
+    pflege:'#Haarpflege',
     lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';

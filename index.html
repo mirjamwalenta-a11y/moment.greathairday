@@ -1223,15 +1223,16 @@ function tabnavScrollBy(direction) {
 
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
-  <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, ein freiwilliger Check-in, genau eine Empfehlung -->
+  <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, genau eine Empfehlung, Check-in nur als leise Korrektur -->
   <p class="start-eyebrow" id="heute-datum">Heute</p>
   <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
-  <p class="start-sub">Eine Empfehlung für heute — aus dem, was im Salon gerade los ist.</p>
-  <div class="input-wrap">
-    <div class="input-label">Was ist heute im Salon los?</div>
-    <div class="chip-row" id="heute-checkin-row"></div>
-  </div>
   <div id="heute-start-wrap"></div>
+  <div class="input-wrap">
+    <div style="text-align:center;">
+      <button id="heute-checkin-toggle" onclick="heuteCheckinToggle()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">Heute ist etwas anderes los?</button>
+    </div>
+    <div class="chip-row" id="heute-checkin-row" style="display:none;"></div>
+  </div>
 
   <!-- Bisherige Wege bleiben unverändert erhalten, nur darunter -->
   <p class="start-eyebrow">Weitere Wege</p>
@@ -2588,6 +2589,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   screenHistory.push(id);
   const isStart = id === 'screen-start';
+  if (isStart) renderHeute();
   document.getElementById('backBtn').classList.toggle('visible', !isStart);
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
@@ -2601,6 +2603,7 @@ function goBack() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(prev).classList.add('active');
     const isStart = prev === 'screen-start';
+    if (isStart) renderHeute();
     document.getElementById('backBtn').classList.toggle('visible', !isStart);
     if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
       showTabNav();
@@ -5105,8 +5108,14 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
-    // Team-Empfehlung aus der Heute-Führung umgesetzt → Team gilt als sichtbar
-    if (heuteOffen && heuteOffen.team) { merkeTeamSichtbar(); heuteOffen = null; }
+    // Empfehlung aus der Heute-Führung umgesetzt → merken (Team gilt ggf. als sichtbar)
+    if (heuteOffen) {
+      merkeHeuteErledigt(heuteOffen.titel);
+      if (heuteOffen.team) merkeTeamSichtbar();
+      heuteOffen = null;
+    }
+    heuteMehr = false;
+    renderHeute();
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -5431,6 +5440,8 @@ const HEUTE_MOMENTE = [
 let heuteSkip = 0;         // „Passt heute nicht“ → nächstbeste Empfehlung
 let heuteAktuell = null;   // gerade angezeigte Empfehlung
 let heuteOffen = null;     // zuletzt gestartete Empfehlung (für „Gepostet“)
+let heuteMehr = false;     // nach „Für heute erledigt“ bewusst noch einen Vorschlag wollen
+const HEUTE_ERLEDIGT_KEY = 'ghd_heute_erledigt_v1';   // heute umgesetzte Empfehlungen (Titel)
 
 function heuteDatumKey() {
   const d = new Date();
@@ -5453,6 +5464,15 @@ function tageSeitTeamSichtbar() {
 }
 function merkeTeamSichtbar() {
   try { localStorage.setItem(TEAM_SICHTBAR_KEY, new Date().toISOString()); } catch {}
+}
+function ladeHeuteErledigt() {
+  try {
+    const e = JSON.parse(localStorage.getItem(HEUTE_ERLEDIGT_KEY));
+    return e && e.datum === heuteDatumKey() ? e.titel : [];
+  } catch { return []; }
+}
+function merkeHeuteErledigt(titel) {
+  try { localStorage.setItem(HEUTE_ERLEDIGT_KEY, JSON.stringify({ datum: heuteDatumKey(), titel: [...ladeHeuteErledigt(), titel] })); } catch {}
 }
 function heuteSchonGepostet() {
   const { data, key } = getWocheData();
@@ -5523,7 +5543,10 @@ function heuteKandidaten(wahl) {
   liste.forEach(k => {
     if (k.team && teamLange && !k.hinweisDrin) k.hinweis = 'Jemand aus dem Team war länger nicht zu sehen. Das passt heute gut dazu.';
   });
-  return liste.filter((k, i) => liste.findIndex(x => x.titel === k.titel) === i);
+  // Heute schon Umgesetztes nicht noch einmal vorschlagen
+  const erledigt = ladeHeuteErledigt();
+  const rest = liste.filter((k, i) => liste.findIndex(x => x.titel === k.titel) === i && !erledigt.includes(k.titel));
+  return rest.length ? rest : [liste[liste.length - 1]];
 }
 
 function renderHeute() {
@@ -5535,6 +5558,27 @@ function renderHeute() {
   if (row) row.innerHTML = HEUTE_MOMENTE.map(m =>
     `<button class="chip-select${m.id === wahl ? ' on' : ''}" onclick="heuteCheckin('${m.id}')">${m.label}</button>`
   ).join('');
+  const toggle = document.getElementById('heute-checkin-toggle');
+  const gewaehlt = HEUTE_MOMENTE.find(m => m.id === wahl);
+  if (toggle) toggle.textContent = gewaehlt ? `Heute: ${gewaehlt.label} · ändern` : 'Heute ist etwas anderes los?';
+
+  // Nach „Gepostet“: klar abschließen statt dieselbe Karte stehen zu lassen
+  if (heuteSchonGepostet() && !heuteMehr) {
+    heuteAktuell = null;
+    const fertig = `<div class="heute-empfehlung">
+        <div class="heute-emp-tag">✦ Heute · Erledigt</div>
+        <div class="heute-emp-title">Für heute erledigt</div>
+        <div class="heute-emp-why">Heute ist schon etwas online. Mehr braucht es heute nicht.</div>
+        <div class="heute-emp-btns">
+          <button class="heute-emp-btn" onclick="heuteNochWas()">Trotzdem noch etwas</button>
+        </div>
+      </div>`;
+    ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = fertig;
+    });
+    return;
+  }
 
   const liste = heuteKandidaten(wahl);
   const k = heuteAktuell = liste[heuteSkip % liste.length];
@@ -5544,7 +5588,6 @@ function renderHeute() {
       <div class="heute-emp-title">${heuteEsc(k.titel)}</div>
       <div class="heute-emp-why">${heuteEsc(k.warum)}</div>
       ${k.hinweis ? `<div class="heute-emp-why">${heuteEsc(k.hinweis)}</div>` : ''}
-      ${heuteSchonGepostet() ? '<div class="heute-emp-why">Heute ist schon etwas online. Wenn du magst: noch eine kurze Story.</div>' : ''}
       <div class="heute-emp-btns">
         <button class="heute-emp-btn" onclick="heuteLos()">Los geht's</button>
         ${liste.length > 1 ? '<button class="heute-emp-btn" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
@@ -5558,6 +5601,19 @@ function renderHeute() {
 
 function heuteCheckin(id) {
   speichereHeuteCheckin(ladeHeuteCheckin() === id ? null : id);   // nochmal tippen = abwählen
+  heuteSkip = 0;
+  heuteMehr = true;   // bewusst etwas anderes angegeben → wieder einen Vorschlag zeigen
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.style.display = 'none';
+  renderHeute();
+}
+// Check-in nur auf Wunsch aufklappen — leise Korrektur, nicht die Hauptfläche
+function heuteCheckinToggle() {
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+function heuteNochWas() {
+  heuteMehr = true;
   heuteSkip = 0;
   renderHeute();
 }

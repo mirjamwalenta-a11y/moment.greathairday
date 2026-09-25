@@ -92,13 +92,13 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </section>
 
   <section id="qr-section">
-    <div class="label">Google-Bewertung</div>
+    <div class="label" id="qr-titel">Google-Bewertung</div>
     <div class="chips" id="qr-chips">
       <button class="chip on" data-val="aus">Aus</button>
       <button class="chip" data-val="qr">QR-Code</button>
       <button class="chip" data-val="sticker">Link-Sticker (Story)</button>
     </div>
-    <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span>Bewertungslink</span><input id="f-qr" inputmode="url"></label>
+    <label class="feld" id="qr-link-feld" style="display:none;margin-top:10px;"><span id="qr-link-label">Bewertungslink</span><input id="f-qr" inputmode="url"></label>
     <p class="hinweis" id="sticker-hinweis" style="display:none;margin-top:8px;text-align:left;">In Instagram: Story hochladen → Sticker → „Link“ → Bewertungslink einfügen → Sticker auf die markierte Stelle legen.</p>
   </section>
 
@@ -731,6 +731,14 @@ const FRAGEN = {
 
 const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754] };
 const QR_LINK_STANDARD = 'https://www.greathairday.at/bewertung/';   // wie auf dem gedruckten Bewertungs-Aushang
+const JOB_LINK_STANDARD = 'https://www.greathairday.at/karriere/';   // Karriere-Seite der Homepage (Lehrling, Stylist:in)
+// Gehaltsangabe laut Gleichbehandlungsgesetz § 9 (2), bei Stellenausschreibungen Pflicht.
+// Beträge laut Friseur-KV ab 1.4.2026 (Stylist:in = Lohngruppe A2); bei jeder KV-Erhöhung (jährlich 1. April) hier und auf der Karriere-Seite anpassen.
+// Leerer Text = keine Zeile im Bildtext.
+const GEHALT = {
+  lehrstelle: 'Lehrlingseinkommen laut Kollektivvertrag: 1. Lehrjahr € 804, 2. Lehrjahr € 921, 3. Lehrjahr € 1.244 brutto pro Monat.',
+  stylist: 'Vollzeit. Mindestlohn laut Kollektivvertrag ab € 2.071 brutto pro Monat (mit Lehrabschluss), mit mehr Berufsjahren höher. Überzahlung je nach Erfahrung möglich.',
+};
 const linkKurz = url => url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 const STILE = {
   hell:   { bg:'#F5F0EA', ink:'#1C1B19', gold:'#8A7346', sub:'#45433F' },
@@ -761,7 +769,10 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung' };
+// QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'bewerbung' (Karriere-Seite)
+const istBewerbung = () => state.qrZweck === 'bewerbung';
+const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
 const cv = document.getElementById('cv');
 const ctx = cv.getContext('2d');
 
@@ -854,17 +865,22 @@ function drawStickerPlatz(W, footY, s) {
   const hinweisY = pillT - 48;
   ctx.fillStyle = s.sub;
   ctx.font = '400 38px Inter, system-ui, sans-serif';
-  ctx.fillText('Link antippen und bewerten', W / 2, hinweisY);
+  ctx.fillText(istBewerbung() ? 'Link antippen und bewerben' : 'Link antippen und bewerten', W / 2, hinweisY);
   const sternY = hinweisY - 82;
   ctx.fillStyle = s.gold;
-  for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+  if (istBewerbung()) {
+    ctx.font = 'italic 500 44px "Playfair Display", Georgia, serif';
+    ctx.fillText('Jetzt bewerben', W / 2, sternY + 14);
+  } else {
+    for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+  }
   return sternY - 40;
 }
 
 function drawBewertung(W, footY, s) {
   if (state.sticker) return drawStickerPlatz(W, footY, s);
   const fmt = state.format;
-  const qr = qrMatrix(state.qrLink);
+  const qr = qrMatrix(aktiverLink());
   if (!qr) return null;
   const qrSize = { post:320, quadrat:240, story:440, a4:520 }[fmt];
   const n = qr.getModuleCount();
@@ -872,7 +888,7 @@ function drawBewertung(W, footY, s) {
   const pad = Math.max(3 * m, qrSize * 0.08);   // Ruhezone rund um den Code
   const kompakt = fmt === 'quadrat';
 
-  const linkText = linkKurz(state.qrLink);
+  const linkText = linkKurz(aktiverLink());
   const urlY = footY - 95;
   const hinweisY = urlY - 58;
   const sternY = kompakt ? urlY - 70 : hinweisY - 70;
@@ -896,7 +912,13 @@ function drawBewertung(W, footY, s) {
 
   if (!kompakt) {
     ctx.fillStyle = s.gold;
-    for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+    if (istBewerbung()) {
+      // Bewerbung: statt Sternen ein klarer Aufruf
+      ctx.font = 'italic 500 44px "Playfair Display", Georgia, serif';
+      ctx.fillText('Jetzt bewerben', W / 2, sternY + 14);
+    } else {
+      for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
+    }
     ctx.fillStyle = s.sub;
     ctx.font = '400 34px Inter, system-ui, sans-serif';
     ctx.fillText('Mit der Handykamera scannen', W / 2, hinweisY);
@@ -1013,9 +1035,12 @@ function updateCaption() {
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
+  if (GEHALT[state.k]) teile.push(GEHALT[state.k]);
   if (state.qr && state.marke !== 'haarnetzwerk') {
     // Beim Link-Sticker den vollständigen Link, damit er direkt in den Sticker kopiert werden kann
-    teile.push(state.sticker ? 'Link für den Sticker: ' + state.qrLink : 'Zur Bewertung: ' + linkKurz(state.qrLink));
+    teile.push(state.sticker
+      ? 'Link für den Sticker: ' + aktiverLink()
+      : (istBewerbung() ? 'Zur Bewerbung: ' : 'Zur Bewertung: ') + linkKurz(aktiverLink()));
   }
   // Unterschrift: Salon-Posts von Mirjam, Vereins-Posts vom Haarnetzwerk
   teile.push(state.marke === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam');
@@ -1045,7 +1070,8 @@ function waehle(i) {
   state.idx = i; state.a = mitName(sp.a); state.b = mitName(sp.b); state.c = mitName(sp.c); state.k = sp.k;
   document.getElementById('team-section').style.display = hatName(sp) ? 'block' : 'none';
   setMarke(sp.k === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon');
-  setQr(sp.k === 'bewertung');
+  setQrZweck(['lehrstelle', 'stylist'].includes(sp.k) ? 'bewerbung' : 'bewertung');
+  setQr(['bewertung', 'lehrstelle', 'stylist'].includes(sp.k));
   document.getElementById('f-a').value = state.a;
   document.getElementById('f-b').value = state.b;
   document.getElementById('f-c').value = state.c;
@@ -1092,6 +1118,12 @@ function setBewertung(modus) {
   document.getElementById('qr-link-feld').style.display = state.qr ? 'flex' : 'none';
   document.getElementById('sticker-hinweis').style.display = state.sticker ? 'block' : 'none';
 }
+function setQrZweck(zweck) {
+  state.qrZweck = zweck;
+  document.getElementById('qr-titel').textContent = zweck === 'bewerbung' ? 'Bewerbung (QR-Code oder Link)' : 'Google-Bewertung';
+  document.getElementById('qr-link-label').textContent = zweck === 'bewerbung' ? 'Bewerbungslink' : 'Bewertungslink';
+  document.getElementById('f-qr').value = aktiverLink();
+}
 const bewertungsModus = () => !state.qr ? 'aus' : state.sticker ? 'sticker' : 'qr';
 // Kurzform für bestehende Aufrufe: an = QR-Code, aber einen gewählten Link-Sticker beibehalten
 function setQr(an) { setBewertung(an ? (state.sticker ? 'sticker' : 'qr') : 'aus'); }
@@ -1107,7 +1139,8 @@ document.querySelectorAll('#qr-chips .chip').forEach(c => c.onclick = () => {
 });
 document.getElementById('f-qr').value = QR_LINK_STANDARD;
 document.getElementById('f-qr').addEventListener('input', e => {
-  state.qrLink = e.target.value.trim() || QR_LINK_STANDARD;
+  if (istBewerbung()) state.jobLink = e.target.value.trim() || JOB_LINK_STANDARD;
+  else state.qrLink = e.target.value.trim() || QR_LINK_STANDARD;
   draw();
   updateCaption();
 });

@@ -270,47 +270,6 @@
   .goal-card-secondary .sec-desc { font-size: 13px; color: var(--mid); margin-top: 3px; }
   .goal-card-secondary .sec-arrow { color: var(--soft); flex-shrink: 0; }
 
-  /* ── HEUTE-FÜHRUNG (V1) ── */
-  .heute-fuehrung { margin-bottom: 30px; }
-  .heute-checkin {
-    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
-    padding: 14px 16px; margin: 18px 0 14px;
-  }
-  .heute-checkin-frage { font-size: 13px; font-weight: 600; color: var(--mid); margin-bottom: 10px; }
-  .heute-karte {
-    background: var(--black); color: var(--white); border-radius: var(--radius);
-    padding: 20px 20px 16px; box-shadow: var(--shadow-md); margin-bottom: 14px;
-  }
-  .heute-karte-tag {
-    font-size: 10px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase;
-    color: var(--gold-light); margin-bottom: 8px;
-  }
-  .heute-karte-titel { font-size: 19px; font-weight: 700; line-height: 1.25; margin-bottom: 8px; }
-  .heute-karte-warum { font-size: 13px; line-height: 1.5; color: rgba(255,253,248,.75); margin-bottom: 14px; }
-  .heute-karte-hinweis {
-    font-size: 12px; line-height: 1.45; color: rgba(255,253,248,.6);
-    border-top: 1px solid rgba(255,253,248,.15); padding-top: 10px; margin: -4px 0 14px;
-  }
-  .heute-karte-los {
-    width: 100%; padding: 13px; border: none; border-radius: var(--radius-sm);
-    background: var(--gold); color: var(--white); font-family: var(--f);
-    font-size: 15px; font-weight: 600; cursor: pointer;
-  }
-  .heute-karte-weiter {
-    display: block; margin: 10px auto 0; background: none; border: none;
-    color: rgba(255,253,248,.6); font-family: var(--f); font-size: 12px;
-    text-decoration: underline; cursor: pointer;
-  }
-  .heute-karte-notiz { font-size: 12px; color: var(--mid); margin: 0 2px 10px; line-height: 1.45; }
-  .weitere-wege-label {
-    font-size: 11px; font-weight: 600; letter-spacing: 0.10em; text-transform: uppercase;
-    color: var(--soft); margin: 0 2px 8px;
-  }
-  .weitere-wege .goal-card-secondary { padding: 12px 16px; margin-bottom: 8px; }
-  .weitere-wege .goal-card-secondary .sec-label,
-  .weitere-wege .goal-card-secondary .sec-desc { display: none; }
-  .weitere-wege .goal-card-secondary .sec-title { font-size: 14px; font-weight: 600; }
-
   /* ── RECRUITING/NEUKUNDEN SCREENS ── */
   .screen-eyebrow {
     font-size: 11px; font-weight: 600; letter-spacing: 0.10em;
@@ -1265,19 +1224,17 @@ function tabnavScrollBy(direction) {
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
   <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, ein freiwilliger Check-in, genau eine Empfehlung -->
-  <div class="heute-fuehrung">
-    <p class="start-eyebrow" id="heute-datum">Heute</p>
-    <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
-    <div class="heute-checkin">
-      <div class="heute-checkin-frage">Was ist heute im Salon los?</div>
-      <div class="chip-row" id="heute-checkin-row"></div>
-    </div>
-    <div id="heute-start-wrap"></div>
+  <p class="start-eyebrow" id="heute-datum">Heute</p>
+  <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
+  <p class="start-sub">Eine Empfehlung für heute — aus dem, was im Salon gerade los ist.</p>
+  <div class="input-wrap">
+    <div class="input-label">Was ist heute im Salon los?</div>
+    <div class="chip-row" id="heute-checkin-row"></div>
   </div>
+  <div id="heute-start-wrap"></div>
 
-  <!-- Bisherige Wege bleiben erhalten, nur eine Ebene tiefer -->
-  <div class="weitere-wege-label">Weitere Wege</div>
-  <div class="weitere-wege">
+  <!-- Bisherige Wege bleiben unverändert erhalten, nur darunter -->
+  <p class="start-eyebrow">Weitere Wege</p>
 
   <div class="goal-card-secondary" onclick="showScreen('screen-flow-anlass')">
     <div class="sec-left">
@@ -1334,7 +1291,6 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
 
-  </div>
 
   <div style="margin-top:10px; text-align:center;">
     <button onclick="showTabNav()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">
@@ -5582,15 +5538,17 @@ function renderHeute() {
 
   const liste = heuteKandidaten(wahl);
   const k = heuteAktuell = liste[heuteSkip % liste.length];
-  const notiz = heuteSchonGepostet()
-    ? '<div class="heute-karte-notiz">Heute ist schon etwas online. Wenn du magst: noch eine kurze Story.</div>' : '';
-  const html = `${notiz}<div class="heute-karte">
-      <div class="heute-karte-tag">Heute · ${k.format === 'story' ? 'Story' : 'Post'}</div>
-      <div class="heute-karte-titel">${heuteEsc(k.titel)}</div>
-      <div class="heute-karte-warum">${heuteEsc(k.warum)}</div>
-      ${k.hinweis ? `<div class="heute-karte-hinweis">${heuteEsc(k.hinweis)}</div>` : ''}
-      <button class="heute-karte-los" onclick="heuteLos()">Los geht's</button>
-      ${liste.length > 1 ? '<button class="heute-karte-weiter" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
+  // Bestehende goldene Heute-Karte — keine neuen Farben oder Stile
+  const html = `<div class="heute-empfehlung">
+      <div class="heute-emp-tag">✦ Heute · ${k.format === 'story' ? 'Story' : 'Post'}</div>
+      <div class="heute-emp-title">${heuteEsc(k.titel)}</div>
+      <div class="heute-emp-why">${heuteEsc(k.warum)}</div>
+      ${k.hinweis ? `<div class="heute-emp-why">${heuteEsc(k.hinweis)}</div>` : ''}
+      ${heuteSchonGepostet() ? '<div class="heute-emp-why">Heute ist schon etwas online. Wenn du magst: noch eine kurze Story.</div>' : ''}
+      <div class="heute-emp-btns">
+        <button class="heute-emp-btn" onclick="heuteLos()">Los geht's</button>
+        ${liste.length > 1 ? '<button class="heute-emp-btn" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
+      </div>
     </div>`;
   ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
     const el = document.getElementById(id);

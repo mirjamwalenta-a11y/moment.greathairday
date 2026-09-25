@@ -128,6 +128,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="leistungen">Leistungen</button>
       <button class="chip" data-val="pflege">Haarpflege</button>
       <button class="chip" data-val="kopfhaut">Kopfhaut</button>
+      <button class="chip" data-val="haartyp">Haartypen</button>
       <button class="chip" data-val="styling">Styling</button>
       <button class="chip" data-val="bewertung">Bewerte uns</button>
       <button class="chip" data-val="lehrstelle">Lehrling gesucht</button>
@@ -497,6 +498,29 @@ const SPRUECHE = [
   { k:'kopfhaut', a:'Im Herbst fallen die Blätter.', b:'Und manchmal ein paar Haare mehr.', c:'Das ist oft ganz normal.', h:'#Haarausfall #Herbst' },
   { k:'kopfhaut', a:'Stress sieht man', b:'manchmal auch an den Haaren.', c:'' },
   { k:'kopfhaut', a:'Ehrliche Beratung', b:'statt Wundermittel.', c:'' },
+  // Haartypen — Locken, glatt, strukturgeschädigt, Spliss, gefärbt (ohne Wunderversprechen)
+  { k:'haartyp', a:'Locken haben ihren eigenen Kopf.', b:'Wir respektieren das.', c:'', h:'#Locken' },
+  { k:'haartyp', a:'Locken lieben Feuchtigkeit.', b:'Und Geduld.', c:'', h:'#Locken' },
+  { k:'haartyp', a:'Frizz ist kein Fehler.', b:'Nur Durst.', c:'', h:'#Locken #Frizz' },
+  { k:'haartyp', a:'Deine Locken sind kein Problem,', b:'sondern ein Geschenk.', c:'', h:'#Locken' },
+  { k:'haartyp', a:'Kein Kamm, keine Bürste?', b:'Locken lieben Finger.', c:'Entwirren am besten im feuchten Haar.', h:'#Locken' },
+  { k:'haartyp', a:'Glattes Haar', b:'zeigt jeden Schnitt.', c:'Deshalb zählt Präzision.', h:'#GlatteHaare' },
+  { k:'haartyp', a:'Glatt und fein?', b:'Leichte Pflege, die nicht beschwert.', c:'', h:'#GlatteHaare #FeinesHaar' },
+  { k:'haartyp', a:'Glanz', b:'ist die Stärke von glattem Haar.', c:'', h:'#GlatteHaare' },
+  { k:'haartyp', a:'Kein Volumen am Ansatz?', b:'Kopfüber föhnen hilft.', c:'', h:'#Volumen #FeinesHaar' },
+  { k:'haartyp', a:'Strapaziertes Haar', b:'braucht Zeit, nicht Wunder.', c:'', h:'#StrapaziertesHaar' },
+  { k:'haartyp', a:'Zu oft geglättet, zu oft gefärbt?', b:'Deine Haare brauchen jetzt Ruhe.', c:'', h:'#StrapaziertesHaar' },
+  { k:'haartyp', a:'Brüchig, stumpf, trocken?', b:'Zeit für ehrliche Pflege.', c:'', h:'#StrapaziertesHaar' },
+  { k:'haartyp', a:'Kaputtes Haar lässt sich', b:'nicht wegzaubern.', c:'Aber gut pflegen, bis es nachwächst.', h:'#StrapaziertesHaar' },
+  { k:'haartyp', a:'Erst pflegen,', b:'dann wieder färben.', c:'', h:'#StrapaziertesHaar #Haarfarbe' },
+  { k:'haartyp', a:'Spliss wandert.', b:'Deshalb lieber rechtzeitig schneiden.', c:'', h:'#Spliss' },
+  { k:'haartyp', a:'Ein Zentimeter ab', b:'kann viel retten.', c:'', h:'#Spliss' },
+  { k:'haartyp', a:'Gespaltene Spitzen,', b:'klare Entscheidung: ab damit.', c:'', h:'#Spliss' },
+  { k:'haartyp', a:'Coloriertes Haar', b:'braucht eigene Pflege.', c:'Damit die Farbe lange strahlt.', h:'#Haarfarbe' },
+  { k:'haartyp', a:'Rot verblasst am schnellsten.', b:'Mit Pflege leuchtet es länger.', c:'', h:'#Haarfarbe #RoteHaare' },
+  { k:'haartyp', a:'Kühles Blond, warmes Blond?', b:'Wir finden deins.', c:'', h:'#Blond' },
+  { k:'haartyp', a:'Nach dem Färben', b:'ein, zwei Tage nicht waschen.', c:'So hat die Farbe Zeit.', h:'#Haarfarbe' },
+  { k:'haartyp', a:'Sonne bleicht.', b:'Auch deine Haarfarbe.', c:'Ein Hut hilft.', h:'#Haarfarbe #Sommer' },
   // Styling — vor dem Föhnen (Hitzeschutz, Halt, Volumen)
   { k:'styling', a:'Erst schützen,', b:'dann föhnen.', c:'Hitzeschutz ins handtuchtrockene Haar.', h:'#Hitzeschutz #Föhnen' },
   { k:'styling', a:'Hitzeschutz ist wie Sonnencreme,', b:'nur für die Haare.', c:'', h:'#Hitzeschutz' },
@@ -626,6 +650,7 @@ const FRAGEN = {
   pflege: 'Welche Pflegefrage beschäftigt dich gerade?',
   styling: 'Welches Stylingprodukt ist dein Liebling, und wofür?',
   kopfhaut: 'Welche Frage zur Kopfhaut wolltest du schon immer einmal stellen?',
+  haartyp: 'Welcher Haartyp bist du: Locken, glatt oder irgendwo dazwischen?',
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
@@ -925,6 +950,7 @@ function updateCaption() {
     pflege:'#Haarpflege',
     styling:'#Haarstyling',
     kopfhaut:'#Kopfhaut #Kopfhautpflege',
+    haartyp:'#Haarpflege',
     lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
     stylist:'#FriseurJob #Jobs #Team'
   }[state.k] || '';

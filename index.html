@@ -1223,9 +1223,19 @@ function tabnavScrollBy(direction) {
 
 <!-- ══ SCREEN: START ══ -->
 <section class="screen active" id="screen-start">
-  <p class="start-eyebrow">Was ist gerade dran?</p>
-  <h1 class="start-headline">Wofür willst du<br>heute sichtbar sein?</h1>
-  <p class="start-sub">Wähle deinen Weg — alles Weitere kommt von selbst.</p>
+  <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, genau eine Empfehlung, Check-in nur als leise Korrektur -->
+  <p class="start-eyebrow" id="heute-datum">Heute</p>
+  <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
+  <div id="heute-start-wrap"></div>
+  <div class="input-wrap">
+    <div style="text-align:center;">
+      <button id="heute-checkin-toggle" onclick="heuteCheckinToggle()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">Heute ist etwas anderes los?</button>
+    </div>
+    <div class="chip-row" id="heute-checkin-row" style="display:none;"></div>
+  </div>
+
+  <!-- Bisherige Wege bleiben unverändert erhalten, nur darunter -->
+  <p class="start-eyebrow">Weitere Wege</p>
 
   <div class="goal-card-secondary" onclick="showScreen('screen-flow-anlass')">
     <div class="sec-left">
@@ -1281,6 +1291,7 @@ function tabnavScrollBy(direction) {
       <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
     </div>
   </div>
+
 
   <div style="margin-top:10px; text-align:center;">
     <button onclick="showTabNav()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">
@@ -1660,7 +1671,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Was ist passiert oder was willst du zeigen?</div>
     <div class="input-with-mic">
-      <textarea id="post-moment" placeholder="z.B. Heute hat Ronya zum ersten Mal eine Balayage alleine gemacht..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
+      <textarea id="post-moment" placeholder="z.B. Heute ist eine Balayage fertig geworden, auf die wir richtig stolz sind..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
       <button class="btn-mic" id="mic-post" onclick="toggleMic('post-moment','mic-post')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -1833,7 +1844,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Thema oder Moment</div>
     <div class="input-with-mic">
-      <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag dafür genutzt, mit Ronya zu üben..." rows="3" oninput="storyCheck()"></textarea>
+      <textarea id="story-moment" placeholder="z.B. Heute haben wir einen ruhigen Tag genutzt, um im Team eine neue Technik zu üben..." rows="3" oninput="storyCheck()"></textarea>
       <button class="btn-mic" id="mic-story" onclick="toggleMic('story-moment','mic-story')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -1886,7 +1897,7 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Was willst du zeigen?</div>
     <div class="input-with-mic">
-      <textarea id="reel-moment" placeholder="z.B. Vorher kaputtes Blond, dann Glossing-Behandlung, danach strahlend — Ronya hat es heute gemacht..." rows="4" oninput="reelCheck()"></textarea>
+      <textarea id="reel-moment" placeholder="z.B. Vorher kaputtes Blond, dann Glossing-Behandlung, danach strahlend — heute im Salon gemacht..." rows="4" oninput="reelCheck()"></textarea>
       <button class="btn-mic" id="mic-reel" onclick="toggleMic('reel-moment','mic-reel')" aria-label="Spracheingabe" title="Sprachsteuerung">🎙</button>
     </div>
   </div>
@@ -2381,7 +2392,7 @@ function tabnavScrollBy(direction) {
     <div id="stimmen-modal-list"></div>
     <div class="kandidat-pre-form" style="margin-top:14px;">
       <div class="input-label">Wer sagt das?</div>
-      <input type="text" id="stimme-person" class="login-input" placeholder="z.B. Mazen, Alina, Ronya..." style="max-width:100%;text-align:left;">
+      <input type="text" id="stimme-person" class="login-input" placeholder="z.B. Mazen, Alina, Hassan..." style="max-width:100%;text-align:left;">
       <div class="input-label">Was wurde gesagt?</div>
       <textarea id="stimme-text" class="login-input" rows="3" style="max-width:100%;text-align:left;" placeholder="Der echte Satz, so wie er gesagt wurde..."></textarea>
       <div class="input-label">Passt eher zu</div>
@@ -2538,7 +2549,7 @@ const KONTEXT_INFO = {
 - Mitglied & stellvertretende Obfrau beim Haarnetzwerk (Branchennetzwerk für Friseurinnen & Friseure)
 
 Ihr Content deckt deshalb mehrere Kontexte ab:
-- Salonalltag (Team, Kund:innen, Ergebnisse, Lehrling Ronya)
+- Salonalltag (Team, Kund:innen, Ergebnisse, Ausbildung)
 - Ausbildung & Prüfungswesen (Innung, Lehrabschlussprüfungen)
 - Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
 - Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
@@ -2578,6 +2589,7 @@ function showScreen(id) {
   document.getElementById(id).classList.add('active');
   screenHistory.push(id);
   const isStart = id === 'screen-start';
+  if (isStart) renderHeute();
   document.getElementById('backBtn').classList.toggle('visible', !isStart);
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
@@ -2591,6 +2603,7 @@ function goBack() {
     document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
     document.getElementById(prev).classList.add('active');
     const isStart = prev === 'screen-start';
+    if (isStart) renderHeute();
     document.getElementById('backBtn').classList.toggle('visible', !isStart);
     if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
       showTabNav();
@@ -2673,7 +2686,7 @@ const outputs = {
   },
   'lernmoment': {
     ziel:'recruiting', format:'Story',
-    text:`Ronya hat heute etwas zum ersten Mal gemacht.\nNicht perfekt.\nAber mit vollem Einsatz.\nUnd das zählt.\n\nAusbildung bei uns bedeutet: echte Arbeit, echte Begleitung.`,
+    text:`Heute wurde bei uns etwas zum ersten Mal ausprobiert.\nNicht perfekt.\nAber mit vollem Einsatz.\nUnd das zählt.\n\nAusbildung bei uns bedeutet: echte Arbeit, echte Begleitung.`,
     foto:'Ein Foto vom Lehrling bei der Arbeit — konzentriert, authentisch.',
     story_interaktion:'Umfrage-Sticker: „Warst du auch mal Lehrling?" Ja / Nein',
     cta:'Interesse an einer Lehrstelle? Wir sind offen für ein Gespräch.', cta_kanal:'DM / Nachricht'
@@ -2704,7 +2717,7 @@ const outputs = {
   },
   'lehrling-alltag': {
     ziel:'recruiting', format:'Story',
-    text:`Heute: Ronya hat zum ersten Mal selbst eine Balayage-Technik ausprobiert.\n\nNicht perfekt.\nAber richtig gut daran.\n\nDas ist Lernen. Das ist Ausbildung bei uns.`,
+    text:`Heute wurde bei uns zum ersten Mal eine neue Balayage-Technik ausprobiert.\n\nNicht perfekt.\nAber richtig gut daran.\n\nDas ist Lernen. Das ist Ausbildung bei uns.`,
     foto:'Video-Clip: Hände beim Arbeiten, Konzentration im Gesicht — kurz und echt.',
     story_interaktion:'Frage-Sticker: „Was war dein erster großer Lernmoment?"',
     cta:null, cta_kanal:null
@@ -2712,7 +2725,7 @@ const outputs = {
   'lehrling-warum': {
     ziel:'recruiting', format:'Post',
     text:`Bei uns lernst du nicht nur, wie man Haare schneidet.\n\nDu lernst, wie man mit Menschen umgeht.\nWie man Qualität erkennt.\nWie man in einem kleinen Team trägt und getragen wird.\n\nWir begleiten — wirklich.`,
-    foto:'Ein Foto: Mirjam zeigt Ronya etwas — kein Posing, einfach ein echter Moment.',
+    foto:'Ein Foto: Mirjam zeigt jemandem aus dem Team etwas — kein Posing, einfach ein echter Moment.',
     story_interaktion:null, cta:'Interesse? Schreib uns — auch wenn du noch unsicher bist.', cta_kanal:'DM / Nachricht'
   },
   'lehrling-direkt': {
@@ -2889,7 +2902,7 @@ const FLOW_CONTENT = {
     ], abschluss:'Heute noch Zeit?', cta:'Schreib uns kurz — wir schauen, was geht.' }
   },
   'lehrling-lernt': {
-    vertrauen: { einstieg:'Ronya hat heute etwas zum ersten Mal gemacht.', frames:[
+    vertrauen: { einstieg:'Heute wurde bei uns etwas zum ersten Mal ausprobiert.', frames:[
       'Erste eigene Strähnchen-Technik, mit voller Konzentration.',
       'Ein kurzer Blick zur Kollegin — Bestätigung, dass es passt.',
       'Das fertige Ergebnis, mit sichtbarem Stolz.'
@@ -2901,7 +2914,7 @@ const FLOW_CONTENT = {
       'Fertiges Ergebnis im Spiegel.'
     ], kernaussage:'Lernen passiert bei uns live, nicht nebenbei.', cta:'Mehr davon? Folg uns für echte Einblicke.', caption:'Ein erstes Mal, das man sieht.' },
     anfrage: { einstieg:'Ein Lernmoment, den wir gern zeigen.', frames:[
-      'Ronya probiert eine neue Technik aus.',
+      'Eine neue Technik wird ausprobiert.',
       'Genaues Hinschauen, ruhige Anleitung.',
       'Ein Ergebnis, das sich sehen lassen kann.'
     ], abschluss:'Auch Lernschritte führen zu guten Ergebnissen.', cta:'Termin bei uns? Schreib uns kurz.' },
@@ -2916,7 +2929,7 @@ const FLOW_CONTENT = {
       'Geduld statt Zeitdruck.',
       'Ein Ergebnis, auf das beide stolz sind.'
     ], abschluss:'So bildet man aus, wenn man es ernst meint.', cta:'Du willst in einem Team arbeiten, das wirklich begleitet? Schreib uns.' },
-    'termine-fuellen': { bildidee:'Nahaufnahme vom fertigen Ergebnis, das Ronya heute selbst gemacht hat.', ersterSatz:'Auch Lernschritte bringen richtig gute Ergebnisse.', kernaussage:'Frisches Können, gute Betreuung — beides zusammen.', cta:'Heute noch ein Platz frei — schreib uns.', begleittext:'Ausbildung live bei uns im Salon.' }
+    'termine-fuellen': { bildidee:'Nahaufnahme vom fertigen Ergebnis, an dem heute im Team gelernt wurde.', ersterSatz:'Auch Lernschritte bringen richtig gute Ergebnisse.', kernaussage:'Frisches Können, gute Betreuung — beides zusammen.', cta:'Heute noch ein Platz frei — schreib uns.', begleittext:'Ausbildung live bei uns im Salon.' }
   },
   'mitarbeiterin-zeigen': {
     vertrauen: { einstieg:'Wer heute für dich da ist, wenn du zu uns kommst.', frames:[
@@ -2974,7 +2987,7 @@ const FLOW_CONTENT = {
       'Nachher: das fertige Ergebnis.'
     ], kernaussage:'Manche Veränderungen sieht man sofort.', cta:'Du willst auch so ein Ergebnis? Schreib uns.', caption:'Ein Ergebnis, das für sich spricht.' },
     anfrage: { bildidee:'Nahaufnahme vom fertigen Ergebnis — Struktur und Farbe gut sichtbar.', ersterSatz:'Wenn du dir sowas vorstellst: du weißt, wo wir sind.', kernaussage:'Heute fertig geworden — mit viel Sorgfalt.', cta:'Termin anfragen: per Nachricht oder online über den Link in der Bio.', begleittext:'📍 A great hair day · Rechte Wienzeile 47, 1050 Wien' },
-    'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem auch Ronya mitgearbeitet hat.', frames:[
+    'lehrling-ansprechen': { einstieg:'Ein Ergebnis, an dem das ganze Team mitgearbeitet hat.', frames:[
       'Gemeinsame Vorbereitung, Schritt für Schritt.',
       'Konzentrierte Zusammenarbeit im Team.',
       'Das fertige Ergebnis — gemeinsam erreicht.'
@@ -3003,7 +3016,7 @@ const FLOW_CONTENT = {
       'Fertiges Ergebnis: glänzend, gepflegt.'
     ], kernaussage:'Die richtige Pflege zur richtigen Zeit.', cta:'Interesse? Wir haben diese Woche noch Termine.', caption:'Was dein Haar gerade wirklich braucht.' },
     anfrage: { bildidee:'Nahaufnahme: glänzendes, gepflegtes Haar nach der Behandlung.', ersterSatz:'So fühlt sich gut gepflegtes Haar an.', kernaussage:'Die Behandlung, die gerade zur Jahreszeit passt.', cta:'Interesse? Meld dich — wir schauen, was passt.', begleittext:'Schreib mir eine Nachricht.' },
-    'lehrling-ansprechen': { bildidee:'Bild von Ronya, die die Behandlung unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
+    'lehrling-ansprechen': { bildidee:'Bild aus dem Salon: Eine Behandlung wird unter Anleitung vorbereitet.', ersterSatz:'Auch das gehört zur Ausbildung: Produkte und Behandlungen wirklich verstehen.', kernaussage:'Nicht nur Schnitt und Farbe — bei uns lernt man das ganze Handwerk.', cta:'Interesse an einer Lehrstelle? Schreib uns.', begleittext:'Ausbildung, die in die Tiefe geht.' },
     'mitarbeiterin-anziehen': { einstieg:'So bringen wir neue Behandlungen ins Team.', frames:[
       'Kurze interne Einschulung vorab.',
       'Gemeinsames Ausprobieren, Fragen erlaubt.',
@@ -4285,7 +4298,7 @@ const IDEAS = [
   {icon:'✨',label:'Team-Moment',desc:'Gelächter, Stille, ein guter Morgen.',ziel:'Mitarbeiter:innen anziehen'},
   {icon:'✂️',label:'Qualität zeigen',desc:'Ein Handgriff, eine Technik, ein Ergebnis.',ziel:'Vertrauen aufbauen'},
   {icon:'💪',label:'Haltung zeigen',desc:'Etwas, wofür du eingestanden bist.',ziel:'Authentizität'},
-  {icon:'🎓',label:'Ausbildungs-Einblick',desc:'Ronya lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
+  {icon:'🎓',label:'Ausbildungs-Einblick',desc:'Jemand im Team lernt etwas Neues. Der Moment dahinter.',ziel:'Lehrlinge gewinnen'},
   {icon:'🤔',label:'Branchenfrage',desc:'Was läuft falsch? Was könnte besser sein?',ziel:'Diskussion + Reichweite'},
   {icon:'💡',label:'Expertentipp',desc:'Ein Fehler den fast alle machen.',ziel:'Expertise zeigen'},
   {icon:'🤝',label:'Team-Portrait',desc:'Mazen, Alina oder Hassan — was macht euch aus?',ziel:'Menschlichkeit'},
@@ -5095,6 +5108,14 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
+    // Empfehlung aus der Heute-Führung umgesetzt → merken (Team gilt ggf. als sichtbar)
+    if (heuteOffen) {
+      merkeHeuteErledigt(heuteOffen.titel);
+      if (heuteOffen.team) merkeTeamSichtbar();
+      heuteOffen = null;
+    }
+    heuteMehr = false;
+    renderHeute();
     if (hint) hint.textContent = '✓ Als gepostet markiert — zählt in deiner Wochenübersicht.';
   } else {
     btn.style.background = 'var(--gold-pale)';
@@ -5384,47 +5405,237 @@ function heuteTerminZuStory(titel, kontext) {
 
 const HEUTE_EMPFEHLUNGEN = [
   { tag: 'Heute empfohlen', title: 'Zeig einen echten Moment aus dem Salon', why: 'Authentische Einblicke bauen mehr Vertrauen als jede Werbung.', post: 'Heute im Salon — ein echter, ungestellter Moment.', story: 'Ein ruhiger Blick hinter die Kulissen.' },
-  { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Mazen, Alina, Hassan — Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
+  { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
   { tag: 'Heute empfohlen', title: 'Ein Ergebnis das dich stolz macht', why: 'Ergebnisse zeigen, was du kannst — ohne Erklärung.', post: 'Ein Ergebnis das heute fertig wurde.', story: 'Vorher / Nachher — oder nur das Ergebnis.' },
-  { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Schnell Termin → Rechte Wienzeile 47.' },
+  { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Heute ist noch ein Termin frei.' },
   { tag: 'Heute empfohlen', title: 'Deine Haltung zu einem Thema', why: 'Eine klare Meinung macht dich erkennbar und menschlich.', post: 'Was mich gerade in unserem Handwerk beschäftigt.', story: 'Ein Satz der deine Haltung zeigt.' },
 ];
 
 function initHeuteTab() {
   renderHeuteTermin();
-  // Empfehlung — täglich wechselnd
-  const idx = new Date().getDate() % HEUTE_EMPFEHLUNGEN.length;
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  const wrap = document.getElementById('heute-emp-wrap');
-  if(wrap) {
-    wrap.innerHTML = `<div class="heute-empfehlung">
-      <div class="heute-emp-tag">✦ ${emp.tag}</div>
-      <div class="heute-emp-title">${emp.title}</div>
-      <div class="heute-emp-why">${emp.why}</div>
-      <div class="heute-emp-btns">
-        <button class="heute-emp-btn" onclick="heuteZuPost(${idx})">✍ Als Post</button>
-        <button class="heute-emp-btn" onclick="heuteZuStory(${idx})">📱 Als Story</button>
-      </div>
-    </div>`;
-  }
+  // Dieselbe eine Empfehlung wie auf der Startseite — keine zweite, abweichende Tagesidee
+  renderHeute();
   renderWoche();
 }
 
-function heuteZuPost(idx) {
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  showTab_direct('screen-post');
-  setTimeout(() => {
-    const el = document.getElementById('post-moment');
-    if(el) { el.value = emp.post; el.dispatchEvent(new Event('input')); }
-  }, 150);
+// ════════════════════════════════════════════
+// HEUTE-FÜHRUNG (V1)
+// Eine ruhige Frage, ein freiwilliger Check-in, genau eine Empfehlung.
+// Regelbasiert und nachvollziehbar: erste passende Regel gewinnt.
+// Keine KI, keine Analytics — Wörni schreibt erst im Generator.
+// ════════════════════════════════════════════
+const HEUTE_CHECKIN_KEY = 'ghd_heute_checkin_v1';
+// Stilles Team-Gedächtnis: nur EIN Datum — wann das Team zuletzt sichtbar war.
+// Keine Namen, keine Liste, keine Bewertung.
+const TEAM_SICHTBAR_KEY = 'ghd_team_sichtbar_v1';
+const TEAM_LANGE_TAGE = 14;
+const HEUTE_MOMENTE = [
+  { id: 'ergebnis',           label: 'Ein Ergebnis, auf das wir stolz sind' },
+  { id: 'termin-frei',        label: 'Kurzfristig ist ein Termin frei' },
+  { id: 'neues-ausprobieren', label: 'Jemand im Team probiert etwas Neues aus' },
+  { id: 'team-moment',        label: 'Ein ruhiger Moment im Team' },
+  { id: 'neuheit',            label: 'Etwas Neues: Produkt oder Behandlung' },
+  { id: 'nichts',             label: 'Nichts Besonderes' }
+];
+let heuteSkip = 0;         // „Passt heute nicht“ → nächstbeste Empfehlung
+let heuteAktuell = null;   // gerade angezeigte Empfehlung
+let heuteOffen = null;     // zuletzt gestartete Empfehlung (für „Gepostet“)
+let heuteMehr = false;     // nach „Für heute erledigt“ bewusst noch einen Vorschlag wollen
+const HEUTE_ERLEDIGT_KEY = 'ghd_heute_erledigt_v1';   // heute umgesetzte Empfehlungen (Titel)
+
+function heuteDatumKey() {
+  const d = new Date();
+  return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+}
+function ladeHeuteCheckin() {
+  try {
+    const c = JSON.parse(localStorage.getItem(HEUTE_CHECKIN_KEY));
+    return c && c.datum === heuteDatumKey() ? c.wahl : null;
+  } catch { return null; }
+}
+function speichereHeuteCheckin(wahl) {
+  try { localStorage.setItem(HEUTE_CHECKIN_KEY, JSON.stringify({ datum: heuteDatumKey(), wahl })); } catch {}
+}
+function tageSeitTeamSichtbar() {
+  try {
+    const d = localStorage.getItem(TEAM_SICHTBAR_KEY);
+    return d ? Math.floor((Date.now() - new Date(d).getTime()) / 86400000) : null;
+  } catch { return null; }
+}
+function merkeTeamSichtbar() {
+  try { localStorage.setItem(TEAM_SICHTBAR_KEY, new Date().toISOString()); } catch {}
+}
+function ladeHeuteErledigt() {
+  try {
+    const e = JSON.parse(localStorage.getItem(HEUTE_ERLEDIGT_KEY));
+    return e && e.datum === heuteDatumKey() ? e.titel : [];
+  } catch { return []; }
+}
+function merkeHeuteErledigt(titel) {
+  try { localStorage.setItem(HEUTE_ERLEDIGT_KEY, JSON.stringify({ datum: heuteDatumKey(), titel: [...ladeHeuteErledigt(), titel] })); } catch {}
+}
+function heuteSchonGepostet() {
+  const { data, key } = getWocheData();
+  return !!(data[key] && data[key][getTodayIdx()]);
+}
+function heuteEsc(t) {
+  return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
-function heuteZuStory(idx) {
-  const emp = HEUTE_EMPFEHLUNGEN[idx];
-  showTab_direct('screen-story');
+// Alle passenden Empfehlungen in fester Reihenfolge — angezeigt wird immer nur eine.
+function heuteKandidaten(wahl) {
+  const tage = tageSeitTeamSichtbar();
+  const teamLange = tage === null || tage > TEAM_LANGE_TAGE;
+  const liste = [];
+
+  // 1. Freier Termin heute — zeitkritisch
+  if (wahl === 'termin-frei') liste.push({
+    titel: 'Eine Story zum freien Termin',
+    warum: 'Eine kurzfristige Lücke füllt sich am ehesten über eine Story am selben Tag.',
+    format: 'story', moment: 'Heute ist kurzfristig ein Termin frei geworden.'
+  });
+  // 2. Anlass aus dem Planer in den nächsten 3 Tagen (nur Salon)
+  ladeTermine()
+    .filter(t => t.kontext !== 'haarnetzwerk')
+    .map(t => ({ ...t, tage: tageBisTermin(t.monat, t.tag, t.jahr) }))
+    .filter(t => t.tage !== null && t.tage <= 3)
+    .sort((a, b) => a.tage - b.tage)
+    .forEach(t => {
+      const wann = t.tage === 0 ? 'Heute' : t.tage === 1 ? 'Morgen' : `In ${t.tage} Tagen`;
+      liste.push({
+        titel: `Den Anlass vorbereiten: ${t.titel}`,
+        warum: `${wann} ist es so weit. Wer früh davon erfährt, kann sich den Tag freihalten.`,
+        format: 'post', termin: t
+      });
+    });
+  // 3.–6. Was heute im Salon los ist
+  if (wahl === 'ergebnis') liste.push({
+    titel: 'Das Ergebnis von heute zeigen',
+    warum: 'Ein fertiges Ergebnis zeigt ohne viele Worte, was ihr könnt, und bleibt im Feed sichtbar.',
+    format: 'post', moment: 'Heute ist ein Ergebnis fertig geworden, auf das wir stolz sind.'
+  });
+  if (wahl === 'neues-ausprobieren') liste.push({
+    titel: 'Zeigen, wie im Team Neues ausprobiert wird',
+    warum: 'Lernen und Ausprobieren machen sichtbar, dass hier mit Sorgfalt gearbeitet wird.',
+    format: 'story', moment: 'Heute probiert jemand aus unserem Team eine neue Technik aus.', team: true
+  });
+  if (wahl === 'neuheit') liste.push({
+    titel: 'Die Neuheit vorstellen',
+    warum: 'Etwas Neues gibt Stammkund:innen einen Grund, wieder vorbeizuschauen.',
+    format: 'post', moment: 'Bei uns gibt es etwas Neues: '
+  });
+  if (wahl === 'team-moment') liste.push({
+    titel: 'Einen ruhigen Team-Moment zeigen',
+    warum: 'Menschen folgen Menschen. Ein echter Moment aus dem Team schafft Nähe.',
+    format: 'story', moment: 'Ein ruhiger, echter Moment aus unserem Team heute.', team: true
+  });
+  // 7. Ruhiger Tag: das Team, wenn es länger nicht zu sehen war …
+  if (teamLange) liste.push({
+    titel: 'Das Team bei der Arbeit zeigen',
+    warum: 'Ein echter Einblick schafft Nähe, und das Team war eine Weile nicht zu sehen.',
+    format: 'story', moment: 'Ein echter Einblick: unser Team heute bei der Arbeit.', team: true, hinweisDrin: true
+  });
+  // … sonst die bisherige Tagesempfehlung
+  const e = HEUTE_EMPFEHLUNGEN[new Date().getDate() % HEUTE_EMPFEHLUNGEN.length];
+  liste.push({ titel: e.title, warum: e.why, format: 'post', moment: e.post });
+
+  // Team-Gedächtnis nur als leiser Satz, nie als eigenes Element
+  liste.forEach(k => {
+    if (k.team && teamLange && !k.hinweisDrin) k.hinweis = 'Jemand aus dem Team war länger nicht zu sehen. Das passt heute gut dazu.';
+  });
+  // Heute schon Umgesetztes nicht noch einmal vorschlagen
+  const erledigt = ladeHeuteErledigt();
+  const rest = liste.filter((k, i) => liste.findIndex(x => x.titel === k.titel) === i && !erledigt.includes(k.titel));
+  return rest.length ? rest : [liste[liste.length - 1]];
+}
+
+function renderHeute() {
+  const wahl = ladeHeuteCheckin();
+  const datumEl = document.getElementById('heute-datum');
+  if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });
+
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.innerHTML = HEUTE_MOMENTE.map(m =>
+    `<button class="chip-select${m.id === wahl ? ' on' : ''}" onclick="heuteCheckin('${m.id}')">${m.label}</button>`
+  ).join('');
+  const toggle = document.getElementById('heute-checkin-toggle');
+  const gewaehlt = HEUTE_MOMENTE.find(m => m.id === wahl);
+  if (toggle) toggle.textContent = gewaehlt ? `Heute: ${gewaehlt.label} · ändern` : 'Heute ist etwas anderes los?';
+
+  // Nach „Gepostet“: klar abschließen statt dieselbe Karte stehen zu lassen
+  if (heuteSchonGepostet() && !heuteMehr) {
+    heuteAktuell = null;
+    const fertig = `<div class="heute-empfehlung">
+        <div class="heute-emp-tag">✦ Heute · Erledigt</div>
+        <div class="heute-emp-title">Für heute erledigt</div>
+        <div class="heute-emp-why">Heute ist schon etwas online. Mehr braucht es heute nicht.</div>
+        <div class="heute-emp-btns">
+          <button class="heute-emp-btn" onclick="heuteNochWas()">Trotzdem noch etwas</button>
+        </div>
+      </div>`;
+    ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
+      const el = document.getElementById(id);
+      if (el) el.innerHTML = fertig;
+    });
+    return;
+  }
+
+  const liste = heuteKandidaten(wahl);
+  const k = heuteAktuell = liste[heuteSkip % liste.length];
+  // Bestehende goldene Heute-Karte — keine neuen Farben oder Stile
+  const html = `<div class="heute-empfehlung">
+      <div class="heute-emp-tag">✦ Heute · ${k.format === 'story' ? 'Story' : 'Post'}</div>
+      <div class="heute-emp-title">${heuteEsc(k.titel)}</div>
+      <div class="heute-emp-why">${heuteEsc(k.warum)}</div>
+      ${k.hinweis ? `<div class="heute-emp-why">${heuteEsc(k.hinweis)}</div>` : ''}
+      <div class="heute-emp-btns">
+        <button class="heute-emp-btn" onclick="heuteLos()">Los geht's</button>
+        ${liste.length > 1 ? '<button class="heute-emp-btn" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
+      </div>
+    </div>`;
+  ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.innerHTML = html;
+  });
+}
+
+function heuteCheckin(id) {
+  speichereHeuteCheckin(ladeHeuteCheckin() === id ? null : id);   // nochmal tippen = abwählen
+  heuteSkip = 0;
+  heuteMehr = true;   // bewusst etwas anderes angegeben → wieder einen Vorschlag zeigen
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.style.display = 'none';
+  renderHeute();
+}
+// Check-in nur auf Wunsch aufklappen — leise Korrektur, nicht die Hauptfläche
+function heuteCheckinToggle() {
+  const row = document.getElementById('heute-checkin-row');
+  if (row) row.style.display = row.style.display === 'none' ? 'flex' : 'none';
+}
+function heuteNochWas() {
+  heuteMehr = true;
+  heuteSkip = 0;
+  renderHeute();
+}
+function heuteWeiter() {
+  heuteSkip++;
+  renderHeute();
+}
+// Öffnet den bestehenden Generator (Post oder Story) mit vorbefülltem Moment
+function heuteLos() {
+  const k = heuteAktuell;
+  if (!k) return;
+  heuteOffen = k;
+  if (k.termin) {
+    (k.format === 'story' ? heuteTerminZuStory : heuteTerminZuPost)(k.termin.titel, k.termin.kontext);
+    return;
+  }
+  const story = k.format === 'story';
+  showTab_direct(story ? 'screen-story' : 'screen-post');
   setTimeout(() => {
-    const el = document.getElementById('story-moment');
-    if(el) { el.value = emp.story; el.dispatchEvent(new Event('input')); }
+    setChipRow(story ? 'story-kontext-row' : 'post-kontext-row', story ? 'storykontext' : 'postkontext', 'salon');
+    const el = document.getElementById(story ? 'story-moment' : 'post-moment');
+    if (el) { el.value = k.moment; el.dispatchEvent(new Event('input')); el.focus(); }
   }, 150);
 }
 

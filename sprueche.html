@@ -91,6 +91,19 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     </div>
   </section>
 
+  <section id="bild-section">
+    <div class="label">Hintergrundbild (optional)</div>
+    <div class="chips" id="bild-chips">
+      <button class="chip" id="btn-bild">Foto wählen</button>
+      <button class="chip bild-staerke" data-val="0.82" style="display:none;">Foto dezent</button>
+      <button class="chip bild-staerke on" data-val="0.68" style="display:none;">Foto mittel</button>
+      <button class="chip bild-staerke" data-val="0.5" style="display:none;">Foto kräftig</button>
+      <button class="chip" id="btn-bild-weg" style="display:none;">Entfernen</button>
+    </div>
+    <input type="file" id="f-bild" accept="image/*" style="display:none;">
+    <p class="hinweis" style="margin-top:8px;text-align:left;">Eigenes Foto, z. B. Herbstblätter. Das Foto bleibt auf deinem Handy und wird nirgends hochgeladen.</p>
+  </section>
+
   <section id="marke-section">
     <div class="label">Absender</div>
     <div class="chips" id="marke-chips">
@@ -830,7 +843,7 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'' };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'', bild:null, schleier:0.68 };
 // QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'lehrstelle' | 'stylist' (Bewerbung über die Karriere-Seite)
 const istBewerbung = () => state.qrZweck !== 'bewertung';
 const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
@@ -1028,6 +1041,15 @@ function draw() {
 
   ctx.fillStyle = s.bg;
   ctx.fillRect(0, 0, W, H);
+  // Optionales Hintergrundfoto: formatfüllend, darüber ein Schleier in der Hintergrundfarbe, damit der Text lesbar bleibt
+  if (state.bild) {
+    const b = state.bild, sc = Math.max(W / b.width, H / b.height);
+    ctx.drawImage(b, (W - b.width * sc) / 2, (H - b.height * sc) / 2, b.width * sc, b.height * sc);
+    ctx.globalAlpha = state.schleier;
+    ctx.fillStyle = s.bg;
+    ctx.fillRect(0, 0, W, H);
+    ctx.globalAlpha = 1;
+  }
 
   // Kopf: Wortmarke Great Hair.Day (Punkt in Gold) — oder Haarnetzwerk-Logo
   const markY = story ? 330 : a4 ? 230 : (state.format === 'quadrat' ? 150 : 170);
@@ -1353,6 +1375,38 @@ if (AKTION) {
   [['f-ueber', 'ueber'], ['f-rabatt', 'rabatt'], ['f-gueltig', 'gueltig']].forEach(([id, key]) =>
     document.getElementById(id).addEventListener('input', e => { state[key] = e.target.value; draw(); }));
 }
+// ── Hintergrundbild: lokal laden, auf max. 2000 px verkleinern (große Handyfotos), nichts wird hochgeladen ──
+function zeigeBildOptionen(an) {
+  document.querySelectorAll('.bild-staerke, #btn-bild-weg').forEach(b => { b.style.display = an ? '' : 'none'; });
+  document.getElementById('btn-bild').textContent = an ? 'Anderes Foto' : 'Foto wählen';
+}
+document.getElementById('btn-bild').onclick = () => document.getElementById('f-bild').click();
+document.getElementById('f-bild').addEventListener('change', e => {
+  const file = e.target.files[0];
+  if (!file) return;
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    const f = Math.min(1, 2000 / Math.max(img.width, img.height));
+    const c = document.createElement('canvas');
+    c.width = Math.round(img.width * f); c.height = Math.round(img.height * f);
+    c.getContext('2d').drawImage(img, 0, 0, c.width, c.height);
+    URL.revokeObjectURL(url);
+    state.bild = c;
+    zeigeBildOptionen(true);
+    draw();
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); alert('Das Foto konnte nicht geladen werden. Bitte ein JPG oder PNG wählen.'); };
+  img.src = url;
+  e.target.value = '';
+});
+document.querySelectorAll('.bild-staerke').forEach(b => b.onclick = () => {
+  document.querySelectorAll('.bild-staerke').forEach(x => x.classList.toggle('on', x === b));
+  state.schleier = parseFloat(b.dataset.val);
+  draw();
+});
+document.getElementById('btn-bild-weg').onclick = () => { state.bild = null; zeigeBildOptionen(false); draw(); };
+
 // Drucken: das fertige Bild allein auf eine Seite (A4 randlos, das Bild ist bereits im A4-Format)
 document.getElementById('btn-print').onclick = () => {
   const url = cv.toDataURL('image/png');

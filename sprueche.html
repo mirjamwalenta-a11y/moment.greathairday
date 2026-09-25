@@ -1148,6 +1148,7 @@ function draw() {
   }
 
   document.getElementById('preview').classList.toggle('story', story || a4);
+  bildVorbereiten();
 }
 
 // ── Bildtext (nach den Schreibregeln: Frage an Kund:innen, endet mit „Mirjam“ bzw. beim Haarnetzwerk mit „Euer Haarnetzwerk“) ──
@@ -1319,21 +1320,50 @@ document.getElementById('btn-random').onclick = () => {
   waehle(liste[Math.floor(Math.random() * liste.length)]);
 };
 
-document.getElementById('btn-save').onclick = () => {
-  const name = `${state.marke === 'haarnetzwerk' ? 'haarnetzwerk' : 'great-hair-day'}-${state.format}-${state.stil}.png`;
-  cv.toBlob(async blob => {
-    if (!blob) return;
-    const file = new File([blob], name, { type: 'image/png' });
-    // Am Handy: Teilen-Menü (dort „Bild sichern“); am Computer: normaler Download
-    if (navigator.canShare && navigator.canShare({ files: [file] }) && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
-      try { await navigator.share({ files: [file] }); return; } catch (e) { if (e.name === 'AbortError') return; }
+// Das Bild wird nach jedem Zeichnen im Hintergrund vorbereitet. Große Bilder (A4, Aktionen, Hintergrundfoto)
+// brauchen am Handy länger zum Umwandeln — wartet der Knopf erst darauf, verweigert das Handy das Teilen-Menü
+// („Bild sichern“ fehlt dann). Mit dem fertigen Bild öffnet sich das Menü sofort.
+let fertigesBild = null, bildTimer = null, bildVersion = 0;
+function bildVorbereiten() {
+  fertigesBild = null;
+  clearTimeout(bildTimer);
+  const version = ++bildVersion;
+  bildTimer = setTimeout(() => cv.toBlob(blob => { if (version === bildVersion) fertigesBild = blob; }, 'image/png'), 250);
+}
+function bildDateiname() {
+  const art = AKTION ? 'aktion' : state.marke === 'haarnetzwerk' ? 'haarnetzwerk' : 'great-hair-day';
+  return `${art === 'aktion' ? 'great-hair-day-aktion' : art}-${state.format}-${state.stil}.png`;
+}
+function bildHerunterladen(blob, name) {
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = name;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+async function bildTeilen(blob) {
+  const name = bildDateiname();
+  const file = new File([blob], name, { type: 'image/png' });
+  // Am Handy: Teilen-Menü (dort „Bild sichern“ bzw. „In Galerie speichern“); am Computer: normaler Download
+  if (navigator.canShare && navigator.canShare({ files: [file] }) && /Mobi|Android|iPhone|iPad/i.test(navigator.userAgent)) {
+    try { await navigator.share({ files: [file] }); return; }
+    catch (e) {
+      if (e.name === 'AbortError') return;
+      if (e.name === 'NotAllowedError') {
+        // Bild war noch nicht fertig: jetzt ist es das — ein zweites Tippen öffnet das Menü
+        fertigesBild = blob;
+        const btn = document.getElementById('btn-save');
+        btn.textContent = 'Nochmal tippen zum Speichern';
+        setTimeout(() => { btn.textContent = 'Bild speichern'; }, 4000);
+        return;
+      }
     }
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = name;
-    a.click();
-    setTimeout(() => URL.revokeObjectURL(a.href), 1000);
-  }, 'image/png');
+  }
+  bildHerunterladen(blob, name);
+}
+document.getElementById('btn-save').onclick = () => {
+  if (fertigesBild) { bildTeilen(fertigesBild); return; }
+  cv.toBlob(blob => { if (blob) bildTeilen(blob); }, 'image/png');
 };
 
 document.getElementById('btn-copy').onclick = e => {

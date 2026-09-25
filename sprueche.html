@@ -732,6 +732,13 @@ const FRAGEN = {
 const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754] };
 const QR_LINK_STANDARD = 'https://www.greathairday.at/bewertung/';   // wie auf dem gedruckten Bewertungs-Aushang
 const JOB_LINK_STANDARD = 'https://www.greathairday.at/karriere/';   // Karriere-Seite der Homepage (Lehrling, Stylist:in)
+// Gehaltsangabe laut Gleichbehandlungsgesetz § 9 (2), bei Stellenausschreibungen Pflicht.
+// Beträge laut Friseur-KV ab 1.4.2026; bei jeder KV-Erhöhung (jährlich 1. April) hier und auf der Karriere-Seite anpassen.
+// Leerer Text = keine Zeile im Bildtext.
+const GEHALT = {
+  lehrstelle: 'Lehrlingseinkommen laut Kollektivvertrag: 1. Lehrjahr € 804, 2. Lehrjahr € 921, 3. Lehrjahr € 1.244 brutto pro Monat.',
+  stylist: '',
+};
 const linkKurz = url => url.replace(/^https?:\/\//, '').replace(/^www\./, '').replace(/\/$/, '');
 const STILE = {
   hell:   { bg:'#F5F0EA', ink:'#1C1B19', gold:'#8A7346', sub:'#45433F' },
@@ -1028,6 +1035,7 @@ function updateCaption() {
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
+  if (GEHALT[state.k]) teile.push(GEHALT[state.k]);
   if (state.qr && state.marke !== 'haarnetzwerk') {
     // Beim Link-Sticker den vollständigen Link, damit er direkt in den Sticker kopiert werden kann
     teile.push(state.sticker

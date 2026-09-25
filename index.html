@@ -2240,7 +2240,7 @@ function tabnavScrollBy(direction) {
   <div id="rahmen-text-wrap">
     <div class="input-wrap">
       <div class="input-label" style="display:flex;justify-content:space-between;align-items:center;">
-        <span>Dein Text oder Satz</span>
+        <span>Dein Text — ein Satz fürs Bild oder ein ganzer Text fürs Reel</span>
         <button onclick="openEditModal('sprueche')" style="background:none;border:none;font-size:11px;color:var(--gold);font-weight:600;cursor:pointer;font-family:var(--f);">✏️ Bearbeiten</button>
       </div>
       <textarea id="rahmen-text-input" class="rahmen-textarea" rows="3" placeholder='z.B. „Bei uns musst du dich nicht erklären."'></textarea>
@@ -4687,9 +4687,12 @@ function updateCharCount(textElId, counterElId) {
 // FEATURE 3: POST → RAHMEN
 // ════════════════════════════════════════════
 function postZuRahmen() {
-  const text = document.getElementById('post-text-main')?.textContent?.trim();
+  // innerText behält Zeilenumbrüche, auch nach Bearbeiten im Textfeld
+  const el = document.getElementById('post-text-main');
+  const text = (el?.innerText || el?.textContent || '').trim();
   if(!text) return;
-  location.href = 'sprueche.html?rahmen=1&text=' + encodeURIComponent(text.slice(0, 220)); // Rahmen-optimierte Länge
+  // Ganzer Text: die Vorlage verteilt längere Texte automatisch auf Reel-Folien
+  location.href = 'sprueche.html?rahmen=1&text=' + encodeURIComponent(text);
 }
 
 // ════════════════════════════════════════════

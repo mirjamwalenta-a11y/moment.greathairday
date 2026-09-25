@@ -174,6 +174,12 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <div class="liste" id="liste"></div>
   </section>
 
+  <section id="reeltext-section" style="display:none;flex-direction:column;gap:10px;">
+    <div class="label">Ganzer Text für ein Reel</div>
+    <label class="feld"><span>Text einfügen — er wird automatisch auf mehrere Folien verteilt (etwa ein Satz pro Folie)</span><textarea id="f-reeltext" rows="7" style="min-height:0;"></textarea></label>
+    <button class="btn btn-main" id="btn-reel-text">Reel aus diesem Text erstellen</button>
+  </section>
+
   <section id="text-section" style="display:flex;flex-direction:column;gap:10px;">
     <div class="label" id="text-label">Text anpassen</div>
     <label class="feld"><span id="f-a-label">Zeile 1 (schwarz)</span><input id="f-a"></label>
@@ -217,6 +223,12 @@ if (EIGEN) {
   // Textfelder ganz nach oben, damit man gleich lostippen kann
   const text = document.getElementById('text-section');
   text.parentNode.insertBefore(text, document.getElementById('format-section'));
+}
+if (RAHMEN) {
+  const rt = document.getElementById('reeltext-section');
+  rt.style.display = 'flex';
+  rt.parentNode.insertBefore(rt, document.getElementById('text-section'));
+  document.getElementById('text-label').textContent = 'Oder: Text für ein einzelnes Bild';
 }
 if (AKTION) {
   document.getElementById('intro').textContent = 'Aktion wählen, Text anpassen, als A4-Aushang drucken oder als Bild für einen Post speichern.';
@@ -1484,14 +1496,25 @@ document.getElementById('btn-beide').onclick = async () => {
 // Eigener Text: Sätze auf Folien verteilt (je Folie erster Teil schwarz/weiß, Rest gold) · Abschluss
 // Spruch:      derselbe Spruch hell und dunkel
 const ABSCHLUSS = { ueber:'', a:'Wir freuen uns', b:'auf deinen Besuch.', c:'Rechte Wienzeile 47, 1050 Wien · 01 586 31 30', rabatt:'', gueltig:'' };
+// Post-Text aufräumen: Hashtags, Adresszeile und Unterschrift weglassen — die Abschluss-Folie hat Adresse und Telefon
+function reelTextBereinigen(text) {
+  return text.split(/\n/)
+    .map(z => z.trim())
+    .filter(z => z && !/^#/.test(z) && !/^📍/.test(z) && !/^(mirjam|euer haarnetzwerk)$/i.test(z))
+    .map(z => z.replace(/(^|\s)#[\wÄÖÜäöüß]+/g, '').trim())
+    .filter(Boolean)
+    .join('\n');
+}
 function satzFolien(text) {
-  const saetze = text.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+/).filter(Boolean);
+  // Ein Absatz beginnt immer eine neue Folie; innerhalb eines Absatzes etwa ein Satz pro Folie.
+  // Nur sehr kurze Sätze (z. B. „Neue Farbe?“) kommen zu zweit auf eine Folie.
   const gruppen = [];
-  for (const satz of saetze) {
-    const letzte = gruppen[gruppen.length - 1];
-    // Kurze Sätze zusammen auf eine Folie, damit keine Folie nur aus zwei Wörtern besteht
-    if (letzte && letzte.length < 50 && (letzte + ' ' + satz).length <= 110) gruppen[gruppen.length - 1] = letzte + ' ' + satz;
-    else gruppen.push(satz);
+  for (const absatz of reelTextBereinigen(text).split(/\n+/)) {
+    let letzte = null;
+    for (const satz of absatz.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+/).filter(Boolean)) {
+      if (letzte !== null && gruppen[letzte].length < 35 && satz.length < 35) gruppen[letzte] += ' ' + satz;
+      else { gruppen.push(satz); letzte = gruppen.length - 1; }
+    }
   }
   return gruppen.map(g => { const [a, b] = teileText(g); return { ueber:'', a, b, c:'', rabatt:'', gueltig:'' }; });
 }
@@ -1505,7 +1528,8 @@ function reelFolien() {
     else if (state.gueltig.trim()) folien[folien.length - 1].gueltig = state.gueltig;
     folien.push({ ...ABSCHLUSS });
   } else if (RAHMEN) {
-    folien = satzFolien([state.a, state.b, state.c].filter(Boolean).join(' '));
+    const ganz = document.getElementById('f-reeltext').value.trim();
+    folien = satzFolien(ganz || [state.a, state.b, state.c].filter(Boolean).join(' '));
     folien.push({ ...ABSCHLUSS });
   } else {
     folien = [{ a: state.a, b: state.b, c: state.c }];
@@ -1660,6 +1684,18 @@ if (AKTION) {
   [['f-ueber', 'ueber'], ['f-rabatt', 'rabatt'], ['f-gueltig', 'gueltig']].forEach(([id, key]) =>
     document.getElementById(id).addEventListener('input', e => { state[key] = e.target.value; draw(); }));
 }
+if (RAHMEN) {
+  document.getElementById('f-reeltext').addEventListener('input', e => {
+    const erste = satzFolien(e.target.value)[0];
+    if (!erste) return;
+    Object.assign(state, { k:'eigen', idx:-1, a: erste.a, b: erste.b, c:'' });
+    document.getElementById('f-a').value = erste.a;
+    document.getElementById('f-b').value = erste.b;
+    document.getElementById('f-c').value = '';
+    draw();
+  });
+  document.getElementById('btn-reel-text').onclick = () => document.getElementById('btn-reel').click();
+}
 // ── Hintergrundbild: lokal laden, auf max. 2000 px verkleinern (große Handyfotos), nichts wird hochgeladen ──
 function zeigeBildOptionen(an) {
   document.querySelectorAll('.bild-staerke, #btn-bild-weg').forEach(b => { b.style.display = an ? '' : 'none'; });
@@ -1718,7 +1754,12 @@ if (AKTION) {
   document.querySelectorAll('#format-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'story'));
   let a = URL_PARAMS.get('a') || '', b = URL_PARAMS.get('b') || '';
   const t = (URL_PARAMS.get('text') || '').trim();
-  if (t && !a && !b) [a, b] = teileText(t);
+  if (t && !a && !b) {
+    // Mehr als ein Satz → gehört ins Reel-Feld; das Bild zeigt die erste Folie
+    const folien = satzFolien(t);
+    if (folien.length > 1) { document.getElementById('f-reeltext').value = reelTextBereinigen(t); a = folien[0].a; b = folien[0].b; }
+    else [a, b] = teileText(reelTextBereinigen(t) || t);
+  }
   Object.assign(state, { k:'eigen', idx:-1, a, b, c:'' });
   document.getElementById('f-a').value = a;
   document.getElementById('f-b').value = b;

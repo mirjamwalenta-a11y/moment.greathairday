@@ -1246,6 +1246,17 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
 
+  <div class="goal-card-secondary" onclick="oeffneNachrichten()">
+    <div class="sec-left">
+      <div class="sec-label">Stammkund:innen</div>
+      <div class="sec-title">Ich will Kund:innen zurückholen</div>
+      <div class="sec-desc">Fertige Nachrichten für WhatsApp, SMS oder E-Mail — lange nicht gesehen, Farbe auffrischen, Geburtstag, Bewertung.</div>
+    </div>
+    <div class="sec-arrow">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
+    </div>
+  </div>
+
   <div class="goal-card-secondary" onclick="location.href='sprueche.html?aktion=herbst'">
     <div class="sec-left">
       <div class="sec-label">Aktion &amp; Aushang</div>
@@ -1539,6 +1550,11 @@ function tabnavScrollBy(direction) {
       <span class="heute-quick-icon">🖼️</span>
       <span class="heute-quick-label">Vorlagen</span>
       <span class="heute-quick-sub">Bild für Story</span>
+    </div>
+    <div class="heute-quick-card" onclick="oeffneNachrichten()">
+      <span class="heute-quick-icon">💬</span>
+      <span class="heute-quick-label">Kund:innen-Nachrichten</span>
+      <span class="heute-quick-sub">Zurückholen, Geburtstag, Bewertung</span>
     </div>
     <div class="heute-quick-card" onclick="showScreen('screen-neukunden')">
       <span class="heute-quick-icon">🗓️</span>
@@ -2017,6 +2033,48 @@ function tabnavScrollBy(direction) {
 </section>
 
 <!-- ══ SCREEN: GOOGLE ══ -->
+<!-- ══ SCREEN: NACHRICHTEN AN STAMMKUND:INNEN ══ -->
+<!-- Fertige Texte zum Kopieren. Keine Kundendaten: Namen setzt Mirjam selbst beim Versenden ein, die App speichert nichts. -->
+<section class="screen" id="screen-nachrichten">
+  <div class="card" style="border-left:3px solid var(--gold);">
+    <div class="card-tag">Stammkund:innen</div>
+    <div class="card-title">Nachrichten, die Kund:innen zurückbringen.</div>
+    <div class="card-body">Fertige Texte für WhatsApp, SMS oder E-Mail. [Name] und alles in eckigen Klammern ersetzt du beim Versenden — die App speichert keine Kundendaten.</div>
+  </div>
+
+  <div class="input-wrap">
+    <div class="input-label">Anlass</div>
+    <div class="chip-row" id="nachricht-anlass-row"></div>
+  </div>
+  <div class="input-wrap">
+    <div class="input-label">Anrede</div>
+    <div class="chip-row" id="nachricht-anrede-row">
+      <button class="chip-select on" data-val="du" onclick="pickSel(this,'nachrichtanrede');renderNachricht()">Du</button>
+      <button class="chip-select" data-val="sie" onclick="pickSel(this,'nachrichtanrede');renderNachricht()">Sie</button>
+    </div>
+  </div>
+
+  <div class="output-wrap">
+    <div class="output-header">
+      <span class="output-label">Nachricht</span>
+      <span class="output-format-badge" id="nachricht-badge">WhatsApp · SMS · E-Mail</span>
+    </div>
+    <div class="output-body">
+      <div class="output-text" contenteditable="true" id="nachricht-text"></div>
+    </div>
+  </div>
+  <div class="cta-row">
+    <button class="btn-copy" id="nachricht-copy-btn" onclick="copyEl('nachricht-text','nachricht-copy-btn')">📋 Text kopieren</button>
+    <button class="btn-edit" onclick="nachrichtWhatsApp()">💬 In WhatsApp öffnen</button>
+  </div>
+  <button class="btn-ghost-sm" onclick="nachrichtVariante()">↺ Andere Variante</button>
+
+  <div class="card" style="margin-top:20px;">
+    <div class="card-tag">Wichtig</div>
+    <div class="card-body" id="nachricht-hinweis">Werbliche Nachrichten nur an Kund:innen schicken, die zugestimmt haben, Nachrichten von euch zu bekommen. Der Satz zum Abmelden („… antworte mit STOPP“) steht deshalb bei diesen Vorlagen automatisch dabei. Bei Google-Bewertungen nie um 5 Sterne bitten und nichts dafür schenken.</div>
+  </div>
+</section>
+
 <section class="screen" id="screen-google">
   <div class="card">
     <div class="card-tag">Google-Sichtbarkeit</div>
@@ -5442,6 +5500,287 @@ function heuteLos() {
     const el = document.getElementById(story ? 'story-moment' : 'post-moment');
     if (el) { el.value = k.moment; el.dispatchEvent(new Event('input')); el.focus(); }
   }, 150);
+}
+
+// ════════════════════════════════════════════
+// NACHRICHTEN AN STAMMKUND:INNEN — reine Textvorlagen, keine Kundendaten
+// ════════════════════════════════════════════
+const NACHRICHT_BUCHUNG = 'https://stylisten.eu/pranz#online-buchung';
+const NACHRICHT_TEL = '01 586 31 30';
+const NACHRICHT_BEWERTUNG = 'https://www.greathairday.at/bewertung/';
+const NACHRICHT_STOPP = {
+  du: 'Du möchtest keine Nachrichten mehr von uns? Dann antworte einfach mit STOPP.',
+  sie: 'Sie möchten keine Nachrichten mehr von uns? Dann antworten Sie einfach mit STOPP.'
+};
+// werblich: true → Abmelde-Satz wird angehängt (Nachrichten mit Werbecharakter nur mit Zustimmung)
+const NACHRICHTEN = [
+  { id:'lange', label:'Lange nicht gesehen', werblich:true, du:[
+`Hallo [Name],
+
+wir haben uns schon eine Weile nicht gesehen, und ich wollte mich einfach kurz melden. Wenn du Lust auf einen frischen Schnitt oder eine Auffrischung hast, nehmen wir uns gern Zeit für dich.
+
+Termine online: ${NACHRICHT_BUCHUNG}
+oder telefonisch: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam von A great hair day`,
+`Hallo [Name],
+
+ich hoffe, es geht dir gut! Dein letzter Besuch bei uns ist schon eine Weile her. Vielleicht ist es wieder Zeit für einen Great Hair Day?
+
+Du kannst jederzeit online buchen: ${NACHRICHT_BUCHUNG}
+oder einfach anrufen: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam`], sie:[
+`Hallo [Name],
+
+wir haben uns schon eine Weile nicht gesehen, und ich wollte mich einfach kurz melden. Wenn Sie Lust auf einen frischen Schnitt oder eine Auffrischung haben, nehmen wir uns gern Zeit für Sie.
+
+Termine online: ${NACHRICHT_BUCHUNG}
+oder telefonisch: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam Walenta, A great hair day`,
+`Guten Tag [Name],
+
+ich hoffe, es geht Ihnen gut! Ihr letzter Besuch bei uns ist schon eine Weile her. Wir würden uns freuen, Sie bald wieder bei uns zu begrüßen.
+
+Online buchen: ${NACHRICHT_BUCHUNG}
+oder telefonisch: ${NACHRICHT_TEL}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'farbe', label:'Farbe auffrischen', werblich:true, du:[
+`Hallo [Name],
+
+deine letzte Farbe ist jetzt einige Wochen her. Damit sie weiter so schön aussieht, wäre bald ein guter Zeitpunkt zum Auffrischen.
+
+Magst du einen Termin? Online: ${NACHRICHT_BUCHUNG}
+oder telefonisch: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam`,
+`Hallo [Name],
+
+nur eine kleine Erinnerung: Wenn der Ansatz langsam sichtbar wird, ist der richtige Moment zum Nachfärben. Dann bleibt deine Farbe gleichmäßig und frisch.
+
+Termin online: ${NACHRICHT_BUCHUNG}
+oder unter ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam von A great hair day`], sie:[
+`Hallo [Name],
+
+Ihre letzte Farbe ist jetzt einige Wochen her. Damit sie weiter so schön aussieht, wäre bald ein guter Zeitpunkt zum Auffrischen.
+
+Möchten Sie einen Termin? Online: ${NACHRICHT_BUCHUNG}
+oder telefonisch: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam Walenta, A great hair day`,
+`Guten Tag [Name],
+
+eine kleine Erinnerung: Wenn der Ansatz langsam sichtbar wird, ist der richtige Moment zum Nachfärben. So bleibt Ihre Farbe gleichmäßig und frisch.
+
+Termin online: ${NACHRICHT_BUCHUNG}
+oder unter ${NACHRICHT_TEL}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'geburtstag', label:'Geburtstag', werblich:true, du:[
+`Hallo [Name],
+
+alles Liebe zum Geburtstag! Ich wünsche dir ein wunderbares neues Lebensjahr, mit vielen schönen Momenten und ganz vielen Great Hair Days.
+
+Liebe Grüße
+Mirjam und das Team von A great hair day`,
+`Hallo [Name],
+
+herzlichen Glückwunsch zum Geburtstag! Als kleines Geschenk wartet bei deinem nächsten Besuch [Geschenk eintragen, z. B. eine Pflegebehandlung] auf dich, gültig bis [Datum].
+
+Wir freuen uns auf dich!
+Mirjam und das Team von A great hair day`], sie:[
+`Guten Tag [Name],
+
+herzlichen Glückwunsch zum Geburtstag! Ich wünsche Ihnen ein wunderbares neues Lebensjahr, Gesundheit und viele schöne Momente.
+
+Herzliche Grüße
+Mirjam Walenta und das Team von A great hair day`,
+`Guten Tag [Name],
+
+alles Gute zum Geburtstag! Als kleines Geschenk wartet bei Ihrem nächsten Besuch [Geschenk eintragen, z. B. eine Pflegebehandlung] auf Sie, gültig bis [Datum].
+
+Wir freuen uns auf Sie!
+Mirjam Walenta und das Team von A great hair day`] },
+
+  { id:'danke', label:'Danke nach dem 1. Besuch', werblich:false, du:[
+`Hallo [Name],
+
+danke, dass du bei uns warst! Ich hoffe, du fühlst dich mit deinem neuen Look richtig wohl.
+
+Wenn beim Styling zuhause etwas nicht so klappt wie im Salon, melde dich gern. Wir helfen dir weiter.
+
+Liebe Grüße
+Mirjam`,
+`Hallo [Name],
+
+schön, dass du den Weg zu uns gefunden hast! Ich hoffe, dein neuer Look gefällt dir auch nach dem ersten Waschen noch genauso gut.
+
+Bei Fragen zur Pflege oder zum Styling bin ich gern für dich da.
+
+Liebe Grüße
+Mirjam von A great hair day`], sie:[
+`Guten Tag [Name],
+
+danke, dass Sie bei uns waren! Ich hoffe, Sie fühlen sich mit Ihrem neuen Look richtig wohl.
+
+Wenn beim Styling zuhause etwas nicht so klappt wie im Salon, melden Sie sich gern. Wir helfen Ihnen weiter.
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`,
+`Guten Tag [Name],
+
+schön, dass Sie den Weg zu uns gefunden haben! Ich hoffe, Ihr neuer Look gefällt Ihnen auch nach dem ersten Waschen noch genauso gut.
+
+Bei Fragen zur Pflege oder zum Styling bin ich gern für Sie da.
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'bewertung', label:'Bitte um Bewertung', werblich:true, du:[
+`Hallo [Name],
+
+danke für deinen Besuch bei uns! Wenn du zufrieden warst, würde uns eine kurze Google-Bewertung sehr helfen. Das dauert nur eine Minute:
+${NACHRICHT_BEWERTUNG}
+
+Danke dir!
+Mirjam`,
+`Hallo [Name],
+
+ich hoffe, du bist mit deinem Ergebnis glücklich! Viele finden uns über Google. Deine ehrlichen Worte helfen anderen bei der Entscheidung:
+${NACHRICHT_BEWERTUNG}
+
+Liebe Grüße
+Mirjam von A great hair day`], sie:[
+`Guten Tag [Name],
+
+danke für Ihren Besuch bei uns! Wenn Sie zufrieden waren, würde uns eine kurze Google-Bewertung sehr helfen. Das dauert nur eine Minute:
+${NACHRICHT_BEWERTUNG}
+
+Herzlichen Dank!
+Mirjam Walenta, A great hair day`,
+`Guten Tag [Name],
+
+ich hoffe, Sie sind mit Ihrem Ergebnis zufrieden! Viele finden uns über Google. Ihre ehrliche Meinung hilft anderen bei der Entscheidung:
+${NACHRICHT_BEWERTUNG}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'termin', label:'Termin frei', werblich:true, du:[
+`Hallo [Name],
+
+kurzfristig ist bei uns [heute / morgen] um [Uhrzeit] ein Termin frei geworden. Falls du Zeit hast, melde dich einfach: ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam`], sie:[
+`Guten Tag [Name],
+
+kurzfristig ist bei uns [heute / morgen] um [Uhrzeit] ein Termin frei geworden. Falls Sie Zeit haben, melden Sie sich gern: ${NACHRICHT_TEL}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'aktion', label:'Aktion / Gutschein', werblich:true, du:[
+`Hallo [Name],
+
+ich wollte dir rechtzeitig Bescheid geben: Bei uns gibt es gerade [Aktion eintragen, z. B. 20 % auf …], gültig bis [Datum].
+
+Termin online: ${NACHRICHT_BUCHUNG}
+oder unter ${NACHRICHT_TEL}
+
+Liebe Grüße
+Mirjam`,
+`Hallo [Name],
+
+auf der Suche nach einem schönen Geschenk? Unsere Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon, in jedem Wert.
+
+Liebe Grüße
+Mirjam von A great hair day`], sie:[
+`Guten Tag [Name],
+
+ich möchte Ihnen rechtzeitig Bescheid geben: Bei uns gibt es gerade [Aktion eintragen, z. B. 20 % auf …], gültig bis [Datum].
+
+Termin online: ${NACHRICHT_BUCHUNG}
+oder unter ${NACHRICHT_TEL}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`,
+`Guten Tag [Name],
+
+auf der Suche nach einem schönen Geschenk? Unsere Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon, in jedem Wert.
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+
+  { id:'urlaub', label:'Urlaub / Schließtage', werblich:false, du:[
+`Hallo [Name],
+
+kurze Info: Unser Salon ist von [Datum] bis [Datum] geschlossen. Ab [Datum] sind wir wieder für dich da.
+
+Termine kannst du schon jetzt online buchen: ${NACHRICHT_BUCHUNG}
+
+Liebe Grüße
+Mirjam`], sie:[
+`Guten Tag [Name],
+
+eine kurze Information: Unser Salon ist von [Datum] bis [Datum] geschlossen. Ab [Datum] sind wir wieder für Sie da.
+
+Termine können Sie schon jetzt online buchen: ${NACHRICHT_BUCHUNG}
+
+Herzliche Grüße
+Mirjam Walenta, A great hair day`] },
+];
+let nachrichtAnlass = 'lange', nachrichtNr = 0;
+
+function oeffneNachrichten() {
+  const row = document.getElementById('nachricht-anlass-row');
+  if (row && !row.children.length) row.innerHTML = NACHRICHTEN.map(n =>
+    `<button class="chip-select${n.id === nachrichtAnlass ? ' on' : ''}" data-val="${n.id}" onclick="waehleNachricht(this)">${n.label}</button>`
+  ).join('');
+  if (!SEL.nachrichtanrede) SEL.nachrichtanrede = 'du';
+  showScreen('screen-nachrichten');
+  renderNachricht();
+}
+function waehleNachricht(el) {
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.remove('on'));
+  el.classList.add('on');
+  nachrichtAnlass = el.dataset.val;
+  nachrichtNr = 0;
+  renderNachricht();
+}
+function renderNachricht() {
+  const n = NACHRICHTEN.find(x => x.id === nachrichtAnlass) || NACHRICHTEN[0];
+  const anrede = SEL.nachrichtanrede === 'sie' ? 'sie' : 'du';
+  const varianten = n[anrede];
+  let text = varianten[nachrichtNr % varianten.length];
+  if (n.werblich) text += '\n\n' + NACHRICHT_STOPP[anrede];
+  const el = document.getElementById('nachricht-text');
+  if (el) el.innerText = text;
+}
+function nachrichtVariante() {
+  nachrichtNr++;
+  renderNachricht();
+}
+// Öffnet WhatsApp mit dem Text — Empfänger:in wählt Mirjam in WhatsApp selbst, die App kennt keine Nummern
+function nachrichtWhatsApp() {
+  const text = document.getElementById('nachricht-text').innerText.trim();
+  if (!text) return;
+  if (/\[[^\]]+\]/.test(text) && !confirm('Im Text stehen noch Platzhalter in eckigen Klammern, z. B. [Name]. Trotzdem öffnen?')) return;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
 }
 
 // ════════════════════════════════════════════

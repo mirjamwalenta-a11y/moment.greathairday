@@ -80,6 +80,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
       <button class="chip" data-val="quadrat">Quadrat</button>
       <button class="chip" data-val="story">Story</button>
       <button class="chip" data-val="a4">A4 Aushang</button>
+      <button class="chip" data-val="folie">Präsentation 16:9</button>
     </div>
   </section>
 
@@ -146,7 +147,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </div>
   <div class="buttons">
     <button class="btn btn-alt" id="btn-beide">Hell + Dunkel speichern</button>
-    <button class="btn btn-alt" id="btn-reel">Reel erstellen</button>
+    <button class="btn btn-alt" id="btn-reel">Folien &amp; Reel</button>
   </div>
 
   <section id="sprueche-section">
@@ -178,7 +179,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <div class="label">Ganzer Text für ein Reel</div>
     <label class="feld"><span>Text einfügen — er wird automatisch auf mehrere Folien verteilt (etwa ein Satz pro Folie)</span><textarea id="f-reeltext" rows="7" style="min-height:0;"></textarea></label>
     <p class="hinweis" id="reeltext-info" style="text-align:left;margin:0;"></p>
-    <button class="btn btn-main" id="btn-reel-text">Reel aus diesem Text erstellen</button>
+    <button class="btn btn-main" id="btn-reel-text">Folien &amp; Reel aus diesem Text</button>
   </section>
 
   <section id="text-section" style="display:flex;flex-direction:column;gap:10px;">
@@ -832,7 +833,7 @@ const FRAGEN = {
   eigen: 'Wie geht es dir mit diesem Satz?'
 };
 
-const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754] };
+const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754], folie:[1920,1080] };  // folie = Präsentation 16:9
 const QR_LINK_STANDARD = 'https://www.greathairday.at/bewertung/';   // wie auf dem gedruckten Bewertungs-Aushang
 const JOB_LINK_STANDARD = 'https://www.greathairday.at/karriere/';   // Karriere-Seite der Homepage (Lehrling, Stylist:in)
 // Gehaltsangabe laut Gleichbehandlungsgesetz § 9 (2), bei Stellenausschreibungen Pflicht.
@@ -989,8 +990,8 @@ function rabattText() {
 function drawRabatt(W, footY, s) {
   const text = rabattText();
   if (!text) return null;
-  const r = { post:135, quadrat:82, story:175, a4:200 }[state.format];
-  const cy = footY - (state.format === 'quadrat' ? 80 : 110) - r;
+  const r = { post:135, quadrat:82, story:175, a4:200, folie:90 }[state.format];
+  const cy = footY - (state.format === 'quadrat' || state.format === 'folie' ? 80 : 110) - r;
   ctx.beginPath();
   ctx.arc(W / 2, cy, r, 0, Math.PI * 2);
   ctx.fillStyle = s.gold;
@@ -1010,11 +1011,11 @@ function drawBewertung(W, footY, s) {
   const fmt = state.format;
   const qr = qrMatrix(aktiverLink());
   if (!qr) return null;
-  const qrSize = { post:320, quadrat:240, story:440, a4:520 }[fmt];
+  const qrSize = { post:320, quadrat:240, story:440, a4:520, folie:240 }[fmt];
   const n = qr.getModuleCount();
   const m = qrSize / n;
   const pad = Math.max(3 * m, qrSize * 0.08);   // Ruhezone rund um den Code
-  const kompakt = fmt === 'quadrat';
+  const kompakt = fmt === 'quadrat' || fmt === 'folie';
 
   const linkText = linkKurz(aktiverLink());
   const urlY = footY - 95;
@@ -1081,10 +1082,10 @@ function draw() {
   }
 
   // Kopf: Wortmarke Great Hair.Day (Punkt in Gold) — oder Haarnetzwerk-Logo
-  const markY = story ? 330 : a4 ? 230 : (state.format === 'quadrat' ? 150 : 170);
+  const markY = story ? 330 : a4 ? 230 : (state.format === 'quadrat' || state.format === 'folie' ? 150 : 170);
   let ruleY = markY + 72;
   if (hn) {
-    const logoH = { post:210, quadrat:180, story:260, a4:260 }[state.format];
+    const logoH = { post:210, quadrat:180, story:260, a4:260, folie:170 }[state.format];
     const logoTop = markY - (story || a4 ? 150 : 120);
     if (HN_LOGO.complete && HN_LOGO.naturalWidth) {
       const logoW = logoH * HN_LOGO.naturalWidth / HN_LOGO.naturalHeight;
@@ -1118,7 +1119,7 @@ function draw() {
   if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
 
   // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
-  const maxW = W - 200;
+  const maxW = state.format === 'folie' ? 1400 : W - 200;   // im Querformat nicht zu lange Zeilen
   const areaTop = ruleY + 60;
   const areaBottom = qrTop !== null ? qrTop - 50 : footY - 120;
   const areaH = areaBottom - areaTop;
@@ -1127,7 +1128,7 @@ function draw() {
   let size, la, lb, lc, lh, blockH;
   // Aktions-Modus: kleine goldene Überzeile (z. B. „NUR FÜR KURZE ZEIT“) über dem Titel
   const ueber = AKTION ? state.ueber.trim().toUpperCase() : '';
-  const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' ? 64 : 84) : 0;
+  const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' || state.format === 'folie' ? 64 : 84) : 0;
   const layout = mitC => {
     size = story || a4 ? 108 : 100;
     // Eigene Texte (Rahmen/Aktion) dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
@@ -1401,10 +1402,10 @@ document.getElementById('btn-save').onclick = () => {
 };
 
 // ── Gemeinsame Ebene über der Seite (Bild anzeigen, Reel) ──
-function zeigeEbene(inhalt, aufZu) {
+function zeigeEbene(inhalt, aufZu, oben) {
   const ebene = document.createElement('div');
   ebene.setAttribute('role', 'dialog');
-  ebene.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(28,27,25,.94);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:16px;overflow:auto;';
+  ebene.style.cssText = 'position:fixed;inset:0;z-index:1000;background:rgba(28,27,25,.94);display:flex;flex-direction:column;align-items:center;justify-content:' + (oben ? 'flex-start' : 'center') + ';gap:12px;padding:16px;overflow:auto;';
   const zu = document.createElement('button');
   zu.className = 'btn btn-alt';
   zu.textContent = 'Schließen';
@@ -1416,7 +1417,8 @@ function zeigeEbene(inhalt, aufZu) {
   document.addEventListener('keydown', esc);
   ebene.append(...inhalt, zu);
   document.body.appendChild(ebene);
-  zu.focus();
+  if (!oben) zu.focus();
+  return ebene;
 }
 function ebenenText(text) {
   const p = document.createElement('p');
@@ -1632,34 +1634,138 @@ function zeigeReel(blob, fmt) {
   zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
 }
 
-// „Reel erstellen“: zuerst die Folien zeigen, dann auf Knopfdruck das Video aufnehmen
-document.getElementById('btn-reel').onclick = () => {
-  const fmt = reelFormat();
-  if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Hell + Dunkel speichern“ und daraus in Instagram ein Reel machen.'); return; }
-  const folien = reelFolien();
-  const bilder = folien.map(f => renderMit(f));
-  const leiste = document.createElement('div');
-  leiste.style.cssText = 'display:flex;gap:8px;overflow-x:auto;max-width:100%;padding:4px 2px;';
-  bilder.forEach((c, i) => {
-    const vorschau = document.createElement('img');
-    vorschau.src = c.toDataURL('image/jpeg', 0.7);
-    vorschau.alt = `Folie ${i + 1}`;
-    vorschau.style.cssText = 'height:min(46vh,340px);border-radius:6px;flex:none;';
-    leiste.appendChild(vorschau);
+// ── Folien-Serie: alle Folien bearbeiten, dann als Reel, als Bilder zum Posten (Karussell) oder als Präsentation ──
+const SERIE_FORMATE = [['post', 'Post 4:5'], ['quadrat', 'Quadrat'], ['story', 'Story'], ['folie', 'Präsentation 16:9']];
+function vorschauBild(folie, format, breite) {
+  const c = renderMit({ ...folie, format });
+  const k = document.createElement('canvas');
+  k.width = breite; k.height = Math.round(breite * c.height / c.width);
+  k.getContext('2d').drawImage(c, 0, 0, k.width, k.height);
+  return k.toDataURL('image/jpeg', 0.8);
+}
+function serieDateiname(i, format) {
+  const basis = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '');
+  return `${basis}-folie-${String(i + 1).padStart(2, '0')}-${format}.png`;
+}
+function serieDrucken(folien, format) {
+  const bilder = folien.map(f => renderMit({ ...f, format }).toDataURL('image/png'));
+  const w = window.open('', '_blank');
+  if (!w) { alert('Bitte Pop-ups erlauben oder „Bilder speichern“ nutzen.'); return; }
+  const seite = format === 'folie' ? 'A4 landscape' : 'A4';
+  w.document.write(`<!DOCTYPE html><html lang="de"><head><meta charset="utf-8"><title>Folien – Great Hair Day</title>
+<style>@page{size:${seite};margin:0}html,body{margin:0;background:#fff}
+.seite{width:100vw;height:100vh;display:flex;align-items:center;justify-content:center;page-break-after:always;break-after:page}
+.seite:last-child{page-break-after:auto;break-after:auto}img{max-width:100%;max-height:100%;display:block}</style></head>
+<body>${bilder.map((u, i) => `<div class="seite"><img src="${u}" alt="Folie ${i + 1}"></div>`).join('')}</body></html>`);
+  w.document.close();
+  const imgs = [...w.document.images];
+  let offen = imgs.filter(i => !i.complete).length;
+  const los = () => { w.focus(); w.print(); };
+  if (!offen) setTimeout(los, 300);
+  else imgs.forEach(i => { i.onload = () => { if (--offen === 0) setTimeout(los, 300); }; });
+}
+function zeigeSerie(folien) {
+  let format = 'post';
+  const feldStil = 'width:100%;font:15px Inter,system-ui,sans-serif;border-radius:8px;border:1px solid #d9d0c2;padding:8px 10px;min-height:0;';
+  const liste = document.createElement('div');
+  liste.style.cssText = 'display:flex;flex-direction:column;gap:12px;width:100%;max-width:520px;';
+  const formatReihe = document.createElement('div');
+  formatReihe.className = 'chips';
+  formatReihe.style.cssText = 'justify-content:center;';
+  const aktionen = document.createElement('div');
+  aktionen.style.cssText = 'display:flex;flex-direction:column;gap:10px;width:100%;max-width:520px;';
+  let reelKnopf;
+  const infoAktualisieren = () => {
+    const sek = Math.ceil(folien.reduce((s, f) => s + folienDauer(f), 0));
+    reelKnopf.textContent = `Reel erstellen (${folien.length} Folien, ${sek} s)`;
+  };
+  const karte = (f, i) => {
+    const k = document.createElement('div');
+    k.style.cssText = 'background:#F5F0EA;border-radius:12px;padding:12px;display:flex;flex-direction:column;gap:8px;';
+    const kopf = document.createElement('div');
+    kopf.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:600 13px Inter,system-ui,sans-serif;color:#1C1B19;';
+    const titel = document.createElement('span');
+    titel.textContent = `Folie ${i + 1}`;
+    titel.style.flex = '1';
+    const stilKnopf = document.createElement('button');
+    stilKnopf.className = 'chip';
+    stilKnopf.textContent = f.stil === 'dunkel' ? 'Dunkel' : 'Hell';
+    const loeschen = document.createElement('button');
+    loeschen.className = 'chip';
+    loeschen.textContent = 'Löschen';
+    kopf.append(titel, stilKnopf, loeschen);
+    const bild = document.createElement('img');
+    bild.alt = `Vorschau Folie ${i + 1}`;
+    bild.style.cssText = 'width:100%;border-radius:8px;display:block;';
+    const neuZeichnen = () => { bild.src = vorschauBild(f, format, 480); };
+    let timer = null;
+    const feld = (label, key, zeilen) => {
+      const l = document.createElement('label');
+      l.style.cssText = 'display:flex;flex-direction:column;gap:4px;font:12px Inter,system-ui,sans-serif;color:#45433F;';
+      const t = document.createElement('textarea');
+      t.rows = zeilen; t.value = f[key] || ''; t.style.cssText = feldStil;
+      t.addEventListener('input', () => {
+        f[key] = t.value;
+        clearTimeout(timer); timer = setTimeout(() => { neuZeichnen(); infoAktualisieren(); }, 300);
+      });
+      const sp = document.createElement('span'); sp.textContent = label;
+      l.append(sp, t);
+      return l;
+    };
+    stilKnopf.onclick = () => { f.stil = f.stil === 'dunkel' ? 'hell' : 'dunkel'; stilKnopf.textContent = f.stil === 'dunkel' ? 'Dunkel' : 'Hell'; neuZeichnen(); };
+    loeschen.onclick = () => { if (folien.length <= 1) return; folien.splice(folien.indexOf(f), 1); aufbauen(); };
+    k.append(kopf, bild, feld('Text schwarz (bei Dunkel weiß)', 'a', 2), feld('Text gold, kursiv', 'b', 2), feld('Kleiner Text (optional)', 'c', 1));
+    neuZeichnen();
+    return k;
+  };
+  const aufbauen = () => {
+    liste.innerHTML = '';
+    folien.forEach((f, i) => liste.appendChild(karte(f, i)));
+    const plus = ebenenKnopf('+ Folie hinzufügen', () => {
+      const letzte = folien[folien.length - 1];
+      folien.push({ ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'', stil: letzte && letzte.stil === 'hell' ? 'dunkel' : 'hell' });
+      aufbauen();
+    });
+    liste.appendChild(plus);
+    infoAktualisieren();
+  };
+  SERIE_FORMATE.forEach(([val, name]) => {
+    const c = document.createElement('button');
+    c.className = 'chip' + (val === format ? ' on' : '');
+    c.textContent = name;
+    c.onclick = () => { format = val; formatReihe.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); aufbauen(); };
+    formatReihe.appendChild(c);
   });
-  const dauern = folien.map(folienDauer);
-  const sek = Math.ceil(dauern.reduce((a, b) => a + b, 0));
-  const los = ebenenKnopf(`Reel erstellen (${bilder.length} Folien, ${sek} s)`, () => {
-    if (los.disabled) return;
-    los.disabled = true;
-    reelAufnehmen(bilder, dauern, fmt,
-      (t, ges) => { los.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
-      blob => { document.querySelector('[role=dialog]')?.remove(); zeigeReel(blob, fmt); });
+
+  reelKnopf = ebenenKnopf('Reel erstellen', () => {
+    const fmt = reelFormat();
+    if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Bilder speichern“ und daraus in Instagram ein Reel machen.'); return; }
+    if (reelKnopf.disabled) return;
+    reelKnopf.disabled = true;
+    const bilder = folien.map(f => renderMit({ ...f, format: 'story' }));
+    reelAufnehmen(bilder, folien.map(folienDauer), fmt,
+      (t, ges) => { reelKnopf.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
+      blob => { ebene.remove(); zeigeReel(blob, fmt); });
   }, true);
-  zeigeEbene([
-    ebenenText(`Dein Text, automatisch auf ${bilder.length} Folien verteilt, abwechselnd hell und dunkel. Etwas ändern? Schließen, oben den Text anpassen und nochmal „Reel erstellen“.`),
-    leiste, los,
-  ]);
+  const bilderKnopf = ebenenKnopf('Bilder speichern (zum Posten)', async () => {
+    const files = folien.map((f, i) => new File([dataUrlZuBlob(renderMit({ ...f, format }).toDataURL('image/png'))], serieDateiname(i, format), { type: 'image/png' }));
+    if (!(await dateienTeilen(files))) dateienHerunterladen(files);
+  });
+  const druckKnopf = ebenenKnopf('Drucken / als PDF speichern', () => serieDrucken(folien, format));
+  [reelKnopf, bilderKnopf, druckKnopf].forEach(b => { b.style.width = '100%'; });
+  aktionen.append(reelKnopf, bilderKnopf, druckKnopf,
+    ebenenText('Reel: immer im Story-Format 9:16. Bilder und PDF: im oben gewählten Format. Für Instagram-Karussell „Post 4:5“, für Präsentationen „Präsentation 16:9“. PDF: im Druckfenster „Als PDF speichern“ wählen.'));
+
+  aufbauen();
+  const ebene = zeigeEbene([
+    ebenenText('Deine Folien — Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen.'),
+    formatReihe, liste, aktionen,
+  ], null, true);
+}
+
+// „Folien & Reel“: Text automatisch auf Folien verteilen und die Folien-Serie öffnen
+document.getElementById('btn-reel').onclick = () => {
+  zeigeSerie(reelFolien().map(f => ({ ...f })));
 };
 
 document.getElementById('btn-copy').onclick = e => {

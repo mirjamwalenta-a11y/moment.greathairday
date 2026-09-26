@@ -252,15 +252,20 @@ function teileText(t) {
   if (w.length < 2) return [t, ''];
   // Natürliche Trennstelle nahe der Mitte: nach einem Komma oder vor „bei“, „auf“, „für“ … — nicht mitten in einem Namen
   const mitte = t.length / 2;
-  const WOERTER = ['bei', 'auf', 'für', 'mit', 'im', 'in', 'zum', 'zur', 'und', 'von', 'ab', 'gegen', 'ohne'];
+  const WOERTER = ['bei', 'für', 'mit', 'zum', 'zur', 'und', 'oder', 'aber', 'weil', 'wenn', 'dass', 'damit', 'sondern', 'gegen', 'ohne'];
   let best = -1, bestAbstand = Infinity, pos = 0;
   for (let i = 1; i < w.length; i++) {
     pos += w[i - 1].length + 1;
-    const gut = /,$/.test(w[i - 1]) || WOERTER.includes(w[i].toLowerCase());
-    if (gut && Math.abs(pos - mitte) < bestAbstand && i >= 2 && w.length - i >= 2) { best = i; bestAbstand = Math.abs(pos - mitte); }
+    const strich = /^[-–—]$/.test(w[i]);
+    const gut = /,$/.test(w[i - 1]) || WOERTER.includes(w[i].toLowerCase()) || strich;
+    // Gedankenstrich („Lehrling gesucht – Start Sommer“) ist eine besonders gute Stelle
+    const abstand = Math.abs(pos - mitte) * (strich ? 0.5 : 1);
+    if (gut && abstand < bestAbstand && i >= 2 && w.length - i >= 2) { best = i; bestAbstand = abstand; }
   }
   const h = best > 0 && bestAbstand < t.length * 0.3 ? best : Math.ceil(w.length / 2);
-  return [w.slice(0, h).join(' '), w.slice(h).join(' ')];
+  // Der Strich selbst kommt weder ans Ende der ersten noch an den Anfang der zweiten Zeile
+  const zweiter = /^[-–—]$/.test(w[h]) ? w.slice(h + 1) : w.slice(h);
+  return [w.slice(0, h).join(' '), zweiter.join(' ')];
 }
 
 // ════════════════════════════════════════════
@@ -1130,7 +1135,7 @@ function draw() {
   const ueber = AKTION ? state.ueber.trim().toUpperCase() : '';
   const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' || state.format === 'folie' ? 64 : 84) : 0;
   const layout = mitC => {
-    size = story || a4 ? 108 : 100;
+    size = Math.min(story || a4 ? 108 : 100, state.maxGroesse || 999);
     // Eigene Texte (Rahmen/Aktion) dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
     const maxZeilen = EIGEN ? 12 : 3, minSize = EIGEN ? 36 : 48;
     for (; size >= minSize; size -= 4) {
@@ -1156,6 +1161,7 @@ function draw() {
   layout(true);
   // Mit QR-Code ist wenig Platz: lieber den kleinen Zusatztext weglassen als die Überschrift winzig machen
   if (qrTop !== null && lc.length && size < 76 && !AKTION) layout(false);
+  letzteSchriftGroesse = size;
   let y = areaTop + (areaH - blockH) / 2 + size * 0.95;
   if (ueber) {
     ctx.fillStyle = s.gold;
@@ -1413,7 +1419,9 @@ function zeigeEbene(inhalt, aufZu, oben) {
   const esc = e => { if (e.key === 'Escape') schliessen(); };
   const schliessen = () => { ebene.remove(); document.removeEventListener('keydown', esc); if (aufZu) aufZu(); };
   zu.onclick = schliessen;
-  ebene.onclick = e => { if (e.target === ebene) schliessen(); };
+  let untenAufHintergrund = false;
+  ebene.addEventListener('pointerdown', e => { untenAufHintergrund = e.target === ebene; });
+  ebene.onclick = e => { if (e.target === ebene && untenAufHintergrund) schliessen(); };
   document.addEventListener('keydown', esc);
   ebene.append(...inhalt, zu);
   document.body.appendChild(ebene);
@@ -1469,13 +1477,22 @@ document.getElementById('btn-zeigen').onclick = () => {
 };
 
 // ── Varianten rendern: dieselbe Vorlage mit anderem Text/Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
-const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format'];
+const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format', 'maxGroesse'];
+let letzteSchriftGroesse = null;
+// Gemeinsame Schriftgröße für alle Folien einer Serie: die kleinste, die überall passt — aber nicht winzig.
+// Folien mit sehr viel Text dürfen darunter gehen, alle anderen haben dieselbe Größe.
+function serienGroesse(folien, format) {
+  const groessen = folien.map(f => renderMit({ ...f, format, maxGroesse: null }).schriftGroesse);
+  const untergrenze = format === 'story' || format === 'a4' ? 76 : 68;
+  return Math.max(Math.min(...groessen), untergrenze);
+}
 function renderMit(werte) {
   const alt = {};
   FOLIEN_FELDER.forEach(k => { alt[k] = state[k]; });
   Object.assign(state, werte);
   draw();
   const c = document.createElement('canvas');
+  c.schriftGroesse = letzteSchriftGroesse;   // Größe dieser Folie (vor dem Zurücksetzen merken)
   c.width = cv.width; c.height = cv.height;
   c.getContext('2d').drawImage(cv, 0, 0);
   Object.assign(state, alt);
@@ -1501,12 +1518,16 @@ document.getElementById('btn-beide').onclick = async () => {
 const ABSCHLUSS = { ueber:'', a:'Wir freuen uns', b:'auf deinen Besuch.', c:'Rechte Wienzeile 47, 1050 Wien · 01 586 31 30', rabatt:'', gueltig:'' };
 // Post-Text aufräumen: Hashtags, Adresszeile und Unterschrift weglassen — die Abschluss-Folie hat Adresse und Telefon
 function reelTextBereinigen(text) {
-  return text.split(/\n/)
+  const zeilen = text.replace(/\r\n?|[\u2028\u2029\u0085]/g, '\n').split('\n')
     .map(z => z.trim())
     .filter(z => z && !/^#/.test(z) && !/^📍/.test(z) && !/^(mirjam|euer haarnetzwerk)$/i.test(z))
     .map(z => z.replace(/(^|\s)#[\wÄÖÜäöüß]+/g, '').trim())
     .filter(Boolean)
     .join('\n');
+  // Zusammengeklebte Zeilen trennen („wachsen.Lehrling“, „lernenStart“) — passiert, wenn beim Kopieren Zeilenumbrüche verloren gehen
+  return zeilen
+    .replace(/([.!?…:])([A-ZÄÖÜ])/g, '$1\n$2')
+    .replace(/([a-zäöüß])([A-ZÄÖÜ][a-zäöüß])/g, '$1\n$2');
 }
 // Absatz in Sätze zerlegen (ohne Lookbehind, damit es auch in älteren Browsern läuft)
 function saetzeVon(absatz) {
@@ -1636,8 +1657,8 @@ function zeigeReel(blob, fmt) {
 
 // ── Folien-Serie: alle Folien bearbeiten, dann als Reel, als Bilder zum Posten (Karussell) oder als Präsentation ──
 const SERIE_FORMATE = [['post', 'Post 4:5'], ['quadrat', 'Quadrat'], ['story', 'Story'], ['folie', 'Präsentation 16:9']];
-function vorschauBild(folie, format, breite) {
-  const c = renderMit({ ...folie, format });
+function vorschauBild(folie, format, breite, maxGroesse) {
+  const c = renderMit({ ...folie, format, maxGroesse });
   const k = document.createElement('canvas');
   k.width = breite; k.height = Math.round(breite * c.height / c.width);
   k.getContext('2d').drawImage(c, 0, 0, k.width, k.height);
@@ -1648,7 +1669,8 @@ function serieDateiname(i, format) {
   return `${basis}-folie-${String(i + 1).padStart(2, '0')}-${format}.png`;
 }
 function serieDrucken(folien, format) {
-  const bilder = folien.map(f => renderMit({ ...f, format }).toDataURL('image/png'));
+  const maxGroesse = serienGroesse(folien, format);
+  const bilder = folien.map(f => renderMit({ ...f, format, maxGroesse }).toDataURL('image/png'));
   const w = window.open('', '_blank');
   if (!w) { alert('Bitte Pop-ups erlauben oder „Bilder speichern“ nutzen.'); return; }
   const seite = format === 'folie' ? 'A4 landscape' : 'A4';
@@ -1665,7 +1687,7 @@ function serieDrucken(folien, format) {
   else imgs.forEach(i => { i.onload = () => { if (--offen === 0) setTimeout(los, 300); }; });
 }
 function zeigeSerie(folien) {
-  let format = 'post';
+  let format = 'post', groesse = null, zeichner = [];
   const feldStil = 'width:100%;font:15px Inter,system-ui,sans-serif;border-radius:8px;border:1px solid #d9d0c2;padding:8px 10px;min-height:0;';
   const liste = document.createElement('div');
   liste.style.cssText = 'display:flex;flex-direction:column;gap:12px;width:100%;max-width:520px;';
@@ -1697,7 +1719,8 @@ function zeigeSerie(folien) {
     const bild = document.createElement('img');
     bild.alt = `Vorschau Folie ${i + 1}`;
     bild.style.cssText = 'width:100%;border-radius:8px;display:block;';
-    const neuZeichnen = () => { bild.src = vorschauBild(f, format, 480); };
+    const neuZeichnen = () => { bild.src = vorschauBild(f, format, 480, groesse); };
+    zeichner.push(neuZeichnen);
     let timer = null;
     const feld = (label, key, zeilen) => {
       const l = document.createElement('label');
@@ -1706,7 +1729,12 @@ function zeigeSerie(folien) {
       t.rows = zeilen; t.value = f[key] || ''; t.style.cssText = feldStil;
       t.addEventListener('input', () => {
         f[key] = t.value;
-        clearTimeout(timer); timer = setTimeout(() => { neuZeichnen(); infoAktualisieren(); }, 300);
+        clearTimeout(timer); timer = setTimeout(() => {
+          // Ändert sich die gemeinsame Schriftgröße, alle Folien neu zeichnen — sonst nur diese
+          const g = serienGroesse(folien, format);
+          if (g !== groesse) { groesse = g; zeichner.forEach(z => z()); } else neuZeichnen();
+          infoAktualisieren();
+        }, 300);
       });
       const sp = document.createElement('span'); sp.textContent = label;
       l.append(sp, t);
@@ -1720,6 +1748,8 @@ function zeigeSerie(folien) {
   };
   const aufbauen = () => {
     liste.innerHTML = '';
+    zeichner = [];
+    groesse = serienGroesse(folien, format);
     folien.forEach((f, i) => liste.appendChild(karte(f, i)));
     const plus = ebenenKnopf('+ Folie hinzufügen', () => {
       const letzte = folien[folien.length - 1];
@@ -1742,13 +1772,15 @@ function zeigeSerie(folien) {
     if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Bilder speichern“ und daraus in Instagram ein Reel machen.'); return; }
     if (reelKnopf.disabled) return;
     reelKnopf.disabled = true;
-    const bilder = folien.map(f => renderMit({ ...f, format: 'story' }));
+    const g = serienGroesse(folien, 'story');
+    const bilder = folien.map(f => renderMit({ ...f, format: 'story', maxGroesse: g }));
     reelAufnehmen(bilder, folien.map(folienDauer), fmt,
       (t, ges) => { reelKnopf.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
       blob => { ebene.remove(); zeigeReel(blob, fmt); });
   }, true);
   const bilderKnopf = ebenenKnopf('Bilder speichern (zum Posten)', async () => {
-    const files = folien.map((f, i) => new File([dataUrlZuBlob(renderMit({ ...f, format }).toDataURL('image/png'))], serieDateiname(i, format), { type: 'image/png' }));
+    const g = serienGroesse(folien, format);
+    const files = folien.map((f, i) => new File([dataUrlZuBlob(renderMit({ ...f, format, maxGroesse: g }).toDataURL('image/png'))], serieDateiname(i, format), { type: 'image/png' }));
     if (!(await dateienTeilen(files))) dateienHerunterladen(files);
   });
   const druckKnopf = ebenenKnopf('Drucken / als PDF speichern', () => serieDrucken(folien, format));

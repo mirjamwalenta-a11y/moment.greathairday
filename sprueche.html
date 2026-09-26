@@ -1641,7 +1641,7 @@ function reelAufnehmen(bilder, dauern, fmt, fortschritt, fertig) {
   };
   requestAnimationFrame(schritt);
 }
-function zeigeReel(blob, fmt) {
+function zeigeReel(blob, fmt, zurueck) {
   const typ = blob.type;
   const name = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '') + `-reel.${fmt[1]}`;
   const file = new File([blob], name, { type: typ });
@@ -1652,7 +1652,10 @@ function zeigeReel(blob, fmt) {
   const inhalt = [ebenenText('Dein Reel ist fertig. Speichern und in Instagram als Reel oder Story hochladen — Musik dort hinzufügen.'), video,
     ebenenKnopf('Reel speichern', async () => { if (!(await dateienTeilen([file]))) bildHerunterladen(blob, name); }, true)];
   if (fmt[1] === 'webm') inhalt.push(ebenenText('Hinweis: Dieser Browser erstellt nur WebM-Videos, die Instagram oft nicht annimmt. Am Handy mit Chrome oder Safari entsteht ein MP4.'));
-  zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
+  let ebene;
+  // Zurück zu denselben (bearbeiteten) Folien, z. B. um sie danach als Bilder zum Posten zu speichern
+  if (zurueck) inhalt.push(ebenenKnopf('Zurück zu den Folien', () => { ebene.remove(); URL.revokeObjectURL(url); zurueck(); }));
+  ebene = zeigeEbene(inhalt, () => setTimeout(() => URL.revokeObjectURL(url), 1000));
 }
 
 // ── Folien-Serie: alle Folien bearbeiten, dann als Reel, als Bilder zum Posten (Karussell) oder als Präsentation ──
@@ -1686,8 +1689,16 @@ function serieDrucken(folien, format) {
   if (!offen) setTimeout(los, 300);
   else imgs.forEach(i => { i.onload = () => { if (--offen === 0) setTimeout(los, 300); }; });
 }
-function zeigeSerie(folien) {
-  let format = 'post', groesse = null, zeichner = [];
+// Die bearbeitete Serie bleibt erhalten (auch nach dem Reel und nach Neuladen der Seite),
+// solange der Ausgangstext gleich bleibt. Gespeichert nur lokal im Browser.
+let aktuelleSerie = null;
+try { aktuelleSerie = JSON.parse(localStorage.getItem('ghd_folienserie')) || null; } catch (e) { aktuelleSerie = null; }
+function serieMerken() {
+  try { localStorage.setItem('ghd_folienserie', JSON.stringify(aktuelleSerie)); } catch (e) { /* privater Modus o. Ä. */ }
+}
+function zeigeSerie(serie) {
+  const folien = serie.folien;
+  let format = serie.format || 'post', groesse = null, zeichner = [];
   const feldStil = 'width:100%;font:15px Inter,system-ui,sans-serif;border-radius:8px;border:1px solid #d9d0c2;padding:8px 10px;min-height:0;';
   const liste = document.createElement('div');
   liste.style.cssText = 'display:flex;flex-direction:column;gap:12px;width:100%;max-width:520px;';
@@ -1734,14 +1745,15 @@ function zeigeSerie(folien) {
           const g = serienGroesse(folien, format);
           if (g !== groesse) { groesse = g; zeichner.forEach(z => z()); } else neuZeichnen();
           infoAktualisieren();
+          serieMerken();
         }, 300);
       });
       const sp = document.createElement('span'); sp.textContent = label;
       l.append(sp, t);
       return l;
     };
-    stilKnopf.onclick = () => { f.stil = f.stil === 'dunkel' ? 'hell' : 'dunkel'; stilKnopf.textContent = f.stil === 'dunkel' ? 'Dunkel' : 'Hell'; neuZeichnen(); };
-    loeschen.onclick = () => { if (folien.length <= 1) return; folien.splice(folien.indexOf(f), 1); aufbauen(); };
+    stilKnopf.onclick = () => { f.stil = f.stil === 'dunkel' ? 'hell' : 'dunkel'; stilKnopf.textContent = f.stil === 'dunkel' ? 'Dunkel' : 'Hell'; neuZeichnen(); serieMerken(); };
+    loeschen.onclick = () => { if (folien.length <= 1) return; folien.splice(folien.indexOf(f), 1); aufbauen(); serieMerken(); };
     k.append(kopf, bild, feld('Text schwarz (bei Dunkel weiß)', 'a', 2), feld('Text gold, kursiv', 'b', 2), feld('Kleiner Text (optional)', 'c', 1));
     neuZeichnen();
     return k;
@@ -1755,6 +1767,7 @@ function zeigeSerie(folien) {
       const letzte = folien[folien.length - 1];
       folien.push({ ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'', stil: letzte && letzte.stil === 'hell' ? 'dunkel' : 'hell' });
       aufbauen();
+      serieMerken();
     });
     liste.appendChild(plus);
     infoAktualisieren();
@@ -1763,7 +1776,7 @@ function zeigeSerie(folien) {
     const c = document.createElement('button');
     c.className = 'chip' + (val === format ? ' on' : '');
     c.textContent = name;
-    c.onclick = () => { format = val; formatReihe.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); aufbauen(); };
+    c.onclick = () => { format = val; serie.format = val; serieMerken(); formatReihe.querySelectorAll('.chip').forEach(x => x.classList.toggle('on', x === c)); aufbauen(); };
     formatReihe.appendChild(c);
   });
 
@@ -1776,7 +1789,7 @@ function zeigeSerie(folien) {
     const bilder = folien.map(f => renderMit({ ...f, format: 'story', maxGroesse: g }));
     reelAufnehmen(bilder, folien.map(folienDauer), fmt,
       (t, ges) => { reelKnopf.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
-      blob => { ebene.remove(); zeigeReel(blob, fmt); });
+      blob => { ebene.remove(); zeigeReel(blob, fmt, () => zeigeSerie(serie)); });
   }, true);
   const bilderKnopf = ebenenKnopf('Bilder speichern (zum Posten)', async () => {
     const g = serienGroesse(folien, format);
@@ -1784,20 +1797,33 @@ function zeigeSerie(folien) {
     if (!(await dateienTeilen(files))) dateienHerunterladen(files);
   });
   const druckKnopf = ebenenKnopf('Drucken / als PDF speichern', () => serieDrucken(folien, format));
-  [reelKnopf, bilderKnopf, druckKnopf].forEach(b => { b.style.width = '100%'; });
-  aktionen.append(reelKnopf, bilderKnopf, druckKnopf,
+  const neuKnopf = ebenenKnopf('Änderungen verwerfen (Folien neu aus dem Text)', () => {
+    if (!confirm('Alle Änderungen an den Folien verwerfen und neu aus dem Text erstellen?')) return;
+    folien.splice(0, folien.length, ...JSON.parse(serie.quelle));
+    serieMerken();
+    aufbauen();
+  });
+  [reelKnopf, bilderKnopf, druckKnopf, neuKnopf].forEach(b => { b.style.width = '100%'; });
+  aktionen.append(reelKnopf, bilderKnopf, druckKnopf, neuKnopf,
     ebenenText('Reel: immer im Story-Format 9:16. Bilder und PDF: im oben gewählten Format. Für Instagram-Karussell „Post 4:5“, für Präsentationen „Präsentation 16:9“. PDF: im Druckfenster „Als PDF speichern“ wählen.'));
 
   aufbauen();
   const ebene = zeigeEbene([
-    ebenenText('Deine Folien — Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen.'),
+    ebenenText('Deine Folien — Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen. Änderungen bleiben gespeichert, auch nach dem Reel.'),
     formatReihe, liste, aktionen,
   ], null, true);
 }
 
 // „Folien & Reel“: Text automatisch auf Folien verteilen und die Folien-Serie öffnen
 document.getElementById('btn-reel').onclick = () => {
-  zeigeSerie(reelFolien().map(f => ({ ...f })));
+  const original = reelFolien();
+  const quelle = JSON.stringify(original);
+  // Gleicher Ausgangstext → die bereits bearbeiteten Folien wieder öffnen; neuer Text → neue Serie
+  if (!aktuelleSerie || aktuelleSerie.quelle !== quelle || !Array.isArray(aktuelleSerie.folien)) {
+    aktuelleSerie = { quelle, folien: original.map(f => ({ ...f })), format: (aktuelleSerie && aktuelleSerie.format) || 'post' };
+    serieMerken();
+  }
+  zeigeSerie(aktuelleSerie);
 };
 
 document.getElementById('btn-copy').onclick = e => {

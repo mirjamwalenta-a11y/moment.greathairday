@@ -2218,13 +2218,24 @@ function tabnavScrollBy(direction) {
   <div class="card">
     <div class="card-tag">Content-Ideen</div>
     <div class="card-title">Was könntest du heute posten?</div>
-    <div class="card-body">Wähle eine Idee — sie wird direkt in den Hook-Generator übernommen.</div>
+    <div class="card-body">Wähle eine Idee — sie öffnet direkt den passenden Generator (Post, Story, Reel oder Google) mit vorbereitetem Text.</div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Für wen?</div>
     <div class="chip-row" id="idea-kontext-row">
       <button class="chip-select on" data-val="salon" onclick="selectIdeaKontext('salon', this)">🏠 Mein Salon</button>
       <button class="chip-select" data-val="haarnetzwerk" onclick="selectIdeaKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
+    </div>
+  </div>
+  <div class="input-wrap" id="idea-format-wrap">
+    <div class="input-label">Format</div>
+    <div class="chip-row">
+      <button class="chip-select on" data-val="alle" onclick="selectIdeaFormat('alle', this)">Alle</button>
+      <button class="chip-select" data-val="post" onclick="selectIdeaFormat('post', this)">Post</button>
+      <button class="chip-select" data-val="story" onclick="selectIdeaFormat('story', this)">Story</button>
+      <button class="chip-select" data-val="reel" onclick="selectIdeaFormat('reel', this)">Reel</button>
+      <button class="chip-select" data-val="google" onclick="selectIdeaFormat('google', this)">Google</button>
+      <button class="chip-select" data-val="hook" onclick="selectIdeaFormat('hook', this)">Hook-Ideen</button>
     </div>
   </div>
   <div class="idea-grid" id="idea-grid"></div>
@@ -4243,6 +4254,44 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
 // ════════════════════════════════════════════
 // IDEEN
 // ════════════════════════════════════════════
+// Öffnet den passenden Generator (Post, Story, Reel, Google) mit vorbefülltem Moment
+const GENERATOR_ZIEL = {
+  post:   { screen:'screen-post',   feld:'post-moment',   row:'post-kontext-row',  gruppe:'postkontext' },
+  story:  { screen:'screen-story',  feld:'story-moment',  row:'story-kontext-row', gruppe:'storykontext' },
+  reel:   { screen:'screen-reel',   feld:'reel-moment',   row:'reel-kontext-row',  gruppe:'reelkontext' },
+  google: { screen:'screen-google', feld:'google-moment' },
+};
+function oeffneGenerator(format, moment, kontext) {
+  const z = GENERATOR_ZIEL[format] || GENERATOR_ZIEL.post;
+  showTab_direct(z.screen);
+  setTimeout(() => {
+    if (z.row) setChipRow(z.row, z.gruppe, kontext || 'salon');
+    const el = document.getElementById(z.feld);
+    if (el) { el.value = moment; el.dispatchEvent(new Event('input')); el.focus(); }
+  }, 150);
+}
+const FORMAT_NAME = { post:'Post', story:'Story', reel:'Reel', google:'Google' };
+
+// Ideen mit festem Format: öffnen direkt den passenden Generator mit vorbereitetem Moment.
+// [eckige Klammern] ergänzt Mirjam selbst. Fotos/Personen nur mit Einverständnis.
+const IDEEN_FORMAT = [
+  {icon:'🤝',label:'Stammkundin seit Jahrzehnten',format:'post',ziel:'Vertrauen',desc:'Eine Kundin, die seit vielen Jahren kommt, und ein Satz von ihr.',moment:'Eine Kundin, die seit vielen Jahren zu uns kommt, und ein Satz von ihr, warum sie bleibt: „[ihr Satz]“. (Nur mit ihrem Einverständnis.)'},
+  {icon:'🎓',label:'Die Meisterin prüft',format:'post',ziel:'Qualität zeigen',desc:'Worauf du als Prüferin bei der Lehrabschlussprüfung achtest.',moment:'Ich bin Prüferin bei der Lehrabschlussprüfung der Wiener Innung. Worauf ich dabei achte und was gutes Handwerk für mich ausmacht: [ein, zwei Punkte].'},
+  {icon:'📚',label:'Ein Handgriff erklärt',format:'post',ziel:'Expertise',desc:'Kurz erklärt, z. B. warum ihr nass und trocken schneidet. Gut als Karussell.',moment:'Ein Handgriff kurz erklärt: warum wir [z. B. nass und trocken schneiden]. Einfach und verständlich.'},
+  {icon:'❓',label:'Mythos oder Wahrheit',format:'post',ziel:'Kommentare',desc:'„Spitzen schneiden lässt Haare schneller wachsen?“',moment:'„Spitzen schneiden lässt die Haare schneller wachsen.“ Mythos oder Wahrheit? Die ehrliche Antwort aus dem Salon.'},
+  {icon:'💛',label:'Was ich an meinem Beruf liebe',format:'post',ziel:'Menschlichkeit',desc:'Mazen, Alina oder Hassan in einem Satz.',moment:'Jemand aus unserem Team erzählt in einem Satz, was er oder sie an diesem Beruf liebt: „[Satz]“.'},
+  {icon:'📊',label:'Umfrage in der Story',format:'story',ziel:'Interaktion',desc:'„Pony: ja oder nein?“ – dauert 10 Sekunden.',moment:'Eine Umfrage für die Story mit Umfrage-Sticker: [z. B. Pony: ja oder nein? / Blond oder Braun für den Herbst?]'},
+  {icon:'☕',label:'Vor der Öffnung',format:'story',ziel:'Nähe',desc:'Licht an, Kaffee, alles bereit für den Tag.',moment:'Morgens vor der Öffnung: Licht an, Kaffee, alles ist bereit für den Tag.'},
+  {icon:'🙋',label:'Frag die Meisterin',format:'story',ziel:'Expertise',desc:'Frage-Sticker – Antworten gesammelt an einem ruhigen Tag.',moment:'Frage-Sticker in der Story: Stell mir deine Haar-Frage, ich beantworte sie in den nächsten Tagen.'},
+  {icon:'🧴',label:'Produkt in der Hand',format:'story',ziel:'Beratung',desc:'Was du gerade gern verwendest – ehrlich, ohne Werbesprache.',moment:'Ein Produkt, das ich gerade gern verwende: [Produkt]. Ehrlich gesagt, wofür es gut ist.'},
+  {icon:'🔁',label:'Vorher/Nachher',format:'reel',ziel:'Ergebnis zeigen',desc:'Der Klassiker mit Übergang. Nur mit Einverständnis.',moment:'Vorher/Nachher mit Übergang: [Leistung], heute bei uns im Salon. (Nur mit Einverständnis der Kundin.)'},
+  {icon:'💨',label:'3 Fehler beim Föhnen',format:'reel',ziel:'Expertise',desc:'Jemand aus dem Team zeigt es in 15–20 Sekunden.',moment:'3 Fehler beim Föhnen zuhause und wie es besser geht, gezeigt von jemandem aus unserem Team.'},
+  {icon:'⏱️',label:'Farbe im Zeitraffer',format:'reel',ziel:'Handwerk zeigen',desc:'Vom Abteilen bis zum Ergebnis.',moment:'Eine Farbe im Zeitraffer: vom Abteilen bis zum fertigen Ergebnis.'},
+  {icon:'✂️',label:'Salon ohne Worte',format:'reel',ziel:'Atmosphäre',desc:'Scheren, Hände, Spiegel, Licht – ruhige, schnelle Schnitte.',moment:'Der Salon ohne Worte: Scheren, Hände, Spiegel, Licht, in ruhigen, schnellen Schnitten.'},
+  {icon:'📍',label:'Leistung + Ort',format:'google',ziel:'Lokal gefunden werden',desc:'Wöchentlicher Google-Beitrag mit Leistung und Bezirk.',moment:'Wir bieten [Leistung] in 1050 Wien, Rechte Wienzeile 47. Das Besondere daran: [was es besonders macht].'},
+  {icon:'📷',label:'Ergebnis der Woche',format:'google',ziel:'Lokal gefunden werden',desc:'Ein Ergebnisfoto mit Leistung und Ort im Text.',moment:'Ein Ergebnis dieser Woche: [Leistung], bei uns in Wien-Margareten.'},
+];
+
 const IDEAS = [
   {icon:'✨',label:'Team-Moment',desc:'Gelächter, Stille, ein guter Morgen.',ziel:'Mitarbeiter:innen anziehen'},
   {icon:'✂️',label:'Qualität zeigen',desc:'Ein Handgriff, eine Technik, ein Ergebnis.',ziel:'Vertrauen aufbauen'},
@@ -4271,16 +4320,22 @@ const IDEAS_HAARNETZWERK = [
 ];
 
 function currentIdeas() {
-  return SEL.ideakontext === 'haarnetzwerk' ? IDEAS_HAARNETZWERK : IDEAS;
+  if (SEL.ideakontext === 'haarnetzwerk') return IDEAS_HAARNETZWERK;
+  const f = SEL.ideaformat || 'alle';
+  const mitFormat = IDEEN_FORMAT.filter(i => f === 'alle' || i.format === f);
+  return f === 'alle' || f === 'hook' ? [...(f === 'hook' ? [] : mitFormat), ...IDEAS] : mitFormat;
 }
 
 function initIdeas() {
-  document.getElementById('idea-grid').innerHTML = currentIdeas().map(idea =>
-    `<div class="idea-card" onclick="useIdea('${idea.label}')">
+  const formatRow = document.getElementById('idea-format-wrap');
+  if (formatRow) formatRow.style.display = SEL.ideakontext === 'haarnetzwerk' ? 'none' : '';
+  const liste = currentIdeas();
+  document.getElementById('idea-grid').innerHTML = liste.map((idea, i) =>
+    `<div class="idea-card" onclick="useIdea(${i})">
       <div class="idea-icon">${idea.icon}</div>
-      <div class="idea-label">${idea.label}</div>
-      <div class="idea-desc">${idea.desc}</div>
-      <div class="idea-ziel">${idea.ziel}</div>
+      <div class="idea-label">${heuteEsc(idea.label)}</div>
+      <div class="idea-desc">${heuteEsc(idea.desc)}</div>
+      <div class="idea-ziel">${idea.format ? FORMAT_NAME[idea.format] + ' · ' : ''}${heuteEsc(idea.ziel)}</div>
     </div>`
   ).join('');
   const mantraTitle = document.getElementById('idea-mantra-title');
@@ -4301,8 +4356,16 @@ function selectIdeaKontext(val, el) {
   initIdeas();
 }
 
-function useIdea(label) {
+function selectIdeaFormat(val, el) {
+  SEL.ideaformat = val;
+  el.closest('.chip-row').querySelectorAll('.chip-select').forEach(c => c.classList.toggle('on', c.dataset.val === val));
+  initIdeas();
+}
+function useIdea(i) {
+  const idea = currentIdeas()[i];
   const kontext = SEL.ideakontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon';
+  // Ideen mit Format → direkt in den passenden Generator; die übrigen wie bisher in den Hook-Generator
+  if (idea && idea.format) { oeffneGenerator(idea.format, idea.moment, kontext); return; }
   showTab_direct('screen-hook');
   setTimeout(() => selectHookKontext(kontext), 100);
 }
@@ -5202,6 +5265,12 @@ const HEUTE_EMPFEHLUNGEN = [
   { tag: 'Wörni empfiehlt', title: 'Schreib über dein Team', why: 'Menschen folgen Menschen, nicht Salons.', post: 'Was macht unser Team aus?', story: 'Eine Person aus dem Team — wer sie ist und warum sie hier ist.' },
   { tag: 'Heute empfohlen', title: 'Ein Ergebnis das dich stolz macht', why: 'Ergebnisse zeigen, was du kannst — ohne Erklärung.', post: 'Ein Ergebnis das heute fertig wurde.', story: 'Vorher / Nachher — oder nur das Ergebnis.' },
   { tag: 'Wörni empfiehlt', title: 'Freie Termine sichtbar machen', why: 'Kurzfristige Verfügbarkeit zieht spontane Buchungen.', post: 'Heute haben wir noch freie Termine.', story: 'Heute ist noch ein Termin frei.' },
+  { title: 'Eine langjährige Stammkundin zeigen', why: 'Vertrauen ist euer stärkstes Argument. Ein Satz einer Kundin sagt mehr als jede Werbung.', format: 'post', moment: 'Eine Kundin, die seit vielen Jahren zu uns kommt, und ein Satz von ihr, warum sie bleibt: „[ihr Satz]“. (Nur mit ihrem Einverständnis.)' },
+  { title: 'Eine Umfrage in der Story', why: 'Eine Umfrage kostet zehn Sekunden und bringt Menschen dazu, mit euch zu reden.', format: 'story', moment: 'Eine Umfrage für die Story mit Umfrage-Sticker: [z. B. Pony: ja oder nein?]' },
+  { title: 'Einen Mythos aufklären', why: 'Mythen-Fragen bringen Kommentare und zeigen nebenbei eure Erfahrung.', format: 'post', moment: '„Spitzen schneiden lässt die Haare schneller wachsen.“ Mythos oder Wahrheit? Die ehrliche Antwort aus dem Salon.' },
+  { title: 'Ein Vorher/Nachher als Reel', why: 'Vorher/Nachher ist das Format, das am meisten gesehen wird. Nur mit Einverständnis.', format: 'reel', moment: 'Vorher/Nachher mit Übergang: [Leistung], heute bei uns im Salon. (Nur mit Einverständnis der Kundin.)' },
+  { title: 'Frag die Meisterin', why: 'Fragen der Kund:innen zeigen, was sie wirklich beschäftigt, und du antwortest als Expertin.', format: 'story', moment: 'Frage-Sticker in der Story: Stell mir deine Haar-Frage, ich beantworte sie in den nächsten Tagen.' },
+  { title: 'Einen Google-Beitrag schreiben', why: 'Ein Beitrag pro Woche hilft, bei „Friseur Wien 1050“ gefunden zu werden.', format: 'google', moment: 'Wir bieten [Leistung] in 1050 Wien, Rechte Wienzeile 47. Das Besondere daran: [was es besonders macht].' },
   { tag: 'Heute empfohlen', title: 'Deine Haltung zu einem Thema', why: 'Eine klare Meinung macht dich erkennbar und menschlich.', post: 'Was mich gerade in unserem Handwerk beschäftigt.', story: 'Ein Satz der deine Haltung zeigt.' },
 ];
 
@@ -5388,7 +5457,7 @@ function heuteKandidaten(wahl) {
   });
   // … sonst die bisherige Tagesempfehlung
   const e = HEUTE_EMPFEHLUNGEN[new Date().getDate() % HEUTE_EMPFEHLUNGEN.length];
-  liste.push({ titel: e.title, warum: e.why, format: 'post', moment: e.post });
+  liste.push({ titel: e.title, warum: e.why, format: e.format || 'post', moment: e.moment || e.post });
 
   // Team-Gedächtnis nur als leiser Satz, nie als eigenes Element
   liste.forEach(k => {
@@ -5435,7 +5504,7 @@ function renderHeute() {
   const k = heuteAktuell = liste[heuteSkip % liste.length];
   // Bestehende goldene Heute-Karte — keine neuen Farben oder Stile
   const html = `<div class="heute-empfehlung">
-      <div class="heute-emp-tag">✦ Heute · ${k.format === 'story' ? 'Story' : k.format === 'aktion' ? 'Aktion' : 'Post'}</div>
+      <div class="heute-emp-tag">✦ Heute · ${k.format === 'aktion' ? 'Aktion' : FORMAT_NAME[k.format] || 'Post'}</div>
       <div class="heute-emp-title">${heuteEsc(k.titel)}</div>
       <div class="heute-emp-why">${heuteEsc(k.warum)}</div>
       ${k.hinweis ? `<div class="heute-emp-why">${heuteEsc(k.hinweis)}</div>` : ''}
@@ -5493,13 +5562,8 @@ function heuteLos() {
     (k.format === 'story' ? heuteTerminZuStory : heuteTerminZuPost)(k.termin.titel, k.termin.kontext);
     return;
   }
-  const story = k.format === 'story';
-  showTab_direct(story ? 'screen-story' : 'screen-post');
-  setTimeout(() => {
-    setChipRow(story ? 'story-kontext-row' : 'post-kontext-row', story ? 'storykontext' : 'postkontext', 'salon');
-    const el = document.getElementById(story ? 'story-moment' : 'post-moment');
-    if (el) { el.value = k.moment; el.dispatchEvent(new Event('input')); el.focus(); }
-  }, 150);
+  // Post, Story, Reel oder Google-Beitrag — gemeinsame Funktion aus dem Ideen-Bereich
+  oeffneGenerator(k.format, k.moment, 'salon');
 }
 
 // ════════════════════════════════════════════

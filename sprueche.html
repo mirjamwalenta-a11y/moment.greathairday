@@ -1511,6 +1511,20 @@ function saetzeVon(absatz) {
   const t = absatz.replace(/\s+/g, ' ').trim();
   return (t.match(/[^.!?…]+(?:[.!?…]+["“”»«)]*|$)/g) || []).map(x => x.trim()).filter(Boolean);
 }
+// Höchstens so viele Zeichen pro Folie — mehr ist im Reel nicht in Ruhe lesbar
+const FOLIE_MAX_ZEICHEN = 80;
+// Zu lange Sätze an natürlichen Stellen (Komma, vor „und“, „bei“ …) teilen; Fortsetzung mit „…“ markieren
+function stueckeln(satz) {
+  if (satz.length <= FOLIE_MAX_ZEICHEN) return [satz];
+  const [x, y] = teileText(satz);
+  if (!y) return [satz];
+  // Keine Mini-Folie mit drei Wörtern: knapp zu lange Sätze lieber ganz lassen
+  if (Math.min(x.length, y.length) < 25 && satz.length <= 110) return [satz];
+  const vorne = stueckeln(x);
+  const letzte = vorne.length - 1;
+  if (!/[.!?…,:;]$/.test(vorne[letzte])) vorne[letzte] += ' …';
+  return [...vorne, ...stueckeln(y)];
+}
 function satzFolien(text) {
   // Ein Absatz beginnt immer eine neue Folie; innerhalb eines Absatzes etwa ein Satz pro Folie.
   // Nur sehr kurze Sätze (z. B. „Neue Farbe?“) kommen zu zweit auf eine Folie.
@@ -1522,7 +1536,7 @@ function satzFolien(text) {
       else { gruppen.push(satz); letzte = gruppen.length - 1; }
     }
   }
-  return gruppen.map(g => { const [a, b] = teileText(g); return { ueber:'', a, b, c:'', rabatt:'', gueltig:'' }; });
+  return gruppen.flatMap(stueckeln).map(g => { const [a, b] = teileText(g); return { ueber:'', a, b, c:'', rabatt:'', gueltig:'' }; });
 }
 function reelFolien() {
   const leer = { ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'' };
@@ -1548,7 +1562,11 @@ function reelFolien() {
   return folien.map((f, i) => ({ ...f, stil: stile[i % 2], format: 'story' }));
 }
 
-const REEL_FPS = 30, FOLIE_SEK = 2.8, UEBERGANG_SEK = 0.7;
+const REEL_FPS = 30, UEBERGANG_SEK = 0.7;
+function folienDauer(f) {
+  const zeichen = [f.ueber, f.a, f.b, f.c, f.gueltig].filter(Boolean).join(' ').length;
+  return Math.min(4.5, Math.max(2.2, 1.2 + zeichen / 18));
+}
 function reelFormat() {
   if (!window.MediaRecorder || !HTMLCanvasElement.prototype.captureStream) return null;
   const kandidaten = [
@@ -1557,9 +1575,11 @@ function reelFormat() {
   ];
   return kandidaten.find(([m]) => MediaRecorder.isTypeSupported(m)) || null;
 }
-// Video aufnehmen: jede Folie FOLIE_SEK lang mit leichtem Zoom, weiche Überblendung zur nächsten
-function reelAufnehmen(bilder, fmt, fortschritt, fertig) {
-  const W = bilder[0].width, H = bilder[0].height, n = bilder.length, gesamt = n * FOLIE_SEK;
+// Video aufnehmen: jede Folie so lange wie ihr Text braucht, leichter Zoom, weiche Überblendung zur nächsten
+function reelAufnehmen(bilder, dauern, fmt, fortschritt, fertig) {
+  const W = bilder[0].width, H = bilder[0].height, n = bilder.length;
+  const starts = dauern.reduce((acc, d, i) => { acc.push(i ? acc[i - 1] + dauern[i - 1] : 0); return acc; }, []);
+  const gesamt = starts[n - 1] + dauern[n - 1];
   const rc = document.createElement('canvas');
   rc.width = W; rc.height = H;
   const rx = rc.getContext('2d');
@@ -1570,13 +1590,15 @@ function reelAufnehmen(bilder, fmt, fortschritt, fertig) {
     rx.globalAlpha = 1;
   };
   const frame = t => {
-    const i = Math.min(Math.floor(t / FOLIE_SEK), n - 1), lokal = t - i * FOLIE_SEK;
+    let i = 0;
+    while (i < n - 1 && t >= starts[i + 1]) i++;
+    const d = dauern[i], lokal = t - starts[i];
     rx.fillStyle = STILE.hell.bg; rx.fillRect(0, 0, W, H);
-    bild(bilder[i], 1 + 0.05 * (lokal / FOLIE_SEK), 1);
+    bild(bilder[i], 1 + 0.05 * (lokal / d), 1);
     if (i < n - 1) {
-      const mix = Math.min(Math.max((lokal - (FOLIE_SEK - UEBERGANG_SEK)) / UEBERGANG_SEK, 0), 1);
+      const mix = Math.min(Math.max((lokal - (d - UEBERGANG_SEK)) / UEBERGANG_SEK, 0), 1);
       const weich = mix * mix * (3 - 2 * mix);
-      if (weich > 0) bild(bilder[i + 1], 1 + 0.05 * Math.max(lokal - FOLIE_SEK, 0) / FOLIE_SEK, weich);
+      if (weich > 0) bild(bilder[i + 1], 1, weich);
     }
   };
   frame(0);
@@ -1625,11 +1647,12 @@ document.getElementById('btn-reel').onclick = () => {
     vorschau.style.cssText = 'height:min(46vh,340px);border-radius:6px;flex:none;';
     leiste.appendChild(vorschau);
   });
-  const sek = Math.ceil(bilder.length * FOLIE_SEK);
+  const dauern = folien.map(folienDauer);
+  const sek = Math.ceil(dauern.reduce((a, b) => a + b, 0));
   const los = ebenenKnopf(`Reel erstellen (${bilder.length} Folien, ${sek} s)`, () => {
     if (los.disabled) return;
     los.disabled = true;
-    reelAufnehmen(bilder, fmt,
+    reelAufnehmen(bilder, dauern, fmt,
       (t, ges) => { los.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
       blob => { document.querySelector('[role=dialog]')?.remove(); zeigeReel(blob, fmt); });
   }, true);
@@ -1695,7 +1718,7 @@ if (RAHMEN) {
   document.getElementById('f-reeltext').addEventListener('input', e => {
     const alle = satzFolien(e.target.value);
     document.getElementById('reeltext-info').textContent = alle.length
-      ? `→ ${alle.length} Textfolie${alle.length > 1 ? 'n' : ''} + Abschluss-Folie (ca. ${Math.ceil((alle.length + 1) * FOLIE_SEK)} s)` : '';
+      ? `→ ${alle.length} Textfolie${alle.length > 1 ? 'n' : ''} + Abschluss-Folie (ca. ${Math.ceil([...alle, ABSCHLUSS].reduce((s, f) => s + folienDauer(f), 0))} s)` : '';
     const erste = alle[0];
     if (!erste) return;
     Object.assign(state, { k:'eigen', idx:-1, a: erste.a, b: erste.b, c:'' });

@@ -5218,6 +5218,54 @@ function heuteEsc(t) {
   return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 }
 
+// ── Jahresplan: wiederkehrende Anlässe, rechtzeitig vorher als Heute-Empfehlung ──
+// Keine Kundendaten: gespeichert wird nur, welche Anlässe in welchem Jahr erledigt/weggeklickt sind (lokal im Browser).
+// datum(jahr) → Date des Anlasses; vorlauf = ab so vielen Tagen vorher erinnern; aktion = Vorlage in sprueche.html
+const SAISON_KEY = 'ghd_saison_erledigt_v1';
+function nterSonntag(jahr, monat, n) {           // z. B. Muttertag = 2. Sonntag im Mai
+  const d = new Date(jahr, monat, 1);
+  d.setDate(1 + ((7 - d.getDay()) % 7) + (n - 1) * 7);
+  return d;
+}
+function ersterMontag(jahr, monat) {             // Schulstart Wien = 1. Montag im September
+  const d = new Date(jahr, monat, 1);
+  d.setDate(1 + ((8 - d.getDay()) % 7));
+  return d;
+}
+const SAISON_ANLAESSE = [
+  { id:'valentinstag', name:'Valentinstag', titel:'Valentinstags-Gutschein vorbereiten', datum: j => new Date(j, 1, 14), vorlauf: 21, warum:'Gutscheine sind ein beliebtes Geschenk. Wer jetzt davon erfährt, denkt rechtzeitig an euch.' },
+  { id:'fruehling', name:'Frühlingsbeginn', titel:'Frühlings-Aktion vorbereiten', datum: j => new Date(j, 2, 20), vorlauf: 21, warum:'Im Frühling wollen viele eine Veränderung. Jetzt ist ein guter Zeitpunkt für Farbe und Strähnen.' },
+  { id:'hochzeit', name:'Beginn der Hochzeitssaison', titel:'Brautstyling zeigen', datum: j => new Date(j, 4, 1), vorlauf: 30, warum:'Brautpaare planen früh. Wer jetzt sieht, dass ihr Brautstyling macht, bucht rechtzeitig einen Probetermin.' },
+  { id:'muttertag', name:'Muttertag', titel:'Muttertags-Gutschein vorbereiten', datum: j => nterSonntag(j, 4, 2), vorlauf: 21, warum:'Ein Gutschein ist ein schönes Geschenk. Mit Vorlauf haben alle Zeit, ihn zu besorgen.' },
+  { id:'sommer', name:'Sommerbeginn', titel:'Sommer-Aktion vorbereiten', datum: j => new Date(j, 5, 21), vorlauf: 21, warum:'Sonne und Salzwasser strapazieren das Haar. Jetzt passt der Hinweis auf Sommerpflege.' },
+  { id:'schulstart', name:'Schulstart', titel:'Kinderhaarschnitte zum Schulstart zeigen', datum: j => ersterMontag(j, 8), vorlauf: 21, warum:'Vor Schulbeginn wollen viele Familien noch einen Termin für die Kinder.' },
+  { id:'herbst', name:'Herbstbeginn', titel:'Herbst-Aktion vorbereiten', datum: j => new Date(j, 8, 23), vorlauf: 21, warum:'Nach dem Sommer braucht das Haar Pflege. Ein guter Moment für eine Herbst-Aktion.' },
+  { id:'weihnachten', name:'Weihnachten', titel:'Weihnachts-Gutscheine vorbereiten', datum: j => new Date(j, 11, 24), vorlauf: 35, warum:'Gutscheine und Pflege-Sets werden früh gekauft. Jetzt daran erinnern, dass es sie bei euch gibt.' },
+  { id:'ballsaison', name:'Silvester & Ballsaison', titel:'Frisuren für Silvester und Ball zeigen', datum: j => new Date(j, 11, 31), vorlauf: 35, warum:'Für Silvester und die Wiener Ballsaison werden Aufsteck- und Styling-Termine früh gebucht.' },
+  { id:'winter', name:'Mitte Jänner', titel:'Winter-Pflege zeigen', datum: j => new Date(j, 0, 15), vorlauf: 14, warum:'Im Jänner macht die Heizungsluft das Haar trocken. Passende Pflege ist jetzt ein Thema.' },
+];
+function ladeSaisonErledigt() {
+  try { return JSON.parse(localStorage.getItem(SAISON_KEY)) || []; } catch { return []; }
+}
+function merkeSaisonErledigt(schluessel) {
+  try { localStorage.setItem(SAISON_KEY, JSON.stringify([...ladeSaisonErledigt(), schluessel].slice(-60))); } catch {}
+}
+// Anlässe, die gerade im Vorlauf-Fenster liegen und noch nicht erledigt sind — der nächste zuerst
+function saisonAnstehend() {
+  const heute = new Date(); heute.setHours(0, 0, 0, 0);
+  const erledigt = ladeSaisonErledigt();
+  const liste = [];
+  SAISON_ANLAESSE.forEach(a => {
+    [heute.getFullYear(), heute.getFullYear() + 1].forEach(jahr => {
+      const d = a.datum(jahr); d.setHours(0, 0, 0, 0);
+      const tage = Math.round((d - heute) / 86400000);
+      const schluessel = `${a.id}-${jahr}`;
+      if (tage >= 0 && tage <= a.vorlauf && !erledigt.includes(schluessel)) liste.push({ ...a, tage, schluessel });
+    });
+  });
+  return liste.sort((x, y) => x.tage - y.tage);
+}
+
 // Alle passenden Empfehlungen in fester Reihenfolge — angezeigt wird immer nur eine.
 function heuteKandidaten(wahl) {
   const tage = tageSeitTeamSichtbar();
@@ -5265,7 +5313,16 @@ function heuteKandidaten(wahl) {
     warum: 'Menschen folgen Menschen. Ein echter Moment aus dem Team schafft Nähe.',
     format: 'story', moment: 'Ein ruhiger, echter Moment aus unserem Team heute.', team: true
   });
-  // 7. Ruhiger Tag: das Team, wenn es länger nicht zu sehen war …
+  // 7. Jahresplan: ein Anlass steht bevor → passende Aktion (Aushang, Post, Reel) vorbereiten
+  saisonAnstehend().forEach(a => {
+    const wann = a.tage === 0 ? 'Heute' : a.tage === 1 ? 'Morgen' : `In ${a.tage} Tagen`;
+    liste.push({
+      titel: a.titel,
+      warum: `${wann}: ${a.name}. ${a.warum}`,
+      format: 'aktion', saison: a
+    });
+  });
+  // 8. Ruhiger Tag: das Team, wenn es länger nicht zu sehen war …
   if (teamLange) liste.push({
     titel: 'Das Team bei der Arbeit zeigen',
     warum: 'Ein echter Einblick schafft Nähe, und das Team war eine Weile nicht zu sehen.',
@@ -5320,13 +5377,14 @@ function renderHeute() {
   const k = heuteAktuell = liste[heuteSkip % liste.length];
   // Bestehende goldene Heute-Karte — keine neuen Farben oder Stile
   const html = `<div class="heute-empfehlung">
-      <div class="heute-emp-tag">✦ Heute · ${k.format === 'story' ? 'Story' : 'Post'}</div>
+      <div class="heute-emp-tag">✦ Heute · ${k.format === 'story' ? 'Story' : k.format === 'aktion' ? 'Aktion' : 'Post'}</div>
       <div class="heute-emp-title">${heuteEsc(k.titel)}</div>
       <div class="heute-emp-why">${heuteEsc(k.warum)}</div>
       ${k.hinweis ? `<div class="heute-emp-why">${heuteEsc(k.hinweis)}</div>` : ''}
       <div class="heute-emp-btns">
         <button class="heute-emp-btn" onclick="heuteLos()">Los geht's</button>
         ${liste.length > 1 ? '<button class="heute-emp-btn" onclick="heuteWeiter()">Passt heute nicht</button>' : ''}
+        ${k.saison ? '<button class="heute-emp-btn" onclick="heuteSaisonAus()">Nicht dieses Jahr</button>' : ''}
       </div>
     </div>`;
   ['heute-start-wrap', 'heute-emp-wrap'].forEach(id => {
@@ -5353,6 +5411,12 @@ function heuteNochWas() {
   heuteSkip = 0;
   renderHeute();
 }
+// Saison-Anlass für dieses Jahr ausblenden (kommt nächstes Jahr wieder)
+function heuteSaisonAus() {
+  if (heuteAktuell && heuteAktuell.saison) merkeSaisonErledigt(heuteAktuell.saison.schluessel);
+  heuteSkip = 0;
+  renderHeute();
+}
 function heuteWeiter() {
   heuteSkip++;
   renderHeute();
@@ -5361,6 +5425,11 @@ function heuteWeiter() {
 function heuteLos() {
   const k = heuteAktuell;
   if (!k) return;
+  if (k.saison) {
+    merkeSaisonErledigt(k.saison.schluessel);
+    location.href = 'sprueche.html?aktion=' + encodeURIComponent(k.saison.id);
+    return;
+  }
   heuteOffen = k;
   if (k.termin) {
     (k.format === 'story' ? heuteTerminZuStory : heuteTerminZuPost)(k.termin.titel, k.termin.kontext);

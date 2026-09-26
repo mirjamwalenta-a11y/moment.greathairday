@@ -177,6 +177,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <section id="reeltext-section" style="display:none;flex-direction:column;gap:10px;">
     <div class="label">Ganzer Text für ein Reel</div>
     <label class="feld"><span>Text einfügen — er wird automatisch auf mehrere Folien verteilt (etwa ein Satz pro Folie)</span><textarea id="f-reeltext" rows="7" style="min-height:0;"></textarea></label>
+    <p class="hinweis" id="reeltext-info" style="text-align:left;margin:0;"></p>
     <button class="btn btn-main" id="btn-reel-text">Reel aus diesem Text erstellen</button>
   </section>
 
@@ -1505,13 +1506,18 @@ function reelTextBereinigen(text) {
     .filter(Boolean)
     .join('\n');
 }
+// Absatz in Sätze zerlegen (ohne Lookbehind, damit es auch in älteren Browsern läuft)
+function saetzeVon(absatz) {
+  const t = absatz.replace(/\s+/g, ' ').trim();
+  return (t.match(/[^.!?…]+(?:[.!?…]+["“”»«)]*|$)/g) || []).map(x => x.trim()).filter(Boolean);
+}
 function satzFolien(text) {
   // Ein Absatz beginnt immer eine neue Folie; innerhalb eines Absatzes etwa ein Satz pro Folie.
   // Nur sehr kurze Sätze (z. B. „Neue Farbe?“) kommen zu zweit auf eine Folie.
   const gruppen = [];
   for (const absatz of reelTextBereinigen(text).split(/\n+/)) {
     let letzte = null;
-    for (const satz of absatz.replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+/).filter(Boolean)) {
+    for (const satz of saetzeVon(absatz)) {
       if (letzte !== null && gruppen[letzte].length < 35 && satz.length < 35) gruppen[letzte] += ' ' + satz;
       else { gruppen.push(satz); letzte = gruppen.length - 1; }
     }
@@ -1523,7 +1529,8 @@ function reelFolien() {
   let folien;
   if (AKTION) {
     folien = [{ ...leer, ueber: state.ueber, a: state.a, b: state.b }];
-    if (state.c.trim()) { const [a, b] = teileText(state.c.trim()); folien.push({ ...leer, a, b }); }
+    // Beschreibung: bei mehreren Sätzen/Absätzen je eine Folie, sonst eine Folie
+    if (state.c.trim()) folien.push(...satzFolien(state.c.trim()));
     if (rabattText()) folien.push({ ...leer, ueber: state.ueber, rabatt: state.rabatt, gueltig: state.gueltig });
     else if (state.gueltig.trim()) folien[folien.length - 1].gueltig = state.gueltig;
     folien.push({ ...ABSCHLUSS });
@@ -1686,7 +1693,10 @@ if (AKTION) {
 }
 if (RAHMEN) {
   document.getElementById('f-reeltext').addEventListener('input', e => {
-    const erste = satzFolien(e.target.value)[0];
+    const alle = satzFolien(e.target.value);
+    document.getElementById('reeltext-info').textContent = alle.length
+      ? `→ ${alle.length} Textfolie${alle.length > 1 ? 'n' : ''} + Abschluss-Folie (ca. ${Math.ceil((alle.length + 1) * FOLIE_SEK)} s)` : '';
+    const erste = alle[0];
     if (!erste) return;
     Object.assign(state, { k:'eigen', idx:-1, a: erste.a, b: erste.b, c:'' });
     document.getElementById('f-a').value = erste.a;
@@ -1757,7 +1767,12 @@ if (AKTION) {
   if (t && !a && !b) {
     // Mehr als ein Satz → gehört ins Reel-Feld; das Bild zeigt die erste Folie
     const folien = satzFolien(t);
-    if (folien.length > 1) { document.getElementById('f-reeltext').value = reelTextBereinigen(t); a = folien[0].a; b = folien[0].b; }
+    if (folien.length > 1) {
+      const feld = document.getElementById('f-reeltext');
+      feld.value = reelTextBereinigen(t);
+      feld.dispatchEvent(new Event('input'));   // Folien-Anzahl anzeigen
+      a = folien[0].a; b = folien[0].b;
+    }
     else [a, b] = teileText(reelTextBereinigen(t) || t);
   }
   Object.assign(state, { k:'eigen', idx:-1, a, b, c:'' });

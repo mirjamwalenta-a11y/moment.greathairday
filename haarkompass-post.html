@@ -29,6 +29,10 @@ header{text-align:center;padding:6px 0 2px;}
 .label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
 section{display:flex;flex-direction:column;}
 
+.modus{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--gold-light);padding:4px;border-radius:12px;}
+.modus button{border:none;background:none;border-radius:9px;padding:10px;font:600 14px var(--sans);color:var(--gold-ink);cursor:pointer;}
+.modus button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.schritte{padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.5;color:var(--sub);}
 .faelle{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
 .fall{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 12px;cursor:pointer;text-align:left;font:inherit;color:inherit;display:flex;flex-direction:column;gap:3px;}
 .fall b{font-size:14px;font-weight:600;line-height:1.3;}
@@ -80,18 +84,23 @@ textarea{resize:vertical;line-height:1.5;}
   <header>
     <div class="wordmark">Great Hair<span>.</span>Day</div>
     <div class="rule"></div>
-    <p class="intro">HaarKompass-Post: Problemfall wählen, dann bekommst du Spruch, passendes Produkt und den fertigen Text zum Posten.</p>
+    <p class="intro">HaarKompass-Post: Problemfall oder Haartyp wählen, dann bekommst du Spruch, passendes Produkt und den fertigen Text zum Posten.</p>
   </header>
 
+  <div class="modus" id="modus" role="tablist" aria-label="Art des Posts">
+    <button type="button" role="tab" data-m="pflege" aria-selected="true">Pflege-Tipp</button>
+    <button type="button" role="tab" data-m="styling" aria-selected="false">Styling-Tipp</button>
+  </div>
+
   <section>
-    <div class="label">1 · Problemfall</div>
+    <div class="label" id="l-faelle">1 · Problemfall</div>
     <div class="faelle" id="faelle"></div>
   </section>
 
   <div id="ausgabe" hidden>
     <div style="display:flex;flex-direction:column;gap:18px;">
       <section>
-        <div class="label">Der Problemfall</div>
+        <div class="label" id="l-problem">Der Problemfall</div>
         <div class="card"><p class="problem" id="o-problem"></p></div>
       </section>
 
@@ -101,9 +110,10 @@ textarea{resize:vertical;line-height:1.5;}
       </section>
 
       <section>
-        <div class="label">3 · Das passende Produkt</div>
+        <div class="label" id="l-produkt">3 · Das passende Produkt</div>
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div class="card produkt"><span class="tag">Was wirklich hilft</span><h3 id="o-produkt"></h3><p id="o-produkt-why"></p></div>
+          <div class="card produkt" id="o-sogehts-card" hidden><span class="tag">So geht's</span><ol class="schritte" id="o-sogehts"></ol></div>
           <div class="card weg"><span class="tag">Was man weglassen kann</span><h3 id="o-weg"></h3><p id="o-weg-why"></p></div>
           <div class="feld"><span>Aus unserem Regal (kommt in den Text)</span><div class="regal" id="o-regal"></div></div>
           <label class="feld"><span>Oder selbst eintragen</span><input id="f-produkt" placeholder="z. B. Name des Produkts im Regal"></label>
@@ -540,8 +550,444 @@ const FAELLE = [
                ["Einwirken lassen.", "Zwei Minuten machen den Unterschied."] ] }
 ];
 
+/* ==================================================================
+   Styling-Tipps je Haartyp: Produkte aus dem Fachwissen (Goldwell
+   StyleSign, Nashi Argan, American Crew). Kein Regelwerk nötig,
+   die Empfehlung steht direkt beim Haartyp.
+================================================================== */
+const STYLING = [
+ {
+  "id": "st-volumen",
+  "name": "Feines Haar ohne Volumen",
+  "kurz": "Fällt platt, wenig Fülle",
+  "problem": "Feines Haar fällt nach dem Föhnen schnell wieder in sich zusammen, und schwere Produkte machen es noch platter.",
+  "produkt": {
+   "name": "Leichtes Volumenspray am Ansatz, dazu ein Mousse",
+   "why": "Volumen entsteht am Ansatz. Ein leichtes Spray oder Mousse hebt das Haar an, ohne es zu beschweren."
+  },
+  "sogehts": [
+   "Volumenspray direkt auf den handtuchtrockenen Ansatz sprühen.",
+   "Kopfüber vorföhnen, dann mit der Rundbürste in Form bringen.",
+   "Zum Schluss kühl föhnen, das fixiert das Volumen."
+  ],
+  "weg": {
+   "name": "Schwere Wachse und Öle",
+   "why": "Sie beschweren feines Haar sofort und nehmen das Volumen wieder weg."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Ansatzvolumenspray",
+    "wofuer": "Sofortiges Ansatzvolumen bis 48 Std., Halt 4/5"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Füllegebendes Brillanz-Mousse",
+    "wofuer": "Spezialist für feines und gefärbtes Haar, Halt 3/5"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Trockenes Textur-Spray",
+    "wofuer": "Für Tag 2: Griff und Fülle, nimmt Öl am Ansatz auf"
+   }
+  ],
+  "sprueche": [
+   [
+    "Volumen beginnt am Ansatz.",
+    "Nicht in einer Dose voller Wachs."
+   ],
+   [
+    "Feines Haar braucht Leichtigkeit.",
+    "Keine schweren Produkte."
+   ],
+   [
+    "Kopfüber föhnen,",
+    "dann kühl fixieren."
+   ]
+  ],
+  "hashtags": "#feinesHaar #Volumen",
+  "styling": true
+ },
+ {
+  "id": "st-locken",
+  "name": "Locken & Wellen",
+  "kurz": "Definition statt Frizz",
+  "problem": "Die Locken trocknen ungleichmäßig, werden kraus und haben bis Mittag ihre Form verloren.",
+  "produkt": {
+   "name": "Lockencreme oder Gel ins nasse Haar",
+   "why": "Locken brauchen Feuchtigkeit und Bündelung, bevor sie trocknen. Dann halten sie ihre Form und krausen weniger."
+  },
+  "sogehts": [
+   "Produkt ins nasse Haar geben und nach oben einkneten, nicht kämmen.",
+   "Lufttrocknen lassen oder mit dem Diffusor föhnen, die Locken dabei nicht bewegen.",
+   "Am nächsten Tag mit etwas Produkt in den Händen auffrischen."
+  ],
+  "weg": {
+   "name": "Die Bürste im trockenen Haar",
+   "why": "Sie zieht die Locken auseinander und macht aus Definition eine Wolke."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Definierende Creme",
+    "wofuer": "Pflegt und bündelt, für mittelstarkes bis kräftiges Haar"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Bündelndes Gel",
+    "wofuer": "Gebündelte, elastische Locken, für feines bis mittelstarkes Haar"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Schwereloses Fluid",
+    "wofuer": "Sanfte, natürliche Wellen, lässt sich wieder aufkneten"
+   }
+  ],
+  "sprueche": [
+   [
+    "Locken wollen geknetet werden.",
+    "Nicht gekämmt."
+   ],
+   [
+    "Definition beginnt im nassen Haar.",
+    "Nicht erst beim Föhnen."
+   ],
+   [
+    "Hände weg, solange sie trocknen.",
+    "Deine Locken danken es dir."
+   ]
+  ],
+  "hashtags": "#Locken #Curls #Wellen",
+  "styling": true
+ },
+ {
+  "id": "st-frizz",
+  "name": "Frizz & widerspenstiges Haar",
+  "kurz": "Steht ab, wirkt unruhig",
+  "problem": "Kaum ist es draußen feucht, steht das Haar ab, und fliegende Härchen machen jedes Styling unruhig.",
+  "produkt": {
+   "name": "Ein Hauch Öl oder eine glättende Creme",
+   "why": "Ein wenig Öl oder Creme glättet die Haaroberfläche und schützt vor Luftfeuchtigkeit. Das Haar wirkt ruhig und glänzt."
+  },
+  "sogehts": [
+   "Wenig Produkt in den Handflächen verreiben und in Längen und Spitzen geben.",
+   "Zum Lufttrocknen durchkämmen; beim Föhnen mit Düse von oben nach unten arbeiten.",
+   "Fliegende Härchen zum Schluss mit einem Hauch Glanzspray bändigen."
+  ],
+  "weg": {
+   "name": "Rubbeln mit dem Frotteehandtuch",
+   "why": "Das raut die Haaroberfläche auf und macht Frizz erst richtig sichtbar. Besser ausdrücken."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Schwereloses Glanz-Öl",
+    "wofuer": "Bis 72 Std. Frizz-Kontrolle, beschwert nicht"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign BB Creme zum Lufttrocknen",
+    "wofuer": "Glatt und kontrolliert, ganz ohne Föhnen"
+   },
+   {
+    "marke": "Nashi Argan",
+    "name": "Argan Oil",
+    "wofuer": "Bändigt widerspenstiges, dickes Haar, gibt Glanz"
+   }
+  ],
+  "sprueche": [
+   [
+    "Frizz ist kein Schicksal.",
+    "Nur eine Frage des richtigen Stylings."
+   ],
+   [
+    "Ein paar Tropfen genügen.",
+    "Mehr macht nur schwer."
+   ],
+   [
+    "Draußen Luftfeuchtigkeit,",
+    "im Haar Ruhe."
+   ]
+  ],
+  "hashtags": "#Frizz #Glanz",
+  "styling": true
+ },
+ {
+  "id": "st-glatt",
+  "name": "Glatt föhnen & Glätteisen",
+  "kurz": "Hitze fast jeden Tag",
+  "problem": "Jeden Morgen Föhn und Glätteisen, und die Spitzen werden immer trockener und brechen.",
+  "produkt": {
+   "name": "Hitzeschutz vor jeder Hitze",
+   "why": "Glätteisen werden über 200 °C heiß. Ein Hitzeschutz verringert Haarbruch deutlich und lässt das Eisen leichter gleiten."
+  },
+  "sogehts": [
+   "Hitzeschutz ins handtuchtrockene oder trockene Haar geben.",
+   "Erst ganz trocken föhnen, nie mit dem Glätteisen über feuchtes Haar.",
+   "Bei feinem Haar höchstens 180 °C und jede Strähne nur einmal durchziehen."
+  ],
+  "weg": {
+   "name": "Mehrmals über dieselbe Strähne",
+   "why": "Jeder weitere Durchgang schadet mehr, als er glättet."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Glättendes Serum Spray",
+    "wofuer": "Hitzeschutz bis 230 °C, das Glätteisen gleitet leichter"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Glättungsbalsam",
+    "wofuer": "Für kräftiges oder geschädigtes Haar, bis zu 83 % weniger Haarbruch"
+   },
+   {
+    "marke": "Nashi Argan",
+    "name": "Instant Mask",
+    "wofuer": "Leave-in mit Hitzeschutz, beugt Spliss vor"
+   }
+  ],
+  "sprueche": [
+   [
+    "Erst Hitzeschutz.",
+    "Dann Hitze."
+   ],
+   [
+    "Glatt geht auch",
+    "ohne Haarbruch."
+   ],
+   [
+    "Einmal durchziehen reicht.",
+    "Dein Haar zählt mit."
+   ]
+  ],
+  "hashtags": "#Hitzeschutz #Glätteisen #glatteHaare",
+  "styling": true
+ },
+ {
+  "id": "st-kurz",
+  "name": "Kurzhaar & Textur",
+  "kurz": "Halt und Struktur, matt oder glänzend",
+  "problem": "Kurze Haare liegen platt oder glänzen fettig, und am Mittag ist vom Styling nichts mehr zu sehen.",
+  "produkt": {
+   "name": "Paste oder Creme ins trockene Haar",
+   "why": "Kurzes Haar braucht Halt und Griff. Matte Pasten geben Struktur, Cremes geben Glanz. Wenig Produkt, gut verteilt, hält den ganzen Tag."
+  },
+  "sogehts": [
+   "Eine erbsengroße Menge zwischen den Handflächen anwärmen.",
+   "Von hinten nach vorne ins trockene Haar arbeiten, zuerst am Ansatz.",
+   "Mit den Fingerspitzen einzelne Partien formen."
+  ],
+  "weg": {
+   "name": "Zu viel Produkt auf einmal",
+   "why": "Das verklebt das Haar und lässt es fettig wirken. Lieber nachlegen."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Roughman Texturgebende Paste",
+    "wofuer": "Halt 5/5, matt, für mittelstarkes bis kräftiges Haar"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Mattierende Paste",
+    "wofuer": "Supermatt mit flexiblem Halt, auch für feines Haar"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Formgebende Creme",
+    "wofuer": "Starker Halt mit intensivem Glanz"
+   },
+   {
+    "marke": "American Crew",
+    "name": "Fiber",
+    "wofuer": "Starker Halt, mattes Finish, für kurzes Haar"
+   }
+  ],
+  "sprueche": [
+   [
+    "Weniger Produkt,",
+    "mehr Struktur."
+   ],
+   [
+    "Matt oder Glanz?",
+    "Beides hält den ganzen Tag."
+   ],
+   [
+    "Erbsengroß reicht.",
+    "Wirklich."
+   ]
+  ],
+  "hashtags": "#Kurzhaar #Herrenschnitt #Textur",
+  "styling": true
+ },
+ {
+  "id": "st-beach",
+  "name": "Beach Waves & Undone-Look",
+  "kurz": "Lässig, griffig, natürlich",
+  "problem": "Der lässige Look aus dem Urlaub soll auch im Alltag klappen, aber das Haar ist zu glatt oder zu weich dafür.",
+  "produkt": {
+   "name": "Meersalz- oder Texturspray",
+   "why": "Salz und Textur geben dem Haar Griff, ohne zu verkleben. So entstehen Wellen, die natürlich aussehen."
+  },
+  "sogehts": [
+   "Meersalz-Spray ins handtuchtrockene Haar sprühen.",
+   "Strähnen locker eindrehen und lufttrocknen lassen oder mit dem Diffusor föhnen.",
+   "Im trockenen Haar mit Texturspray für mehr Griff nacharbeiten."
+  ],
+  "weg": {
+   "name": "Starkes Haarspray",
+   "why": "Es macht den lockeren Look steif. Undone lebt von Bewegung."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Meersalz-Spray",
+    "wofuer": "Beach Look mit Fülle, erhält die Feuchtigkeit"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Trockenes Textur-Spray",
+    "wofuer": "Griff und Volumen ohne sichtbare Rückstände"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Trockenes Spray Wachs",
+    "wofuer": "Undone-Textur mit Glanz, sprühen und stylen"
+   }
+  ],
+  "sprueche": [
+   [
+    "Urlaubshaar",
+    "geht auch in Wien."
+   ],
+   [
+    "Ein bisschen Salz,",
+    "viel Bewegung."
+   ],
+   [
+    "Undone heißt nicht ungestylt.",
+    "Nur lässig."
+   ]
+  ],
+  "hashtags": "#BeachWaves #Undone",
+  "styling": true
+ },
+ {
+  "id": "st-hochsteck",
+  "name": "Hochsteckfrisur & Halt",
+  "kurz": "Hält den ganzen Abend",
+  "problem": "Die Hochsteckfrisur sitzt am Anfang perfekt, aber nach zwei Stunden lösen sich die ersten Strähnen.",
+  "produkt": {
+   "name": "Textur als Basis, Haarspray zum Fixieren",
+   "why": "Glattes Haar rutscht. Mit Textur als Grundlage greifen die Nadeln besser, ein Haarspray fixiert zum Schluss."
+  },
+  "sogehts": [
+   "Vorher Texturspray ins trockene Haar geben, das gibt Griff.",
+   "Frisur stecken, Nadeln über Kreuz setzen.",
+   "Mit Haarspray aus etwa 30 cm Abstand fixieren: Starkes Haarspray zum Aufbau, für Feste zum Schluss Extra starkes."
+  ],
+  "weg": {
+   "name": "Frisch gewaschenes, glattes Haar ohne Basis",
+   "why": "Es rutscht aus jeder Nadel. Haar vom Vortag oder ein Texturspray halten viel besser."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Trockenes Textur-Spray",
+    "wofuer": "Griff als Basis, ideal zum Toupieren"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Starkes Haarspray",
+    "wofuer": "Starker Halt, ohne zu kleben"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Extra starkes Haarspray",
+    "wofuer": "Maximaler Halt für Feste und Events"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Flexibles Haarspray",
+    "wofuer": "Für gefärbtes Haar, leicht auszubürsten"
+   }
+  ],
+  "sprueche": [
+   [
+    "Halt beginnt",
+    "vor der ersten Haarnadel."
+   ],
+   [
+    "Die Frisur hält.",
+    "Den ganzen Abend."
+   ],
+   [
+    "Erst Griff,",
+    "dann Halt."
+   ]
+  ],
+  "hashtags": "#Hochsteckfrisur #Brautfrisur #Festfrisur",
+  "styling": true
+ },
+ {
+  "id": "st-glanz",
+  "name": "Glanz für gefärbtes Haar",
+  "kurz": "Die Farbe soll leuchten",
+  "problem": "Die Farbe ist schön, wirkt aber nach ein paar Wochen stumpf und matt.",
+  "produkt": {
+   "name": "Glanzspray oder ein Hauch Öl zum Finish",
+   "why": "Glanz entsteht, wenn die Haaroberfläche glatt ist. Ein Finish-Spray oder Öl lässt die Farbe sofort leuchten und schützt vor Feuchtigkeit."
+  },
+  "sogehts": [
+   "Nach dem Styling Glanzspray aus einer Armlänge Abstand aufsprühen.",
+   "Alternativ 1 bis 2 Tropfen Öl in den Spitzen verteilen.",
+   "Zum Schluss kühl föhnen, das schließt die Haaroberfläche."
+  ],
+  "weg": {
+   "name": "Mattierende Pasten und Puder",
+   "why": "Sie nehmen genau den Glanz, den die Farbe braucht."
+  },
+  "regal": [
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Glanzspray",
+    "wofuer": "Ultra-Hochglanz, veredelt jede Farbe"
+   },
+   {
+    "marke": "Goldwell",
+    "name": "StyleSign Füllegebendes Brillanz-Mousse",
+    "wofuer": "Fülle und Farbbrillanz beim Föhnen"
+   },
+   {
+    "marke": "Nashi Argan",
+    "name": "Argan Oil",
+    "wofuer": "Glanz und Spannkraft, mit UV-Filter"
+   }
+  ],
+  "sprueche": [
+   [
+    "Farbe leuchtet,",
+    "wenn die Oberfläche glänzt."
+   ],
+   [
+    "Kühl föhnen,",
+    "warm leuchten."
+   ],
+   [
+    "Ein Hauch Glanz",
+    "macht den Unterschied."
+   ]
+  ],
+  "hashtags": "#Haarfarbe #Glanz",
+  "styling": true
+ }
+];
+
 const LINK = "https://www.greathairday.at/haarkompass/";
-const st = { fall:null, spruch:0, r:null };
+const st = { modus:"pflege", fall:null, spruch:0, r:null };
+const liste = () => st.modus === "styling" ? STYLING : FAELLE;
+const alleFaelle = () => FAELLE.concat(STYLING);
 const $ = s => document.querySelector(s);
 const ehtml = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 
@@ -550,6 +996,7 @@ function profilZuAntworten(p){
 }
 
 function produktVon(fall, r){
+  if (fall.styling) return fall.produkt;
   const [shampooTeil, condTeil, ...rest] = r.basis;
   if (fall.fokus === "shampoo") return shampooTeil;
   if (fall.fokus === "conditioner") return condTeil;
@@ -558,19 +1005,27 @@ function produktVon(fall, r){
 }
 
 function wegVon(fall, r){
+  if (fall.styling) return fall.weg;
   const a = profilZuAntworten(fall.profil), s = SKIPS.find(x => x.id === fall.weg && x.when(a));
   return s ? { name:s.name, why:s.why(a) } : r.skip[0];
 }
 
 function renderFaelle(){
-  $("#faelle").innerHTML = FAELLE.map(f =>
+  for (const b of document.querySelectorAll("#modus button")) b.setAttribute("aria-selected", b.dataset.m === st.modus);
+  $("#l-faelle").textContent = st.modus === "styling" ? "1 · Haartyp" : "1 · Problemfall";
+  $("#faelle").innerHTML = liste().map(f =>
     `<button class="fall${st.fall === f ? " on" : ""}" data-id="${f.id}" aria-pressed="${st.fall === f}"><b>${ehtml(f.name)}</b><small>${ehtml(f.kurz)}</small></button>`).join("");
 }
 
 function waehleFall(id){
-  st.fall = FAELLE.find(f => f.id === id);
+  st.fall = alleFaelle().find(f => f.id === id);
+  st.modus = st.fall.styling ? "styling" : "pflege";
   st.spruch = 0;
-  st.r = recommend(profilZuAntworten(st.fall.profil));
+  st.r = st.fall.styling ? null : recommend(profilZuAntworten(st.fall.profil));
+  $("#l-problem").textContent = st.fall.styling ? "Der Haartyp" : "Der Problemfall";
+  $("#l-produkt").textContent = st.fall.styling ? "3 · Das richtige Styling" : "3 · Das passende Produkt";
+  $("#o-sogehts-card").hidden = !st.fall.styling;
+  $("#o-sogehts").innerHTML = st.fall.styling ? st.fall.sogehts.map(x => `<li>${ehtml(x)}</li>`).join("") : "";
   renderFaelle();
   $("#ausgabe").hidden = false;
   $("#o-problem").textContent = st.fall.problem;
@@ -614,26 +1069,27 @@ function aktualisieren(){
   const teile = [
     a + " " + b,
     "Kennst du das? " + f.problem,
-    "Was wirklich hilft: " + p.name + ". " + p.why
+    (f.styling ? "Das richtige Styling: " : "Was wirklich hilft: ") + p.name + ". " + p.why
   ];
+  if (f.styling) teile.push("So geht's:\n" + f.sogehts.map((x, i) => (i + 1) + ". " + x).join("\n"));
   if (f.spliss) teile.push("Und ganz ehrlich: Spliss kann kein Produkt reparieren. Alle 8 bis 12 Wochen die Spitzen schneiden bringt mehr als jede Kur.");
   if (weg) teile.push("Was du dir sparen kannst: " + weg.name + ". " + weg.why);
   if (eigen) teile.push("Bei uns im Salon empfehlen wir dafür: " + eigen + ".");
   teile.push("Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort, ohne Login. " + LINK);
   teile.push("Mirjam");
-  teile.push("#GreatHairDay #Friseur #Wien #Haarpflege #HaarKompass " + f.hashtags);
+  teile.push("#GreatHairDay #Friseur #Wien " + (f.styling ? "#Haarstyling " : "#Haarpflege #HaarKompass ") + f.hashtags);
   $("#caption").value = teile.join("\n\n");
 
   const folien = [
     ["Kennst du das?", f.problem],
     ["", a + " " + b],
-    ["Was wirklich hilft", p.name + ". " + ersterSatz(p.why)],
+    f.styling ? ["So geht's", f.sogehts[0]] : ["Was wirklich hilft", p.name + ". " + ersterSatz(p.why)],
     ["Dein Haar, ehrlich beraten", "Teste deine Pflege: 7 Fragen, ehrliche Antwort."]
   ];
   $("#o-folien").innerHTML = folien.map(([k, t]) => `<div class="folie">${k ? `<small>${ehtml(k)}</small>` : ""}<p>${ehtml(t)}</p></div>`).join("");
 
   $("#btn-bild").href = "sprueche.html?rahmen=1&a=" + encodeURIComponent(a) + "&b=" + encodeURIComponent(b);
-  const storyText = [f.problem, a + " " + b, p.name + ". " + ersterSatz(p.why), "Teste deine Pflege: 7 Fragen, ehrliche Antwort."].join("\n");
+  const storyText = [f.problem, a + " " + b, f.styling ? f.sogehts[0] : p.name + ". " + ersterSatz(p.why), "Teste deine Pflege: 7 Fragen, ehrliche Antwort."].join("\n");
   $("#btn-story").href = "sprueche.html?rahmen=1&text=" + encodeURIComponent(storyText);
 }
 
@@ -654,9 +1110,16 @@ $("#btn-copy").addEventListener("click", e => {
   else { ta.select(); document.execCommand("copy"); fertig(); }
 });
 
+$("#modus").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b || b.dataset.m === st.modus) return;
+  st.modus = b.dataset.m; st.fall = null; $("#ausgabe").hidden = true; renderFaelle();
+});
+
+const startParams = new URLSearchParams(location.search);
+if (startParams.get("modus") === "styling") st.modus = "styling";
 renderFaelle();
-const start = new URLSearchParams(location.search).get("fall");
-if (start && FAELLE.some(f => f.id === start)) waehleFall(start);
+const start = startParams.get("fall");
+if (start && alleFaelle().some(f => f.id === start)) waehleFall(start);
 </script>
 </body>
 </html>

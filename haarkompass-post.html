@@ -458,7 +458,7 @@ function recommend(a){
    regal: passende Produkte aus unserem Sortiment (Fachwissen im Handbuch)
 ================================================================== */
 const FAELLE = [
-  { id:"volumen", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Volume Rootlift", wofuer:"Sprühschaum für Ansatzvolumen, beschwert die Längen nicht" }, { marke:"American Crew", name:"Boost Powder", wofuer:"Puder für Dichte und Stand, ideal für kraftloses Haar" } ],
+  { id:"volumen", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Volume Rootlift", wofuer:"Sprühschaum für Ansatzvolumen, beschwert die Längen nicht" }, { marke:"American Crew", name:"Boost Powder", wofuer:"Puder für Dichte und Stand, ideal für kraftloses Haar" }, { marke:"Goldwell", name:"StyleSign Ansatzvolumenspray", wofuer:"Sofortiges Ansatzvolumen bis 48 Std., auch bei öliger Kopfhaut" } ],
     weg:"oel", name:"Feines Haar ohne Volumen", kurz:"Fällt platt, hängt schnell",
     problem:"Du föhnst, du stylst, und nach einer Stunde liegt dein Haar wieder platt am Kopf.",
     profil:{ staerke:"fein", form:"glatt", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["volumen"] },
@@ -482,7 +482,7 @@ const FAELLE = [
     sprueche:[ ["Blond ist eine Entscheidung.", "Pflege auch."],
                ["Ein Conditioner glättet.", "Bond-Repair repariert."],
                ["Helles Haar, starke Pflege.", "Damit Blond auch blond bleibt."] ] },
-  { id:"frizz", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair 10-in-1 Öl", wofuer:"Glättet die Spitzen, beugt Spliss vor" }, { marke:"American Crew", name:"Grooming Cream", wofuer:"Bändigt krauses Haar, viel Glanz" }, { marke:"Nashi Argan", name:"Argan Oil", wofuer:"Bändigt widerspenstiges, dickes Haar, gibt Glanz" } ],
+  { id:"frizz", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair 10-in-1 Öl", wofuer:"Glättet die Spitzen, beugt Spliss vor" }, { marke:"American Crew", name:"Grooming Cream", wofuer:"Bändigt krauses Haar, viel Glanz" }, { marke:"Nashi Argan", name:"Argan Oil", wofuer:"Bändigt widerspenstiges, dickes Haar, gibt Glanz" }, { marke:"Goldwell", name:"StyleSign Schwereloses Glanz-Öl", wofuer:"Bis 72 Std. Frizz-Kontrolle, beschwert nicht" } ],
     weg:"volumen", name:"Frizz", kurz:"Steht ab, vor allem bei Regen",
     problem:"Kaum ist es feucht draußen, steht dein Haar in alle Richtungen ab.",
     profil:{ staerke:"kraeftig", form:"wellig", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["frizz","glanz"] },
@@ -490,7 +490,7 @@ const FAELLE = [
     sprueche:[ ["Frizz ist kein Zufall.", "Dein Haar hat Durst."],
                ["Ein Tropfen Öl.", "Nicht drei."],
                ["Nicht rubbeln.", "Ausdrücken. Dein Haar dankt es dir."] ] },
-  { id:"locken", regal:[ { marke:"L'Oréal Professionnel", name:"Curl Expression", wofuer:"Leave-ins für definierte Locken, mit Hitzeschutz" }, { marke:"American Crew", name:"Forming Pre-Styling Cleanser", wofuer:"Shampoo, definiert Wellen und Locken" } ],
+  { id:"locken", regal:[ { marke:"L'Oréal Professionnel", name:"Curl Expression", wofuer:"Leave-ins für definierte Locken, mit Hitzeschutz" }, { marke:"American Crew", name:"Forming Pre-Styling Cleanser", wofuer:"Shampoo, definiert Wellen und Locken" }, { marke:"Goldwell", name:"StyleSign Definierende Creme", wofuer:"Pflegt und bündelt Locken, mit Hitzeschutz" } ],
     weg:"twoinone", name:"Locken ohne Definition", kurz:"Eher Wolke als Locke",
     problem:"Eigentlich hast du Locken, aber meistens sehen sie aus wie eine Wolke.",
     profil:{ staerke:"normal", form:"lockig", zustand:"natur", kopfhaut:"normal", wasch:"woche", alltag:[], wunsch:["locken"] },
@@ -522,7 +522,7 @@ const FAELLE = [
     sprueche:[ ["Spliss kann man nicht reparieren.", "Nur schneiden."],
                ["Kein Produkt klebt Spliss.", "Eine gute Schere schon."],
                ["Gesunde Spitzen", "beginnen mit einem Termin."] ] },
-  { id:"hitze", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Flex Blowdry", wofuer:"Föhn-Creme mit Hitzeschutz bis 230 °C" }, { marke:"American Crew", name:"Light Hold Styling Gel", wofuer:"Gel mit Hitzeschutz, ideal zum Föhnen" }, { marke:"Nashi Argan", name:"Instant Mask", wofuer:"Leave-in-Spray mit Hitzeschutz vor Föhn und Glätteisen" } ],
+  { id:"hitze", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Flex Blowdry", wofuer:"Föhn-Creme mit Hitzeschutz bis 230 °C" }, { marke:"American Crew", name:"Light Hold Styling Gel", wofuer:"Gel mit Hitzeschutz, ideal zum Föhnen" }, { marke:"Nashi Argan", name:"Instant Mask", wofuer:"Leave-in-Spray mit Hitzeschutz vor Föhn und Glätteisen" }, { marke:"Goldwell", name:"StyleSign Glättendes Serum Spray", wofuer:"Hitzeschutz bis 230 °C, Glätteisen gleitet leichter" } ],
     weg:"oel", name:"Tägliches Glätten & Föhnen", kurz:"Hitze jeden Tag",
     problem:"Jeden Morgen Föhn und Glätteisen, und die Längen werden immer trockener.",
     profil:{ staerke:"fein", form:"glatt", zustand:"coloriert", kopfhaut:"normal", wasch:"taeglich", alltag:["hitze"], wunsch:["glanz"] },

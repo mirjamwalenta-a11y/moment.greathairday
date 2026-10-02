@@ -52,6 +52,11 @@ section{display:flex;flex-direction:column;}
 .weg .tag{font-size:11px;font-weight:600;letter-spacing:.6px;text-transform:uppercase;color:var(--sub);}
 
 .feld{display:flex;flex-direction:column;gap:6px;}
+.regal{display:flex;flex-direction:column;gap:6px;}
+.regal button{background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:9px 12px;text-align:left;font:inherit;color:inherit;cursor:pointer;display:flex;flex-direction:column;gap:2px;}
+.regal button b{font-size:14px;font-weight:600;}
+.regal button small{font-size:12px;color:var(--sub);line-height:1.35;}
+.regal button.on{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);background:var(--gold-light);}
 .feld span{font-size:12px;color:var(--sub);}
 input,textarea{font:15px var(--sans);color:var(--ink);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;}
 textarea{resize:vertical;line-height:1.5;}
@@ -100,7 +105,8 @@ textarea{resize:vertical;line-height:1.5;}
         <div style="display:flex;flex-direction:column;gap:8px;">
           <div class="card produkt"><span class="tag">Was wirklich hilft</span><h3 id="o-produkt"></h3><p id="o-produkt-why"></p></div>
           <div class="card weg"><span class="tag">Was man weglassen kann</span><h3 id="o-weg"></h3><p id="o-weg-why"></p></div>
-          <label class="feld"><span>Euer Produkt aus dem Salon (optional, kommt in den Text)</span><input id="f-produkt" placeholder="z. B. Name des Produkts im Regal"></label>
+          <div class="feld"><span>Aus unserem Regal (kommt in den Text)</span><div class="regal" id="o-regal"></div></div>
+          <label class="feld"><span>Oder selbst eintragen</span><input id="f-produkt" placeholder="z. B. Name des Produkts im Regal"></label>
         </div>
       </section>
 
@@ -449,72 +455,83 @@ function recommend(a){
    fokus: welcher Teil der Empfehlung das "passende Produkt" ist
    (special = Spezial-Impuls, sonst Baustein der Basis-Routine),
    weg: welcher Weglassen-Tipp im Post steht (falls er zum Profil passt)
+   regal: passende Produkte aus unserem Sortiment (Fachwissen im Handbuch)
 ================================================================== */
 const FAELLE = [
-  { id:"volumen", weg:"oel", name:"Feines Haar ohne Volumen", kurz:"Fällt platt, hängt schnell",
+  { id:"volumen", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Volume Rootlift", wofuer:"Sprühschaum für Ansatzvolumen, beschwert die Längen nicht" }, { marke:"American Crew", name:"Boost Powder", wofuer:"Puder für Dichte und Stand, ideal für kraftloses Haar" } ],
+    weg:"oel", name:"Feines Haar ohne Volumen", kurz:"Fällt platt, hängt schnell",
     problem:"Du föhnst, du stylst, und nach einer Stunde liegt dein Haar wieder platt am Kopf.",
     profil:{ staerke:"fein", form:"glatt", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["volumen"] },
     fokus:"special", hashtags:"#feinesHaar #Volumen",
     sprueche:[ ["Feines Haar braucht kein Öl.", "Es braucht Luft am Ansatz."],
                ["Volumen entsteht am Ansatz.", "Nicht in den Spitzen."],
                ["Weniger Pflege, mehr Fülle.", "Klingt komisch, stimmt aber."] ] },
-  { id:"fett", weg:"oel", name:"Ansatz schnell fettig", kurz:"Muss fast täglich waschen",
+  { id:"fett", regal:[ { marke:"L'Oréal Professionnel", name:"Scalp Advanced Anti-Oiliness", wofuer:"Dermo-Purifier Shampoo für ölige Kopfhaut" }, { marke:"American Crew", name:"Daily Cleansing Shampoo", wofuer:"Tägliches Shampoo, reinigt sanft" } ],
+    weg:"oel", name:"Ansatz schnell fettig", kurz:"Muss fast täglich waschen",
     problem:"Am Morgen frisch gewaschen, am Abend schon wieder strähnig am Ansatz.",
     profil:{ staerke:"normal", form:"glatt", zustand:"natur", kopfhaut:"fettend", wasch:"taeglich", alltag:["sport"], wunsch:["fett"] },
     fokus:"shampoo", hashtags:"#Kopfhaut #fettigeHaare",
     sprueche:[ ["Shampoo ist für die Kopfhaut.", "Conditioner für die Längen."],
                ["Fettiger Ansatz?", "Nicht mehr Shampoo. Das richtige Shampoo."],
                ["Täglich waschen ist okay.", "Wenn das Shampoo mild ist."] ] },
-  { id:"blond", weg:"detox", name:"Blondiert & strapaziert", kurz:"Bricht, fühlt sich stumpf an",
+  { id:"blond", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair Molecular", wofuer:"Peptidbonder, repariert die Haarstruktur von innen" }, { marke:"L'Oréal Professionnel", name:"Blondifier", wofuer:"Pflege für blondiertes Haar, neutralisiert unerwünschte Reflexe" } ],
+    weg:"detox", name:"Blondiert & strapaziert", kurz:"Bricht, fühlt sich stumpf an",
     problem:"Die Farbe ist ein Traum, aber das Haar fühlt sich an wie Stroh und bricht beim Kämmen.",
     profil:{ staerke:"normal", form:"glatt", zustand:"blondiert", kopfhaut:"normal", wasch:"zweidrei", alltag:["hitze"], wunsch:["spliss"] },
     fokus:"special", hashtags:"#Blond #Blondierung #Haarpflege",
     sprueche:[ ["Blond ist eine Entscheidung.", "Pflege auch."],
                ["Ein Conditioner glättet.", "Bond-Repair repariert."],
                ["Helles Haar, starke Pflege.", "Damit Blond auch blond bleibt."] ] },
-  { id:"frizz", weg:"volumen", name:"Frizz", kurz:"Steht ab, vor allem bei Regen",
+  { id:"frizz", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair 10-in-1 Öl", wofuer:"Glättet die Spitzen, beugt Spliss vor" }, { marke:"American Crew", name:"Grooming Cream", wofuer:"Bändigt krauses Haar, viel Glanz" } ],
+    weg:"volumen", name:"Frizz", kurz:"Steht ab, vor allem bei Regen",
     problem:"Kaum ist es feucht draußen, steht dein Haar in alle Richtungen ab.",
     profil:{ staerke:"kraeftig", form:"wellig", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["frizz","glanz"] },
     fokus:"special", hashtags:"#Frizz #Glanz",
     sprueche:[ ["Frizz ist kein Zufall.", "Dein Haar hat Durst."],
                ["Ein Tropfen Öl.", "Nicht drei."],
                ["Nicht rubbeln.", "Ausdrücken. Dein Haar dankt es dir."] ] },
-  { id:"locken", weg:"twoinone", name:"Locken ohne Definition", kurz:"Eher Wolke als Locke",
+  { id:"locken", regal:[ { marke:"L'Oréal Professionnel", name:"Curl Expression", wofuer:"Leave-ins für definierte Locken, mit Hitzeschutz" }, { marke:"American Crew", name:"Forming Pre-Styling Cleanser", wofuer:"Shampoo, definiert Wellen und Locken" } ],
+    weg:"twoinone", name:"Locken ohne Definition", kurz:"Eher Wolke als Locke",
     problem:"Eigentlich hast du Locken, aber meistens sehen sie aus wie eine Wolke.",
     profil:{ staerke:"normal", form:"lockig", zustand:"natur", kopfhaut:"normal", wasch:"woche", alltag:[], wunsch:["locken"] },
     fokus:"special", hashtags:"#Locken #Curls #Lockenpflege",
     sprueche:[ ["Locken wollen nicht gebürstet werden.", "Sondern verstanden."],
                ["Kneten statt kämmen.", "Deine Locken merken den Unterschied."],
                ["Deine Locken sind nicht schwierig.", "Sie sind durstig."] ] },
-  { id:"farbe", weg:"detox", name:"Farbe verblasst schnell", kurz:"Nach 2 Wochen schon matt",
+  { id:"farbe", regal:[ { marke:"L'Oréal Professionnel", name:"Vitamino Color Spectrum", wofuer:"Farbbrillanz bis zu 100 Tage, Deep Conditioner" }, { marke:"L'Oréal Professionnel", name:"Dia light", wofuer:"Salon-Service: Glanz und Farbauffrischung" } ],
+    weg:"detox", name:"Farbe verblasst schnell", kurz:"Nach 2 Wochen schon matt",
     problem:"Frisch aus dem Salon leuchtet die Farbe, zwei Wochen später ist sie matt und blass.",
-    profil:{ staerke:"normal", form:"glatt", zustand:"coloriert", kopfhaut:"normal", wasch:"zweidrei", alltag:["sonne"], wunsch:["farbe"] },
+    profil:{ staerke:"normal", form:"glatt", zustand:"coloriert", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["farbe"] },
     fokus:"special", hashtags:"#Haarfarbe #Colorpflege",
     sprueche:[ ["Deine Farbe geht nicht verloren.", "Sie wird ausgewaschen."],
                ["48 Stunden nicht waschen.", "Dann hält die Farbe länger."],
-               ["Sonne bleicht.", "Auch deine Haarfarbe."] ] },
-  { id:"kopfhaut", weg:"trockenshampoo", name:"Empfindliche Kopfhaut", kurz:"Juckt, spannt, rötet sich",
+               ["Farbe pflegt man nicht nur im Salon.", "Sondern ab der ersten Wäsche."] ] },
+  { id:"kopfhaut", regal:[ { marke:"L'Oréal Professionnel", name:"Scalp Advanced Anti-Discomfort", wofuer:"Beruhigt empfindliche Kopfhaut, mit Niacinamid" } ],
+    weg:"trockenshampoo", name:"Empfindliche Kopfhaut", kurz:"Juckt, spannt, rötet sich",
     problem:"Deine Kopfhaut juckt und spannt, und jedes neue Produkt macht es eher schlimmer.",
     profil:{ staerke:"normal", form:"glatt", zustand:"natur", kopfhaut:"sensibel", wasch:"zweidrei", alltag:[], wunsch:["kopfhaut"] },
     fokus:"special", hashtags:"#Kopfhaut #Kopfhautpflege",
     sprueche:[ ["Wenn die Kopfhaut juckt, hilft kein Duft.", "Sondern weniger."],
                ["Deine Kopfhaut ist Haut.", "Behandle sie auch so."],
                ["Je kürzer die Inhaltsliste,", "desto ruhiger die Kopfhaut."] ] },
-  { id:"spliss", weg:"twoinone", name:"Spliss & Haarbruch", kurz:"Spitzen splittern",
+  { id:"spliss", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair Molecular", wofuer:"Peptidbonder gegen Haarbruch" }, { marke:"L'Oréal Professionnel", name:"Pro Longer", wofuer:"Für lange Haare mit dünnen Spitzen" } ],
+    weg:"twoinone", name:"Spliss & Haarbruch", kurz:"Spitzen splittern",
     problem:"Die Spitzen sind dünn und gespalten, und keine Kur scheint wirklich zu helfen.",
     profil:{ staerke:"normal", form:"glatt", zustand:"strapaziert", kopfhaut:"normal", wasch:"zweidrei", alltag:["hitze","zopf"], wunsch:["spliss"] },
     fokus:"special", spliss:true, hashtags:"#Spliss #Spitzenschnitt",
     sprueche:[ ["Spliss kann man nicht reparieren.", "Nur schneiden."],
                ["Kein Produkt klebt Spliss.", "Eine gute Schere schon."],
                ["Gesunde Spitzen", "beginnen mit einem Termin."] ] },
-  { id:"hitze", weg:"oel", name:"Tägliches Glätten & Föhnen", kurz:"Hitze jeden Tag",
+  { id:"hitze", regal:[ { marke:"L'Oréal Professionnel", name:"tecni.art Flex Blowdry", wofuer:"Föhn-Creme mit Hitzeschutz bis 230 °C" }, { marke:"American Crew", name:"Light Hold Styling Gel", wofuer:"Gel mit Hitzeschutz, ideal zum Föhnen" } ],
+    weg:"oel", name:"Tägliches Glätten & Föhnen", kurz:"Hitze jeden Tag",
     problem:"Jeden Morgen Föhn und Glätteisen, und die Längen werden immer trockener.",
     profil:{ staerke:"fein", form:"glatt", zustand:"coloriert", kopfhaut:"normal", wasch:"taeglich", alltag:["hitze"], wunsch:["glanz"] },
     fokus:"hitzeschutz", hashtags:"#Hitzeschutz #Glätteisen",
     sprueche:[ ["Dein Glätteisen wird 230 Grad heiß.", "Dein Haar verdient Schutz."],
                ["Erst Hitzeschutz.", "Dann Hitze."],
                ["Die letzten 10 Prozent kalt föhnen.", "Dein Glanz wird es zeigen."] ] },
-  { id:"schuppen", weg:"trockenshampoo", name:"Schuppen", kurz:"Sichtbar auf der Schulter",
+  { id:"schuppen", regal:[ { marke:"L'Oréal Professionnel", name:"Scalp Advanced Anti-Dandruff", wofuer:"Dermo-Clarifier Shampoo mit Pirocton Olamin" }, { marke:"American Crew", name:"Anti-Dandruff + Sebum Control Shampoo", wofuer:"Anti-Schuppen-Shampoo, reguliert die Talgproduktion" } ],
+    weg:"trockenshampoo", name:"Schuppen", kurz:"Sichtbar auf der Schulter",
     problem:"Du siehst sie auf dem dunklen Pulli, und normales Shampoo ändert nichts daran.",
     profil:{ staerke:"normal", form:"glatt", zustand:"natur", kopfhaut:"schuppen", wasch:"zweidrei", alltag:[], wunsch:["kopfhaut"] },
     fokus:"shampoo", hashtags:"#Schuppen #Kopfhaut",
@@ -563,9 +580,24 @@ function waehleFall(id){
   const weg = wegVon(st.fall, st.r);
   $("#o-weg").textContent = weg ? weg.name : "Nichts";
   $("#o-weg-why").textContent = weg ? weg.why : "Die Routine ist schon schlank.";
+  $("#f-produkt").value = st.fall.regal && st.fall.regal.length ? produktText(st.fall.regal[0]) : "";
+  renderRegal();
   renderSprueche();
   aktualisieren();
   $("#o-problem").closest("section").scrollIntoView({ behavior:"smooth", block:"start" });
+}
+
+function produktText(r){ return r.marke + " " + r.name; }
+
+function renderRegal(){
+  const aktuell = $("#f-produkt").value.trim();
+  const liste = (st.fall.regal || []).map(r => {
+    const on = aktuell === produktText(r);
+    return `<button type="button" class="${on ? "on" : ""}" aria-pressed="${on}" data-p="${ehtml(produktText(r))}"><b>${ehtml(r.name)}</b><small>${ehtml(r.marke)} · ${ehtml(r.wofuer)}</small></button>`;
+  });
+  const ohne = !aktuell;
+  liste.push(`<button type="button" class="${ohne ? "on" : ""}" aria-pressed="${ohne}" data-p=""><b>Ohne Produktnamen</b><small>Nur die Produktart im Text</small></button>`);
+  $("#o-regal").innerHTML = liste.join("");
 }
 
 function renderSprueche(){
@@ -610,7 +642,11 @@ $("#o-sprueche").addEventListener("click", e => {
   const b = e.target.closest(".spruch"); if (!b) return;
   st.spruch = +b.dataset.i; renderSprueche(); aktualisieren();
 });
-$("#f-produkt").addEventListener("input", aktualisieren);
+$("#f-produkt").addEventListener("input", () => { renderRegal(); aktualisieren(); });
+$("#o-regal").addEventListener("click", e => {
+  const b = e.target.closest("button"); if (!b) return;
+  $("#f-produkt").value = b.dataset.p; renderRegal(); aktualisieren();
+});
 $("#btn-copy").addEventListener("click", e => {
   const btn = e.currentTarget, ta = $("#caption");
   const fertig = () => { btn.textContent = "Kopiert ✓"; setTimeout(() => { btn.textContent = "Text kopieren"; }, 2000); };

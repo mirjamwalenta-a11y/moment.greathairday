@@ -2723,12 +2723,14 @@ const outputs = {
     cta:'Termin? Schreib mir einfach eine Nachricht.', cta_kanal:'Anruf / DM'
   },
   'haarproblem': {
+    haarkompass:true,
     ziel:'neukunden', format:'Post',
     text:`Trockene Spitzen, obwohl das Haar frisch geschnitten ist?\n\nDas kennen wir.\nUnd wir wissen, was wirklich hilft — und was nicht.\n\nKomm auf ein Beratungsgespräch. Kein Kaufzwang, kein Druck.\nEinfach ehrliche Einschätzung.`,
     foto:'Nahaufnahme: Haar-Textur, Struktur — echt und informativ.',
     story_interaktion:null, cta:'Termin anfragen — auch kurzfristig möglich.', cta_kanal:'DM / Anruf'
   },
   'behandlung-heute': {
+    haarkompass:true,
     ziel:'neukunden', format:'Story',
     text:`Im Sommer macht Keratin-Pflege besonders viel Sinn.\nDie Hitze, das Salz, die Sonne — das Haar braucht gerade jetzt besondere Fürsorge.\n\nWir haben diese Woche noch Termine.`,
     foto:'Nahaufnahme: glänzendes, gepflegtes Haar — warm und sommerlich.',
@@ -2743,6 +2745,10 @@ const outputs = {
   }
 };
 
+// Pflege-Anlässe: Link zum HaarKompass auf der Website
+const HAARKOMPASS_URL = 'https://www.greathairday.at/haarkompass/';
+const HAARKOMPASS_ZEILE = 'Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort. ' + HAARKOMPASS_URL;
+
 function generateOutput(key) {
   const data = outputs[key]; if(!data) return;
   const isR = data.ziel === 'recruiting';
@@ -2755,11 +2761,12 @@ function generateOutput(key) {
         <span class="output-format-badge">${data.format}</span>
       </div>
       <div class="output-body">
-        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(data.text, data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
+        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(data.text + (data.haarkompass ? '\n\n' + HAARKOMPASS_ZEILE : ''), data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
       </div>
       <div class="output-meta">
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text"><strong>Foto/Video:</strong> ${data.foto}</span></div>
         ${data.story_interaktion ? `<div class="output-meta-row"><span class="meta-icon">💬</span><span class="meta-text"><strong>Story-Interaktion:</strong> ${data.story_interaktion}</span></div>` : ''}
+        ${data.haarkompass ? `<div class="output-meta-row"><span class="meta-icon">🧭</span><span class="meta-text"><strong>HaarKompass-Link:</strong> steht schon im Text. In der Instagram-Story als Link-Sticker einfügen: ${HAARKOMPASS_URL}</span></div>` : ''}
         ${data.cta ? `<div class="output-meta-row"><span class="meta-icon">→</span><span class="meta-text"><strong>Call-to-Action:</strong> ${data.cta} <em>(${data.cta_kanal})</em></span></div>` : ''}
       </div>
     </div>

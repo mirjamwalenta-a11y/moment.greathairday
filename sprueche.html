@@ -1188,11 +1188,16 @@ function draw() {
 }
 
 // ── Bildtext (nach den Schreibregeln: Frage an Kund:innen, endet mit „Mirjam“ bzw. beim Haarnetzwerk mit „Euer Haarnetzwerk“) ──
+// Pflege-Themen: Link zum HaarKompass auf der Website (Kund:innen finden dort ihre Routine)
+const HAARKOMPASS_ZEILE = 'Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort. https://www.greathairday.at/haarkompass/';
+const HAARKOMPASS_THEMEN = ['pflege', 'kopfhaut', 'haartyp'];
+
 function updateCaption() {
   const spruch = [state.a, state.b].filter(Boolean).join(' ');
   const teile = [spruch];
   if (state.c) teile.push(state.c);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
+  if (HAARKOMPASS_THEMEN.includes(state.k) && state.marke !== 'haarnetzwerk') teile.push(HAARKOMPASS_ZEILE);
   // Gehaltszeile bei Stellen-Sprüchen und bei jedem Spruch mit Bewerbungs-QR
   const gehalt = GEHALT[state.k] || (state.qr && istBewerbung() ? GEHALT[state.qrZweck] : '');
   if (gehalt) teile.push(gehalt);

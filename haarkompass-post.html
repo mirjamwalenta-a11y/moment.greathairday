@@ -257,7 +257,7 @@ const FAELLE = [
     sprueche:[ ["Trockene Schüppchen sind keine Schuppen.", "Und brauchen kein Anti-Schuppen-Shampoo."],
                ["Heizungsluft trocknet aus.", "Auch deine Kopfhaut."],
                ["Spannt die Kopfhaut?", "Milder waschen, gezielt pflegen."] ] },
-  { id:"glanz", regal:[ { marke:"L'Oréal Professionnel", name:"Dia light", wofuer:"Salon-Service: Glanz und Farbauffrischung" }, { marke:"Goldwell", name:"StyleSign Glanzspray", wofuer:"Ultra-Hochglanz zum Finish" } ],
+  { id:"glanz", regal:[],
     weg:"oel", name:"Stumpf & ohne Glanz", kurz:"Wirkt matt, trotz Pflege",
     problem:"Du pflegst und pflegst, aber dein Haar wirkt trotzdem matt und glanzlos.",
     profil:{ staerke:"fein", form:"glatt", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:[], wunsch:["glanz"] },
@@ -818,6 +818,8 @@ function waehleFall(id){
 function produktText(r){ return r.marke + " " + r.name; }
 
 function renderRegal(){
+  // Kein Regal-Vorschlag hinterlegt: nur "Oder selbst eintragen" zeigen
+  $("#o-regal").closest(".feld").hidden = !(st.fall.regal || []).length;
   const aktuell = $("#f-produkt").value.trim();
   const liste = (st.fall.regal || []).map(r => {
     const on = aktuell === produktText(r);

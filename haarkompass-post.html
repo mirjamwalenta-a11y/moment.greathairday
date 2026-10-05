@@ -160,7 +160,8 @@ textarea{resize:vertical;line-height:1.5;}
    website.greathairday/haarkompass/index.html.
    Wird dort etwas geändert, hier mitändern, damit Website und Posts
    dasselbe empfehlen.
-   Abweichung (offen für die Website): Schuppen-Text nennt nur noch
+   Abweichungen (offen für die Website): "Bond-Repair" heißt hier
+   "Molecular Repair" (so heißt das Produkt in unserem Regal). Schuppen-Text nennt nur noch
    Piroctone Olamine. Zinkpyrithion ist in Kosmetik in der EU seit 2022
    verboten, Ketoconazol ist ein Arzneimittel.
 ================================================================== */
@@ -324,8 +325,8 @@ const SPECIALS = [
           [2, a=>has(a.wunsch,"fett"), ()=>R.wunsch("fett"), "Wunsch frischer Ansatz"],
           [1, a=>has(a.alltag,"sport"), ()=>R.alltag("sport"), "Viel Sport"],
           [-5, a=>a.kopfhaut==="sensibel" || a.kopfhaut==="trocken", null, "Kopfhaut empfindlich/trocken (ausgeschlossen)"] ]},
-  { id:"bond", name:()=>"Bond-Repair-Pflege",
-    why:"Blondierung und Dauerwelle brechen die inneren Verbindungen im Haar auf. Bond-Repair-Produkte setzen genau dort an, nicht nur an der Oberfläche wie ein Conditioner.",
+  { id:"bond", name:()=>"Molecular-Repair-Pflege",
+    why:"Blondierung und Dauerwelle brechen die inneren Verbindungen im Haar auf. Diese Pflege setzt genau dort an, nicht nur an der Oberfläche wie ein Conditioner.",
     how:"Nach Anleitung einmal pro Woche, meist vor der Haarwäsche ins Haar geben. Besonders wirksam ist die Behandlung bei uns im Salon direkt beim Färben.",
     pts:[ [5, a=>a.zustand==="blondiert", a=>R.zustand(a), "Blondiert"],
           [3, a=>a.zustand==="strapaziert", a=>R.zustand(a), "Strapaziert"],
@@ -412,7 +413,7 @@ const SKIPS = [
     when:a => a.zustand==="coloriert" || a.zustand==="blondiert" || a.kopfhaut==="trocken" || a.kopfhaut==="sensibel",
     why:a => (a.zustand==="coloriert"||a.zustand==="blondiert") ? "Es wäscht Farbpigmente aus und trocknet die Längen aus. Wenn überhaupt, dann höchstens einmal im Monat." : "Es entfettet die Kopfhaut stark und kann sie zusätzlich austrocknen und reizen.",
     because:a => [(a.zustand==="coloriert"||a.zustand==="blondiert") ? R.zustand(a) : R.kopfhaut(a)] },
-  { id:"bond", name:"Bond-Repair- und Plex-Produkte", crit:"Naturbelassen und kein tägliches Hitzestyling",
+  { id:"bond", name:"Molecular-Repair-Pflege", crit:"Naturbelassen und kein tägliches Hitzestyling",
     when:a => a.zustand==="natur" && !has(a.alltag,"hitze"),
     why:()=>"Sie reparieren Verbindungen, die durch Blondierung oder Dauerwelle gebrochen sind. Naturbelassenes Haar hat diese Schäden nicht.",
     because:a => [R.zustand(a)] },
@@ -504,7 +505,7 @@ const FAELLE = [
     profil:{ staerke:"normal", form:"glatt", zustand:"blondiert", kopfhaut:"normal", wasch:"zweidrei", alltag:["hitze"], wunsch:["spliss"] },
     fokus:"special", hashtags:"#Blond #Blondierung #Haarpflege",
     sprueche:[ ["Blond ist eine Entscheidung.", "Pflege auch."],
-               ["Ein Conditioner glättet.", "Bond-Repair repariert."],
+               ["Ein Conditioner glättet.", "Molecular Repair repariert."],
                ["Helles Haar, starke Pflege.", "Damit Blond auch blond bleibt."] ] },
   { id:"frizz", regal:[ { marke:"L'Oréal Professionnel", name:"Absolut Repair 10-in-1 Öl", wofuer:"Glättet die Spitzen, beugt Spliss vor" }, { marke:"American Crew", name:"Grooming Cream", wofuer:"Bändigt krauses Haar, viel Glanz" }, { marke:"Nashi Argan", name:"Argan Oil", wofuer:"Bändigt widerspenstiges, dickes Haar, gibt Glanz" }, { marke:"Goldwell", name:"StyleSign Schwereloses Glanz-Öl", wofuer:"Bis 72 Std. Frizz-Kontrolle, beschwert nicht" } ],
     weg:"volumen", name:"Frizz", kurz:"Steht ab, vor allem bei Regen",

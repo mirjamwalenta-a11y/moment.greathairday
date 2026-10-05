@@ -475,7 +475,8 @@ function recommend(a){
    Problemfälle für Posts: je ein typisches HaarKompass-Profil
    fokus: welcher Teil der Empfehlung das "passende Produkt" ist
    (special = Spezial-Impuls, sonst Baustein der Basis-Routine),
-   weg: welcher Weglassen-Tipp im Post steht (falls er zum Profil passt)
+   weg: welcher Weglassen-Tipp im Post steht (falls er zum Profil passt),
+        oder ein eigener { name, why }, wenn keiner aus dem Regelwerk passt
    regal: passende Produkte aus unserem Sortiment (Fachwissen im Handbuch)
 ================================================================== */
 const FAELLE = [
@@ -576,7 +577,8 @@ const FAELLE = [
                ["Kühl ausspülen.", "Der einfachste Glanz-Trick der Welt."],
                ["Glanz ohne Öl?", "Geht. Mit dem richtigen pH-Wert."] ] },
   { id:"zopf", regal:[ { marke:"Nashi Argan", name:"Instant Mask", wofuer:"Leave-in-Spray, beugt Spliss vor" }, { marke:"L'Oréal Professionnel", name:"Pro Longer", wofuer:"Für lange Haare mit dünnen Spitzen" } ],
-    weg:"bond", name:"Haarbruch durch Zopf", kurz:"Abgebrochene Härchen am Oberkopf",
+    weg:{ name:"Den Zopf nass und straff binden", why:"Nasses Haar ist dehnbarer und bricht unter Zug viel leichter. Erst trocknen lassen, dann locker binden." },
+    name:"Haarbruch durch Zopf", kurz:"Abgebrochene Härchen am Oberkopf",
     problem:"Genau dort, wo jeden Tag der Zopf sitzt, stehen kurze, abgebrochene Härchen ab.",
     profil:{ staerke:"normal", form:"glatt", zustand:"natur", kopfhaut:"normal", wasch:"zweidrei", alltag:["zopf"], wunsch:["spliss","frizz"] },
     fokus:"special", tipp:"Stoffgummis", hashtags:"#Haarbruch #Zopf #langeHaare",
@@ -1048,7 +1050,7 @@ function produktVon(fall, r){
 }
 
 function wegVon(fall, r){
-  if (fall.styling) return fall.weg;
+  if (fall.styling || typeof fall.weg === "object") return fall.weg;
   const a = profilZuAntworten(fall.profil), s = SKIPS.find(x => x.id === fall.weg && x.when(a));
   return s ? { name:s.name, why:s.why(a) } : r.skip[0];
 }

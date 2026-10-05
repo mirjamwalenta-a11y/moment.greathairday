@@ -73,6 +73,12 @@ textarea{resize:vertical;line-height:1.5;}
 .btn{flex:1;border:none;border-radius:12px;padding:14px 12px;font:600 15px var(--sans);cursor:pointer;text-align:center;text-decoration:none;}
 .btn-main{background:var(--ink);color:var(--bg);}
 .btn-alt{background:var(--gold-light);color:var(--gold-ink);}
+.anpassen{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px 15px;}
+.anpassen summary{cursor:pointer;list-style:none;display:flex;flex-direction:column;gap:3px;font-weight:600;font-size:15px;}
+.anpassen summary::-webkit-details-marker{display:none;}
+.anpassen summary span::after{content:" ▾";color:var(--gold);}
+.anpassen[open] summary span::after{content:" ▴";}
+.anpassen summary small{font-weight:400;font-size:12px;color:var(--sub);line-height:1.4;}
 .hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--gold-ink);line-height:1.55;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 [hidden]{display:none!important;}
@@ -84,7 +90,7 @@ textarea{resize:vertical;line-height:1.5;}
   <header>
     <div class="wordmark">Great Hair<span>.</span>Day</div>
     <div class="rule"></div>
-    <p class="intro">HaarKompass-Post: Problemfall oder Haartyp wählen, dann bekommst du Spruch, passendes Produkt und den fertigen Text zum Posten.</p>
+    <p class="intro">HaarKompass-Post: Problemfall oder Haartyp antippen, der fertige Post steht sofort darunter. Spruch und Produkt kannst du danach noch ändern.</p>
   </header>
 
   <div class="modus" id="modus" role="tablist" aria-label="Art des Posts">
@@ -99,33 +105,12 @@ textarea{resize:vertical;line-height:1.5;}
 
   <div id="ausgabe" hidden>
     <div style="display:flex;flex-direction:column;gap:18px;">
-      <section>
-        <div class="label" id="l-problem">Der Problemfall</div>
-        <div class="card"><p class="problem" id="o-problem"></p></div>
-      </section>
-
-      <section>
-        <div class="label">2 · Spruch wählen</div>
-        <div class="liste" id="o-sprueche"></div>
-      </section>
-
-      <section>
-        <div class="label" id="l-produkt">3 · Das passende Produkt</div>
-        <div style="display:flex;flex-direction:column;gap:8px;">
-          <div class="card produkt"><span class="tag">Was wirklich hilft</span><h3 id="o-produkt"></h3><p id="o-produkt-why"></p></div>
-          <div class="card produkt" id="o-sogehts-card" hidden><span class="tag">So geht's</span><ol class="schritte" id="o-sogehts"></ol></div>
-          <div class="card weg"><span class="tag">Was man weglassen kann</span><h3 id="o-weg"></h3><p id="o-weg-why"></p></div>
-          <div class="feld"><span>Aus unserem Regal (kommt in den Text)</span><div class="regal" id="o-regal"></div></div>
-          <label class="feld"><span>Oder selbst eintragen</span><input id="f-produkt" placeholder="z. B. Name des Produkts im Regal"></label>
-        </div>
-      </section>
-
-      <section>
-        <div class="label">4 · Post-Text</div>
+      <section id="s-post">
+        <div class="label">2 · Dein fertiger Post</div>
         <textarea id="caption" aria-label="Post-Text"></textarea>
         <div class="reihe" style="margin-top:10px;">
-          <button class="btn btn-alt" id="btn-copy">Text kopieren</button>
-          <a class="btn btn-main" id="btn-bild" href="sprueche.html">Spruch als Bild</a>
+          <button class="btn btn-main" id="btn-copy">Text kopieren</button>
+          <a class="btn btn-alt" id="btn-bild" href="sprueche.html">Spruch als Bild</a>
         </div>
       </section>
 
@@ -136,6 +121,32 @@ textarea{resize:vertical;line-height:1.5;}
           <a class="btn btn-alt" id="btn-story" href="sprueche.html">Folien als Bilder / Reel</a>
         </div>
       </section>
+
+      <details class="anpassen" id="anpassen">
+        <summary><span>Spruch oder Produkt ändern</span><small id="o-auswahl"></small></summary>
+        <div style="display:flex;flex-direction:column;gap:18px;padding-top:14px;">
+          <section>
+            <div class="label" id="l-problem">Der Problemfall</div>
+            <div class="card"><p class="problem" id="o-problem"></p></div>
+          </section>
+
+          <section>
+            <div class="label">Spruch wählen</div>
+            <div class="liste" id="o-sprueche"></div>
+          </section>
+
+          <section>
+            <div class="label" id="l-produkt">Das passende Produkt</div>
+            <div style="display:flex;flex-direction:column;gap:8px;">
+              <div class="card produkt"><span class="tag" id="o-produkt-tag">Was wirklich hilft</span><h3 id="o-produkt"></h3><p id="o-produkt-why"></p></div>
+              <div class="card produkt" id="o-sogehts-card" hidden><span class="tag">So geht's</span><ol class="schritte" id="o-sogehts"></ol></div>
+              <div class="card weg"><span class="tag">Was man weglassen kann</span><h3 id="o-weg"></h3><p id="o-weg-why"></p></div>
+              <div class="feld"><span>Aus unserem Regal (kommt in den Text)</span><div class="regal" id="o-regal"></div></div>
+              <label class="feld"><span>Oder selbst eintragen</span><input id="f-produkt" placeholder="z. B. Name des Produkts im Regal"></label>
+            </div>
+          </section>
+        </div>
+      </details>
 
       <p class="hinweis">Der Link im Text führt direkt zum HaarKompass: <b>https://www.greathairday.at/haarkompass/</b>. Auf Facebook und im Google-Profil ist er anklickbar. Auf Instagram sind Links im Post-Text nicht klickbar: dort in der Story als <b>Link-Sticker</b> auf der letzten Folie einfügen oder den Link in die Bio stellen und „Link in der Bio“ schreiben.</p>
     </div>
@@ -149,6 +160,9 @@ textarea{resize:vertical;line-height:1.5;}
    website.greathairday/haarkompass/index.html.
    Wird dort etwas geändert, hier mitändern, damit Website und Posts
    dasselbe empfehlen.
+   Abweichung (offen für die Website): Schuppen-Text nennt nur noch
+   Piroctone Olamine. Zinkpyrithion ist in Kosmetik in der EU seit 2022
+   verboten, Ketoconazol ist ein Arzneimittel.
 ================================================================== */
 /* ------------------------------------------------------------------
    Fragen
@@ -224,7 +238,7 @@ function shampoo(a){
   const because = [R.kopfhaut(a)];
   switch (a.kopfhaut){
     case "schuppen": return { name:"Anti-Schuppen-Shampoo, im Wechsel mit einem milden Shampoo", because,
-      why:"Echte Schuppen brauchen einen Wirkstoff (z. B. Zinkpyrithion, Piroctone Olamine oder Ketoconazol). Zwei Mal pro Woche reicht, an den anderen Tagen wäschst du mild.",
+      why:"Echte Schuppen brauchen ein Shampoo mit Anti-Schuppen-Wirkstoff, zum Beispiel Piroctone Olamine. Zwei Mal pro Woche reicht, an den anderen Tagen wäschst du mild.",
       how:"Das Wirkstoff-Shampoo 2–3 Minuten einwirken lassen, dann gründlich ausspülen." };
     case "sensibel": return { name:"Sehr mildes, parfümfreies Shampoo", because,
       why:"Duftstoffe und starke Tenside lösen am häufigsten Reizungen aus. Je kürzer die Inhaltsliste, desto besser.", how };
@@ -1023,7 +1037,8 @@ function waehleFall(id){
   st.spruch = 0;
   st.r = st.fall.styling ? null : recommend(profilZuAntworten(st.fall.profil));
   $("#l-problem").textContent = st.fall.styling ? "Der Haartyp" : "Der Problemfall";
-  $("#l-produkt").textContent = st.fall.styling ? "3 · Das richtige Styling" : "3 · Das passende Produkt";
+  $("#l-produkt").textContent = st.fall.styling ? "Das richtige Styling" : "Das passende Produkt";
+  $("#o-produkt-tag").textContent = st.fall.spliss ? "Damit es nicht wieder passiert" : "Was wirklich hilft";
   $("#o-sogehts-card").hidden = !st.fall.styling;
   $("#o-sogehts").innerHTML = st.fall.styling ? st.fall.sogehts.map(x => `<li>${ehtml(x)}</li>`).join("") : "";
   renderFaelle();
@@ -1039,7 +1054,7 @@ function waehleFall(id){
   renderRegal();
   renderSprueche();
   aktualisieren();
-  $("#o-problem").closest("section").scrollIntoView({ behavior:"smooth", block:"start" });
+  $("#s-post").scrollIntoView({ behavior:"smooth", block:"start" });
 }
 
 function produktText(r){ return r.marke + " " + r.name; }
@@ -1060,6 +1075,17 @@ function renderSprueche(){
     `<button class="spruch${i === st.spruch ? " on" : ""}" data-i="${i}" aria-pressed="${i === st.spruch}"><b>${ehtml(a)}</b> <i>${ehtml(b)}</i></button>`).join("");
 }
 
+const SPLISS_WAHRHEIT = "Spliss kann kein Produkt reparieren, nur die Schere. Alle 8 bis 12 Wochen die Spitzen schneiden bringt mehr als jede Kur.";
+
+// Hautarzt-Hinweis aus den HaarKompass-Tipps (Schuppen, empfindliche Kopfhaut)
+function hautarztHinweis(r){
+  return r ? (r.tips.find(t => t.includes("Hautarzt")) || "") : "";
+}
+
+function folie3(f, p){
+  return f.spliss ? "Spitzen alle 8 bis 12 Wochen schneiden. Kein Produkt repariert Spliss." : p.name + ". " + ersterSatz(p.why);
+}
+
 function ersterSatz(t){ const m = String(t).match(/^[^.!?]+[.!?]/); return m ? m[0] : t; }
 
 function aktualisieren(){
@@ -1068,11 +1094,16 @@ function aktualisieren(){
   const eigen = $("#f-produkt").value.trim();
   const teile = [
     a + " " + b,
-    "Kennst du das? " + f.problem,
-    (f.styling ? "Das richtige Styling: " : "Was wirklich hilft: ") + p.name + ". " + p.why
+    "Kennst du das? " + f.problem
   ];
+  // Spliss: erst die ehrliche Antwort (Schere), dann das Produkt als Vorbeugung,
+  // sonst steht "kein Produkt repariert Spliss" neben einem Reparatur-Produkt.
+  if (f.spliss) teile.push("Was wirklich hilft: " + SPLISS_WAHRHEIT,
+    "Damit es nicht wieder passiert: " + p.name + ". Sie stärkt die Haarstruktur und beugt neuem Haarbruch vor.");
+  else teile.push((f.styling ? "Das richtige Styling: " : "Was wirklich hilft: ") + p.name + ". " + p.why);
   if (f.styling) teile.push("So geht's:\n" + f.sogehts.map((x, i) => (i + 1) + ". " + x).join("\n"));
-  if (f.spliss) teile.push("Und ganz ehrlich: Spliss kann kein Produkt reparieren. Alle 8 bis 12 Wochen die Spitzen schneiden bringt mehr als jede Kur.");
+  const arzt = hautarztHinweis(r);
+  if (arzt) teile.push(arzt);
   if (weg) teile.push("Was du dir sparen kannst: " + weg.name + ". " + weg.why);
   if (eigen) teile.push("Bei uns im Salon empfehlen wir dafür: " + eigen + ".");
   teile.push("Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort, ohne Login. " + LINK);
@@ -1083,13 +1114,15 @@ function aktualisieren(){
   const folien = [
     ["Kennst du das?", f.problem],
     ["", a + " " + b],
-    f.styling ? ["So geht's", f.sogehts[0]] : ["Was wirklich hilft", p.name + ". " + ersterSatz(p.why)],
+    f.styling ? ["So geht's", f.sogehts[0]] : ["Was wirklich hilft", folie3(f, p)],
     ["Dein Haar, ehrlich beraten", "Teste deine Pflege: 7 Fragen, ehrliche Antwort."]
   ];
   $("#o-folien").innerHTML = folien.map(([k, t]) => `<div class="folie">${k ? `<small>${ehtml(k)}</small>` : ""}<p>${ehtml(t)}</p></div>`).join("");
 
+  $("#o-auswahl").textContent = "Spruch: " + a + " " + b + (eigen ? " · Produkt: " + eigen : " · ohne Produktnamen");
+
   $("#btn-bild").href = "sprueche.html?rahmen=1&a=" + encodeURIComponent(a) + "&b=" + encodeURIComponent(b);
-  const storyText = [f.problem, a + " " + b, f.styling ? f.sogehts[0] : p.name + ". " + ersterSatz(p.why), "Teste deine Pflege: 7 Fragen, ehrliche Antwort."].join("\n");
+  const storyText = [f.problem, a + " " + b, f.styling ? f.sogehts[0] : folie3(f, p), "Teste deine Pflege: 7 Fragen, ehrliche Antwort."].join("\n");
   $("#btn-story").href = "sprueche.html?rahmen=1&text=" + encodeURIComponent(storyText);
 }
 

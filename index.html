@@ -509,6 +509,7 @@ function tabnavScrollBy(direction) {
       <span class="fuz-icon">📸</span>
       <span class="fuz-label">Foto hochladen</span>
       <span class="fuz-sub">Vorher/Nachher, Ergebnis, Salon-Moment — Wörni beschreibt es automatisch</span>
+      <span class="fuz-sub" style="margin-top:4px;">Standort und Kameradaten werden vorher entfernt. Das Foto wird nicht gespeichert.</span>
     </div>
     <div class="foto-preview-wrap" id="foto-preview-wrap" style="display:none;">
       <img id="foto-preview-img" src="" alt="Vorschau">
@@ -5389,22 +5390,54 @@ function ctaZuPost(typ) {
 let fotoAnalyseBase64 = null;
 let fotoAnalyseResult = null;
 
+// Zeichnet das Foto neu, bevor es das Handy verlässt: lange Seite höchstens
+// 1568 px (reicht der KI für die Beschreibung, spart Daten und Zeit) und als
+// JPEG neu kodiert. Dabei fallen alle Metadaten weg (GPS-Standort, Kamera,
+// Aufnahmezeit), weil ein Canvas nur die Pixel übernimmt. Die Drehung aus
+// den Kameradaten wendet der Browser beim Zeichnen schon an.
+const FOTO_MAX_SEITE = 1568;
+function fotoBereinigen(dataUrl) {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    img.onload = () => {
+      const f = Math.min(1, FOTO_MAX_SEITE / Math.max(img.naturalWidth, img.naturalHeight));
+      const c = document.createElement('canvas');
+      c.width = Math.round(img.naturalWidth * f);
+      c.height = Math.round(img.naturalHeight * f);
+      const ctx = c.getContext('2d');
+      ctx.fillStyle = '#ffffff';            // transparente PNGs nicht schwarz werden lassen
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, 0, 0, c.width, c.height);
+      resolve(c.toDataURL('image/jpeg', 0.85));
+    };
+    img.onerror = () => reject(new Error('Foto konnte nicht gelesen werden'));
+    img.src = dataUrl;
+  });
+}
+
 function handleFotoAnalyse(input) {
   const file = input.files[0];
   if(!file) return;
 
   const reader = new FileReader();
   reader.onload = async (e) => {
-    const dataUrl = e.target.result;
+    let dataUrl;
+    try {
+      dataUrl = await fotoBereinigen(e.target.result);
+    } catch(err) {
+      alert('Dieses Foto kann der Browser nicht öffnen. Bitte als JPG oder PNG versuchen.');
+      input.value = '';
+      return;
+    }
     // Vorschau zeigen
     document.getElementById('foto-preview-img').src = dataUrl;
     document.getElementById('foto-preview-wrap').style.display = 'block';
     document.getElementById('foto-upload-zone').style.display = 'none';
     document.getElementById('foto-analyse-result').style.display = 'none';
 
-    // Base64 ohne Prefix speichern
+    // Base64 ohne Prefix speichern (bereinigtes JPEG, ohne Standortdaten)
     fotoAnalyseBase64 = dataUrl.split(',')[1];
-    const mediaType = file.type || 'image/jpeg';
+    const mediaType = 'image/jpeg';
 
     // Analyse starten
     document.getElementById('foto-analyse-loading').style.display = 'flex';

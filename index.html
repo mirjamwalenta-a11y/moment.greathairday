@@ -9,26 +9,31 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <style>
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 
+  /* Farben und Schriften wie sprueche.html / haarkompass-post.html */
   :root {
-    --gold: #896c32;
-    --gold-light: #b8924a;
-    --gold-pale: #f7f2e8;
-    --gold-pale2: #ede8d8;
-    --black: #1a1208;
-    --mid: #5a4e3a;
-    --soft: #8a7d68;
-    --bg: #faf6ee;
-    --white: #fffdf8;
+    --gold: #8A7346;
+    --gold-light: #B39A6B;
+    --gold-pale: #EFE6D4;
+    --gold-pale2: #E4DCCD;
+    --black: #1C1B19;
+    --mid: #5B5750;
+    --soft: #857F76;
+    --bg: #F5F0EA;
+    --white: #FCFAF5;
+    --line: #E4DCCD;
+    --ok: #5a4a28;
+    --ok-bg: #EFE6D4;
+    --serif: 'Playfair Display', Georgia, serif;
     --radius: 14px;
     --radius-sm: 9px;
     --shadow: 0 2px 12px rgba(100,80,40,0.08);
     --shadow-md: 0 4px 20px rgba(100,80,40,0.12);
-    --accent: #896c32;
-    --f: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+    --accent: #8A7346;
+    --f: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
   }
 
   body {
@@ -45,7 +50,7 @@
   .login-gate.hidden { display: none; }
   .login-brand { font-size: 20px; font-weight: 700; color: var(--black); margin-bottom: 2px; }
   .login-sub { font-size: 13px; color: var(--soft); margin-bottom: 28px; }
-  .login-input { width: 100%; max-width: 280px; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid #e8e4dc; background: var(--white); font-size: 16px; font-family: inherit; color: var(--black); outline: none; text-align: center; display: block; margin-bottom: 10px; }
+  .login-input { width: 100%; max-width: 280px; padding: 14px 16px; border-radius: var(--radius-sm); border: 1.5px solid var(--line); background: var(--white); font-size: 16px; font-family: inherit; color: var(--black); outline: none; text-align: center; display: block; margin-bottom: 10px; }
   .login-error { display: none; color: #b3392c; font-size: 12px; font-weight: 600; margin-top: 4px; margin-bottom: 12px; text-align: center; }
   .login-btn { background: var(--gold); color: #fff; border: none; border-radius: var(--radius-sm); padding: 13px 32px; font-size: 15px; font-weight: 700; font-family: inherit; cursor: pointer; margin-top: 8px; }
   .logout-link { background: none; border: none; font-size: 12px; color: var(--soft); cursor: pointer; text-decoration: underline; }
@@ -53,7 +58,7 @@
   /* ── HEADER ── */
   .app-header {
     background: var(--white);
-    border-bottom: 1px solid #e8e4dc;
+    border-bottom: 1px solid var(--line);
     padding: 14px 18px 12px;
     display: flex;
     align-items: center;
@@ -84,7 +89,7 @@
   /* ── TAB NAV ── */
   .tabnav {
     background: var(--white);
-    border-bottom: 1px solid #e8e4dc;
+    border-bottom: 1px solid var(--line);
     display: flex;
     position: sticky;
     top: 51px;
@@ -249,7 +254,7 @@
   .goal-card-primary .card-arrow svg { width: 16px; height: 16px; }
   .goal-card-secondary {
     background: var(--white);
-    border: 1.5px solid #e0d8cb;
+    border: 1.5px solid var(--line);
     border-radius: var(--radius);
     padding: 18px 20px;
     cursor: pointer;
@@ -272,7 +277,7 @@
 
   /* Startseite: Text schreiben oben, 4 Kacheln, Rest kompakt */
   .start-schreiben {
-    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
+    background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
     padding: 16px; margin: 14px 0 14px; box-shadow: var(--shadow);
   }
   .start-schreiben-label { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
@@ -285,7 +290,7 @@
   .start-schreiben-fehler { font-size: 12px; color: #a0522d; margin-top: 8px; display: none; }
   .start-kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
   .start-kachel {
-    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
+    background: var(--white); border: 1.5px solid var(--line); border-radius: var(--radius);
     padding: 14px 12px; text-align: left; cursor: pointer; font-family: var(--f); color: var(--black);
     display: flex; flex-direction: column; gap: 4px; transition: border-color .15s, transform .15s;
   }
@@ -314,7 +319,7 @@
   .anlass-grid { display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px; }
   .anlass-card {
     background: var(--white);
-    border: 1.5px solid #e5ddd0;
+    border: 1.5px solid var(--line);
     border-radius: var(--radius);
     padding: 16px 18px;
     cursor: pointer;
@@ -335,7 +340,7 @@
 
   /* paths */
   .path-secondary {
-    background: var(--white); border: 1px solid #e5ddd0; border-radius: var(--radius);
+    background: var(--white); border: 1px solid var(--line); border-radius: var(--radius);
     padding: 16px 18px; cursor: pointer; transition: border-color 0.15s, transform 0.15s;
     margin-bottom: 10px; display: flex; align-items: center;
     justify-content: space-between; gap: 12px;
@@ -358,7 +363,7 @@
   .direct-subhead { font-size: 14px; color: var(--mid); line-height: 1.5; margin-bottom: 18px; }
   .tone-row { display: flex; gap: 8px; margin-bottom: 20px; flex-wrap: wrap; }
   .tone-chip {
-    border: 1.5px solid #e0d8cb; border-radius: 20px; padding: 7px 14px;
+    border: 1.5px solid var(--line); border-radius: 20px; padding: 7px 14px;
     font-size: 13px; font-weight: 500; color: var(--mid); cursor: pointer;
     transition: all 0.15s; background: var(--white);
   }
@@ -367,12 +372,12 @@
 
   /* ── OUTPUT ── */
   .output-wrap {
-    background: var(--white); border: 1.5px solid #e5ddd0;
+    background: var(--white); border: 1.5px solid var(--line);
     border-radius: var(--radius); overflow: hidden; margin-bottom: 14px;
   }
   .output-header {
     background: var(--gold-pale); padding: 12px 16px;
-    border-bottom: 1px solid #e0d8cb;
+    border-bottom: 1px solid var(--line);
     display: flex; align-items: center; justify-content: space-between;
   }
   .output-label { font-size: 11px; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: var(--gold); }
@@ -384,7 +389,7 @@
     font-size: 10px; font-weight: 700; padding: 3px 9px; border-radius: 20px;
     background: var(--gold); color: white; white-space: nowrap; flex-shrink: 0;
   }
-  .ki-status-chip.live { background: #edf5f0; color: #2d6a4f; }
+  .ki-status-chip.live { background: var(--ok-bg); color: var(--ok); }
   .output-body { padding: 18px 16px; }
   .output-text {
     font-size: 15px; line-height: 1.65; color: var(--black);
@@ -401,9 +406,9 @@
   .meta-text strong { color: var(--black); font-weight: 600; }
   .output-recruiting .output-header { background: #1a1a1a; border-bottom-color: #333; }
   .output-recruiting .output-label { color: var(--gold-light); }
-  .output-neukunden .output-header { background: #edf5f0; border-bottom-color: #c5dece; }
-  .output-neukunden .output-label { color: #2d6a4f; }
-  .output-neukunden .output-format-badge { background: #2d6a4f; }
+  .output-neukunden .output-header { background: var(--ok-bg); border-bottom-color: var(--line); }
+  .output-neukunden .output-label { color: var(--ok); }
+  .output-neukunden .output-format-badge { background: var(--ok); }
   .cta-row { display: flex; gap: 8px; margin-top: 16px; flex-wrap: wrap; }
   .btn-copy {
     flex: 1; background: var(--black); color: white; border: none;
@@ -412,9 +417,9 @@
     display: flex; align-items: center; justify-content: center; gap: 6px;
   }
   .btn-copy:active { opacity: 0.85; }
-  .btn-copy.copied { background: #2d6a4f; }
+  .btn-copy.copied { background: var(--ok); }
   .btn-edit {
-    background: var(--white); color: var(--mid); border: 1.5px solid #e0d8cb;
+    background: var(--white); color: var(--mid); border: 1.5px solid var(--line);
     border-radius: var(--radius-sm); padding: 13px 14px; font-size: 13px;
     font-weight: 600; cursor: pointer;
     display: flex; align-items: center; gap: 5px;
@@ -426,7 +431,7 @@
     font-size: 13px; color: var(--mid); line-height: 1.45;
   }
   .cta-suggestion strong { color: var(--gold); font-weight: 600; }
-  .section-divider { height: 1px; background: #e8e4dc; margin: 20px 0; }
+  .section-divider { height: 1px; background: var(--line); margin: 20px 0; }
 
   /* ── GEFÜHRTER FLOW V1 (Anlass → Ziel → Format → Output) ── */
   .flow-format-name { font-size: 26px; font-weight: 700; color: var(--gold); margin: 4px 0 8px; }
@@ -508,7 +513,7 @@
   .planer-day {
     background: var(--white);
     border-radius: var(--radius);
-    border: 1.5px solid #e5ddd0;
+    border: 1.5px solid var(--line);
     padding: 14px 16px;
     display: flex;
     align-items: flex-start;
@@ -570,7 +575,7 @@
   .cta-gen-variant {
     background: var(--white);
     border-radius: var(--radius);
-    border: 1.5px solid #e5ddd0;
+    border: 1.5px solid var(--line);
     padding: 16px;
     margin-bottom: 10px;
     box-shadow: var(--shadow);
@@ -613,11 +618,11 @@
     transition: opacity .15s;
   }
   .btn-cta-copy:active { opacity: .8; }
-  .btn-cta-copy.copied { background: #2d6a4f; }
+  .btn-cta-copy.copied { background: var(--ok); }
   .btn-cta-post {
     background: var(--white);
     color: var(--mid);
-    border: 1.5px solid #e0d8cb;
+    border: 1.5px solid var(--line);
     border-radius: 9px;
     padding: 10px 12px;
     font-size: 13px;
@@ -657,7 +662,7 @@
     margin-bottom: 10px;
     border-radius: var(--radius);
     overflow: hidden;
-    border: 1.5px solid #e0d8cb;
+    border: 1.5px solid var(--line);
   }
   .foto-preview-wrap img {
     width: 100%;
@@ -761,7 +766,7 @@
     width: 40px;
     height: 40px;
     background: var(--white);
-    border: 1.5px solid #e0d8cb;
+    border: 1.5px solid var(--line);
     border-radius: 10px;
     cursor: pointer;
     display: flex;
@@ -797,7 +802,7 @@
   }
   .btn-section-copy {
     background: none;
-    border: 1px solid #e0d8cb;
+    border: 1px solid var(--line);
     border-radius: 8px;
     padding: 3px 10px;
     font-size: 11px;
@@ -811,7 +816,7 @@
     transition: all .15s;
   }
   .btn-section-copy:active { border-color: var(--gold); color: var(--gold); }
-  .btn-section-copy.copied { background: #edf5f0; border-color: #2d6a4f; color: #2d6a4f; }
+  .btn-section-copy.copied { background: var(--ok-bg); border-color: var(--ok); color: var(--ok); }
 
   /* ── STORY OUTPUT STRUCTURED ── */
   .story-section-block {
@@ -926,7 +931,7 @@
     font-size: 12px; font-weight: 600; color: var(--soft); cursor: pointer;
     font-family: var(--f);
   }
-  .copy-sm.done { background: #edf5f0; color: #2d6a4f; }
+  .copy-sm.done { background: var(--ok-bg); color: var(--ok); }
 
   /* ── IDEEN ── */
   .idea-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 9px; }
@@ -944,7 +949,7 @@
   /* ── RAHMEN (Vorlagen-Tab: Texteingabe) ── */
   .rahmen-textarea {
     width: 100%; font-family: var(--f); font-size: 15px; color: var(--black);
-    border: 1.5px solid #e0d8cb; border-radius: 10px; padding: 12px;
+    border: 1.5px solid var(--line); border-radius: 10px; padding: 12px;
     resize: none; min-height: 72px; outline: none;
   }
   .rahmen-textarea:focus { border-color: var(--gold); }
@@ -975,7 +980,7 @@
     letter-spacing: .4px; text-transform: uppercase;
   }
   textarea, input[type=text] {
-    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: 10px;
+    background: var(--white); border: 1.5px solid var(--line); border-radius: 10px;
     padding: 11px 13px; font-family: var(--f); font-size: 15px; color: var(--black);
     outline: none; width: 100%; line-height: 1.5; transition: border-color .15s;
   }
@@ -984,7 +989,7 @@
   textarea { resize: none; min-height: 76px; }
   .chip-row { display: flex; flex-wrap: wrap; gap: 6px; }
   .chip-select {
-    padding: 7px 13px; border-radius: 20px; background: #eceae5;
+    padding: 7px 13px; border-radius: 20px; background: var(--white);
     color: var(--black); font-size: 13px; font-weight: 500;
     border: none; cursor: pointer; font-family: var(--f);
   }
@@ -996,7 +1001,7 @@
   }
   .btn-main:disabled { background: #b0aba4; cursor: default; }
   .btn-ghost-sm {
-    width: 100%; padding: 12px; background: none; border: 1.5px solid #e0d8cb;
+    width: 100%; padding: 12px; background: none; border: 1.5px solid var(--line);
     border-radius: 12px; font-family: var(--f); font-size: 13px;
     font-weight: 500; color: var(--soft); cursor: pointer; margin-top: 8px;
   }
@@ -1086,7 +1091,7 @@
     display: flex; gap: 8px; align-items: center; margin-bottom: 8px;
   }
   .modal-item input {
-    flex: 1; padding: 10px 12px; border: 1.5px solid #e0d8cb;
+    flex: 1; padding: 10px 12px; border: 1.5px solid var(--line);
     border-radius: 10px; font-family: var(--f); font-size: 14px;
   }
   .modal-item-del {
@@ -1094,7 +1099,7 @@
   }
   .btn-add {
     width: 100%; padding: 12px; background: none;
-    border: 1.5px dashed #e0d8cb; border-radius: 10px;
+    border: 1.5px dashed var(--line); border-radius: 10px;
     font-family: var(--f); font-size: 14px; font-weight: 600;
     color: var(--soft); cursor: pointer; margin-top: 4px;
   }
@@ -1116,6 +1121,20 @@
     0%,60%,100% { transform: translateY(0); opacity: 0.4; }
     30% { transform: translateY(-8px); opacity: 1; }
   }
+
+  /* ── Einheitliches Design wie die Sprüche-Seite ──
+     Überschriften in Playfair Display, Beschriftungen als kleine goldene
+     Großbuchstaben, Auswahl-Chips als Pillen (ausgewählt: schwarz). */
+  .header-logo { font-family: var(--serif); font-weight: 700; font-size: 18px; color: var(--black); letter-spacing: 0; }
+  .header-logo span { font-family: var(--f); font-size: 13px; color: var(--mid); }
+  .login-brand, .start-headline, .screen-headline { font-family: var(--serif); letter-spacing: 0; }
+  .start-headline { font-size: 26px; }
+  .card-tag, .input-label, .start-eyebrow, .goal-card-secondary .sec-label {
+    font-size: 11px; font-weight: 600; letter-spacing: .8px; text-transform: uppercase; color: var(--gold);
+  }
+  .chip-select { background: var(--white); border: 1px solid var(--line); padding: 8px 13px; border-radius: 999px; }
+  .chip-select.on { background: var(--black); border-color: var(--black); color: var(--bg); }
+  .btn-main:disabled { background: #B5AFA6; }
 </style>
 </head>
 <body>
@@ -2255,8 +2274,8 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
   <div class="idea-grid" id="idea-grid"></div>
-  <div class="card" id="idea-mantra-card" style="background:#edf5f0; border:none; margin-top:4px;">
-    <div class="card-tag" style="color:#2d6a4f;">Dein Mantra</div>
+  <div class="card" id="idea-mantra-card" style="background:var(--ok-bg); border:none; margin-top:4px;">
+    <div class="card-tag" style="color:var(--ok);">Dein Mantra</div>
     <div class="card-title" id="idea-mantra-title" style="font-size:15px;">„Bei uns musst du dich nicht erklären."</div>
     <div class="card-body" id="idea-mantra-body">Dieser Satz trägt 33 Jahre Haltung.</div>
   </div>
@@ -2443,7 +2462,7 @@ function tabnavScrollBy(direction) {
     </div>
 
     <div style="display:flex;gap:8px;">
-      <button style="flex:1;padding:13px;background:none;border:1.5px solid #e0d8cb;border-radius:12px;font-family:var(--f);font-size:14px;font-weight:500;color:var(--soft);cursor:pointer;" onclick="msReset()">↩ Anderes</button>
+      <button style="flex:1;padding:13px;background:none;border:1.5px solid var(--line);border-radius:12px;font-family:var(--f);font-size:14px;font-weight:500;color:var(--soft);cursor:pointer;" onclick="msReset()">↩ Anderes</button>
       <button class="btn-gold" style="flex:1;" onclick="msSave()">⬇ Story speichern</button>
     </div>
     <div id="ms-frame-row" style="display:none;margin-top:-4px;">

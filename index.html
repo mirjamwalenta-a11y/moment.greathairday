@@ -1708,8 +1708,13 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
   <button class="btn-main" id="btn-post" onclick="generatePost()" disabled>Post erstellen</button>
+  <div id="post-nicht-erreichbar" style="display:none;margin-top:16px;background:var(--gold-pale);border-radius:12px;padding:14px 16px;text-align:center;">
+    <div style="font-weight:600;margin-bottom:6px;">Wörni ist gerade nicht erreichbar</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:12px;">Dein Text ist nicht verloren. Versuch es gleich nochmal.</div>
+    <button class="btn-main" onclick="generatePost()">↺ Nochmal versuchen</button>
+    <details style="margin-top:10px;font-size:11px;color:var(--soft);text-align:left;"><summary>Technischer Hinweis</summary><div id="post-nicht-erreichbar-technik" style="word-break:break-word;margin-top:4px;"></div></details>
+  </div>
   <div id="post-result" style="display:none;margin-top:16px;">
-    <div id="post-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
     <div class="output-wrap">
       <div class="output-header">
         <span class="output-label">Textvorschlag <span id="post-ki-badge"></span></span>
@@ -1755,6 +1760,20 @@ function tabnavScrollBy(direction) {
         📋 Caption kopieren
       </button>
       <button class="btn-edit" onclick="document.getElementById('post-text-main').focus()">✏️ Bearbeiten</button>
+    </div>
+    <div id="post-nachbessern" class="input-wrap" style="margin-top:14px;">
+      <div class="input-label">Noch nicht ganz? Wörni bessert nach</div>
+      <div class="chip-row">
+        <button class="chip-select" onclick="postNachbessern('kuerzer')">Kürzer</button>
+        <button class="chip-select" onclick="postNachbessern('lockerer')">Lockerer</button>
+        <button class="chip-select" onclick="postNachbessern('persoenlicher')">Persönlicher</button>
+        <button class="chip-select" onclick="postNachbessern('emoji')">Mit Emoji</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input type="text" id="post-wunsch" class="login-input" placeholder="Eigener Wunsch, z. B. „ohne Frage am Schluss“" style="max-width:100%;text-align:left;flex:1;" onkeydown="if(event.key==='Enter')postNachbessern()">
+        <button class="chip-select" onclick="postNachbessern()">Ändern</button>
+      </div>
+      <div id="post-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
     </div>
     <button class="btn-zu-rahmen" onclick="postZuRahmen()">🖼️ Text in Spruch-Vorlage übernehmen</button>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
@@ -1866,9 +1885,14 @@ function tabnavScrollBy(direction) {
     </div>
   </div>
   <button class="btn-main" id="btn-story" onclick="generateStory()" disabled>Story erstellen</button>
+  <div id="story-nicht-erreichbar" style="display:none;margin-top:16px;background:var(--gold-pale);border-radius:12px;padding:14px 16px;text-align:center;">
+    <div style="font-weight:600;margin-bottom:6px;">Wörni ist gerade nicht erreichbar</div>
+    <div style="font-size:13px;color:var(--mid);margin-bottom:12px;">Dein Text ist nicht verloren. Versuch es gleich nochmal.</div>
+    <button class="btn-main" onclick="generateStory()">↺ Nochmal versuchen</button>
+    <details style="margin-top:10px;font-size:11px;color:var(--soft);text-align:left;"><summary>Technischer Hinweis</summary><div id="story-nicht-erreichbar-technik" style="word-break:break-word;margin-top:4px;"></div></details>
+  </div>
   <div id="story-result" style="display:none;margin-top:16px;">
     <p style="font-size:11px;font-weight:700;color:var(--soft);text-transform:uppercase;letter-spacing:.4px;margin-bottom:8px;">Deine Story-Frames <span id="story-ki-badge"></span></p>
-    <div id="story-fehler-hinweis" style="display:none;font-size:11px;color:var(--soft);word-break:break-word;margin-bottom:10px;background:var(--gold-pale);border-radius:8px;padding:8px 10px;"></div>
     <div class="story-list" id="story-list"></div>
     <button class="btn-ghost-sm" onclick="generateStory()">↺ Neue Variante</button>
     <div class="cta-row abschluss-row" style="margin-top:10px;">
@@ -3377,33 +3401,6 @@ function postCheck() {
   document.getElementById('btn-post').disabled = document.getElementById('post-moment').value.trim().length < 5;
 }
 
-const POST_T = {
-  nahbar: {
-    kundinnen: m => ({ hook:`„${m.slice(0,65)}"`, body:`${m}\n\nGenau das ist es, was mich nach 33 Jahren noch genauso spüre wie am ersten Tag.\n\nEs geht nicht um Haare. Es geht darum, dass du herausgehst und dich in deiner Haut wohlfühlst.\n\n#GreatHairDay #Wien #Friseur`, cta:'📍 Rechte Wienzeile 47, 1050 Wien · Termin: Link in Bio', bild:'Ein echter Moment aus dem Salon — keine gestellte Aufnahme.' }),
-    neu: m => ({ hook:'Was passiert, wenn du zum ersten Mal zu uns kommst?', body:`${m}\n\nBei uns musst du dich nicht erklären.\n\nWir hören zu. Wir beraten ehrlich. Und wir sagen auch mal, wenn etwas nicht zu dir passt.\n\n#GreatHairDay #Wien`, cta:'Erster Termin? Einfach schreiben oder den Link in der Bio nutzen.', bild:'Einladendes Bild vom Salon — warm, echte Atmosphäre.' }),
-    lehrlinge: m => ({ hook:'Was bedeutet Ausbildung wirklich?', body:`${m}\n\nBei uns lernt man nicht nur Frisieren. Man lernt, wie man mit Menschen umgeht.\n\nAusbildungsplatz noch frei.\n\n#Ausbildung #Lehrling #Wien`, cta:'Interesse? Schreib uns direkt.', bild:'Lernmoment im Salon — beim Arbeiten, nicht beim Posieren.' }),
-    branche: m => ({ hook:'Was ich nach 33 Jahren über unseren Beruf gelernt habe.', body:`${m}\n\nDie Lehrlingszahlen in Österreich sind von 2.500 auf 500 gesunken. In sechs Jahren.\n\n#Friseurbranche #Ausbildung`, cta:'Was denkst du? Ich bin gespannt.', bild:'Meisterin bei der Arbeit.' }),
-  },
-  stolz: {
-    kundinnen: m => ({ hook:'Müssen wir kurz über etwas reden, das uns heute wirklich gefreut hat.', body:`${m}\n\nSolche Momente passieren nicht zufällig.\n\n#GreatHairDay #Wien`, cta:'Rechte Wienzeile 47, 1050 Wien.', bild:'Das Ergebnis — würdevoll, kein Überfilter.' }),
-    neu: m => ({ hook:'Heute haben wir etwas fertiggestellt, worauf wir wirklich stolz sind.', body:`${m}\n\nSo sieht Qualität aus, wenn man sich Zeit nimmt.\n\n#GreatHairDay #Wien`, cta:'Termin? 01 5863130.', bild:'Das Ergebnis im besten Licht.' }),
-    lehrlinge: m => ({ hook:'Heute sind wir stolz. Sehr.', body:`${m}\n\nGute Ausbildung bedeutet: Vertrauen geben, bevor jemand fertig ist.\n\n#Ausbildung #Lehrling`, cta:'Ausbildungsplatz frei.', bild:'Lehrling und Inhaberin — echter Moment.' }),
-    branche: m => ({ hook:'Was unsere Branche braucht, ist nicht mehr Werbung.', body:`${m}\n\nEchte Arbeit. Echte Ausbildung. Echte Führung.\n\n#Friseurbranche`, cta:'Was denkst du?', bild:'Arbeitsszene, stimmungsvoll.' }),
-  },
-  nachdenklich: {
-    kundinnen: m => ({ hook:'Manchmal merkt man erst im Rückblick, was ein Moment bedeutet hat.', body:`${m}\n\nDas ist der Grund, warum ich seit 33 Jahren hier bin.\n\n#GreatHairDay #Wien`, cta:'Wenn du das kennst — komm gerne vorbei.', bild:'Ruhige, stimmungsvolle Aufnahme.' }),
-    neu: m => ({ hook:'Was machst du eigentlich, wenn du einen schlechten Haarschnitt bekommst?', body:`${m}\n\nWir finden heraus, was wirklich zu dir passt — ohne Kompromisse.\n\n#GreatHairDay #Wien`, cta:'Erstes Gespräch? Einfach melden.', bild:'Beratungsszene — warm und ehrlich.' }),
-    lehrlinge: m => ({ hook:'Was war mein erster Moment als Lehrling, den ich nie vergessen werde?', body:`${m}\n\nDieser Moment hat mich gelehrt, wofür dieses Handwerk wirklich steht.\n\n#Ausbildung`, cta:'Interesse? Schreib uns.', bild:'Nachdenklicher Moment im Salon.' }),
-    branche: m => ({ hook:'Was verlieren wir, wenn wir das Handwerk vergessen?', body:`${m}\n\nDas ist die Frage, die mich gerade beschäftigt.\n\n#Friseurbranche`, cta:'Was denkst du dazu?', bild:'Stimmungsvoll, keine Werbung.' }),
-  },
-  direkt: {
-    kundinnen: m => ({ hook:'Kurz und klar:', body:`${m}\n\nRechte Wienzeile 47, 1050 Wien.\nTermin: 01 5863130.`, cta:'Termin jetzt vereinbaren.', bild:'Klares, sauberes Bild vom Salon oder Ergebnis.' }),
-    neu: m => ({ hook:'Was wir dir sagen können:', body:`${m}\n\nKeine Überraschungen. Keine Kompromisse. Nur gute Arbeit.\n\nRechte Wienzeile 47, 1050 Wien.`, cta:'01 5863130 — wir sind erreichbar.', bild:'Klares Salon-Bild.' }),
-    lehrlinge: m => ({ hook:'Wir suchen gerade eine:n Lehrling. Offen gesagt.', body:`${m}\n\nWer Lust hat, ernsthaft zu lernen — wir sind da.\n\n#Ausbildung #Wien`, cta:'Meld dich: 01 5863130.', bild:'Arbeitsszene — klar und echt.' }),
-    branche: m => ({ hook:'Ich sage, was ich denke.', body:`${m}\n\n#Friseurbranche`, cta:'Was ist deine Meinung?', bild:'Porträt oder Arbeitsszene.' }),
-  }
-};
-
 // Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
 // Kanal (Instagram oder Facebook). Wiederverwendet vom Einzel-Kanal-Flow
 // und vom "Alle Kanäle"-Flow (generatePostAlleKanaele).
@@ -3456,7 +3453,9 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
 5. Ruhig und klar: vollständige Sätze, keine Floskeln (wie "den man nicht oft genug würdigt"), ${emoji}.
 6. ${kurz}
-7. Vor der Ausgabe prüfen: Ist klar, wer spricht? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
+7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
+8. Stichworte sind normal: Die Eingabe besteht oft nur aus ein paar Stichworten. Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
+9. Vor der Ausgabe prüfen: Ist klar, wer spricht? Steht nur drin, was die Eingabe hergibt? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
 }
 
 // Entfernt Adresse/Telefon aus einem Text (gehört nie in den Fließtext).
@@ -3537,27 +3536,14 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
     }
   } catch(e) { postText = null; }
 
-  const istKi = !!postText;
-
-  // Fallback auf Template wenn KI nicht antwortet — fürs Haarnetzwerk
-  // NICHT die Salon-Vorlagen (die nennen Adresse/Kundinnen), sondern
-  // dieselben Extraktions-Helfer wie Story/Reel, statt den rohen Input
-  // ungefiltert als "fertigen" Post anzuzeigen.
-  if(!postText) {
-    if(kontext === 'haarnetzwerk') {
-      const hook = storyHookAusText(m);
-      const thema = storyThemaAusText(m);
-      const urlMatch = m.match(/https?:\/\/\S+/);
-      postText = `${hook}\n\n${thema}${urlMatch ? '\n\n' + urlMatch[0] : ''}`;
-    } else {
-      const fn = POST_T[ton]?.[wer] || POST_T.nahbar.kundinnen;
-      const r = fn(m);
-      postText = r.hook + '\n\n' + r.body;
-    }
-  }
+  // Antwortet Wörni nicht, gibt es KEINEN Ersatztext: eine Vorlage aus dem
+  // eingegebenen Text plus festen Sätzen ("seit 33 Jahren …") sah aus wie ein
+  // fertiger Post, passte aber fast nie. Der Aufrufer zeigt stattdessen
+  // "Wörni ist gerade nicht erreichbar" mit "Nochmal versuchen".
+  if(!postText) return { text: null, structured: null, istKi: false };
   postText = postAbschliessen(postText, mitAdresse, unterschriftFuer(kontext));
 
-  return { text: postText, structured: postStructured, istKi };
+  return { text: postText, structured: postStructured, istKi: true };
 }
 
 async function generatePost() {
@@ -3574,6 +3560,7 @@ async function generatePost() {
   const kontext = SEL.postkontext || 'salon';
 
   document.getElementById('post-result-multi').style.display = 'none';
+  document.getElementById('post-nicht-erreichbar').style.display = 'none';
   document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
   document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
 
@@ -3583,6 +3570,16 @@ async function generatePost() {
   btn.textContent = '✦ Wörni schreibt …';
 
   const { text: postText, structured: postStructured, istKi } = await buildKanalPost(kanal, m, ton, wer, kontext);
+
+  if(!postText) {
+    zeigeWoerniNichtErreichbar();
+    btn.disabled = false;
+    btn.textContent = 'Post erstellen';
+    return;
+  }
+  letzterPost = { kanal, ton, wer, kontext, mitAdresse: kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja' };
+  document.getElementById('post-wunsch').value = '';
+  document.getElementById('post-nachbessern-status').textContent = '';
 
   // Bildidee & CTA via KI oder Fallback
   const ctaMap = kontext === 'haarnetzwerk' ? {
@@ -3611,13 +3608,6 @@ async function generatePost() {
   document.getElementById('post-result').style.display = 'block';
   setKiBadge('post-ki-badge', istKi);
   updateCharCount('post-text-main', 'post-char');
-  const postFehlerHinweis = document.getElementById('post-fehler-hinweis');
-  if(!istKi && letzterKIFehler) {
-    postFehlerHinweis.textContent = 'Wörni war gerade nicht erreichbar, hier eine Vorlage aus deinem Text. Technischer Hinweis: ' + letzterKIFehler;
-    postFehlerHinweis.style.display = 'block';
-  } else {
-    postFehlerHinweis.style.display = 'none';
-  }
 
   // Structured Blocks befüllen (Overlay, Sticker, Hashtags)
   if(postStructured) {
@@ -3642,6 +3632,67 @@ async function generatePost() {
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
+// Wörni hat nicht geantwortet: klar sagen statt einen Ersatztext zu zeigen.
+// art: 'post' | 'story'
+function zeigeWoerniNichtErreichbar(art = 'post') {
+  (art === 'story' ? ['story-result'] : ['post-result', 'post-result-multi'])
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  const box = document.getElementById(art + '-nicht-erreichbar');
+  document.getElementById(art + '-nicht-erreichbar-technik').textContent = letzterKIFehler || 'keine Details';
+  box.style.display = 'block';
+  setTimeout(()=>box.scrollIntoView({behavior:'smooth',block:'center'}),50);
+}
+
+// ════════════════════════════════════════════
+// NACHBESSERN: Wörni überarbeitet den aktuellen Post nach einem Wunsch,
+// statt ihn komplett neu zu schreiben.
+// ════════════════════════════════════════════
+let letzterPost = null;
+const NACHBESSERN_WUENSCHE = {
+  kuerzer: 'Mach den Text deutlich kürzer (etwa die Hälfte). Die Kernaussage bleibt.',
+  lockerer: 'Schreib lockerer und umgangssprachlicher, weniger förmlich, aber weiterhin ohne Floskeln.',
+  persoenlicher: 'Mach den Text persönlicher und wärmer: mehr Ich-Perspektive, ein konkretes Gefühl aus dem Moment.',
+  emoji: 'Ergänze 2 bis 3 passende Emoji an sinnvollen Stellen.'
+};
+
+async function postNachbessern(art) {
+  const feld = document.getElementById('post-wunsch');
+  const wunsch = art ? NACHBESSERN_WUENSCHE[art] : feld.value.trim();
+  const status = document.getElementById('post-nachbessern-status');
+  const textEl = document.getElementById('post-text-main');
+  const aktuell = textEl.innerText.trim();
+  if(!wunsch || !aktuell || !letzterPost) return;
+
+  const { kanal, wer, kontext, mitAdresse } = letzterPost;
+  const kanalName = kanal === 'facebook' ? 'Facebook' : 'Instagram';
+  const knoepfe = document.querySelectorAll('#post-nachbessern button');
+  knoepfe.forEach(b => b.disabled = true);
+  status.textContent = '✦ Wörni bessert nach …';
+
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+
+${kontextTeil(kontext)}
+
+${postSchreibregeln(kontext, wer, mitAdresse)}
+
+Du bekommst einen fertigen ${kanalName}-Post und einen Änderungswunsch. Überarbeite den Post genau nach diesem Wunsch und lass alles andere möglichst so, wie es ist. Widerspricht der Wunsch einer Schreibregel (z. B. Länge oder Emoji), hat der Wunsch Vorrang; Adresse und Unterschrift bleiben wie in den Regeln. Antworte NUR mit dem überarbeiteten Post-Text, ohne Erklärung, ohne Anführungszeichen, ohne Markdown.`;
+  const userText = `Bisheriger Post:\n${aktuell}\n\nÄnderungswunsch: ${wunsch}`;
+
+  let neu = null;
+  try { neu = await claudeAnfrage(system, userText, 700); } catch(e) { neu = null; }
+
+  knoepfe.forEach(b => b.disabled = false);
+  if(!neu || !neu.trim()) {
+    status.textContent = 'Wörni ist gerade nicht erreichbar. Bitte nochmal versuchen.';
+    return;
+  }
+  textEl.textContent = postAbschliessen(neu.trim(), mitAdresse, unterschriftFuer(kontext));
+  updateCharCount('post-text-main', 'post-char');
+  setKiBadge('post-ki-badge', true);
+  if(!art) feld.value = '';
+  status.textContent = '✓ Überarbeitet. Gefällt es noch nicht? Einfach nochmal.';
+}
+
 // "Alle Kanäle": ein Moment → Instagram-, Facebook- und Google-Vorschlag
 // gleichzeitig, parallel abgefragt statt kanalweise nacheinander zu klicken.
 async function generatePostAlleKanaele(m) {
@@ -3654,6 +3705,7 @@ async function generatePostAlleKanaele(m) {
   const mitGoogle = kontext === 'salon';
 
   document.getElementById('post-result').style.display = 'none';
+  document.getElementById('post-nicht-erreichbar').style.display = 'none';
   document.getElementById('multi-google-block').style.display = mitGoogle ? 'block' : 'none';
   const btn = document.getElementById('btn-post');
   btn.disabled = true;
@@ -3665,13 +3717,20 @@ async function generatePostAlleKanaele(m) {
     mitGoogle ? buildGooglePost(m, 'neuigkeit') : Promise.resolve(null)
   ]);
 
-  document.getElementById('multi-ig-text').textContent = ig.text;
+  if(!ig.text && !fb.text) {
+    zeigeWoerniNichtErreichbar();
+    btn.disabled = false;
+    btn.textContent = 'Post erstellen';
+    return;
+  }
+  const fehltText = 'Wörni war für diesen Kanal gerade nicht erreichbar. Tipp unten auf „Neue Varianten“.';
+  document.getElementById('multi-ig-text').textContent = ig.text || fehltText;
   document.getElementById('multi-ig-hashtags').textContent = ig.structured?.hashtags || '—';
-  setKiBadge('multi-ig-badge', ig.istKi);
+  document.getElementById('multi-ig-badge').innerHTML = ig.text ? '<span class="ki-badge ai">✦ Wörni</span>' : '';
 
-  document.getElementById('multi-fb-text').textContent = fb.text;
+  document.getElementById('multi-fb-text').textContent = fb.text || fehltText;
   document.getElementById('multi-fb-hashtags').textContent = fb.structured?.hashtags || '—';
-  setKiBadge('multi-fb-badge', fb.istKi);
+  document.getElementById('multi-fb-badge').innerHTML = fb.text ? '<span class="ki-badge ai">✦ Wörni</span>' : '';
 
   if(mitGoogle && google) {
     document.getElementById('multi-google-text').textContent = google.text;
@@ -4114,38 +4173,6 @@ function storyThemaAusText(m) {
   return thema || 'Ein Moment, der zeigt, wer wir sind.';
 }
 
-const STORY_T = {
-  emotional: {
-    vertrauen: m => [
-      {label:'Einstieg', text: storyHookAusText(m), tip:'Großes Foto, Text groß darüber — kein Filter.'},
-      {label:'Der Moment darunter', text:`Solche Momente passieren nicht zufällig.\nSie entstehen, wenn man seinen Job wirklich liebt.`, tip:'Kein Gesicht nötig — Stimmung reicht.'},
-      {label:'Was das bedeutet', text:`Das ist der Grund, warum wir hier sind.\nNach 33 Jahren immer noch.`, tip:'Text auf hellem Hintergrund — ruhig und klar.'},
-      {label:'Einladung', text:`Wenn du so etwas auch erleben möchtest: Ich freue mich auf dich.`, tip:'Standort-Sticker setzen — klarer CTA.'},
-      {label:'Abschluss', text:`A great hair day.\n→ Link in Bio für Termin`, tip:'Slide mit Logo oder Salon-Bild.'},
-    ],
-    reichweite: m => [
-      {label:'Hook', text: storyHookAusText(m), tip:'Neugier wecken — kein Spoiler.'},
-      {label:'Der Moment', text: storyThemaAusText(m), tip:'Foto dazu, wenn möglich.'},
-      {label:'Warum es mich bewegt', text:`Genau deshalb mache ich diesen Job seit über 30 Jahren.`, tip:'Persönlich und echt.'},
-      {label:'Was ihr tun könnt', text:`Teilt das, wenn ihr das kennt.\nOder schreibt mir — ich bin neugierig auf eure Geschichten.`, tip:'Engagement fördern.'},
-      {label:'Abschluss', text:`A great hair day.`, tip:'Ruhiger Abschluss.'},
-    ],
-    termin: m => [
-      {label:'Einstieg', text: storyHookAusText(m), tip:'Bild des Ergebnisses oder Moments.'},
-      {label:'Was steckt dahinter', text:`So sieht Qualität aus, wenn man sich wirklich Zeit nimmt.`, tip:'Text auf ruhigem Hintergrund.'},
-      {label:'Für wen das ist', text:`Für alle, die wissen, dass gutes Haar kein Zufall ist.`, tip:'Identifikation ermöglichen.'},
-      {label:'Einladung', text:`Wenn du das möchtest: Diese Woche sind noch Termine frei.`, tip:'Link-Sticker zur Online-Terminbuchung — konkreter CTA.'},
-      {label:'Abschluss', text:`A great hair day — für dich.`, tip:'Persönlicher Abschluss.'},
-    ],
-    lehrling: m => [
-      {label:'Einstieg', text:`Was macht eine gute Ausbildung aus?`, tip:'Frage als Einstieg.'},
-      {label:'Was wir glauben', text: storyThemaAusText(m) || 'Lernen passiert nicht im Lehrbuch. Sondern im echten Moment.', tip:'Authentisch und direkt.'},
-      {label:'Was das bedeutet', text:`Das ist nicht selbstverständlich. Aber es ist unser Anspruch.`, tip:'Haltung zeigen.'},
-      {label:'Für wen das ist', text:`Wenn du nach der Schule nicht weißt, wo du hingehörst — vielleicht passt du zu uns.`, tip:'Direkte Ansprache.'},
-      {label:'Abschluss', text:`Schreib mir einfach eine Nachricht.`, tip:'Niedrigschwelliger CTA.'},
-    ],
-  }
-};
 async function generateStory() {
   const m = document.getElementById('story-moment').value.trim();
   if(m.length < 5) return;
@@ -4160,6 +4187,7 @@ async function generateStory() {
   const btn = document.getElementById('btn-story');
   btn.disabled = true;
   btn.textContent = '✦ Wörni schreibt …';
+  document.getElementById('story-nicht-erreichbar').style.display = 'none';
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
@@ -4205,27 +4233,13 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
     }
   } catch(e) { frames = null; }
 
-  // Fallback auf Template — fürs Haarnetzwerk ein eigener Fallback statt
-  // der Salon-Vorlagen (die nennen Adresse/Kundinnen, passt hier nicht).
-  // Nutzt dieselben Extraktions-Helfer wie der Salon-Fallback, damit der
-  // rohe Input nicht 1:1 als "fertiger" Frame-Text landet.
-  let kiHatGeantwortet = !!frames;
+  // Antwortet Wörni nicht, gibt es KEINE Ersatz-Story aus festen Sätzen
+  // ("Nach 33 Jahren immer noch" …): stattdessen klarer Hinweis + Nochmal.
   if(!frames || !Array.isArray(frames) || frames.length < 2) {
-    kiHatGeantwortet = false;
-    if(kontext === 'haarnetzwerk') {
-      const hook = storyHookAusText(m);
-      const thema = storyThemaAusText(m);
-      const urlMatch = m.match(/https?:\/\/\S+/);
-      frames = [
-        { label:'Einstieg', text: hook, tip:'Ein Bild vom Event/Anlass.', overlay:'', sticker:'' },
-        { label:'Der Anlass', text: thema, tip:'Situation zeigen statt erklären.', overlay:'', sticker:'' },
-        { label:'Einladung', text: urlMatch ? `Mehr dazu und Anmeldung:\n${urlMatch[0]}` : 'Mehr dazu beim Haarnetzwerk.', tip:'Klarer Hinweis, wo man sich informieren kann.', overlay:'', sticker:'' },
-        { label:'Abschluss', text:'Wir freuen uns auf euch.', tip:'Ruhiger Abschluss.', overlay:'', sticker:'' }
-      ];
-    } else {
-      const getFn = STORY_T[mood]?.[ziel] || STORY_T.emotional.vertrauen;
-      frames = getFn(m);
-    }
+    zeigeWoerniNichtErreichbar('story');
+    btn.disabled = false;
+    btn.textContent = 'Story erstellen';
+    return;
   }
   // Schreibregeln absichern: keine Adresse im Frame-Text, letzter Frame endet mit der Unterschrift
   frames = frames.map(f => ({ ...f, text: ohneAdresse(f.text).trim() }));
@@ -4253,14 +4267,7 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
       </div>
     </div>`;
   }).join('');
-  setKiBadge('story-ki-badge', kiHatGeantwortet);
-  const fehlerHinweis = document.getElementById('story-fehler-hinweis');
-  if(!kiHatGeantwortet && letzterKIFehler) {
-    fehlerHinweis.textContent = 'Wörni war gerade nicht erreichbar, hier eine Vorlage aus deinem Text. Technischer Hinweis: ' + letzterKIFehler;
-    fehlerHinweis.style.display = 'block';
-  } else {
-    fehlerHinweis.style.display = 'none';
-  }
+  setKiBadge('story-ki-badge', true);
   document.getElementById('story-result').style.display = 'block';
 
   btn.disabled = false;

@@ -3866,7 +3866,8 @@ Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
   }
   try { localStorage.setItem('ghd_karussell_neu', JSON.stringify(ergebnis)); }
   catch(e) { status.textContent = 'Das Karussell konnte im Browser nicht zwischengespeichert werden (privater Modus?).'; return; }
-  location.href = 'sprueche.html?karussell=1';
+  // Zeitstempel in der Adresse: der Browser lädt sprueche.html dann sicher frisch statt aus dem Zwischenspeicher
+  location.href = 'sprueche.html?karussell=1&t=' + Date.now();
 }
 
 // ════════════════════════════════════════════

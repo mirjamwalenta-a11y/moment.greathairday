@@ -2030,9 +2030,10 @@ document.getElementById('btn-print').onclick = () => {
 // Neues Karussell liegt einmalig unter ghd_karussell_neu; danach bleibt es (mit Änderungen) als aktuelle Serie gespeichert.
 function karussellStarten() {
   document.getElementById('reeltext-section').style.display = 'none';
-  document.getElementById('intro').textContent = 'Dein Karussell von Wörni. „Karussell öffnen“ zeigt alle Folien zum Bearbeiten und Speichern.';
+  document.getElementById('intro').textContent = 'Dein Karussell von Wörni. „Folien öffnen“ zeigt alle Folien zum Bearbeiten und Speichern.';
   const knopf = document.getElementById('btn-reel');
-  knopf.textContent = 'Karussell öffnen';
+  knopf.textContent = '🎠 Folien öffnen';
+  knopf.className = 'btn btn-main';
   let neu = null;
   try { neu = JSON.parse(localStorage.getItem('ghd_karussell_neu')); localStorage.removeItem('ghd_karussell_neu'); } catch (e) { neu = null; }
   if (neu && Array.isArray(neu.folien) && neu.folien.length) {
@@ -2059,10 +2060,24 @@ function karussellStarten() {
   document.getElementById('f-b').value = erste.b;
   document.getElementById('f-c').value = erste.c;
   draw();
-  knopf.onclick = () => zeigeSerie(aktuelleSerie);
+  knopf.onclick = () => karussellOeffnen();
   karussellAutoOeffnen = true;   // öffnet unten, sobald die Schriften geladen sind
+  // Laden die Schriften am Handy sehr langsam, nicht ewig warten: nach 2 Sekunden trotzdem öffnen
+  setTimeout(karussellOeffnen, 2000);
 }
-var karussellAutoOeffnen = false;
+var karussellAutoOeffnen = false, karussellOffen = false;
+function karussellOeffnen() {
+  if (!karussellAutoOeffnen || !aktuelleSerie) return;
+  // Nur einmal automatisch öffnen; der Knopf öffnet danach jederzeit wieder
+  if (karussellOffen && !document.querySelector('[role="dialog"]')) karussellOffen = false;
+  if (karussellOffen) return;
+  karussellOffen = true;
+  try { zeigeSerie(aktuelleSerie); }
+  catch (e) {
+    karussellOffen = false;
+    document.getElementById('intro').textContent = 'Die Folien konnten nicht geöffnet werden: ' + (e && e.message || e) + ' — bitte „Folien öffnen“ tippen.';
+  }
+}
 
 // Erst zeichnen, wenn die Schriften geladen sind — sonst landet eine Ersatzschrift im Bild
 if (AKTION) {
@@ -2100,7 +2115,7 @@ Promise.all([
   document.fonts.load('italic 500 64px "Playfair Display"'),
   document.fonts.load('400 38px Inter'),
   document.fonts.load('500 34px Inter')
-]).then(draw, draw).then(() => { if (karussellAutoOeffnen) zeigeSerie(aktuelleSerie); });
+]).then(draw, draw).then(karussellOeffnen);
 </script>
 </body>
 </html>

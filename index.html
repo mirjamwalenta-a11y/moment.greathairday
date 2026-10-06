@@ -270,6 +270,32 @@
   .goal-card-secondary .sec-desc { font-size: 13px; color: var(--mid); margin-top: 3px; }
   .goal-card-secondary .sec-arrow { color: var(--soft); flex-shrink: 0; }
 
+  /* Startseite: Text schreiben oben, 4 Kacheln, Rest kompakt */
+  .start-schreiben {
+    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
+    padding: 16px; margin: 14px 0 14px; box-shadow: var(--shadow);
+  }
+  .start-schreiben-label { font-size: 15px; font-weight: 700; margin-bottom: 4px; }
+  .start-schreiben-hint { font-size: 12px; color: var(--soft); margin-bottom: 10px; }
+  .start-schreiben textarea { min-height: 72px; }
+  .start-schreiben-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px; }
+  .start-schreiben-btns .btn-main { margin: 0; padding: 13px 8px; font-size: 14px; }
+  .start-btn-alt { background: var(--gold-pale) !important; color: var(--black) !important; }
+  .start-foto { display: block; margin: 10px auto 0; background: none; border: none; font: 500 13px var(--f); color: var(--gold); cursor: pointer; text-decoration: underline; }
+  .start-schreiben-fehler { font-size: 12px; color: #a0522d; margin-top: 8px; display: none; }
+  .start-kacheln { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 18px; }
+  .start-kachel {
+    background: var(--white); border: 1.5px solid #e0d8cb; border-radius: var(--radius);
+    padding: 14px 12px; text-align: left; cursor: pointer; font-family: var(--f); color: var(--black);
+    display: flex; flex-direction: column; gap: 4px; transition: border-color .15s, transform .15s;
+  }
+  .start-kachel:active { transform: scale(0.98); border-color: var(--gold); }
+  .start-kachel-icon { font-size: 22px; line-height: 1; }
+  .start-kachel-titel { font-size: 15px; font-weight: 700; line-height: 1.25; }
+  .start-kachel-desc { font-size: 12px; color: var(--mid); line-height: 1.35; }
+  .start-mehr { text-align: center; font-size: 13px; color: var(--soft); line-height: 2; margin-top: 18px; }
+  .start-mehr button { background: none; border: none; font: 500 13px var(--f); color: var(--mid); cursor: pointer; text-decoration: underline; padding: 0 2px; }
+
   /* ── RECRUITING/NEUKUNDEN SCREENS ── */
   .screen-eyebrow {
     font-size: 11px; font-weight: 600; letter-spacing: 0.10em;
@@ -1179,7 +1205,50 @@ function tabnavScrollBy(direction) {
 <section class="screen active" id="screen-start">
   <!-- HEUTE-FÜHRUNG (V1): eine ruhige Frage, genau eine Empfehlung, Check-in nur als leise Korrektur -->
   <p class="start-eyebrow" id="heute-datum">Heute</p>
-  <h1 class="start-headline">Was ist heute die sinnvollste Sichtbarkeitschance für den Salon?</h1>
+  <h1 class="start-headline">Was posten wir heute?</h1>
+
+  <!-- 1. Text schreiben lassen: ein Feld, Stichworte reichen -->
+  <div class="start-schreiben">
+    <div class="start-schreiben-label">✍️ Was willst du posten?</div>
+    <div class="start-schreiben-hint">Stichworte reichen, Wörni schreibt den Text.</div>
+    <div class="input-with-mic">
+      <textarea id="start-moment" rows="3" placeholder="z. B. Kundin, 2 Jahre Wunsch-Blond, heute endlich, sie hat geweint vor Freude"></textarea>
+      <button class="btn-mic" id="mic-start" onclick="toggleMic('start-moment','mic-start')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+    <div class="start-schreiben-btns">
+      <button class="btn-main" onclick="startSchreiben('post')">Post schreiben</button>
+      <button class="btn-main start-btn-alt" onclick="startSchreiben('story')">Story schreiben</button>
+    </div>
+    <div class="start-schreiben-fehler" id="start-schreiben-fehler">Schreib zuerst ein paar Stichworte.</div>
+    <button class="start-foto" onclick="startMitFoto()">📸 Mit Foto starten</button>
+  </div>
+
+  <!-- 2. Die meistgenutzten Werkzeuge -->
+  <div class="start-kacheln">
+    <button class="start-kachel" onclick="location.href='sprueche.html'">
+      <span class="start-kachel-icon">🖼</span>
+      <span class="start-kachel-titel">Spruch als Bild</span>
+      <span class="start-kachel-desc">Für Post oder Story</span>
+    </button>
+    <button class="start-kachel" onclick="location.href='sprueche.html?aktion=herbst'">
+      <span class="start-kachel-icon">📣</span>
+      <span class="start-kachel-titel">Aktion &amp; Aushang</span>
+      <span class="start-kachel-desc">Als Post oder A4 zum Drucken</span>
+    </button>
+    <button class="start-kachel" onclick="location.href='haarkompass-post.html'">
+      <span class="start-kachel-icon">🧭</span>
+      <span class="start-kachel-titel">Pflege-Tipp</span>
+      <span class="start-kachel-desc">HaarKompass, fertig mit Produkt</span>
+    </button>
+    <button class="start-kachel" onclick="showScreen('screen-zeigen')">
+      <span class="start-kachel-icon">👥</span>
+      <span class="start-kachel-titel">Mitarbeiter:innen</span>
+      <span class="start-kachel-desc">Team &amp; Lehrlinge gewinnen</span>
+    </button>
+  </div>
+
+  <!-- 3. Idee für heute (die bisherige Heute-Empfehlung) -->
+  <p class="start-eyebrow">Idee für heute</p>
   <div id="heute-start-wrap"></div>
   <div class="input-wrap">
     <div style="text-align:center;">
@@ -1188,102 +1257,13 @@ function tabnavScrollBy(direction) {
     <div class="chip-row" id="heute-checkin-row" style="display:none;"></div>
   </div>
 
-  <!-- Bisherige Wege bleiben unverändert erhalten, nur darunter -->
-  <p class="start-eyebrow">Weitere Wege</p>
-
-  <div class="goal-card-secondary" onclick="showScreen('screen-flow-anlass')">
-    <div class="sec-left">
-      <div class="sec-label">Geführt</div>
-      <div class="sec-title">Was soll ich heute posten?</div>
-      <div class="sec-desc">Anlass wählen, Ziel wählen — in Sekunden ein fertiger Vorschlag, der zu dir passt.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="showTab_direct('screen-post')">
-    <div class="sec-left">
-      <div class="sec-label">Schnellster Weg</div>
-      <div class="sec-title">Ich will heute sichtbar werden</div>
-      <div class="sec-desc">Ein echter Moment aus dem Salon — sofort ein Text zum Posten.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="showScreen('screen-zeigen')">
-    <div class="sec-left">
-      <div class="sec-label">Recruiting</div>
-      <div class="sec-title">Ich will Mitarbeiter:innen anziehen</div>
-      <div class="sec-desc">Zeig, wie es bei euch wirklich ist — und lass die richtigen Menschen von selbst auf dich zukommen.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="generateOutput('freier-termin')">
-    <div class="sec-left">
-      <div class="sec-label">Termine</div>
-      <div class="sec-title">Ich will einen freien Termin füllen</div>
-      <div class="sec-desc">Schnell raus, direkt buchbar.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="location.href='sprueche.html'">
-    <div class="sec-left">
-      <div class="sec-label">Spruch-Vorlagen</div>
-      <div class="sec-title">Ich will einen schönen Spruch posten</div>
-      <div class="sec-desc">Friseursprüche im Great-Hair-Day-Stil — als Bild für Post oder Story.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="location.href='haarkompass-post.html'">
-    <div class="sec-left">
-      <div class="sec-label">HaarKompass</div>
-      <div class="sec-title">Ich will einen Pflege- oder Styling-Tipp posten</div>
-      <div class="sec-desc">Problemfall oder Haartyp wählen — Spruch, passendes Produkt aus unserem Regal und fertiger Text.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="oeffneNachrichten()">
-    <div class="sec-left">
-      <div class="sec-label">Stammkund:innen</div>
-      <div class="sec-title">Ich will Kund:innen zurückholen</div>
-      <div class="sec-desc">Fertige Nachrichten für WhatsApp, SMS oder E-Mail — lange nicht gesehen, Farbe auffrischen, Geburtstag, Bewertung.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-  <div class="goal-card-secondary" onclick="location.href='sprueche.html?aktion=herbst'">
-    <div class="sec-left">
-      <div class="sec-label">Aktion &amp; Aushang</div>
-      <div class="sec-title">Ich will eine Aktion bewerben</div>
-      <div class="sec-desc">Herbst-, Winter-, Pflege-Aktion oder Gutschein — als A4-Aushang zum Drucken oder als Post.</div>
-    </div>
-    <div class="sec-arrow">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#aaa" stroke-width="2" width="20" height="20"><path d="M9 18l6-6-6-6"/></svg>
-    </div>
-  </div>
-
-
-  <div style="margin-top:10px; text-align:center;">
-    <button onclick="showTabNav()" style="background:none;border:none;font-size:13px;color:var(--soft);cursor:pointer;text-decoration:underline;font-family:var(--f);">
-      Werkbank öffnen: Hook · Post · Story · Reel · CTA · Ideen · Vorlagen · Recherche · Foto/Video · Planer →
-    </button>
+  <!-- 4. Alles andere bleibt erreichbar, aber kompakt -->
+  <div class="start-mehr">
+    Mehr:
+    <button onclick="oeffneNachrichten()">Kund:innen zurückholen</button> ·
+    <button onclick="generateOutput('freier-termin')">Termin füllen</button> ·
+    <button onclick="showScreen('screen-flow-anlass')">Geführt</button> ·
+    <button onclick="showTabNav()">Werkbank</button>
   </div>
 </section>
 
@@ -4296,6 +4276,24 @@ function oeffneGenerator(format, moment, kontext) {
   }, 150);
 }
 const FORMAT_NAME = { post:'Post', story:'Story', reel:'Reel', google:'Google' };
+
+// Startseite: Stichworte → Post- oder Story-Generator öffnen und gleich schreiben lassen
+function startSchreiben(format) {
+  const m = document.getElementById('start-moment').value.trim();
+  const fehler = document.getElementById('start-schreiben-fehler');
+  if (m.length < 5) { fehler.style.display = 'block'; document.getElementById('start-moment').focus(); return; }
+  fehler.style.display = 'none';
+  oeffneGenerator(format, m, 'salon');
+  setTimeout(() => format === 'story' ? generateStory() : generatePost(), 250);
+}
+
+// Startseite: mit Foto beginnen → Post-Generator mit Foto-Analyse (Stichworte werden mitgenommen)
+function startMitFoto() {
+  const m = document.getElementById('start-moment').value.trim();
+  showTab_direct('screen-post');
+  if (m) { const feld = document.getElementById('post-moment'); feld.value = m; feld.dispatchEvent(new Event('input')); }
+  document.getElementById('foto-analyse-input').click();
+}
 
 // Ideen mit festem Format: öffnen direkt den passenden Generator mit vorbereitetem Moment.
 // [eckige Klammern] ergänzt Mirjam selbst. Fotos/Personen nur mit Einverständnis.

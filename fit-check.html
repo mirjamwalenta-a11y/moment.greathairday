@@ -5,41 +5,43 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Fit-Check">
-<meta name="theme-color" content="#2E5D4B">
+<meta name="theme-color" content="#F5F0EA">
 <title>Fit-Check — A great hair day</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#F5F3EF;--surface:#fff;--ink:#1C1C1C;--sub:#6B6560;
-  --line:#E3E0D9;--accent:#2E5D4B;--gold:#816a3c;--gold-light:#f0e6d3;
+  /* Farben und Schriften wie sprueche.html; Akzent (Knöpfe, Auswahl) = Schwarz wie dort */
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--accent:#1C1B19;--gold:#8A7346;--gold-light:#EFE6D4;
+  --serif:'Playfair Display',Georgia,serif;
   --red:#a13a3a;--red-light:#f8ecec;
-  --chip:#ECEAE5;--f:'Poppins',system-ui,sans-serif;--r:14px;
+  --chip:#FCFAF5;--f:'Inter',system-ui,sans-serif;--r:14px;
 }
 *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
 body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
 .phone{width:100%;max-width:430px;background:var(--bg);display:flex;flex-direction:column;min-height:100vh;padding-bottom:60px;}
 
 .topbar{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
-.wordmark{font-size:16px;font-weight:700;color:var(--accent);}
+.wordmark{font-family:var(--serif);font-size:20px;font-weight:700;color:var(--ink);}
 .subtitle{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
 
 .tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:64px;z-index:19;}
 .tab{flex:1;padding:12px 4px;font-size:12.5px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;}
-.tab.active{color:var(--accent);border-bottom-color:var(--accent);}
+.tab.active{color:var(--ink);border-bottom-color:var(--gold);}
 
 .screen{display:none;flex-direction:column;padding:18px 18px 40px;gap:14px;}
 .screen.active{display:flex;}
 
 .card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
-.card-tag{font-size:10px;font-weight:700;letter-spacing:.6px;text-transform:uppercase;color:var(--accent);margin-bottom:5px;}
+.card-tag{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
 .card-title{font-size:15px;font-weight:700;color:var(--ink);line-height:1.3;}
 .card-sub{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;}
 
 .hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
 
 .input-wrap{display:flex;flex-direction:column;gap:6px;}
-.input-label{font-size:10px;font-weight:700;color:var(--sub);letter-spacing:.5px;text-transform:uppercase;}
+.input-label{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
 textarea,input[type=text],input[type=date],select{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:12px 14px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;line-height:1.5;}
 textarea:focus,input:focus,select:focus{border-color:var(--accent);}
 textarea{resize:none;min-height:70px;}
@@ -75,7 +77,7 @@ textarea{resize:none;min-height:70px;}
 
 .entscheidung-row{display:flex;gap:8px;}
 .entscheidung-btn{flex:1;padding:12px 6px;border-radius:12px;border:1.5px solid var(--line);background:var(--surface);font-family:var(--f);font-size:12.5px;font-weight:600;color:var(--sub);cursor:pointer;text-align:center;}
-.entscheidung-btn.on.ja{border-color:var(--accent);background:#EEF4F1;color:var(--accent);}
+.entscheidung-btn.on.ja{border-color:var(--accent);background:var(--gold-light);color:var(--accent);}
 .entscheidung-btn.on.vielleicht{border-color:var(--gold);background:var(--gold-light);color:var(--gold);}
 .entscheidung-btn.on.nein{border-color:var(--red);background:var(--red-light);color:var(--red);}
 
@@ -84,10 +86,12 @@ textarea{resize:none;min-height:70px;}
 .liste-name{font-size:14px;font-weight:700;color:var(--ink);}
 .liste-meta{font-size:11px;color:var(--sub);margin-top:2px;}
 .badge{font-size:10px;font-weight:700;padding:4px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;}
-.badge.ja{background:#EEF4F1;color:var(--accent);}
+.badge.ja{background:var(--gold-light);color:var(--accent);}
 .badge.vielleicht{background:var(--gold-light);color:var(--gold);}
 .badge.nein{background:var(--red-light);color:var(--red);}
 .badge.offen{background:var(--chip);color:var(--sub);}
+.chip{border:1px solid var(--line);}
+.chip.on{border-color:var(--ink);color:var(--bg);}
 </style>
 </head>
 <body>

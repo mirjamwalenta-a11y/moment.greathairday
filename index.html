@@ -140,6 +140,11 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-titel">Mitarbeiter:innen</span>
       <span class="start-kachel-desc">Team &amp; Lehrlinge gewinnen</span>
     </button>
+    <button class="start-kachel" style="grid-column:1 / -1;" onclick="karussellKachel()">
+      <span class="start-kachel-icon">🎠</span>
+      <span class="start-kachel-titel">Karussell</span>
+      <span class="start-kachel-desc">Ein Tipp in 5–7 Folien zum Durchwischen</span>
+    </button>
   </div>
 
   <!-- 3. Idee für heute (die bisherige Heute-Empfehlung) -->
@@ -541,6 +546,11 @@ function tabnavScrollBy(direction) {
     <div class="input-with-mic">
       <textarea id="post-moment" placeholder="z.B. Heute ist eine Balayage fertig geworden, auf die wir richtig stolz sind..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
       <button class="btn-mic" id="mic-post" onclick="toggleMic('post-moment','mic-post')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+    <!-- Nur über die Startseiten-Kachel „Karussell“ sichtbar -->
+    <div id="karussell-direkt" style="display:none;margin-top:10px;">
+      <button class="btn-main" id="btn-karussell-direkt" onclick="postZuKarussell(true)" disabled>🎠 Karussell erstellen (5–7 Folien)</button>
+      <div id="karussell-direkt-status" style="font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
     </div>
   </div>
   <div class="input-wrap">
@@ -2285,7 +2295,9 @@ function copyHook(btn, text) {
 // POST-GENERATOR
 // ════════════════════════════════════════════
 function postCheck() {
-  document.getElementById('btn-post').disabled = document.getElementById('post-moment').value.trim().length < 5;
+  const zuKurz = document.getElementById('post-moment').value.trim().length < 5;
+  document.getElementById('btn-post').disabled = zuKurz;
+  document.getElementById('btn-karussell-direkt').disabled = zuKurz;
 }
 
 // Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
@@ -3756,16 +3768,30 @@ function updateCharCount(textElId, counterElId) {
 // (localStorage) an sprueche.html, die sie im Salon-Design zeichnet.
 // ════════════════════════════════════════════
 const KARUSSELL_ARTEN = ['titel', 'punkt', 'merken', 'abschluss'];
-async function postZuKarussell() {
+// Startseiten-Kachel „Karussell“: Post-Tab öffnen, Knopf „Karussell erstellen“ direkt unter dem Themenfeld zeigen
+function karussellKachel() {
+  showTab_direct('screen-post');
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', /showTab\('post'\)/.test(t.getAttribute('onclick') || '')));
+  const feld = document.getElementById('post-moment');
+  if (!feld.value.trim()) feld.placeholder = 'Worum geht es? z. B. „3 Fehler beim Föhnen“ oder „Warum Blond gelb wird“';
+  document.getElementById('karussell-direkt').style.display = '';
+  document.getElementById('karussell-direkt-status').textContent = 'Thema eintippen — Wörni macht daraus die Folien. Tonalität und Kanal darunter brauchst du dafür nicht.';
+  postCheck();
+  setTimeout(() => feld.focus(), 150);
+}
+// direkt = true: aus dem Thema allein, ohne vorher einen Post zu schreiben
+async function postZuKarussell(direkt) {
   const m = document.getElementById('post-moment').value.trim();
   const el = document.getElementById('post-text-main');
-  const post = (el?.innerText || el?.textContent || '').trim();
+  const post = direkt ? '' : (el?.innerText || el?.textContent || '').trim();
   if(m.length < 5 && !post) return;
-  const kontext = letzterPost?.kontext || SEL.postkontext || 'salon';
-  const wer = letzterPost?.wer || SEL.postwer || 'kundinnen';
-  const mitAdresse = !!letzterPost?.mitAdresse;
-  const btn = document.getElementById('btn-karussell');
-  const status = document.getElementById('karussell-status');
+  const vorher = direkt ? null : letzterPost;
+  const kontext = vorher?.kontext || SEL.postkontext || 'salon';
+  const wer = vorher?.wer || SEL.postwer || 'kundinnen';
+  const mitAdresse = vorher ? !!vorher.mitAdresse : kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
+  const btn = document.getElementById(direkt ? 'btn-karussell-direkt' : 'btn-karussell');
+  const status = document.getElementById(direkt ? 'karussell-direkt-status' : 'karussell-status');
+  const knopfText = btn.textContent;
   btn.disabled = true;
   btn.textContent = '✦ Wörni baut das Karussell …';
   status.textContent = '';
@@ -3833,7 +3859,7 @@ Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
   }
 
   btn.disabled = false;
-  btn.textContent = '🎠 Als Karussell (5–7 Folien)';
+  btn.textContent = knopfText;
   if(!ergebnis) {
     status.textContent = 'Wörni ist gerade nicht erreichbar — bitte gleich nochmal versuchen.' + (letzterKIFehler ? ' (' + letzterKIFehler + ')' : '');
     return;

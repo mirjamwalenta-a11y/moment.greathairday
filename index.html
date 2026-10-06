@@ -564,6 +564,7 @@
     transition: background .15s;
   }
   .planer-chip:active { background: var(--gold-pale); }
+  .planer-gepostet { font-size: 11px; font-weight: 600; color: var(--gold); background: var(--gold-pale); border-radius: 6px; padding: 1px 6px; margin-left: 4px; white-space: nowrap; }
 
   /* ── CTA-GENERATOR ── */
   .cta-gen-variant {
@@ -4855,11 +4856,17 @@ function getWocheData() {
   } catch { return { data: {}, key: getKwKey() }; }
 }
 
-function getKwKey() {
-  const now = new Date();
-  const start = new Date(now.getFullYear(), 0, 1);
-  const kw = Math.ceil(((now - start) / 86400000 + start.getDay() + 1) / 7);
-  return now.getFullYear() + '-W' + String(kw).padStart(2,'0');
+// Kalenderwoche nach ISO 8601: Woche beginnt am Montag, KW 1 ist die Woche
+// mit dem ersten Donnerstag des Jahres (Jahr = das Jahr dieses Donnerstags).
+// Die frühere Formel ließ die Woche schon am Samstag umspringen und lag rund
+// um Silvester falsch (z. B. 1.1.2027 = KW 53 von 2026, nicht KW 1 von 2027).
+function getKwKey(datum = new Date()) {
+  const t = new Date(Date.UTC(datum.getFullYear(), datum.getMonth(), datum.getDate()));
+  t.setUTCDate(t.getUTCDate() - ((t.getUTCDay() + 6) % 7) + 3);   // Donnerstag dieser Woche
+  const jahr = t.getUTCFullYear();
+  const jan4 = new Date(Date.UTC(jahr, 0, 4));
+  const kw = 1 + Math.round(((t - jan4) / 86400000 - 3 + ((jan4.getUTCDay() + 6) % 7)) / 7);
+  return jahr + '-W' + String(kw).padStart(2,'0');
 }
 
 function getTodayIdx() {
@@ -4947,6 +4954,7 @@ function markHeuteGepostet() {
   data[key][getTodayIdx()] = true;
   localStorage.setItem(WOCHE_KEY, JSON.stringify(data));
   renderWoche();
+  if (document.getElementById('planer-week')?.innerHTML) initPlaner();
 }
 
 // ════════════════════════════════════════════
@@ -6296,6 +6304,9 @@ function initPlaner() {
   // Wir mappen auf unsere Reihenfolge Mo=0...So=6
   const heuteIdx = heute === 0 ? 6 : heute - 1;
   const now = new Date();
+  // Dieselben Wochenpunkte wie "Diese Woche" im Heute-Tab ("✓ Gepostet")
+  const { data: wocheData, key: wocheKey } = getWocheData();
+  const gepostet = wocheData[wocheKey] || {};
 
   document.getElementById('planer-week').innerHTML = currentPlanerTage().map((d, i) => {
     const istHeute = i === heuteIdx;
@@ -6311,12 +6322,13 @@ function initPlaner() {
         <div class="planer-day-num">${dayNum}</div>
       </div>
       <div class="planer-day-content">
-        <div class="planer-day-thema">${istHeute ? '☀️ ' : ''}${d.thema}</div>
+        <div class="planer-day-thema">${istHeute ? '☀️ ' : ''}${d.thema}${gepostet[i] ? ' <span class="planer-gepostet">✓ gepostet</span>' : ''}</div>
         <div class="planer-day-hint">${d.hint}</div>
         <div class="planer-day-chips">
           <button class="planer-chip" onclick="planerZuPost(${i})">✍ Post</button>
           <button class="planer-chip" onclick="planerZuStory(${i})">📱 Story</button>
           <button class="planer-chip" onclick="planerZuReel(${i})">🎬 Reel</button>
+          <button class="planer-chip" onclick="location.href='sprueche.html'">🖼 Spruch</button>
         </div>
       </div>
     </div>`;

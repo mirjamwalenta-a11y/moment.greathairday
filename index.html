@@ -661,9 +661,9 @@ function tabnavScrollBy(direction) {
       </div>
       <div id="post-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
     </div>
+    <button class="btn-main" id="btn-karussell" onclick="postZuKarussell()" style="margin:14px 0 6px;">🎠 Als Karussell (5–7 Folien)</button>
+    <div id="karussell-status" style="font-size:13px;color:var(--mid);margin:0 0 10px;text-align:center;"></div>
     <button class="btn-zu-rahmen" onclick="postZuRahmen()">🖼️ Text in Spruch-Vorlage übernehmen</button>
-    <button class="btn-zu-rahmen" id="btn-karussell" onclick="postZuKarussell()">🎠 Als Karussell (5–7 Folien)</button>
-    <div id="karussell-status" style="font-size:12px;color:var(--mid);margin:-4px 0 8px;text-align:center;"></div>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
     <div class="cta-row abschluss-row" style="margin-top:10px;">
       <button class="btn-copy" onclick="abschlussEntscheidung('post-result','gepostet',this)">✓ Gepostet</button>
@@ -3822,7 +3822,7 @@ FELDER JE FOLIE:
 - "a": Hauptzeile, groß und fett. Höchstens 6 Wörter.
 - "b": Fortsetzung in Gold, kursiv. Höchstens 6 Wörter. Darf leer sein.
 - "c": Kleiner Text darunter: 1 bis 2 kurze, vollständige Sätze, höchstens 140 Zeichen. Bei "titel" leer oder ein kurzer Satz.
-Kein Emoji, keine Hashtags und keine Ausrufezeichen auf den Folien. "Du"-Form. Erfinde keine Fakten; bleib bei dem, was zum Thema sicher stimmt.
+Kein Emoji, keine Hashtags und keine Ausrufezeichen auf den Folien. Für Zitate im Text nur „deutsche“ Anführungszeichen, nie gerade " (sonst ist das JSON kaputt). "Du"-Form. Erfinde keine Fakten; bleib bei dem, was zum Thema sicher stimmt.
 
 ${postSchreibregeln(kontext, wer, mitAdresse)}
 (Diese Schreibregeln gelten für "caption", nicht für die Folien.)
@@ -3834,12 +3834,23 @@ Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
 
   const userText = `Thema: ${m || '(siehe Post)'}${post ? `\n\nDazu geschriebener Post (als Material, nicht wörtlich übernehmen):\n${post}` : ''}`;
 
-  let ergebnis = null;
+  // Wörnis Antwort lesen: auch wenn vor oder nach dem JSON noch Text steht
+  const jsonLesen = raw => {
+    const clean = String(raw || '').replace(/```json|```/g, '').trim();
+    try { return JSON.parse(clean); } catch(e) {}
+    const von = clean.indexOf('{'), bis = clean.lastIndexOf('}');
+    if(von < 0 || bis <= von) throw new Error('kein JSON in der Antwort');
+    return JSON.parse(clean.slice(von, bis + 1));
+  };
+  let ergebnis = null, antwortKam = false;
+  // Bis zu zwei Versuche: eine unlesbare oder fehlende Antwort klappt beim zweiten Mal meist
+  for(let versuch = 0; versuch < 2 && !ergebnis; versuch++) {
+  if(versuch) { status.textContent = 'Wörni versucht es nochmal …'; await new Promise(r => setTimeout(r, 1500)); }
   try {
-    let raw = await claudeAnfrage(system, userText, 2500);
-    if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, userText, 2500); }
+    const raw = await claudeAnfrage(system, userText, 2500);
     if(raw) {
-      const obj = JSON.parse(raw.replace(/```json|```/g, '').trim());
+      antwortKam = true;
+      const obj = jsonLesen(raw);
       const text = v => typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '';
       let folien = (Array.isArray(obj.folien) ? obj.folien : [])
         .map(f => ({ art: KARUSSELL_ARTEN.includes(f?.art) ? f.art : 'punkt', a: text(f?.a), b: text(f?.b), c: text(f?.c) }))
@@ -3857,13 +3868,22 @@ Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
   } catch(e) {
     letzterKIFehler = 'Antwort konnte nicht gelesen werden: ' + (e?.message || e);
   }
+  }
 
   btn.disabled = false;
   btn.textContent = knopfText;
   if(!ergebnis) {
-    status.textContent = 'Wörni ist gerade nicht erreichbar — bitte gleich nochmal versuchen.' + (letzterKIFehler ? ' (' + letzterKIFehler + ')' : '');
+    // Deutlich zeigen, nicht nur als kleiner grauer Text
+    status.style.color = '#9B2C2C';
+    status.textContent = (antwortKam
+      ? 'Wörni hat geantwortet, aber daraus konnten keine Folien gebaut werden. Bitte nochmal auf den Karussell-Knopf tippen.'
+      : 'Wörni ist gerade nicht erreichbar — bitte gleich nochmal versuchen.')
+      + (letzterKIFehler ? ' (Technischer Hinweis: ' + letzterKIFehler + ')' : '');
+    status.scrollIntoView({ behavior: 'smooth', block: 'center' });
     return;
   }
+  status.style.color = '';
+  status.textContent = 'Folien fertig — sie öffnen sich gleich …';
   try { localStorage.setItem('ghd_karussell_neu', JSON.stringify(ergebnis)); }
   catch(e) { status.textContent = 'Das Karussell konnte im Browser nicht zwischengespeichert werden (privater Modus?).'; return; }
   // Zeitstempel in der Adresse: der Browser lädt sprueche.html dann sicher frisch statt aus dem Zwischenspeicher

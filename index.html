@@ -1425,6 +1425,15 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
 - Training & Gesundheit (Bewegung, Ernährung, Mental Coaching)
 - Branchenvernetzung (Haarnetzwerk-Events, Veranstaltungen, Kolleg:innen)`,
     hinweis: `Dieser Text ist für Mirjams eigenen Salon "A Great Hair Day".`,
+    // Was Wörni über Leistungen weiß. Nur hier ergänzen, nichts raten lassen:
+    // ohne diesen Block hat Wörni Alpha Cooling als "Kopfhautbehandlung bei
+    // der Haarwäsche" erfunden.
+    leistungen: `Leistungen des Salons (nur so beschreiben, wie es hier steht):
+- Alpha Cooling® (Schreibweise: "Alpha Cooling"): eine Kälteanwendung für das Wohlbefinden. So läuft sie ab: Man legt die Handflächen auf gekühlte Flächen (etwa 4 bis 5 °C, also im angenehmen Plusbereich), dazu kommt ein sanfter Unterdruck. Nur die Handflächen werden gekühlt, die Kühle verteilt sich über das Blut im Körper. Dauer etwa 2 Minuten. Ohne Ausziehen, ohne Frieren, ohne Nässe, und ohne das brennende, pochende Gefühl wie nach einem Schneeball in der Hand. Die Idee kennt man vom Eisbad oder der Kältekammer, nur angenehmer und unkompliziert. Viele empfinden es als erfrischend, zum Beispiel im Mittagstief oder nach dem Sport. Einzeln buchbar oder im Anschluss an den Friseurtermin. Es ist KEINE Kopfhaut- oder Haarbehandlung und kein Teil der Haarwäsche.
+
+Regeln zu Leistungen:
+- Beschreibe eine Leistung nur mit dem, was hier oder in der Eingabe steht. Erfinde nichts zu Ablauf, Körperteil, Dauer, Preis oder "seit wann".
+- Keine Gesundheits- oder Wirkversprechen, auch wenn sie in der Eingabe stehen: nichts über Gesundheit, Heilung, Selbstheilungskräfte, Regeneration, Leistungssteigerung, Stressabbau als Wirkung, Zellalter, Verjüngung, Anti-Aging, Enzyme, Endorphine, Entzündungen, Schmerzlinderung, Belastbarkeit, Körperkerntemperatur, Blutgefäße, Immunsystem, Durchblutung, Schmerzen oder Kopfhaut. Erlaubt sind Erleben und Gefühl: Wohlbefinden, Frische, Erfrischung, kurze Pause, Auszeit, "viele empfinden es als …".`,
     kontakt: `Kontakt/Ort, wenn passend: Rechte Wienzeile 47, 1050 Wien, Telefon 01 5863130.`,
     reichweite: `Reichweite (Instagram/Facebook):
 - Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1–2 passende Suchbegriffe natürlich in einen Satz ein, z.B. "in unserem Salon in Wien-Margareten", "Friseur in 1050 Wien" und die konkrete Leistung, wenn sie zum Moment passt (Balayage, Strähnen, Haarschnitt, Herrenschnitt, Farbe, Hochsteckfrisur, Haarverlängerung, Brow & Lash Lifting, Make-up). Nie als Aufzählung, nie gezwungen.
@@ -1445,7 +1454,7 @@ Ihr Content deckt deshalb mehrere Kontexte ab:
 };
 function kontextTeil(kontext) {
   const k = KONTEXT_INFO[kontext] || KONTEXT_INFO.salon;
-  return `${k.persona}\n\n${k.hinweis}\n\n${k.kontakt}`;
+  return `${k.persona}\n\n${k.hinweis}${k.leistungen ? '\n\n' + k.leistungen : ''}\n\n${k.kontakt}`;
 }
 function reichweiteTeil(kontext) {
   return (KONTEXT_INFO[kontext] || KONTEXT_INFO.salon).reichweite;
@@ -2323,7 +2332,7 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
       ? `Kurz: 3 bis 4 kurze Absätze, der letzte davon mit der Handlungsaufforderung, danach die Zeile "${sig}".`
       : `Kurz: 3 bis 4 kurze Absätze (die Hook-Zeile ist der erste davon), danach die Zeile "${sig}".`;
   return `SCHREIBREGELN FÜR ${was} (verbindlich):
-1. ${stimme} ${ende}
+1. ${stimme} Sprich die Leser:innen mit „du“ an, nie mit „Sie“. ${ende}
 2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
 3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
@@ -2399,16 +2408,14 @@ Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
   let postText = null;
   let postStructured = null;
   try {
-    const raw = await claudeAnfrage(system, userText, 600);
+    let raw = await claudeAnfrage(system, userText, 1500);
+    // Einmal nachfassen: bei "Alle Kanäle" laufen drei Anfragen gleichzeitig,
+    // da scheitert gelegentlich eine.
+    if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, userText, 1500); }
     if(raw) {
-      const clean = raw.replace(/```json|```/g,'').trim();
-      try {
-        postStructured = JSON.parse(clean);
-        postText = postStructured.caption || null;
-      } catch(e) {
-        // KI hat reinen Text geliefert (Fallback-Kompatibilität)
-        postText = raw;
-      }
+      const r = kiFeld(raw, 'caption');
+      postStructured = r.obj;
+      postText = r.text;
     }
   } catch(e) { postText = null; }
 
@@ -2508,6 +2515,25 @@ async function generatePost() {
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
+// Liest ein Feld aus Wörnis JSON-Antwort. Ist die Antwort abgeschnitten
+// (Längenlimit) oder kein gültiges JSON, wird das Feld trotzdem herausgeholt
+// und bis zum letzten vollständigen Satz gekürzt, statt rohes JSON mit
+// "{\"caption\": …\\n\\n" anzuzeigen.
+function kiFeld(raw, feld) {
+  const clean = String(raw || '').replace(/```json|```/g, '').trim();
+  try { const obj = JSON.parse(clean); return { obj, text: obj[feld] || null }; } catch(e) {}
+  const m = clean.match(new RegExp('"' + feld + '"\\s*:\\s*"((?:[^"\\\\]|\\\\.)*)'));
+  if (m) {
+    let t = m[1].replace(/\\$/, '');
+    try { t = JSON.parse('"' + t + '"'); }
+    catch(e) { t = t.replace(/\\n/g, '\n').replace(/\\"/g, '"'); }
+    const bisSatzende = t.replace(/[^.!?…]*$/, '').trim();
+    return { obj: null, text: (bisSatzende || t).trim() || null };
+  }
+  if (clean && !clean.startsWith('{')) return { obj: null, text: clean };   // reiner Text
+  return { obj: null, text: null };
+}
+
 // Wörni hat nicht geantwortet: klar sagen statt einen Ersatztext zu zeigen.
 // art: 'post' | 'story'
 function zeigeWoerniNichtErreichbar(art = 'post') {
@@ -2555,7 +2581,7 @@ Du bekommst einen fertigen ${kanalName}-Post und einen Änderungswunsch. Überar
   const userText = `Bisheriger Post:\n${aktuell}\n\nÄnderungswunsch: ${wunsch}`;
 
   let neu = null;
-  try { neu = await claudeAnfrage(system, userText, 700); } catch(e) { neu = null; }
+  try { neu = await claudeAnfrage(system, userText, 1500); } catch(e) { neu = null; }
 
   knoepfe.forEach(b => b.disabled = false);
   if(!neu || !neu.trim()) {
@@ -2646,6 +2672,8 @@ async function buildGooglePost(m, typ) {
 
 Mirjam Walenta ist Friseurmeisterin & Inhaberin von "A Great Hair Day" (Wien-Margareten, seit 1993), Prüferin & Ausbilderin bei der Wiener Innung der Friseure.
 
+${KONTEXT_INFO.salon.leistungen}
+
 Schreibe einen Beitrag für das Google Unternehmensprofil (Kategorie: ${typMap[typ]}).
 
 Regeln für Google-Unternehmensprofil-Beiträge:
@@ -2664,16 +2692,12 @@ Antworte als JSON-Objekt mit "text" (fertiger Beitragstext) und "cta_typ" (empfo
   let text = null;
   let ctaTyp = ctaTypFallback[typ];
   try {
-    const raw = await claudeAnfrage(system, userText, 500);
+    let raw = await claudeAnfrage(system, userText, 1200);
+    if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, userText, 1200); }
     if(raw) {
-      const clean = raw.replace(/```json|```/g,'').trim();
-      try {
-        const parsed = JSON.parse(clean);
-        text = parsed.text || null;
-        ctaTyp = parsed.cta_typ || ctaTyp;
-      } catch(e) {
-        text = raw;
-      }
+      const r = kiFeld(raw, 'text');
+      text = r.text;
+      ctaTyp = (r.obj && r.obj.cta_typ) || ctaTyp;
     }
   } catch(e) { text = null; }
 
@@ -3102,7 +3126,7 @@ Antworte NUR mit dem JSON-Array. Kein erklärender Text drumherum. Beispiel-Form
 
   let frames = null;
   try {
-    const raw = await claudeAnfrage(system, userText, 700);
+    const raw = await claudeAnfrage(system, userText, 1500);
     if(raw) {
       const clean = raw.replace(/```json|```/g,'').trim();
       frames = JSON.parse(clean);

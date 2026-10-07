@@ -3787,7 +3787,6 @@ async function postZuKarussell(direkt) {
   if(m.length < 5 && !post) return;
   const vorher = direkt ? null : letzterPost;
   const kontext = vorher?.kontext || SEL.postkontext || 'salon';
-  const wer = vorher?.wer || SEL.postwer || 'kundinnen';
   const mitAdresse = vorher ? !!vorher.mitAdresse : kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
   const btn = document.getElementById(direkt ? 'btn-karussell-direkt' : 'btn-karussell');
   const status = document.getElementById(direkt ? 'karussell-direkt-status' : 'karussell-status');
@@ -3806,7 +3805,7 @@ ${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, keine Marke
 
 ${reichweiteTeil(kontext)}
 
-AUFGABE: Mach aus dem Thema ein Instagram-Karussell (mehrere Bilder in einem Post, man wischt von Folie zu Folie). Ein gutes Karussell bringt Wissen, das man sich speichern oder weiterschicken will.
+AUFGABE: Schreib KEINEN normalen Post. Mach aus dem Thema ein Instagram-Karussell (mehrere Bilder in einem Post, man wischt von Folie zu Folie). Ein gutes Karussell bringt Wissen, das man sich speichern oder weiterschicken will.
 
 AUFBAU (insgesamt 5 bis 7 Folien, in dieser Reihenfolge):
 1. Eine Folie "titel": macht neugierig und sagt klar, worum es geht, z. B. "3 Fehler beim Föhnen" / "die fast alle machen." Keine Frage, die man mit Ja/Nein beantworten kann.
@@ -3818,30 +3817,55 @@ AUFBAU (insgesamt 5 bis 7 Folien, in dieser Reihenfolge):
    - Leistung, für die man zu uns kommen muss → ${hn ? 'zum nächsten Haarnetzwerk-Treffen einladen' : 'Termin vereinbaren (Telefon 01 586 31 30 darf hier im kleinen Text stehen)'}
    Wähle genau eine davon.
 
-FELDER JE FOLIE:
-- "art": "titel", "punkt", "merken" oder "abschluss"
-- "a": Hauptzeile, groß und fett. Höchstens 6 Wörter.
-- "b": Fortsetzung in Gold, kursiv. Höchstens 6 Wörter. Darf leer sein.
-- "c": Kleiner Text darunter: 1 bis 2 kurze, vollständige Sätze, höchstens 140 Zeichen. Bei "titel" leer oder ein kurzer Satz.
-Kein Emoji, keine Hashtags und keine Ausrufezeichen auf den Folien. Für Zitate im Text nur „deutsche“ Anführungszeichen, nie gerade " (sonst ist das JSON kaputt). "Du"-Form. Erfinde keine Fakten; bleib bei dem, was zum Thema sicher stimmt.
+JEDE FOLIE HAT DREI TEILE, getrennt durch " | ":
+- Hauptzeile, groß und fett. Höchstens 6 Wörter.
+- Fortsetzung in Gold, kursiv. Höchstens 6 Wörter. Darf leer sein.
+- Kleiner Text darunter: 1 bis 2 kurze, vollständige Sätze, höchstens 140 Zeichen. Bei der Titel-Folie leer oder ein kurzer Satz.
+Kein Emoji, keine Hashtags und keine Ausrufezeichen auf den Folien. "Du"-Form. Erfinde keine Fakten; bleib bei dem, was zum Thema sicher stimmt.
 
-${postSchreibregeln(kontext, wer, mitAdresse)}
-(Diese Schreibregeln gelten für "caption", nicht für die Folien.)
+BILDTEXT (für unter den Post): 2 bis 3 kurze Absätze in ${stimmeLabel(kontext)}, "du"-Form, der erste Satz macht neugierig aufs Wischen, höchstens 2 Emoji, keine Adresse und keine Telefonnummer. Die letzte Zeile ist "${unterschriftFuer(kontext)}".
 
-Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
-{"folien":[{"art":"titel","a":"…","b":"…","c":"…"}, …],
- "caption":"Bildtext unter dem Karussell. Erster Satz macht neugierig aufs Wischen.",
- "hashtags":"3–5 Hashtags als String, ${hn ? 'immer mit #Haarnetzwerk' : 'immer mit #GreatHairDay #Wien'}"}`;
+ANTWORTE GENAU IN DIESEM FORMAT, jede Folie in einer eigenen Zeile, ohne Text davor oder danach und ohne Markdown:
+TITEL: Hauptzeile | Fortsetzung | kleiner Text
+PUNKT: Hauptzeile | Fortsetzung | kleiner Text
+PUNKT: Hauptzeile | Fortsetzung | kleiner Text
+PUNKT: Hauptzeile | Fortsetzung | kleiner Text
+MERKEN: Hauptzeile | Fortsetzung | kleiner Text
+SCHLUSS: Hauptzeile | Fortsetzung | kleiner Text
+BILDTEXT:
+(der Bildtext, mehrere Zeilen erlaubt)
+HASHTAGS: 3 bis 5 Hashtags, ${hn ? 'immer mit #Haarnetzwerk' : 'immer mit #GreatHairDay #Wien'}
+(MERKEN ist optional, PUNKT 3- bis 4-mal.)`;
 
   const userText = `Thema: ${m || '(siehe Post)'}${post ? `\n\nDazu geschriebener Post (als Material, nicht wörtlich übernehmen):\n${post}` : ''}`;
 
-  // Wörnis Antwort lesen: auch wenn vor oder nach dem JSON noch Text steht
+  // Wörnis Antwort lesen. Bevorzugt das Zeilenformat (TITEL:/PUNKT:/…), sonst JSON,
+  // und als Notlösung Absätze: so entstehen Folien, auch wenn Wörni sich nicht genau ans Format hält.
+  const ARTEN_ZEILE = { titel:'titel', punkt:'punkt', merken:'merken', schluss:'abschluss', abschluss:'abschluss' };
   const jsonLesen = raw => {
-    const clean = String(raw || '').replace(/```json|```/g, '').trim();
-    try { return JSON.parse(clean); } catch(e) {}
+    const clean = String(raw || '').replace(/```[a-z]*|```/g, '').replace(/\*\*/g, '').trim();
+    // 1. Zeilenformat
+    const zeilen = clean.split(/\r?\n/);
+    const folien = [];
+    let caption = [], hashtags = '', imBildtext = false;
+    for(const z of zeilen) {
+      const m = z.match(/^\s*(?:\d+\.\s*)?(titel|punkt|merken|schluss|abschluss|bildtext|hashtags)\s*(?:\d+)?\s*:\s*(.*)$/i);
+      if(m) {
+        const art = m[1].toLowerCase();
+        imBildtext = art === 'bildtext';
+        if(art === 'hashtags') hashtags = m[2];
+        else if(imBildtext) { if(m[2].trim()) caption.push(m[2]); }
+        else { const [a = '', b = '', c = ''] = m[2].split('|'); folien.push({ art: ARTEN_ZEILE[art], a, b, c }); }
+      } else if(imBildtext) caption.push(z);
+    }
+    if(folien.length >= 3) return { folien, caption: caption.join('\n').trim(), hashtags };
+    // 2. JSON (falls Wörni doch JSON schreibt)
     const von = clean.indexOf('{'), bis = clean.lastIndexOf('}');
-    if(von < 0 || bis <= von) throw new Error('kein JSON in der Antwort');
-    return JSON.parse(clean.slice(von, bis + 1));
+    if(von >= 0 && bis > von) { try { return JSON.parse(clean.slice(von, bis + 1)); } catch(e) {} }
+    // 3. Notlösung: jeder Absatz eine Folie (Aufzählungszeichen und „Folie 2:“ weg)
+    const absaetze = clean.split(/\n\s*\n/).map(x => x.replace(/^\s*(?:[-•*]|\d+[.)]|folie\s*\d+\s*:)\s*/i, '').replace(/\s+/g, ' ').trim()).filter(Boolean);
+    if(absaetze.length >= 3) return { folien: absaetze.slice(0, 7).map(t => { const a = t.length > 60 ? ((t.match(/^[^.!?…]+[.!?…]/) || [t])[0]) : t, b = ''; return { art: 'punkt', a, b, c: a === t ? '' : t.slice(a.length).trim() }; }), caption: '', hashtags: '' };
+    throw new Error('Format nicht erkannt. Anfang der Antwort: „' + clean.slice(0, 120) + '“');
   };
   let ergebnis = null, antwortKam = false;
   // Bis zu zwei Versuche: eine unlesbare oder fehlende Antwort klappt beim zweiten Mal meist

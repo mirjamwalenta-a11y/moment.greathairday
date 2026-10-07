@@ -3794,7 +3794,8 @@ async function postZuKarussell(direkt) {
   const knopfText = btn.textContent;
   btn.disabled = true;
   btn.textContent = '✦ Wörni baut das Karussell …';
-  status.textContent = '';
+  status.style.color = '';
+  status.textContent = 'Das kann bis zu einer Minute dauern.';
 
   const hn = kontext === 'haarnetzwerk';
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
@@ -3847,7 +3848,9 @@ Antworte NUR mit diesem JSON-Objekt, ohne Text drumherum und ohne Markdown:
   for(let versuch = 0; versuch < 2 && !ergebnis; versuch++) {
   if(versuch) { status.textContent = 'Wörni versucht es nochmal …'; await new Promise(r => setTimeout(r, 1500)); }
   try {
-    const raw = await claudeAnfrage(system, userText, 2500);
+    // Großzügiges Limit: Wörni denkt vor dem Schreiben nach, und das zählt mit.
+    // Mit 2500 war das Limit manchmal schon vom Nachdenken aufgebraucht — dann kam gar kein Text.
+    const raw = await claudeAnfrage(system, userText, 8000);
     if(raw) {
       antwortKam = true;
       const obj = jsonLesen(raw);

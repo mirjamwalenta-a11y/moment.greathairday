@@ -3844,21 +3844,31 @@ HASHTAGS: 3 bis 5 Hashtags, ${hn ? 'immer mit #Haarnetzwerk' : 'immer mit #Great
   const ARTEN_ZEILE = { titel:'titel', punkt:'punkt', merken:'merken', schluss:'abschluss', abschluss:'abschluss' };
   const jsonLesen = raw => {
     const clean = String(raw || '').replace(/```[a-z]*|```/g, '').replace(/\*\*/g, '').trim();
-    // 1. Zeilenformat
-    const zeilen = clean.split(/\r?\n/);
-    const folien = [];
-    let caption = [], hashtags = '', imBildtext = false;
-    for(const z of zeilen) {
-      const m = z.match(/^\s*(?:\d+\.\s*)?(titel|punkt|merken|schluss|abschluss|bildtext|hashtags)\s*(?:\d+)?\s*:\s*(.*)$/i);
-      if(m) {
-        const art = m[1].toLowerCase();
-        imBildtext = art === 'bildtext';
-        if(art === 'hashtags') hashtags = m[2];
-        else if(imBildtext) { if(m[2].trim()) caption.push(m[2]); }
-        else { const [a = '', b = '', c = ''] = m[2].split('|'); folien.push({ art: ARTEN_ZEILE[art], a, b, c }); }
-      } else if(imBildtext) caption.push(z);
+    // 1. Stichwort-Format. Nicht auf Zeilenumbrüche verlassen (die kamen am Handy teils nicht an):
+    //    an den Stichwörtern TITEL:, PUNKT:, … zerlegen, egal ob sie in eigenen Zeilen stehen.
+    //    Zuerst nur GROSS geschriebene Stichwörter (damit „Punkt:“ im Bildtext nicht stört), sonst beliebig.
+    const zerlegen = re => {
+      const treffer = [...clean.matchAll(re)];
+      const folien = [];
+      let caption = '', hashtags = '';
+      treffer.forEach((t, i) => {
+        const inhalt = clean.slice(t.index + t[0].length, i + 1 < treffer.length ? treffer[i + 1].index : clean.length).trim();
+        const art = t[1].toLowerCase();
+        if(art === 'bildtext') caption = inhalt;
+        else if(art === 'hashtags') hashtags = inhalt.replace(/\s+/g, ' ');
+        else {
+          // Aufzählungszeichen/Nummer vor dem nächsten Stichwort gehören nicht zum Text
+          const [a = '', b = '', c = ''] = inhalt.replace(/\s*(?:\d+[.)]|[-•*])\s*$/, '').split('|');
+          folien.push({ art: ARTEN_ZEILE[art], a, b, c });
+        }
+      });
+      return { folien, caption, hashtags };
+    };
+    for(const re of [/\b(TITEL|PUNKT|MERKEN|SCHLUSS|ABSCHLUSS|BILDTEXT|HASHTAGS)\s*\d*\s*:/g,
+                     /\b(titel|punkt|merken|schluss|abschluss|bildtext|hashtags)\s*\d*\s*:/gi]) {
+      const r = zerlegen(re);
+      if(r.folien.length >= 3) return r;
     }
-    if(folien.length >= 3) return { folien, caption: caption.join('\n').trim(), hashtags };
     // 2. JSON (falls Wörni doch JSON schreibt)
     const von = clean.indexOf('{'), bis = clean.lastIndexOf('}');
     if(von >= 0 && bis > von) { try { return JSON.parse(clean.slice(von, bis + 1)); } catch(e) {} }
@@ -3887,7 +3897,8 @@ HASHTAGS: 3 bis 5 Hashtags, ${hn ? 'immer mit #Haarnetzwerk' : 'immer mit #Great
         folien[0].art = 'titel';
         folien[folien.length - 1].art = 'abschluss';
         // Hashtags ans Ende hängen: postAbschliessen setzt sie hinter die Unterschrift und vor die Adresszeile
-        const roh = typeof obj.caption === 'string' ? obj.caption.trim() : '';
+        // Unterschrift am Ende (auch ohne eigene Zeile) weg — postAbschliessen setzt sie wieder, genau einmal
+        const roh = typeof obj.caption === 'string' ? obj.caption.trim().replace(/\s*(?:mirjam(?: walenta)?|euer haarnetzwerk)\.?\s*$/i, '').trim() : '';
         const caption = roh ? postAbschliessen(roh + (text(obj.hashtags) ? '\n\n' + text(obj.hashtags) : ''), mitAdresse, unterschriftFuer(kontext)) : '';
         ergebnis = { folien, caption, kontext };
       } else letzterKIFehler = 'Wörni hat zu wenige Folien geliefert (' + folien.length + ').';

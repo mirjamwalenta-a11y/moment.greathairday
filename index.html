@@ -5103,6 +5103,11 @@ function rechercheZuStory(idx) {
 // (Netzwerk, Auth, ungültiges Modell, Server-Fehler ...) nach außen
 // hin gleich aussieht.
 let letzterKIFehler = null;
+// Wörni (claude-sonnet-5) denkt sonst vor jeder Antwort nach — das zählt zum Antwortlimit und
+// hat es teils komplett aufgebraucht (Antwort nur mit leerem "thinking"-Block, ohne Text).
+// Für Wörnis kurze Schreibaufgaben braucht es kein Nachdenken: abschalten. Lehnt die
+// Supabase-Funktion den Parameter ab (HTTP 400), wird ohne ihn wiederholt und er bleibt danach weg.
+let thinkingAbschaltenMoeglich = true;
 
 async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
@@ -5128,10 +5133,17 @@ async function claudeAnfrage(system, userText, maxTokens) {
     // wird (bestehender Rückfall auf feste Texte greift) statt den Button dauerhaft zu blockieren.
     // Skaliert mit maxTokens, da eine längere angeforderte Antwort (z.B. Recherche)
     // auch länger zum Generieren braucht als die kurzen Standardantworten.
-    const timeoutMs = Math.max(20000, maxTokens * 30);
-    const sendeAnfrage = async (tok) => {
+    const sendeAnfrage = async (tok, mt = maxTokens) => {
+      const timeoutMs = Math.max(20000, mt * 30);
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+      const anfrage = {
+        model: 'claude-sonnet-5',
+        max_tokens: mt,
+        system: system,
+        messages: [{ role: 'user', content: userText }]
+      };
+      if (thinkingAbschaltenMoeglich) anfrage.thinking = { type: 'disabled' };
       try {
         return await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
           method: 'POST',
@@ -5139,12 +5151,7 @@ async function claudeAnfrage(system, userText, maxTokens) {
             'Content-Type': 'application/json',
             'Authorization': 'Bearer ' + tok
           },
-          body: JSON.stringify({
-            model: 'claude-sonnet-5',
-            max_tokens: maxTokens,
-            system: system,
-            messages: [{ role: 'user', content: userText }]
-          }),
+          body: JSON.stringify(anfrage),
           signal: controller.signal
         });
       } finally {
@@ -5153,6 +5160,11 @@ async function claudeAnfrage(system, userText, maxTokens) {
     };
 
     let res = await sendeAnfrage(token);
+    // Parameter "thinking" nicht angenommen → ohne ihn nochmal, und ab jetzt immer ohne
+    if (res.status === 400 && thinkingAbschaltenMoeglich) {
+      thinkingAbschaltenMoeglich = false;
+      res = await sendeAnfrage(token);
+    }
 
     // Server lehnt mit 401 ab, obwohl die lokale Session laut Ablaufdatum
     // noch gültig aussah (z.B. weil der Access-Token serverseitig aus einem
@@ -5189,16 +5201,21 @@ async function claudeAnfrage(system, userText, maxTokens) {
       letzterKIFehler = `HTTP ${res.status} ${res.statusText}${bodyText ? ' — ' + bodyText : ''} (${sessionInfo})`;
       return null;
     }
-    const data = await res.json();
+    let data = await res.json();
     // Anthropic kann vor dem eigentlichen Text noch "thinking"-Blöcke
     // schicken (Extended Thinking) — deshalb nicht blind content[0]
     // nehmen, sondern den ersten echten Text-Block suchen.
-    const textBlock = Array.isArray(data?.content) ? data.content.find(b => b?.type === 'text' && b.text) : null;
-    const text = textBlock?.text || null;
+    const textAus = d => (Array.isArray(d?.content) ? d.content.find(b => b?.type === 'text' && b.text) : null)?.text || null;
+    let text = textAus(data);
+    // Limit vom Nachdenken aufgebraucht (kein Text, stop_reason "max_tokens"): einmal mit viel mehr Platz
+    if (!text && data?.stop_reason === 'max_tokens') {
+      const res2 = await sendeAnfrage(token, Math.max(8000, maxTokens * 4));
+      if (res2.ok) { data = await res2.json(); text = textAus(data); }
+    }
     if(!text) letzterKIFehler = 'Antwort kam an, enthielt aber keinen Text: ' + JSON.stringify(data).slice(0, 300);
     return text;
   } catch(e) {
-    letzterKIFehler = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (keine Antwort nach 20 Sekunden)' : ('Fehler: ' + (e?.message || e));
+    letzterKIFehler = (e && e.name === 'AbortError') ? 'Zeitüberschreitung (keine Antwort in der vorgesehenen Zeit)' : ('Fehler: ' + (e?.message || e));
     return null;
   }
 }
@@ -5634,15 +5651,10 @@ async function analysiereFoto(base64, mediaType, kontext) {
   try {
     const { data: sessionData } = await AUTH_CLIENT.auth.getSession();
     const token = sessionData?.session?.access_token || AUTH_KEY;
-    const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': 'Bearer ' + token
-      },
-      body: JSON.stringify({
+    const anfrage = {
         model: 'claude-sonnet-5',
-        max_tokens: 600,
+        // Etwas Luft über der eigentlichen Antwort, falls das Modell doch nachdenkt (siehe claudeAnfrage)
+        max_tokens: 2000,
         system: `Du bist Wörni, Bildanalyse-Assistent von Mirjam Walenta.
 
 ${kontextTeil(kontext)}
@@ -5662,8 +5674,18 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`,
             { type: 'text', text: kontext === 'haarnetzwerk' ? 'Analysiere dieses Foto für Haarnetzwerk-Content.' : 'Analysiere dieses Foto für Mirjams Instagram.' }
           ]
         }]
-      })
+    };
+    const senden = () => fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': 'Bearer ' + token
+      },
+      body: JSON.stringify(thinkingAbschaltenMoeglich ? { ...anfrage, thinking: { type: 'disabled' } } : anfrage)
     });
+    let res = await senden();
+    // Parameter "thinking" nicht angenommen → ohne ihn nochmal (wie in claudeAnfrage)
+    if(res.status === 400 && thinkingAbschaltenMoeglich) { thinkingAbschaltenMoeglich = false; res = await senden(); }
     if(!res.ok) return null;
     const data = await res.json();
     const textBlock = Array.isArray(data?.content) ? data.content.find(b => b?.type === 'text' && b.text) : null;

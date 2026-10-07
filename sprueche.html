@@ -207,9 +207,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 // Gleicher Look wie die Sprüche, aber nur mit eigenem Text; Sprüche-Liste, QR-Code und Bildtext sind ausgeblendet.
 const URL_PARAMS = new URLSearchParams(location.search);
 const AKTION = URL_PARAMS.has('aktion');
-// Karussell-Modus: aus der App („Als Karussell“) mit ?karussell=1 — Wörnis Folien liegen im Browser bereit (ghd_karussell_neu)
-const KARUSSELL = URL_PARAMS.has('karussell') && !AKTION;
-const RAHMEN = (URL_PARAMS.has('rahmen') || KARUSSELL) && !AKTION;
+const RAHMEN = URL_PARAMS.has('rahmen') && !AKTION;
 const EIGEN = RAHMEN || AKTION;   // eigener Text statt Spruch-Liste
 if (EIGEN) {
   ['marke-section', 'qr-section', 'team-section', 'sprueche-section', 'caption-section', 'btn-random']
@@ -901,7 +899,7 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'', bild:null, schleier:0.68, seite:'', nummer:'', wischen:false };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'', bild:null, schleier:0.68 };
 // QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'lehrstelle' | 'stylist' (Bewerbung über die Karriere-Seite)
 const istBewerbung = () => state.qrZweck !== 'bewertung';
 const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
@@ -1144,20 +1142,7 @@ function draw() {
 
   // Optional: QR-Code zur Bewertung (nur Salon) — sonst kleine Linie über dem Fuß
   const qrTop = state.qr && !hn ? drawBewertung(W, footY, s) : AKTION ? drawRabatt(W, footY, s) : null;
-  if (qrTop === null && state.wischen) {
-    // Karussell, erste Folie: dezenter Hinweis statt der kleinen Linie
-    ctx.fillStyle = s.gold;
-    ctx.font = `500 ${story || a4 ? 38 : 34}px Inter, system-ui, sans-serif`;
-    ctx.fillText('Wisch weiter  →', W / 2, footY - 72);
-  } else if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
-  // Karussell: Seitenzahl oben rechts, z. B. „2 / 6“
-  if (state.seite) {
-    ctx.textAlign = 'right';
-    ctx.fillStyle = s.gold;
-    ctx.font = `500 ${story || a4 ? 34 : 30}px Inter, system-ui, sans-serif`;
-    ctx.fillText(state.seite, W - 70, story ? 140 : 90);
-    ctx.textAlign = 'center';
-  }
+  if (qrTop === null) { ctx.fillStyle = s.gold; ctx.fillRect(W / 2 - 30, footY - 70, 60, 2); }
 
   // Spruch: Schriftgröße so wählen, dass alles in den freien Bereich passt
   const maxW = state.format === 'folie' ? 1400 : W - 200;   // im Querformat nicht zu lange Zeilen
@@ -1170,10 +1155,6 @@ function draw() {
   // Aktions-Modus: kleine goldene Überzeile (z. B. „NUR FÜR KURZE ZEIT“) über dem Titel
   const ueber = AKTION ? state.ueber.trim().toUpperCase() : '';
   const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' || state.format === 'folie' ? 64 : 84) : 0;
-  // Karussell: große goldene Nummer über dem Punkt
-  const nummer = state.nummer ? String(state.nummer) : '';
-  const nummerGr = story || a4 ? 150 : state.format === 'quadrat' || state.format === 'folie' ? 100 : 124;
-  const nummerH = nummer ? nummerGr + 16 : 0;
   const layout = mitC => {
     size = Math.min(story || a4 ? 108 : 100, state.maxGroesse || 999);
     // Eigene Texte (Rahmen/Aktion) dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
@@ -1184,7 +1165,7 @@ function draw() {
       lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
       lc = mitC && state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
       if (AKTION && state.gueltig.trim()) lc = lc.concat(wrap(state.gueltig.trim(), subFont, maxW - 60));
-      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0) + ueberH + nummerH;
+      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0) + ueberH;
       // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
       const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
         if (l.includes(' ')) return false;
@@ -1208,12 +1189,6 @@ function draw() {
     ctx.font = `600 ${story || a4 ? 36 : 32}px Inter, system-ui, sans-serif`;
     spacedText(ueber, W / 2, y - size * 0.95 + 36, 5);
     y += ueberH;
-  }
-  if (nummer) {
-    ctx.fillStyle = s.gold;
-    ctx.font = `italic 500 ${nummerGr}px "Playfair Display", Georgia, serif`;
-    ctx.fillText(nummer, W / 2, y - size * 0.95 + nummerGr * 0.8);
-    y += nummerH;
   }
 
   ctx.fillStyle = s.ink;
@@ -1528,7 +1503,7 @@ document.getElementById('btn-zeigen').onclick = () => {
 };
 
 // ── Varianten rendern: dieselbe Vorlage mit anderem Text/Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
-const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format', 'maxGroesse', 'seite', 'nummer', 'wischen'];
+const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format', 'maxGroesse'];
 let letzteSchriftGroesse = null;
 // Gemeinsame Schriftgröße für alle Folien einer Serie: die kleinste, die überall passt — aber nicht winzig.
 // Folien mit sehr viel Text dürfen darunter gehen, alle anderen haben dieselbe Größe.
@@ -1719,7 +1694,7 @@ function vorschauBild(folie, format, breite, maxGroesse) {
   return k.toDataURL('image/jpeg', 0.8);
 }
 function serieDateiname(i, format) {
-  const basis = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '') + (KARUSSELL ? '-karussell' : '');
+  const basis = bildDateiname().replace(/-[a-z0-9]+-(hell|dunkel)\.png$/, '');
   return `${basis}-folie-${String(i + 1).padStart(2, '0')}-${format}.png`;
 }
 function serieDrucken(folien, format) {
@@ -1747,16 +1722,6 @@ try { aktuelleSerie = JSON.parse(localStorage.getItem('ghd_folienserie')) || nul
 function serieMerken() {
   try { localStorage.setItem('ghd_folienserie', JSON.stringify(aktuelleSerie)); } catch (e) { /* privater Modus o. Ä. */ }
 }
-// Karussell: Seitenzahl auf jeder Folie, „Wisch weiter“ auf der ersten, Nummern 1, 2, 3 … auf den Punkt-Folien.
-// Nach jedem Löschen/Hinzufügen neu, damit die Zählung stimmt.
-function karussellNummerieren(folien) {
-  let punkt = 0;
-  folien.forEach((f, i) => {
-    f.seite = `${i + 1} / ${folien.length}`;
-    f.wischen = i === 0 && folien.length > 1;
-    f.nummer = f.art === 'punkt' ? String(++punkt) : '';
-  });
-}
 function zeigeSerie(serie) {
   const folien = serie.folien;
   let format = serie.format || 'post', groesse = null, zeichner = [];
@@ -1779,8 +1744,7 @@ function zeigeSerie(serie) {
     const kopf = document.createElement('div');
     kopf.style.cssText = 'display:flex;align-items:center;gap:8px;flex-wrap:wrap;font:600 13px Inter,system-ui,sans-serif;color:#1C1B19;';
     const titel = document.createElement('span');
-    const ARTEN = { titel:'Titel', punkt:'Punkt', merken:'Zum Merken', abschluss:'Schluss' };
-    titel.textContent = `Folie ${i + 1}` + (ARTEN[f.art] ? ` · ${ARTEN[f.art]}${f.nummer ? ' ' + f.nummer : ''}` : '');
+    titel.textContent = `Folie ${i + 1}`;
     titel.style.flex = '1';
     const stilKnopf = document.createElement('button');
     stilKnopf.className = 'chip';
@@ -1823,7 +1787,6 @@ function zeigeSerie(serie) {
   const aufbauen = () => {
     liste.innerHTML = '';
     zeichner = [];
-    if (serie.karussell) karussellNummerieren(folien);
     groesse = serienGroesse(folien, format);
     folien.forEach((f, i) => liste.appendChild(karte(f, i)));
     const plus = ebenenKnopf('+ Folie hinzufügen', () => {
@@ -1848,11 +1811,9 @@ function zeigeSerie(serie) {
     if (!fmt) { alert('Dieser Browser kann leider keine Videos erstellen. Bitte am Handy mit Chrome oder Safari probieren — oder „Bilder speichern“ und daraus in Instagram ein Reel machen.'); return; }
     if (reelKnopf.disabled) return;
     reelKnopf.disabled = true;
-    // Im Reel braucht es weder Seitenzahl noch „Wisch weiter“
-    const reel = folien.map(f => ({ ...f, seite: '', wischen: false }));
-    const g = serienGroesse(reel, 'story');
-    const bilder = reel.map(f => renderMit({ ...f, format: 'story', maxGroesse: g }));
-    reelAufnehmen(bilder, reel.map(folienDauer), fmt,
+    const g = serienGroesse(folien, 'story');
+    const bilder = folien.map(f => renderMit({ ...f, format: 'story', maxGroesse: g }));
+    reelAufnehmen(bilder, folien.map(folienDauer), fmt,
       (t, ges) => { reelKnopf.textContent = `Reel wird erstellt … ${t}/${ges} s`; },
       blob => { ebene.remove(); zeigeReel(blob, fmt, () => zeigeSerie(serie)); });
   }, true);
@@ -1872,29 +1833,10 @@ function zeigeSerie(serie) {
   aktionen.append(reelKnopf, bilderKnopf, druckKnopf, neuKnopf,
     ebenenText('Reel: immer im Story-Format 9:16. Bilder und PDF: im oben gewählten Format. Für Instagram-Karussell „Post 4:5“, für Präsentationen „Präsentation 16:9“. PDF: im Druckfenster „Als PDF speichern“ wählen.'));
 
-  // Karussell: Wörnis Bildtext für den Post, bearbeitbar und zum Kopieren
-  const bildtext = [];
-  if (typeof serie.caption === 'string') {
-    const t = document.createElement('textarea');
-    t.value = serie.caption; t.rows = 8;
-    t.setAttribute('aria-label', 'Bildtext für den Post');
-    t.style.cssText = feldStil + 'max-width:520px;';
-    t.addEventListener('input', () => { serie.caption = t.value; serieMerken(); });
-    const kopieren = ebenenKnopf('Bildtext kopieren', () => {
-      navigator.clipboard.writeText(t.value).then(() => {
-        kopieren.textContent = 'Kopiert ✓';
-        setTimeout(() => { kopieren.textContent = 'Bildtext kopieren'; }, 2000);
-      });
-    });
-    bildtext.push(ebenenText('Bildtext für den Post:'), t, kopieren);
-  }
-
   aufbauen();
   const ebene = zeigeEbene([
-    ebenenText(serie.karussell
-      ? 'Dein Karussell: Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen. Dann „Bilder speichern“ und in Instagram alle Bilder zusammen als einen Post auswählen.'
-      : 'Deine Folien — Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen. Änderungen bleiben gespeichert, auch nach dem Reel.'),
-    formatReihe, liste, aktionen, ...bildtext,
+    ebenenText('Deine Folien — Text direkt hier bearbeiten, Hell/Dunkel wechseln, Folien löschen oder hinzufügen. Änderungen bleiben gespeichert, auch nach dem Reel.'),
+    formatReihe, liste, aktionen,
   ], null, true);
 }
 
@@ -2026,59 +1968,6 @@ document.getElementById('btn-print').onclick = () => {
   if (img.complete) setTimeout(los, 300); else img.onload = () => setTimeout(los, 300);
 };
 
-// ── Karussell aus der App: Wörnis Folien übernehmen und gleich die Folien-Serie öffnen ──
-// Neues Karussell liegt einmalig unter ghd_karussell_neu; danach bleibt es (mit Änderungen) als aktuelle Serie gespeichert.
-function karussellStarten() {
-  document.getElementById('reeltext-section').style.display = 'none';
-  document.getElementById('intro').textContent = 'Dein Karussell von Wörni. „Folien öffnen“ zeigt alle Folien zum Bearbeiten und Speichern.';
-  const knopf = document.getElementById('btn-reel');
-  knopf.textContent = '🎠 Folien öffnen';
-  knopf.className = 'btn btn-main';
-  let neu = null;
-  try { neu = JSON.parse(localStorage.getItem('ghd_karussell_neu')); localStorage.removeItem('ghd_karussell_neu'); } catch (e) { neu = null; }
-  if (neu && Array.isArray(neu.folien) && neu.folien.length) {
-    const leer = { ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'' };
-    // Titel- und Schluss-Folie dunkel, die Punkte hell
-    const folien = neu.folien.map(f => ({ ...leer, art: f.art, a: f.a || '', b: f.b || '', c: f.c || '',
-      stil: f.art === 'titel' || f.art === 'abschluss' ? 'dunkel' : 'hell' }));
-    aktuelleSerie = { quelle: JSON.stringify(folien), folien: folien.map(f => ({ ...f })), format: 'post',
-      karussell: true, caption: neu.caption || '', marke: neu.kontext === 'haarnetzwerk' ? 'haarnetzwerk' : 'salon' };
-    serieMerken();
-  }
-  if (!aktuelleSerie || !aktuelleSerie.karussell) {
-    document.getElementById('intro').textContent = 'Kein Karussell gefunden. Bitte in der App beim fertigen Post „Als Karussell“ wählen.';
-    knopf.style.display = 'none';
-    return;
-  }
-  state.marke = aktuelleSerie.marke || 'salon';
-  state.format = 'post';
-  document.querySelectorAll('#format-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'post'));
-  // Darunter auf der Seite: die erste Folie
-  const erste = aktuelleSerie.folien[0];
-  Object.assign(state, { a: erste.a, b: erste.b, c: erste.c });
-  document.getElementById('f-a').value = erste.a;
-  document.getElementById('f-b').value = erste.b;
-  document.getElementById('f-c').value = erste.c;
-  draw();
-  knopf.onclick = () => karussellOeffnen();
-  karussellAutoOeffnen = true;   // öffnet unten, sobald die Schriften geladen sind
-  // Laden die Schriften am Handy sehr langsam, nicht ewig warten: nach 2 Sekunden trotzdem öffnen
-  setTimeout(karussellOeffnen, 2000);
-}
-var karussellAutoOeffnen = false, karussellOffen = false;
-function karussellOeffnen() {
-  if (!karussellAutoOeffnen || !aktuelleSerie) return;
-  // Nur einmal automatisch öffnen; der Knopf öffnet danach jederzeit wieder
-  if (karussellOffen && !document.querySelector('[role="dialog"]')) karussellOffen = false;
-  if (karussellOffen) return;
-  karussellOffen = true;
-  try { zeigeSerie(aktuelleSerie); }
-  catch (e) {
-    karussellOffen = false;
-    document.getElementById('intro').textContent = 'Die Folien konnten nicht geöffnet werden: ' + (e && e.message || e) + ' — bitte „Folien öffnen“ tippen.';
-  }
-}
-
 // Erst zeichnen, wenn die Schriften geladen sind — sonst landet eine Ersatzschrift im Bild
 if (AKTION) {
   // Start als A4-Aushang zum Ausdrucken
@@ -2106,7 +1995,6 @@ if (AKTION) {
   document.getElementById('f-a').value = a;
   document.getElementById('f-b').value = b;
   draw();
-  if (KARUSSELL) karussellStarten();
 } else {
   waehle(0);
 }
@@ -2115,7 +2003,7 @@ Promise.all([
   document.fonts.load('italic 500 64px "Playfair Display"'),
   document.fonts.load('400 38px Inter'),
   document.fonts.load('500 34px Inter')
-]).then(draw, draw).then(karussellOeffnen);
+]).then(draw, draw);
 </script>
 </body>
 </html>

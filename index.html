@@ -140,11 +140,6 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-titel">Mitarbeiter:innen</span>
       <span class="start-kachel-desc">Team &amp; Lehrlinge gewinnen</span>
     </button>
-    <button class="start-kachel" style="grid-column:1 / -1;" onclick="karussellKachel()">
-      <span class="start-kachel-icon">🎠</span>
-      <span class="start-kachel-titel">Karussell</span>
-      <span class="start-kachel-desc">Ein Tipp in 5–7 Folien zum Durchwischen</span>
-    </button>
   </div>
 
   <!-- 3. Idee für heute (die bisherige Heute-Empfehlung) -->
@@ -547,11 +542,6 @@ function tabnavScrollBy(direction) {
       <textarea id="post-moment" placeholder="z.B. Heute ist eine Balayage fertig geworden, auf die wir richtig stolz sind..." rows="4" oninput="postCheck(); updateCharCount('post-text-main','post-char')"></textarea>
       <button class="btn-mic" id="mic-post" onclick="toggleMic('post-moment','mic-post')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
     </div>
-    <!-- Nur über die Startseiten-Kachel „Karussell“ sichtbar -->
-    <div id="karussell-direkt" style="display:none;margin-top:10px;">
-      <button class="btn-main" id="btn-karussell-direkt" onclick="postZuKarussell(true)" disabled>🎠 Karussell erstellen (5–7 Folien)</button>
-      <div id="karussell-direkt-status" style="font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
-    </div>
   </div>
   <div class="input-wrap">
     <div class="input-label">Tonalität</div>
@@ -661,8 +651,6 @@ function tabnavScrollBy(direction) {
       </div>
       <div id="post-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
     </div>
-    <button class="btn-main" id="btn-karussell" onclick="postZuKarussell()" style="margin:14px 0 6px;">🎠 Als Karussell (5–7 Folien)</button>
-    <div id="karussell-status" style="font-size:13px;color:var(--mid);margin:0 0 10px;text-align:center;"></div>
     <button class="btn-zu-rahmen" onclick="postZuRahmen()">🖼️ Text in Spruch-Vorlage übernehmen</button>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
     <div class="cta-row abschluss-row" style="margin-top:10px;">
@@ -2295,9 +2283,7 @@ function copyHook(btn, text) {
 // POST-GENERATOR
 // ════════════════════════════════════════════
 function postCheck() {
-  const zuKurz = document.getElementById('post-moment').value.trim().length < 5;
-  document.getElementById('btn-post').disabled = zuKurz;
-  document.getElementById('btn-karussell-direkt').disabled = zuKurz;
+  document.getElementById('btn-post').disabled = document.getElementById('post-moment').value.trim().length < 5;
 }
 
 // Erzeugt einen Post-Text + strukturierte Zusatzfelder für einen einzelnen
@@ -3234,7 +3220,7 @@ function startMitFoto() {
 const IDEEN_FORMAT = [
   {icon:'🤝',label:'Stammkundin seit Jahrzehnten',format:'post',ziel:'Vertrauen',desc:'Eine Kundin, die seit vielen Jahren kommt, und ein Satz von ihr.',moment:'Eine Kundin, die seit vielen Jahren zu uns kommt, und ein Satz von ihr, warum sie bleibt: „[ihr Satz]“. (Nur mit ihrem Einverständnis.)'},
   {icon:'🎓',label:'Die Meisterin prüft',format:'post',ziel:'Qualität zeigen',desc:'Worauf du als Prüferin bei der Lehrabschlussprüfung achtest.',moment:'Ich bin Prüferin bei der Lehrabschlussprüfung der Wiener Innung. Worauf ich dabei achte und was gutes Handwerk für mich ausmacht: [ein, zwei Punkte].'},
-  {icon:'📚',label:'Ein Handgriff erklärt',format:'post',ziel:'Expertise',desc:'Kurz erklärt, z. B. warum ihr nass und trocken schneidet. Danach „Als Karussell“ tippen.',moment:'Ein Handgriff kurz erklärt: warum wir [z. B. nass und trocken schneiden]. Einfach und verständlich.'},
+  {icon:'📚',label:'Ein Handgriff erklärt',format:'post',ziel:'Expertise',desc:'Kurz erklärt, z. B. warum ihr nass und trocken schneidet. Gut als Karussell.',moment:'Ein Handgriff kurz erklärt: warum wir [z. B. nass und trocken schneiden]. Einfach und verständlich.'},
   {icon:'❓',label:'Mythos oder Wahrheit',format:'post',ziel:'Kommentare',desc:'„Spitzen schneiden lässt Haare schneller wachsen?“',moment:'„Spitzen schneiden lässt die Haare schneller wachsen.“ Mythos oder Wahrheit? Die ehrliche Antwort aus dem Salon.'},
   {icon:'💛',label:'Was ich an meinem Beruf liebe',format:'post',ziel:'Menschlichkeit',desc:'Mazen, Alina oder Hassan in einem Satz.',moment:'Jemand aus unserem Team erzählt in einem Satz, was er oder sie an diesem Beruf liebt: „[Satz]“.'},
   {icon:'📊',label:'Umfrage in der Story',format:'story',ziel:'Interaktion',desc:'„Pony: ja oder nein?“ – dauert 10 Sekunden.',moment:'Eine Umfrage für die Story mit Umfrage-Sticker: [z. B. Pony: ja oder nein? / Blond oder Braun für den Herbst?]'},
@@ -3759,173 +3745,6 @@ function updateCharCount(textElId, counterElId) {
   el.classList.remove('warn','over');
   if(len > 2200) el.classList.add('over');
   else if(len > 1800) el.classList.add('warn');
-}
-
-// ════════════════════════════════════════════
-// POST → KARUSSELL
-// Wörni baut aus Thema und Post 5–7 Folien (Titel, Punkte, evtl. „Zum Merken“,
-// Schluss mit passender Aufforderung). Die Folien gehen nur über den Browser
-// (localStorage) an sprueche.html, die sie im Salon-Design zeichnet.
-// ════════════════════════════════════════════
-const KARUSSELL_ARTEN = ['titel', 'punkt', 'merken', 'abschluss'];
-// Startseiten-Kachel „Karussell“: Post-Tab öffnen, Knopf „Karussell erstellen“ direkt unter dem Themenfeld zeigen
-function karussellKachel() {
-  showTab_direct('screen-post');
-  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', /showTab\('post'\)/.test(t.getAttribute('onclick') || '')));
-  const feld = document.getElementById('post-moment');
-  if (!feld.value.trim()) feld.placeholder = 'Worum geht es? z. B. „3 Fehler beim Föhnen“ oder „Warum Blond gelb wird“';
-  document.getElementById('karussell-direkt').style.display = '';
-  document.getElementById('karussell-direkt-status').textContent = 'Thema eintippen — Wörni macht daraus die Folien. Tonalität und Kanal darunter brauchst du dafür nicht.';
-  postCheck();
-  setTimeout(() => feld.focus(), 150);
-}
-// direkt = true: aus dem Thema allein, ohne vorher einen Post zu schreiben
-async function postZuKarussell(direkt) {
-  const m = document.getElementById('post-moment').value.trim();
-  const el = document.getElementById('post-text-main');
-  const post = direkt ? '' : (el?.innerText || el?.textContent || '').trim();
-  if(m.length < 5 && !post) return;
-  const vorher = direkt ? null : letzterPost;
-  const kontext = vorher?.kontext || SEL.postkontext || 'salon';
-  const mitAdresse = vorher ? !!vorher.mitAdresse : kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
-  const btn = document.getElementById(direkt ? 'btn-karussell-direkt' : 'btn-karussell');
-  const status = document.getElementById(direkt ? 'karussell-direkt-status' : 'karussell-status');
-  const knopfText = btn.textContent;
-  btn.disabled = true;
-  btn.textContent = '✦ Wörni baut das Karussell …';
-  status.style.color = '';
-  status.textContent = 'Das kann bis zu einer Minute dauern.';
-
-  const hn = kontext === 'haarnetzwerk';
-  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
-
-${kontextTeil(kontext)}
-
-${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, keine Marketing-Floskeln.
-
-${reichweiteTeil(kontext)}
-
-AUFGABE: Schreib KEINEN normalen Post. Mach aus dem Thema ein Instagram-Karussell (mehrere Bilder in einem Post, man wischt von Folie zu Folie). Ein gutes Karussell bringt Wissen, das man sich speichern oder weiterschicken will.
-
-AUFBAU (insgesamt 5 bis 7 Folien, in dieser Reihenfolge):
-1. Eine Folie "titel": macht neugierig und sagt klar, worum es geht, z. B. "3 Fehler beim Föhnen" / "die fast alle machen." Keine Frage, die man mit Ja/Nein beantworten kann.
-2. 3 bis 4 Folien "punkt": genau ein Gedanke pro Folie. Die Nummer zeichnet die App selbst, schreib keine Ziffer an den Anfang.
-3. Optional 1 Folie "merken": der wichtigste Gedanke in einem Satz zum Merken.
-4. Eine Folie "abschluss": Wähle die Aufforderung passend zum Thema:
-   - Tipp/Wissen zum Nachmachen → zum Speichern einladen ("Speicher dir das für deinen nächsten Föhn-Tag.")
-   - Thema, zu dem Leute eigene Erfahrungen haben → eine Frage für die Kommentare
-   - Leistung, für die man zu uns kommen muss → ${hn ? 'zum nächsten Haarnetzwerk-Treffen einladen' : 'Termin vereinbaren (Telefon 01 586 31 30 darf hier im kleinen Text stehen)'}
-   Wähle genau eine davon.
-
-JEDE FOLIE HAT DREI TEILE, getrennt durch " | ":
-- Hauptzeile, groß und fett. Höchstens 6 Wörter.
-- Fortsetzung in Gold, kursiv. Höchstens 6 Wörter. Darf leer sein.
-- Kleiner Text darunter: 1 bis 2 kurze, vollständige Sätze, höchstens 140 Zeichen. Bei der Titel-Folie leer oder ein kurzer Satz.
-Kein Emoji, keine Hashtags und keine Ausrufezeichen auf den Folien. "Du"-Form. Erfinde keine Fakten; bleib bei dem, was zum Thema sicher stimmt.
-
-BILDTEXT (für unter den Post): 2 bis 3 kurze Absätze in ${stimmeLabel(kontext)}, "du"-Form, der erste Satz macht neugierig aufs Wischen, höchstens 2 Emoji, keine Adresse und keine Telefonnummer. Die letzte Zeile ist "${unterschriftFuer(kontext)}".
-
-ANTWORTE GENAU IN DIESEM FORMAT, jede Folie in einer eigenen Zeile, ohne Text davor oder danach und ohne Markdown:
-TITEL: Hauptzeile | Fortsetzung | kleiner Text
-PUNKT: Hauptzeile | Fortsetzung | kleiner Text
-PUNKT: Hauptzeile | Fortsetzung | kleiner Text
-PUNKT: Hauptzeile | Fortsetzung | kleiner Text
-MERKEN: Hauptzeile | Fortsetzung | kleiner Text
-SCHLUSS: Hauptzeile | Fortsetzung | kleiner Text
-BILDTEXT:
-(der Bildtext, mehrere Zeilen erlaubt)
-HASHTAGS: 3 bis 5 Hashtags, ${hn ? 'immer mit #Haarnetzwerk' : 'immer mit #GreatHairDay #Wien'}
-(MERKEN ist optional, PUNKT 3- bis 4-mal.)`;
-
-  const userText = `Thema: ${m || '(siehe Post)'}${post ? `\n\nDazu geschriebener Post (als Material, nicht wörtlich übernehmen):\n${post}` : ''}`;
-
-  // Wörnis Antwort lesen. Bevorzugt das Zeilenformat (TITEL:/PUNKT:/…), sonst JSON,
-  // und als Notlösung Absätze: so entstehen Folien, auch wenn Wörni sich nicht genau ans Format hält.
-  const ARTEN_ZEILE = { titel:'titel', punkt:'punkt', merken:'merken', schluss:'abschluss', abschluss:'abschluss' };
-  const jsonLesen = raw => {
-    const clean = String(raw || '').replace(/```[a-z]*|```/g, '').replace(/\*\*/g, '').trim();
-    // 1. Stichwort-Format. Nicht auf Zeilenumbrüche verlassen (die kamen am Handy teils nicht an):
-    //    an den Stichwörtern TITEL:, PUNKT:, … zerlegen, egal ob sie in eigenen Zeilen stehen.
-    //    Zuerst nur GROSS geschriebene Stichwörter (damit „Punkt:“ im Bildtext nicht stört), sonst beliebig.
-    const zerlegen = re => {
-      const treffer = [...clean.matchAll(re)];
-      const folien = [];
-      let caption = '', hashtags = '';
-      treffer.forEach((t, i) => {
-        const inhalt = clean.slice(t.index + t[0].length, i + 1 < treffer.length ? treffer[i + 1].index : clean.length).trim();
-        const art = t[1].toLowerCase();
-        if(art === 'bildtext') caption = inhalt;
-        else if(art === 'hashtags') hashtags = inhalt.replace(/\s+/g, ' ');
-        else {
-          // Aufzählungszeichen/Nummer vor dem nächsten Stichwort gehören nicht zum Text
-          const [a = '', b = '', c = ''] = inhalt.replace(/\s*(?:\d+[.)]|[-•*])\s*$/, '').split('|');
-          folien.push({ art: ARTEN_ZEILE[art], a, b, c });
-        }
-      });
-      return { folien, caption, hashtags };
-    };
-    for(const re of [/\b(TITEL|PUNKT|MERKEN|SCHLUSS|ABSCHLUSS|BILDTEXT|HASHTAGS)\s*\d*\s*:/g,
-                     /\b(titel|punkt|merken|schluss|abschluss|bildtext|hashtags)\s*\d*\s*:/gi]) {
-      const r = zerlegen(re);
-      if(r.folien.length >= 3) return r;
-    }
-    // 2. JSON (falls Wörni doch JSON schreibt)
-    const von = clean.indexOf('{'), bis = clean.lastIndexOf('}');
-    if(von >= 0 && bis > von) { try { return JSON.parse(clean.slice(von, bis + 1)); } catch(e) {} }
-    // 3. Notlösung: jeder Absatz eine Folie (Aufzählungszeichen und „Folie 2:“ weg)
-    const absaetze = clean.split(/\n\s*\n/).map(x => x.replace(/^\s*(?:[-•*]|\d+[.)]|folie\s*\d+\s*:)\s*/i, '').replace(/\s+/g, ' ').trim()).filter(Boolean);
-    if(absaetze.length >= 3) return { folien: absaetze.slice(0, 7).map(t => { const a = t.length > 60 ? ((t.match(/^[^.!?…]+[.!?…]/) || [t])[0]) : t, b = ''; return { art: 'punkt', a, b, c: a === t ? '' : t.slice(a.length).trim() }; }), caption: '', hashtags: '' };
-    throw new Error('Format nicht erkannt. Anfang der Antwort: „' + clean.slice(0, 120) + '“');
-  };
-  let ergebnis = null, antwortKam = false;
-  // Bis zu zwei Versuche: eine unlesbare oder fehlende Antwort klappt beim zweiten Mal meist
-  for(let versuch = 0; versuch < 2 && !ergebnis; versuch++) {
-  if(versuch) { status.textContent = 'Wörni versucht es nochmal …'; await new Promise(r => setTimeout(r, 1500)); }
-  try {
-    // Großzügiges Limit: Wörni denkt vor dem Schreiben nach, und das zählt mit.
-    // Mit 2500 war das Limit manchmal schon vom Nachdenken aufgebraucht — dann kam gar kein Text.
-    const raw = await claudeAnfrage(system, userText, 8000);
-    if(raw) {
-      antwortKam = true;
-      const obj = jsonLesen(raw);
-      const text = v => typeof v === 'string' ? v.replace(/\s+/g, ' ').trim() : '';
-      let folien = (Array.isArray(obj.folien) ? obj.folien : [])
-        .map(f => ({ art: KARUSSELL_ARTEN.includes(f?.art) ? f.art : 'punkt', a: text(f?.a), b: text(f?.b), c: text(f?.c) }))
-        .filter(f => f.a || f.b || f.c)
-        .slice(0, 7);
-      if(folien.length >= 3) {
-        folien[0].art = 'titel';
-        folien[folien.length - 1].art = 'abschluss';
-        // Hashtags ans Ende hängen: postAbschliessen setzt sie hinter die Unterschrift und vor die Adresszeile
-        // Unterschrift am Ende (auch ohne eigene Zeile) weg — postAbschliessen setzt sie wieder, genau einmal
-        const roh = typeof obj.caption === 'string' ? obj.caption.trim().replace(/\s*(?:mirjam(?: walenta)?|euer haarnetzwerk)\.?\s*$/i, '').trim() : '';
-        const caption = roh ? postAbschliessen(roh + (text(obj.hashtags) ? '\n\n' + text(obj.hashtags) : ''), mitAdresse, unterschriftFuer(kontext)) : '';
-        ergebnis = { folien, caption, kontext };
-      } else letzterKIFehler = 'Wörni hat zu wenige Folien geliefert (' + folien.length + ').';
-    }
-  } catch(e) {
-    letzterKIFehler = 'Antwort konnte nicht gelesen werden: ' + (e?.message || e);
-  }
-  }
-
-  btn.disabled = false;
-  btn.textContent = knopfText;
-  if(!ergebnis) {
-    // Deutlich zeigen, nicht nur als kleiner grauer Text
-    status.style.color = '#9B2C2C';
-    status.textContent = (antwortKam
-      ? 'Wörni hat geantwortet, aber daraus konnten keine Folien gebaut werden. Bitte nochmal auf den Karussell-Knopf tippen.'
-      : 'Wörni ist gerade nicht erreichbar — bitte gleich nochmal versuchen.')
-      + (letzterKIFehler ? ' (Technischer Hinweis: ' + letzterKIFehler + ')' : '');
-    status.scrollIntoView({ behavior: 'smooth', block: 'center' });
-    return;
-  }
-  status.style.color = '';
-  status.textContent = 'Folien fertig — sie öffnen sich gleich …';
-  try { localStorage.setItem('ghd_karussell_neu', JSON.stringify(ergebnis)); }
-  catch(e) { status.textContent = 'Das Karussell konnte im Browser nicht zwischengespeichert werden (privater Modus?).'; return; }
-  // Zeitstempel in der Adresse: der Browser lädt sprueche.html dann sicher frisch statt aus dem Zwischenspeicher
-  location.href = 'sprueche.html?karussell=1&t=' + Date.now();
 }
 
 // ════════════════════════════════════════════

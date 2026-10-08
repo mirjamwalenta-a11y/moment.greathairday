@@ -1,0 +1,532 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F5F0EA">
+<title>Recruiting-Cockpit — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Farben und Schriften wie bewerber-vorlagen.html / fit-check.html */
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--accent:#1C1B19;--gold:#8A7346;--gold-light:#EFE6D4;
+  --red:#a13a3a;--red-light:#f8ecec;--ok:#2E5D4B;--ok-light:#e6efe9;
+  --serif:'Playfair Display',Georgia,serif;--f:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;display:flex;flex-direction:column;min-height:100vh;padding-bottom:60px;}
+.topbar{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.zurueck{font-size:12px;color:var(--sub);text-decoration:none;display:inline-block;margin-bottom:6px;}
+.wordmark{font-family:var(--serif);font-size:20px;font-weight:700;}
+.subtitle{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:86px;z-index:19;}
+.tab{flex:1;padding:12px 4px;font-size:12.5px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;}
+.tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+.tab .zahl{display:inline-block;min-width:17px;padding:0 5px;border-radius:9px;background:var(--red);color:#fff;font-size:10.5px;line-height:17px;margin-left:4px;}
+.screen{display:none;flex-direction:column;padding:18px 16px 40px;gap:12px;}
+.screen.active{display:flex;}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.card-title{font-size:15px;font-weight:700;line-height:1.3;}
+.card-sub{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;}
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
+.hinweis.rot{background:var(--red-light);border-left-color:var(--red);color:var(--red);}
+.leer{text-align:center;color:var(--sub);font-size:13px;line-height:1.55;padding:22px 10px;}
+.abschnitt{font-size:11px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--sub);margin-top:6px;}
+.knoepfe{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap;}
+.btn{flex:1;padding:12px;background:var(--accent);color:#fff;font-family:var(--f);font-size:14px;font-weight:600;border:none;border-radius:12px;cursor:pointer;text-align:center;text-decoration:none;white-space:nowrap;}
+.btn-ghost{flex:1;background:none;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:13.5px;font-weight:500;color:var(--ink);cursor:pointer;font-family:var(--f);text-align:center;text-decoration:none;white-space:nowrap;}
+.btn-klein{background:none;border:none;font-size:12px;color:var(--sub);cursor:pointer;font-family:var(--f);text-decoration:underline;padding:4px 0;}
+.input-wrap{display:flex;flex-direction:column;gap:5px;margin-top:10px;}
+.input-label{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
+input[type=text],input[type=tel],textarea,select{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;}
+textarea{resize:none;min-height:60px;line-height:1.45;}
+input:focus,textarea:focus,select:focus{border-color:var(--accent);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chip{padding:7px 12px;border-radius:20px;background:var(--surface);border:1px solid var(--line);color:var(--ink);font-size:12.5px;font-weight:500;cursor:pointer;font-family:var(--f);}
+.chip.on{background:var(--accent);border-color:var(--accent);color:var(--bg);}
+.vorlage{background:var(--bg);border-radius:10px;padding:11px;font-size:13px;line-height:1.5;white-space:pre-wrap;margin-top:10px;}
+
+.aufgabe{display:flex;gap:12px;align-items:flex-start;}
+.haken{width:26px;height:26px;border-radius:50%;border:2px solid var(--gold);background:none;flex-shrink:0;cursor:pointer;margin-top:1px;font-size:14px;color:#fff;display:flex;align-items:center;justify-content:center;}
+.haken.on{background:var(--ok);border-color:var(--ok);}
+.aufgabe.fertig .card-title{text-decoration:line-through;color:var(--sub);}
+
+.person-kopf{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;}
+.person-name{font-size:15px;font-weight:700;}
+.person-meta{font-size:12px;color:var(--sub);margin-top:2px;}
+.status-badge{font-size:10.5px;font-weight:700;padding:4px 9px;border-radius:20px;text-transform:uppercase;letter-spacing:.3px;white-space:nowrap;color:#fff;}
+.marke{font-size:12.5px;font-weight:600;border-radius:8px;padding:7px 10px;margin-top:10px;}
+.marke.rot{background:var(--red-light);color:var(--red);}
+.marke.gelb{background:var(--gold-light);color:#6b5527;}
+.notiz{font-size:13px;color:var(--ink);margin-top:8px;line-height:1.45;white-space:pre-wrap;}
+.zeile-zwei{display:flex;gap:8px;margin-top:10px;}
+.zeile-zwei select{flex:1;font-size:13.5px;padding:9px 10px;}
+.statistik{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px;}
+.stat{font-size:12px;background:var(--bg);border-radius:20px;padding:5px 10px;}
+.stat b{color:var(--gold);}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--sub);list-style:none;}
+details summary::-webkit-details-marker{display:none;}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="zurueck" href="index.html?zeige=recruiting">← Zurück zu Moment</a>
+    <div class="wordmark">Recruiting-Cockpit</div>
+    <div class="subtitle">Jede Woche ein paar Schritte. Niemanden verlieren, der sich meldet.</div>
+  </div>
+  <div class="tabnav">
+    <button class="tab active" data-tab="woche" onclick="zeigeTab('woche')">Diese Woche</button>
+    <button class="tab" data-tab="bewerber" onclick="zeigeTab('bewerber')">Bewerber:innen</button>
+    <button class="tab" data-tab="kontakte" onclick="zeigeTab('kontakte')">Kontakte</button>
+  </div>
+
+  <!-- ══ DIESE WOCHE ══ -->
+  <div class="screen active" id="tab-woche">
+    <div id="woche-warten"></div>
+    <div id="woche-liste"></div>
+    <div id="woche-mehr"></div>
+    <div class="hinweis" style="margin-top:6px;">
+      <strong>So funktioniert's:</strong> Jede Woche bekommst du höchstens 4 Aufgaben, die gerade dran sind. Sind sie erledigt, ist die Woche geschafft. Jede Aufgabe kommt erst nach ihrem Rhythmus wieder (z. B. AMS alle 4 Wochen, Schulen alle 2 Wochen im Schuljahr). „Diese Woche nicht“ schiebt eine Aufgabe um 7 Tage.
+    </div>
+  </div>
+
+  <!-- ══ BEWERBER:INNEN ══ -->
+  <div class="screen" id="tab-bewerber">
+    <div id="loesch-hinweis"></div>
+    <details class="card" id="neu-bewerber">
+      <summary>＋ Neue Bewerbung eintragen</summary>
+      <div class="input-wrap">
+        <label class="input-label" for="b-name">Name</label>
+        <input type="text" id="b-name" placeholder="Vorname reicht" autocomplete="off">
+      </div>
+      <div class="input-wrap">
+        <label class="input-label" for="b-tel">Telefon / WhatsApp</label>
+        <input type="tel" id="b-tel" placeholder="z. B. 0664 …" autocomplete="off">
+      </div>
+      <div class="input-wrap">
+        <span class="input-label">Wofür?</span>
+        <div class="chips" id="b-rolle"></div>
+      </div>
+      <div class="input-wrap">
+        <span class="input-label">Woher?</span>
+        <div class="chips" id="b-quelle"></div>
+      </div>
+      <div class="input-wrap">
+        <label class="input-label" for="b-notiz">Notiz (optional)</label>
+        <textarea id="b-notiz" placeholder="z. B. Poly-Schülerin, will im Sommer anfangen"></textarea>
+      </div>
+      <div class="knoepfe"><button class="btn" onclick="bewerberSpeichern()">Speichern</button></div>
+    </details>
+
+    <div class="chips" id="b-filter"></div>
+    <div id="bewerber-liste"></div>
+
+    <div class="card">
+      <div class="card-tag">Woher kommen die Bewerbungen?</div>
+      <div class="statistik" id="b-statistik"></div>
+    </div>
+  </div>
+
+  <!-- ══ KONTAKTE ══ -->
+  <div class="screen" id="tab-kontakte">
+    <div class="card-sub" style="margin-top:0;">Alle, über die du Leute finden kannst: Schulen, AMS, Innung, Facebook-Gruppen, Menschen aus deinem Netzwerk. Wer lange nichts von dir gehört hat, steht oben.</div>
+    <details class="card" id="neu-kontakt">
+      <summary>＋ Kontakt hinzufügen</summary>
+      <div class="input-wrap">
+        <span class="input-label">Art</span>
+        <div class="chips" id="k-art"></div>
+      </div>
+      <div class="input-wrap">
+        <label class="input-label" for="k-name">Name</label>
+        <input type="text" id="k-name" placeholder="z. B. Polytechnische Schule … / Frau … (AMS)" autocomplete="off">
+      </div>
+      <div class="input-wrap">
+        <label class="input-label" for="k-tel">Telefon oder Link</label>
+        <input type="text" id="k-tel" placeholder="Telefonnummer, E-Mail oder Link zur Gruppe" autocomplete="off">
+      </div>
+      <div class="input-wrap">
+        <label class="input-label" for="k-notiz">Notiz (optional)</label>
+        <textarea id="k-notiz" placeholder="z. B. Ansprechperson Berufsorientierung, Schnuppertage im Februar"></textarea>
+      </div>
+      <div class="knoepfe"><button class="btn" onclick="kontaktSpeichern()">Speichern</button></div>
+    </details>
+    <div id="kontakte-liste"></div>
+
+    <div class="abschnitt">Daten sichern</div>
+    <div class="card">
+      <div class="card-sub" style="margin-top:0;">Alles hier ist nur auf diesem Handy gespeichert. Wenn du den Browser-Verlauf löschst oder das Handy wechselst, ist es weg. Darum ab und zu eine Sicherung speichern.</div>
+      <div class="knoepfe">
+        <button class="btn-ghost" onclick="sichern()">⬇ Sicherung speichern</button>
+        <label class="btn-ghost" style="cursor:pointer;">⬆ Wiederherstellen<input type="file" accept="application/json" style="display:none;" onchange="wiederherstellen(this)"></label>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="bewerber-texte.js"></script>
+<script src="recruiting-daten.js"></script>
+<script>
+const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const neueId = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+const auswahl = { rolle: RC_ROLLEN[0], quelle: 'Formular', art: RC_KONTAKT_ARTEN[0].id, filter: 'aktiv' };
+
+function zeigeTab(name) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.toggle('active', s.id === 'tab-' + name));
+  document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.dataset.tab === name));
+  if (location.hash.slice(1) !== name) history.replaceState(null, '', '#' + name);
+  window.scrollTo(0, 0);
+}
+
+// Auswahl-Chips: merkt sich pro Container Werte, Feld und optionale Folge-Funktion
+const CHIP_GRUPPEN = {};
+function chips(containerId, werte, feld, nachher) {
+  CHIP_GRUPPEN[containerId] = { werte, feld, nachher };
+  document.getElementById(containerId).innerHTML = werte.map(w => {
+    const id = typeof w === 'string' ? w : w.id, label = typeof w === 'string' ? w : w.label;
+    return `<button class="chip${auswahl[feld] === id ? ' on' : ''}" onclick="chipWahl('${containerId}', '${esc(id)}')">${esc(label)}</button>`;
+  }).join('');
+}
+function chipWahl(containerId, id) {
+  const g = CHIP_GRUPPEN[containerId];
+  auswahl[g.feld] = id;
+  if (g.nachher) window[g.nachher]();
+  else chips(containerId, g.werte, g.feld);
+}
+
+function bestaetige(btn, text = '✓ Kopiert!') {
+  const orig = btn.innerHTML;
+  btn.innerHTML = text;
+  setTimeout(() => { btn.innerHTML = orig; }, 2000);
+}
+
+// ══ DIESE WOCHE ══
+function renderWoche() {
+  const { erledigt, offen, weitere } = rcWochenAufgaben();
+  const zeigen = [...erledigt, ...offen];
+
+  const warten = rcLade('bewerber', []).filter(b => { const h = rcBewerberHinweis(b); return h && h.stufe === 'rot'; });
+  document.getElementById('woche-warten').innerHTML = warten.length
+    ? `<div class="hinweis rot" style="cursor:pointer;" onclick="zeigeTab('bewerber')"><strong>${warten.length === 1 ? '1 Person wartet' : warten.length + ' Personen warten'} auf deine Antwort:</strong> ${warten.map(b => esc(b.name)).join(', ')}. Das ist heute das Wichtigste →</div>`
+    : '';
+
+  const karte = (a, fertig) => `<div class="card aufgabe${fertig ? ' fertig' : ''}" style="margin-bottom:12px;">
+      <button class="haken${fertig ? ' on' : ''}" aria-label="${fertig ? 'Doch nicht erledigt' : 'Erledigt'}" onclick="aufgabeErledigt('${a.id}', ${!fertig})">${fertig ? '✓' : ''}</button>
+      <div style="flex:1;min-width:0;">
+        <div class="card-title">${esc(a.titel)}</div>
+        ${fertig ? '' : `<div class="card-sub">${esc(a.text)}</div>
+        ${a.kopieren ? `<div class="vorlage" id="kopie-${a.id}">${esc(a.kopieren)}</div>` : ''}
+        <div class="knoepfe">
+          ${a.link ? `<a class="btn-ghost" href="${esc(a.link.href)}"${a.link.href.startsWith('http') ? ' target="_blank" rel="noopener"' : ''}${a.link.href.startsWith('#') ? ` onclick="zeigeTab('${a.link.href.slice(1)}');return false;"` : ''}>${esc(a.link.label)}</a>` : ''}
+          ${a.kopieren ? `<button class="btn-ghost" onclick="navigator.clipboard.writeText(document.getElementById('kopie-${a.id}').innerText).then(()=>bestaetige(this))">📋 Kopieren</button>` : ''}
+        </div>
+        <button class="btn-klein" onclick="aufgabeSpaeter('${a.id}')">Diese Woche nicht</button>`}
+      </div>
+    </div>`;
+
+  const fortschritt = zeigen.length
+    ? `<div class="abschnitt" style="margin:0 0 8px;">${erledigt.length} von ${zeigen.length} erledigt</div>` : '';
+  document.getElementById('woche-liste').innerHTML = fortschritt + (offen.length
+    ? offen.map(a => karte(a, false)).join('')
+    : `<div class="card leer" style="margin-bottom:12px;">🎉 Für diese Woche ist alles erledigt.<br>Ab Montag kommen die nächsten Aufgaben.</div>`)
+    + erledigt.map(a => karte(a, true)).join('');
+
+  document.getElementById('woche-mehr').innerHTML = weitere > 0 && offen.length
+    ? `<div class="card-sub" style="text-align:center;margin-top:0;">${weitere === 1 ? '1 weitere Aufgabe kommt' : weitere + ' weitere Aufgaben kommen'} in den nächsten Wochen dran.</div>` : '';
+  renderZahlen();
+}
+
+function aufgabeErledigt(id, an) {
+  const stand = rcLade('aufgaben', {});
+  stand[id] = stand[id] || {};
+  if (an) { stand[id].vorher = stand[id].erledigt || null; stand[id].erledigt = rcHeute(); }
+  else { stand[id].erledigt = stand[id].vorher || null; }
+  rcSpeichere('aufgaben', stand);
+  renderWoche();
+}
+
+function aufgabeSpaeter(id) {
+  const stand = rcLade('aufgaben', {});
+  stand[id] = { ...(stand[id] || {}), spaeter: rcPlusTage(7) };
+  rcSpeichere('aufgaben', stand);
+  renderWoche();
+}
+
+// ══ BEWERBER:INNEN ══
+function bewerberSpeichern() {
+  const name = document.getElementById('b-name').value.trim();
+  if (!name) { document.getElementById('b-name').focus(); return; }
+  const liste = rcLade('bewerber', []);
+  liste.unshift({
+    id: neueId(), name,
+    tel: document.getElementById('b-tel').value.trim(),
+    rolle: auswahl.rolle, quelle: auswahl.quelle,
+    notiz: document.getElementById('b-notiz').value.trim(),
+    status: 'neu', erstellt: rcHeute(), statusSeit: rcHeute()
+  });
+  rcSpeichere('bewerber', liste);
+  ['b-name', 'b-tel', 'b-notiz'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('neu-bewerber').open = false;
+  auswahl.filter = 'aktiv';
+  renderBewerber();
+}
+
+function bewerberAendern(id, felder) {
+  const liste = rcLade('bewerber', []).map(b => b.id === id ? { ...b, ...felder } : b);
+  rcSpeichere('bewerber', liste);
+  renderBewerber();
+}
+
+function bewerberStatus(id, status) {
+  bewerberAendern(id, { status, statusSeit: rcHeute() });
+}
+
+function bewerberNotiz(id) {
+  const b = rcLade('bewerber', []).find(x => x.id === id);
+  const neu = prompt('Notiz zu ' + b.name, b.notiz || '');
+  if (neu !== null) bewerberAendern(id, { notiz: neu.trim() });
+}
+
+function bewerberLoeschen(id) {
+  const b = rcLade('bewerber', []).find(x => x.id === id);
+  if (!confirm(`${b.name} endgültig löschen?`)) return;
+  rcSpeichere('bewerber', rcLade('bewerber', []).filter(x => x.id !== id));
+  renderBewerber();
+}
+
+function alteAbsagenLoeschen() {
+  const liste = rcLade('bewerber', []);
+  const alt = liste.filter(istAlteAbsage);
+  if (!confirm(`${alt.length} alte Absage${alt.length === 1 ? '' : 'n'} endgültig löschen?`)) return;
+  rcSpeichere('bewerber', liste.filter(b => !istAlteAbsage(b)));
+  renderBewerber();
+}
+
+function istAlteAbsage(b) {
+  return b.status === 'absage' && rcTageSeit(b.statusSeit) >= RC_LOESCHEN_NACH_TAGEN;
+}
+
+// Passende Vorlage je nach Stand
+function empfohleneVorlage(b) {
+  if (b.status === 'neu') return 'danke';
+  if (b.status === 'kontaktiert') {
+    if (rcTageSeit(b.statusSeit) >= 4) return 'nachfragen';
+    return b.rolle === 'Friseur:in' ? 'kennenlernen' : 'schnuppern';
+  }
+  if (b.status === 'termin') return 'nach-schnuppern';
+  if (b.status === 'absage') return 'absage';
+  return 'danke';
+}
+
+// Bei Einladungen vorher nach dem Termin fragen; Abbrechen lässt Platzhalter stehen
+function vorlagenText(vorlageId, name) {
+  const v = ANTWORTEN.find(a => a.id === vorlageId);
+  let text = v.text;
+  if (text.includes('{datum} um {uhrzeit}')) {
+    const termin = (prompt('Wann? z. B. „Dienstag, 14.10. um 9:00“') || '').trim();
+    text = text.replace('{datum} um {uhrzeit}', termin || '[Tag] um [Uhrzeit]');
+  }
+  return text.replaceAll('{name}', name).replaceAll('{datum}', '[Tag]').replaceAll('{uhrzeit}', '[Uhrzeit]').replaceAll('{link}', BEWERBUNG_LINK);
+}
+
+function whatsappSenden(id) {
+  const b = rcLade('bewerber', []).find(x => x.id === id);
+  const vorlage = document.getElementById('vorlage-' + id).value;
+  const text = vorlagenText(vorlage, b.name);
+  const nummer = rcWaNummer(b.tel);
+  window.open('https://wa.me/' + (nummer || '') + '?text=' + encodeURIComponent(text), '_blank', 'noopener');
+  // Nach der ersten Antwort gilt die Person als „gemeldet“
+  if (b.status === 'neu') bewerberStatus(id, 'kontaktiert');
+}
+
+function vorlageKopieren(id, btn) {
+  const b = rcLade('bewerber', []).find(x => x.id === id);
+  navigator.clipboard.writeText(vorlagenText(document.getElementById('vorlage-' + id).value, b.name)).then(() => bestaetige(btn));
+}
+
+function renderBewerber() {
+  const alle = rcLade('bewerber', []);
+  const aktiv = b => !['zusage', 'absage'].includes(b.status);
+  const filter = { aktiv: alle.filter(aktiv), alle, absage: alle.filter(b => b.status === 'absage') };
+  chips('b-rolle', RC_ROLLEN, 'rolle');
+  chips('b-quelle', RC_QUELLEN, 'quelle');
+  chips('b-filter', [
+    { id:'aktiv', label:`Offen (${filter.aktiv.length})` },
+    { id:'alle', label:`Alle (${alle.length})` },
+    { id:'absage', label:`Absagen (${filter.absage.length})` }
+  ], 'filter', 'renderBewerber');
+
+  const alt = alle.filter(istAlteAbsage);
+  document.getElementById('loesch-hinweis').innerHTML = alt.length
+    ? `<div class="hinweis">${alt.length} Absage${alt.length === 1 ? ' ist' : 'n sind'} älter als 6 Monate. Laut Datenschutz-Hinweis im Formular jetzt löschen. <button class="btn-klein" onclick="alteAbsagenLoeschen()">Jetzt löschen</button></div>` : '';
+
+  // Wer am dringendsten Antwort braucht, steht oben
+  const rang = b => { const h = rcBewerberHinweis(b); return h ? (h.stufe === 'rot' ? 0 : 1) : 2; };
+  const liste = [...filter[auswahl.filter]].sort((a, b) => rang(a) - rang(b));
+
+  document.getElementById('bewerber-liste').innerHTML = liste.length ? liste.map(b => {
+    const st = RC_STATUS.find(s => s.id === b.status) || RC_STATUS[0];
+    const h = rcBewerberHinweis(b);
+    const empf = empfohleneVorlage(b);
+    return `<div class="card" style="margin-bottom:12px;">
+      <div class="person-kopf">
+        <div>
+          <div class="person-name">${esc(b.name)}</div>
+          <div class="person-meta">${esc(b.rolle)} · über ${esc(b.quelle)} · seit ${new Date(b.erstellt).toLocaleDateString('de-AT')}</div>
+        </div>
+        <span class="status-badge" style="background:${st.farbe};">${esc(st.label)}</span>
+      </div>
+      ${h ? `<div class="marke ${h.stufe}">${h.stufe === 'rot' ? '⏰ ' : ''}${esc(h.text)}</div>` : ''}
+      ${b.notiz ? `<div class="notiz">${esc(b.notiz)}</div>` : ''}
+      <div class="input-wrap"><span class="input-label">Stand</span>
+        <div class="chips">${RC_STATUS.map(s => `<button class="chip${s.id === b.status ? ' on' : ''}" onclick="bewerberStatus('${b.id}','${s.id}')">${esc(s.label)}</button>`).join('')}</div>
+      </div>
+      <div class="zeile-zwei">
+        <select id="vorlage-${b.id}" aria-label="Nachricht">${ANTWORTEN.map(a => `<option value="${a.id}"${a.id === empf ? ' selected' : ''}>${esc(a.titel)}</option>`).join('')}</select>
+      </div>
+      <div class="knoepfe" style="margin-top:8px;">
+        ${b.tel ? `<a class="btn-ghost" href="tel:${esc(b.tel.replace(/\s/g, ''))}">📞 Anrufen</a>` : ''}
+        <button class="btn" onclick="whatsappSenden('${b.id}')">WhatsApp</button>
+        <button class="btn-ghost" onclick="vorlageKopieren('${b.id}', this)">📋</button>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;">
+        <button class="btn-klein" onclick="bewerberNotiz('${b.id}')">Notiz</button>
+        <button class="btn-klein" onclick="bewerberLoeschen('${b.id}')">Löschen</button>
+      </div>
+    </div>`;
+  }).join('') : `<div class="card leer">${auswahl.filter === 'aktiv'
+      ? 'Gerade wartet niemand.<br>Kommt eine Bewerbung (Tally-Mail, Anruf, DM), trag sie oben ein. Dann erinnert dich das Cockpit, rechtzeitig zu antworten.'
+      : 'Noch keine Einträge.'}</div>`;
+
+  // Statistik: Woher kamen die Bewerbungen?
+  const zaehl = {};
+  alle.forEach(b => { zaehl[b.quelle] = (zaehl[b.quelle] || 0) + 1; });
+  const eintraege = Object.entries(zaehl).sort((a, b) => b[1] - a[1]);
+  document.getElementById('b-statistik').innerHTML = eintraege.length
+    ? eintraege.map(([q, n]) => `<span class="stat">${esc(q)} <b>${n}</b></span>`).join('')
+    : '<span class="card-sub" style="margin:0;">Sobald Bewerbungen eingetragen sind, siehst du hier, welcher Weg am meisten bringt.</span>';
+  renderZahlen();
+}
+
+// ══ KONTAKTE ══
+function kontaktSpeichern() {
+  const name = document.getElementById('k-name').value.trim();
+  if (!name) { document.getElementById('k-name').focus(); return; }
+  const liste = rcLade('kontakte', []);
+  liste.push({
+    id: neueId(), art: auswahl.art, name,
+    tel: document.getElementById('k-tel').value.trim(),
+    notiz: document.getElementById('k-notiz').value.trim(),
+    zuletzt: null
+  });
+  rcSpeichere('kontakte', liste);
+  ['k-name', 'k-tel', 'k-notiz'].forEach(id => { document.getElementById(id).value = ''; });
+  document.getElementById('neu-kontakt').open = false;
+  renderKontakte();
+}
+
+function kontaktGemeldet(id) {
+  rcSpeichere('kontakte', rcLade('kontakte', []).map(k => k.id === id ? { ...k, zuletzt: rcHeute() } : k));
+  renderKontakte();
+}
+
+function kontaktLoeschen(id) {
+  const k = rcLade('kontakte', []).find(x => x.id === id);
+  if (!confirm(`${k.name} löschen?`)) return;
+  rcSpeichere('kontakte', rcLade('kontakte', []).filter(x => x.id !== id));
+  renderKontakte();
+}
+
+function kontaktAktion(k) {
+  const t = k.tel || '';
+  if (/^https?:\/\//.test(t)) return `<a class="btn-ghost" href="${esc(t)}" target="_blank" rel="noopener">Öffnen</a>`;
+  if (/@/.test(t)) return `<a class="btn-ghost" href="mailto:${esc(t)}">✉ E-Mail</a>`;
+  if (/\d{4,}/.test(t.replace(/\s/g, ''))) return `<a class="btn-ghost" href="tel:${esc(t.replace(/\s/g, ''))}">📞 Anrufen</a>`;
+  return '';
+}
+
+function renderKontakte() {
+  chips('k-art', RC_KONTAKT_ARTEN, 'art');
+  const kontakte = rcLade('kontakte', []).map(k => {
+    const art = RC_KONTAKT_ARTEN.find(a => a.id === k.art) || RC_KONTAKT_ARTEN.at(-1);
+    const seit = rcTageSeit(k.zuletzt);
+    return { ...k, artLabel: art.label, seit, faellig: seit >= art.intervall };
+  }).sort((a, b) => (b.faellig - a.faellig) || (b.seit - a.seit));
+
+  document.getElementById('kontakte-liste').innerHTML = kontakte.length ? kontakte.map(k => `
+    <div class="card" style="margin-bottom:12px;">
+      <div class="person-kopf">
+        <div>
+          <div class="person-name">${esc(k.name)}</div>
+          <div class="person-meta">${esc(k.artLabel)}${k.tel ? ' · ' + esc(k.tel) : ''}</div>
+        </div>
+      </div>
+      <div class="marke ${k.faellig ? 'gelb' : ''}" style="${k.faellig ? '' : 'background:var(--ok-light);color:var(--ok);'}">
+        ${k.zuletzt ? (k.seit === 0 ? 'Heute gemeldet' : `Zuletzt gemeldet vor ${k.seit} Tagen`) : 'Noch nie gemeldet'}${k.faellig ? ' — wieder melden?' : ''}
+      </div>
+      ${k.notiz ? `<div class="notiz">${esc(k.notiz)}</div>` : ''}
+      <div class="knoepfe">
+        ${kontaktAktion(k)}
+        <button class="btn" onclick="kontaktGemeldet('${k.id}')">✓ Heute gemeldet</button>
+      </div>
+      <div style="text-align:right;margin-top:6px;"><button class="btn-klein" onclick="kontaktLoeschen('${k.id}')">Löschen</button></div>
+    </div>`).join('')
+    : `<div class="card leer">Noch keine Kontakte.<br>Guter Start: <strong>2 bis 3 Schulen</strong> in der Nähe (Mittelschulen, Polytechnische Schule), <strong>deine AMS-Betreuung</strong>, die <strong>Innung</strong> und <strong>1 bis 2 Facebook-Gruppen</strong> aus dem Bezirk.</div>`;
+}
+
+// ══ SICHERUNG ══
+function sichern() {
+  const daten = { version: 1, gesichert: rcHeute() };
+  Object.keys(RC_KEYS).forEach(k => { daten[k] = rcLade(k, k === 'aufgaben' ? {} : []); });
+  const blob = new Blob([JSON.stringify(daten, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `recruiting-sicherung-${rcHeute()}.json`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+function wiederherstellen(input) {
+  const datei = input.files[0];
+  if (!datei) return;
+  datei.text().then(text => {
+    const daten = JSON.parse(text);
+    if (!daten || daten.version !== 1) throw new Error('Unbekanntes Format');
+    if (!confirm('Die aktuellen Daten im Cockpit werden durch die Sicherung ersetzt. Weiter?')) return;
+    rcSpeichere('aufgaben', daten.aufgaben || {});
+    rcSpeichere('bewerber', Array.isArray(daten.bewerber) ? daten.bewerber : []);
+    rcSpeichere('kontakte', Array.isArray(daten.kontakte) ? daten.kontakte : []);
+    alles();
+    alert('Sicherung wiederhergestellt.');
+  }).catch(() => alert('Diese Datei ist keine Cockpit-Sicherung.'))
+    .finally(() => { input.value = ''; });
+}
+
+// Zahlen in den Tabs
+function renderZahlen() {
+  const z = rcZusammenfassung();
+  const setze = (tab, n) => {
+    const btn = document.querySelector(`.tab[data-tab="${tab}"]`);
+    btn.querySelector('.zahl')?.remove();
+    if (n > 0) btn.insertAdjacentHTML('beforeend', `<span class="zahl">${n}</span>`);
+  };
+  setze('woche', z.aufgaben);
+  setze('bewerber', z.warten);
+}
+
+function alles() {
+  renderWoche();
+  renderBewerber();
+  renderKontakte();
+}
+
+alles();
+const start = location.hash.slice(1);
+if (['woche', 'bewerber', 'kontakte'].includes(start)) zeigeTab(start);
+</script>
+</body>
+</html>

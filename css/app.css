@@ -1124,3 +1124,13 @@ textarea { resize: none; min-height: 76px; }
 .chip-select { background: var(--white); border: 1px solid var(--line); padding: 8px 13px; border-radius: 999px; }
 .chip-select.on { background: var(--black); border-color: var(--black); color: var(--bg); }
 .btn-main:disabled { background: #B5AFA6; }
+
+/* Recruiting-Cockpit: Hinweis auf der Startseite */
+.recruiting-start {
+  display: flex; justify-content: space-between; align-items: center; gap: 10px;
+  width: 100%; margin: 4px 0 18px; padding: 13px 16px;
+  background: var(--gold-pale); border: 1px solid var(--gold); border-radius: 14px;
+  font-family: var(--f); font-size: 13.5px; font-weight: 600; color: var(--black);
+  text-align: left; cursor: pointer;
+}
+.recruiting-start.dringend { background: #f8ecec; border-color: #a13a3a; color: #a13a3a; }

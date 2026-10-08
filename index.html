@@ -8,6 +8,7 @@
 <title>Reichweite – A Great Hair Day</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
 <script src="gehalt.js"></script>
+<script src="recruiting-daten.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
@@ -143,6 +144,8 @@ function tabnavScrollBy(direction) {
     </button>
   </div>
 
+  <div id="recruiting-start-wrap"></div>
+
   <!-- 3. Idee für heute (die bisherige Heute-Empfehlung) -->
   <p class="start-eyebrow">Idee für heute</p>
   <div id="heute-start-wrap"></div>
@@ -262,6 +265,12 @@ function tabnavScrollBy(direction) {
 <section class="screen" id="screen-zeigen">
   <p class="screen-eyebrow">Mitarbeiter:innen anziehen</p>
   <h2 class="screen-headline">Welcher Moment<br>passt gerade?</h2>
+  <div class="card" style="background:var(--black);color:#fff;cursor:pointer;" onclick="location.href='recruiting-cockpit.html'">
+    <div class="card-tag" style="color:var(--gold);">Recruiting-Cockpit</div>
+    <div class="card-title" style="color:#fff;">Diese Woche suchen</div>
+    <div class="card-body" style="color:rgba(255,255,255,.8);" id="recruiting-cockpit-status">Wochenaufgaben, Bewerber:innen und Kontakte an einem Ort.</div>
+    <button class="btn-main" style="margin-top:12px;background:var(--gold);">Cockpit öffnen →</button>
+  </div>
   <div class="anlass-intro">Wähle einen Moment — die App macht daraus sofort einen nutzbaren Text. Kein Inserat, kein Werbeton. Echter Einblick.</div>
   <div class="card" style="border-left:3px solid var(--gold);">
     <div class="card-tag">Bewerbungs-Link</div>
@@ -304,25 +313,35 @@ function tabnavScrollBy(direction) {
   <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:4px;">Ideen für Social Media</p>
   <div class="anlass-intro" style="margin-bottom:10px;">Formate, die bei Lehrlingen und Fachkräften gut ankommen. Gut als Serie: eine Idee pro Woche.</div>
   <div class="anlass-grid">
+    <div class="anlass-card" style="border-color:#c4a96a; background:var(--gold-pale);" onclick="generateOutput('naechster-lehrling')">
+      <div class="anlass-title">Wir suchen unseren nächsten Lehrling</div>
+      <div class="anlass-hint">Ehrlich sagen, wie es ist: Zum ersten Mal seit Jahren ist der Platz frei.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Story</span></div>
+    </div>
     <div class="anlass-card" onclick="generateOutput('lehrling-tag')">
-      <div class="anlass-title">Ein Tag als Lehrling bei uns</div>
-      <div class="anlass-hint">Vom Aufsperren bis zum letzten Kunden — am besten vom Lehrling selbst gefilmt.</div>
+      <div class="anlass-title">Ein Tag bei uns — als Lehrling würdest du …</div>
+      <div class="anlass-hint">Was ein Lehrling bei euch sehen, lernen und ausprobieren würde. Vom Team gefilmt.</div>
       <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">TikTok</span></div>
     </div>
-    <div class="anlass-card" onclick="generateOutput('frag-lehrlinge')">
-      <div class="anlass-title">Frag unsere Lehrlinge</div>
-      <div class="anlass-hint">Fragen sammeln, der Lehrling antwortet. Jugendliche glauben Gleichaltrigen.</div>
+    <div class="anlass-card" onclick="generateOutput('frag-team')">
+      <div class="anlass-title">Frag unser Team: Wie war eure Lehre?</div>
+      <div class="anlass-hint">Fragen sammeln, das Team antwortet ehrlich — auch über die eigene Lehrzeit.</div>
       <div class="anlass-format"><span class="format-chip">Story</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('lehre-matura')">
+      <div class="anlass-title">Lehre nach der Matura</div>
+      <div class="anlass-hint">Für alle, die nach der Schule etwas mit den Händen machen wollen.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Story</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('quereinstieg')">
+      <div class="anlass-title">Quereinstieg: Friseur:in mit 20, 30 oder 40</div>
+      <div class="anlass-hint">Für Menschen, die umsatteln wollen — eine oft übersehene Gruppe.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Facebook</span></div>
     </div>
     <div class="anlass-card" onclick="generateOutput('lehrling-gehalt')">
       <div class="anlass-title">Was verdient ein Lehrling?</div>
       <div class="anlass-hint">Die Frage, die sich alle stellen — offen beantwortet, mit den KV-Zahlen.</div>
       <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Story</span></div>
-    </div>
-    <div class="anlass-card" onclick="generateOutput('erster-erfolg')">
-      <div class="anlass-title">Ein erster großer Erfolg</div>
-      <div class="anlass-hint">Der erste eigene Haarschnitt, die erste Farbe allein — mit Vorher und Nachher.</div>
-      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Reel</span></div>
     </div>
     <div class="anlass-card" onclick="generateOutput('team-vorstellung')">
       <div class="anlass-title">Wer wir sind: eine Person aus dem Team</div>
@@ -1431,6 +1450,8 @@ function starteApp() {
   initHeuteTab();
   msSyncLogos();
   initRahmenSprueche();
+  // Rücksprung aus dem Recruiting-Cockpit: index.html?zeige=recruiting
+  if (new URLSearchParams(location.search).get('zeige') === 'recruiting') showScreen('screen-zeigen');
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -1516,6 +1537,7 @@ function showScreen(id) {
   screenHistory.push(id);
   const isStart = id === 'screen-start';
   if (isStart) renderHeute();
+  if (id === 'screen-zeigen') renderRecruitingHinweis();
   document.getElementById('backBtn').classList.toggle('visible', !isStart);
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
@@ -1661,21 +1683,45 @@ const outputs = {
     story_interaktion:'Frage-Sticker: „Überlegst du dir eine Ausbildung?" Ja / Noch nicht sicher',
     cta:'Schreib mir einfach eine Nachricht.', cta_kanal:'DM / 01 5863130'
   },
+  'naechster-lehrling': {
+    ziel:'recruiting', format:'Post + Story',
+    text:`Zum ersten Mal seit vielen Jahren haben wir gerade keinen Lehrling.\n\nDas fühlt sich ungewohnt an.\nDenn Ausbildung gehört für uns dazu wie Schere und Kamm.\n\nDarum suchen wir dich:\nJemanden, der Lust auf ein echtes Handwerk hat.\nDu musst noch nichts können. Wir zeigen dir alles.\n\n#lehrstellewien #friseurlehre #lehrlingwien #friseurwien`,
+    foto:'Der leere Arbeitsplatz des Lehrlings, ruhig und hell — oder ein Foto von dir mit Schere und Kamm in der Hand.',
+    tipp:'Auch auf Facebook posten: Dort lesen Eltern und Großeltern mit, die jemanden kennen. Bitte dein Team, den Post zu teilen.',
+    story_interaktion:'Teilen-Bitte in der Story: „Kennst du jemanden, der eine Lehrstelle sucht? Schick ihm das weiter."',
+    cta:'Kennst du jemanden? Schick es weiter — oder meld dich selbst.', cta_kanal:'Link in Bio / DM'
+  },
   'lehrling-tag': {
     ziel:'recruiting', format:'Reel / TikTok',
-    text:`Ein Tag als Lehrling bei uns. 💇\n\nAufsperren. Kaffee. Erste Kundin.\nZuschauen, mithelfen, selbst probieren.\nUnd am Abend ein bisschen stolz sein.\n\nSo fühlt sich Lernen bei uns an.\n\n#lehrstellewien #friseurlehre #lehrlingwien #friseurwien`,
-    foto:'6 bis 8 kurze Clips à 2 Sekunden, hochkant: Salon aufsperren · Kaffee · Arbeitsplatz vorbereiten · beim Föhnen zuschauen · selbst etwas machen (z. B. Waschen, Übungskopf) · Lachen im Team · Licht aus am Abend. Mit einem aktuellen Sound unterlegen.',
-    tipp:'Am besten filmt der Lehrling selbst, aus seiner Sicht. Wackelig und echt wirkt auf TikTok und Reels besser als perfekt.',
+    text:`Wenn du bei uns Lehrling wärst, würdest du …\n\n… in der Früh den Salon mit aufsperren.\n… zuschauen, wie ein Schnitt entsteht.\n… zum ersten Mal selbst waschen und föhnen.\n… lernen, wie man mit Menschen redet.\n… am Abend ein bisschen stolz nach Hause gehen.\n\nDer Platz ist frei. 💇\n\n#lehrstellewien #friseurlehre #lehrlingwien #friseurwien`,
+    foto:'6 bis 8 kurze Clips à 2 Sekunden, hochkant, aus Sicht eines Lehrlings gefilmt: Salon aufsperren · Kaffee · Arbeitsplatz vorbereiten · Hände beim Föhnen · Übungskopf · Lachen im Team · Licht aus am Abend. Zu jedem Clip eine Zeile aus dem Text einblenden.',
+    tipp:'Wackelig und echt wirkt auf TikTok und Reels besser als perfekt. Mit einem aktuellen Sound unterlegen.',
     story_interaktion:null,
     cta:'Lust auf so einen Tag? Komm schnuppern.', cta_kanal:'Link in Bio / DM'
   },
-  'frag-lehrlinge': {
+  'frag-team': {
     ziel:'recruiting', format:'Story-Serie',
-    text:`Frag unsere Lehrlinge! 🙋\n\nDu überlegst, Friseur:in zu werden?\nStell deine Frage — unsere Lehrlinge antworten ehrlich.\nAnonym, ohne Druck.`,
-    foto:'Story 1: Foto vom Lehrling am Arbeitsplatz mit Fragen-Sticker. Danach: jede Frage als eigene Story, die Antwort als kurzes Video des Lehrlings (10 bis 20 Sekunden).',
-    story_interaktion:'Fragen-Sticker: „Was willst du über die Friseurlehre wissen?" — Falls wenig kommt, selbst starten: „Ist die Berufsschule schwer?" · „Darf ich gleich schneiden?" · „Wie ist die Chefin wirklich?"',
+    text:`Frag unser Team! 🙋\n\nDu überlegst, Friseur:in zu werden?\nWir haben alle einmal als Lehrling angefangen.\nStell deine Frage — wir antworten ehrlich.\nAnonym, ohne Druck.`,
+    foto:'Story 1: Teamfoto mit Fragen-Sticker. Danach: jede Frage als eigene Story, die Antwort als kurzes Video (10 bis 20 Sekunden) von der Person, die am besten passt.',
+    story_interaktion:'Fragen-Sticker: „Was willst du über die Friseurlehre wissen?" — Falls wenig kommt, selbst starten: „Wie war dein erster Tag als Lehrling?" · „Ist die Berufsschule schwer?" · „Wann durftest du das erste Mal schneiden?"',
     tipp:'Die Antworten als Highlight „Lehre" speichern. So bleiben sie dauerhaft im Profil.',
     cta:'Noch Fragen? Schreib uns einfach.', cta_kanal:'DM / Link in Bio'
+  },
+  'lehre-matura': {
+    ziel:'recruiting', format:'Post + Story',
+    text:`Matura geschafft — und jetzt?\n\nNicht jede:r will an die Uni.\nManche wollen etwas mit den Händen machen. Mit Menschen. Etwas, das man am Ende des Tages sieht.\n\nEine Friseurlehre nach der Matura ist genau das.\nUnd sie kann oft verkürzt werden.\n\nWir bilden aus — in Wien-Margareten.\n\n#lehrenachmatura #friseurlehre #lehrstellewien`,
+    foto:'Hände bei einem präzisen Schnitt, Nahaufnahme — Handwerk, das man sieht.',
+    tipp:'Gut im Juni und Juli nach den Maturaprüfungen und im September, wenn die ersten merken, dass das Studium doch nicht passt. Ob und wie stark die Lehrzeit verkürzt wird, im Einzelfall bei der Lehrlingsstelle der WKO nachfragen.',
+    story_interaktion:'Umfrage-Sticker: „Nach der Matura: Uni oder Handwerk?"',
+    cta:'Interesse? Meld dich — auch wenn du noch unsicher bist.', cta_kanal:'Link in Bio / DM'
+  },
+  'quereinstieg': {
+    ziel:'recruiting', format:'Post (Facebook + Instagram)',
+    text:`Friseur:in werden — mit 20, 30 oder 40?\n\nJa, das geht.\nViele wissen nicht, dass man eine Lehre auch als Erwachsene:r machen kann.\nUnd manche merken erst im zweiten Beruf, was sie wirklich wollen.\n\nWenn du schon lange daran denkst: Lass uns reden.\nOhne Druck, ganz ehrlich.\n\n#quereinstieg #friseurwien #neustart`,
+    foto:'Ein ruhiges Foto von dir bei der Arbeit oder ein Bild vom Salon mit natürlichem Licht.',
+    tipp:'Besonders auf Facebook und in lokalen Gruppen posten. Das AMS kann eine Lehre für Erwachsene unter bestimmten Bedingungen fördern — frag bei deiner AMS-Betreuung nach, was möglich ist, bevor du es im Post versprichst.',
+    story_interaktion:null,
+    cta:'Lass uns reden: Link in der Bio oder einfach anrufen.', cta_kanal:'Link in Bio / DM / Telefon'
   },
   'lehrling-gehalt': {
     ziel:'recruiting', format:'Post + Story',
@@ -1684,14 +1730,6 @@ const outputs = {
     tipp:'Auch für Eltern interessant: auf Facebook teilen. Die Beträge kommen aus gehalt.js und werden bei der KV-Erhöhung im April dort angepasst.',
     story_interaktion:'Quiz-Sticker: „Was verdient ein Lehrling im 3. Jahr?" mit drei Beträgen zur Auswahl',
     cta:'Interesse an einer Lehrstelle? Meld dich.', cta_kanal:'Link in Bio / DM'
-  },
-  'erster-erfolg': {
-    ziel:'recruiting', format:'Post + Reel',
-    text:`Vor ein paar Monaten zum ersten Mal die Schere in der Hand.\nHeute: der erste eigene Haarschnitt. ✂️\n\nWir sind stolz.\nUnd die Kundin auch.\n\nGenau so wächst man bei uns: Schritt für Schritt, mit Begleitung.\n\n#friseurlehre #lehrlingwien #friseurwien`,
-    foto:'Vorher und Nachher der Kundin, dazu ein Foto oder kurzer Clip vom Lehrling mit dem Ergebnis. Im Reel: erst Übungskopf, dann Kundin.',
-    tipp:'Die Kundin vorher fragen, ob sie gezeigt werden darf. Zahl der Monate und Art der Arbeit an den echten Moment anpassen.',
-    story_interaktion:'Emoji-Slider: „Wie stolz wärst du auf deinen ersten Haarschnitt?" 😍',
-    cta:'Willst du das auch lernen? Komm schnuppern.', cta_kanal:'Link in Bio / DM'
   },
   'team-vorstellung': {
     ziel:'recruiting', format:'Post (Collab)',
@@ -4092,7 +4130,7 @@ function speichereKandidat(k) {
 // Zeigt bei Recruiting-Anlässen 1-3 echte, selbst gespeicherte Team-Zitate
 // vor. Keine erfundenen Texte — nur was hier manuell eingetragen wurde.
 const STIMMEN_KEY = 'ghd_team_stimmen';
-const LEHRLING_ANLAESSE = ['lernmoment','lehrling-alltag','lehrling-warum','lehrling-direkt','lehrling-tag','frag-lehrlinge','lehrling-gehalt','erster-erfolg','schnuppertag-einblick'];
+const LEHRLING_ANLAESSE = ['lernmoment','lehrling-alltag','lehrling-warum','lehrling-direkt','naechster-lehrling','lehrling-tag','frag-team','lehrling-gehalt','lehre-matura','quereinstieg','schnuppertag-einblick'];
 
 function ladeTeamStimmen() {
   try { return JSON.parse(localStorage.getItem(STIMMEN_KEY)) || []; } catch { return []; }
@@ -4555,7 +4593,24 @@ function heuteKandidaten(wahl) {
   return rest.length ? rest : [liste[liste.length - 1]];
 }
 
+// Recruiting-Cockpit: kurzer Hinweis auf der Startseite und im Mitarbeiter:innen-Screen
+function renderRecruitingHinweis() {
+  if (typeof rcZusammenfassung !== 'function') return;
+  const z = rcZusammenfassung();
+  const teile = [];
+  if (z.warten) teile.push(z.warten === 1 ? '1 Bewerbung wartet auf Antwort' : `${z.warten} Bewerbungen warten auf Antwort`);
+  if (z.aufgaben) teile.push(z.aufgaben === 1 ? '1 Aufgabe diese Woche' : `${z.aufgaben} Aufgaben diese Woche`);
+  const status = document.getElementById('recruiting-cockpit-status');
+  if (status && teile.length) status.textContent = teile.join(' · ');
+  const wrap = document.getElementById('recruiting-start-wrap');
+  if (!wrap) return;
+  wrap.innerHTML = teile.length ? `<button class="recruiting-start${z.warten ? ' dringend' : ''}" onclick="location.href='recruiting-cockpit.html${z.warten ? '#bewerber' : ''}'">
+      <span>👥 Recruiting: ${teile.join(' · ')}</span><span aria-hidden="true">→</span>
+    </button>` : '';
+}
+
 function renderHeute() {
+  renderRecruitingHinweis();
   const wahl = ladeHeuteCheckin();
   const datumEl = document.getElementById('heute-datum');
   if (datumEl) datumEl.textContent = new Date().toLocaleDateString('de-AT', { weekday: 'long', day: 'numeric', month: 'long' });

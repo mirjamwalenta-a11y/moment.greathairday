@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F5F0EA">
+<title>Bewerber-Vorlagen — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Farben und Schriften wie bewerbung-formular.html / fit-check.html */
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--accent:#1C1B19;--gold:#8A7346;--gold-light:#EFE6D4;
+  --serif:'Playfair Display',Georgia,serif;--f:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;display:flex;flex-direction:column;min-height:100vh;padding-bottom:60px;}
+.topbar{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.zurueck{font-size:12px;color:var(--sub);text-decoration:none;display:inline-block;margin-bottom:6px;}
+.wordmark{font-family:var(--serif);font-size:20px;font-weight:700;}
+.subtitle{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:86px;z-index:19;}
+.tab{flex:1;padding:12px 4px;font-size:12.5px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;}
+.tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+.screen{display:none;flex-direction:column;padding:18px 16px 40px;gap:14px;}
+.screen.active{display:flex;}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.card-title{font-size:15px;font-weight:700;line-height:1.3;}
+.card-sub{font-size:13px;color:var(--sub);margin-top:4px;line-height:1.5;}
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
+.felder{display:grid;grid-template-columns:1fr 1fr;gap:10px;}
+.felder .ganz{grid-column:1 / -1;}
+.input-wrap{display:flex;flex-direction:column;gap:5px;}
+.input-label{font-size:11px;font-weight:600;color:var(--gold);letter-spacing:.8px;text-transform:uppercase;}
+input[type=text]{background:var(--surface);border:1.5px solid var(--line);border-radius:10px;padding:11px 12px;font-family:var(--f);font-size:15px;color:var(--ink);outline:none;width:100%;}
+input:focus{border-color:var(--accent);}
+.vorlage{background:var(--bg);border-radius:10px;padding:12px;font-size:14px;line-height:1.55;white-space:pre-wrap;margin-top:10px;outline:none;}
+.vorlage:focus{box-shadow:0 0 0 1.5px var(--accent);}
+.knoepfe{display:flex;gap:8px;margin-top:10px;}
+.btn{flex:1;padding:12px;background:var(--accent);color:#fff;font-family:var(--f);font-size:14px;font-weight:600;border:none;border-radius:12px;cursor:pointer;text-align:center;text-decoration:none;}
+.btn-ghost{flex:1;background:none;border:1.5px solid var(--line);border-radius:12px;padding:11px;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:center;text-decoration:none;display:block;}
+ul.punkte{padding-left:18px;font-size:13.5px;line-height:1.6;}
+.wann{font-size:11.5px;color:var(--sub);font-style:italic;margin-top:2px;}
+
+/* Eltern-Infoblatt: am Handy als Karte, beim Drucken als A4-Seite */
+.blatt{background:#fff;border-radius:var(--r);padding:22px 20px;box-shadow:0 1px 8px rgba(0,0,0,.06);font-size:13.5px;line-height:1.55;}
+.blatt h1{font-family:var(--serif);font-size:22px;line-height:1.2;margin-bottom:4px;}
+.blatt .blatt-sub{color:var(--gold);font-weight:600;font-size:12px;letter-spacing:.6px;text-transform:uppercase;margin-bottom:14px;}
+.blatt h2{font-size:13px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.6px;margin:16px 0 4px;}
+.blatt ul{padding-left:18px;}
+.blatt [contenteditable]{outline:none;border-radius:6px;}
+.blatt [contenteditable]:focus{box-shadow:0 0 0 1.5px var(--gold);}
+.blatt-fuss{display:flex;gap:14px;align-items:center;margin-top:18px;padding-top:14px;border-top:1px solid var(--line);}
+.blatt-qr{width:96px;height:96px;flex-shrink:0;}
+.blatt-qr img{width:100%;height:100%;image-rendering:pixelated;}
+@media print{
+  @page{size:A4;margin:16mm;}
+  body{background:#fff;display:block;}
+  .phone{max-width:none;padding:0;}
+  .topbar,.tabnav,.screen>*:not(.blatt){display:none !important;}
+  .screen{display:none !important;padding:0;}
+  #tab-eltern{display:block !important;}
+  .blatt{box-shadow:none;padding:0;font-size:12pt;}
+  .blatt h1{font-size:24pt;}
+}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="zurueck" href="index.html">← Zurück zu Moment</a>
+    <div class="wordmark">Bewerber-Vorlagen</div>
+    <div class="subtitle">Schnell antworten, Schulen ansprechen, Eltern überzeugen.</div>
+  </div>
+  <div class="tabnav">
+    <button class="tab active" onclick="zeigeTab('antworten', this)">Antworten</button>
+    <button class="tab" onclick="zeigeTab('schulen', this)">Schulen</button>
+    <button class="tab" onclick="zeigeTab('eltern', this)">Eltern</button>
+  </div>
+
+  <!-- ══ ANTWORTEN ══ -->
+  <div class="screen active" id="tab-antworten">
+    <div class="hinweis">
+      <strong>Am wichtigsten ist Tempo:</strong> Innerhalb von 1 bis 2 Werktagen antworten. Gute Bewerber:innen haben oft mehrere Angebote, Jugendliche verlieren schnell das Interesse.
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Für die Nachricht</div>
+      <div class="felder">
+        <div class="input-wrap ganz">
+          <label class="input-label" for="f-name">Vorname</label>
+          <input type="text" id="f-name" placeholder="z. B. Lena" oninput="fuelleVorlagen()">
+        </div>
+        <div class="input-wrap">
+          <label class="input-label" for="f-datum">Tag</label>
+          <input type="text" id="f-datum" placeholder="z. B. Dienstag, 14.10." oninput="fuelleVorlagen()">
+        </div>
+        <div class="input-wrap">
+          <label class="input-label" for="f-uhrzeit">Uhrzeit</label>
+          <input type="text" id="f-uhrzeit" placeholder="z. B. 9:00" oninput="fuelleVorlagen()">
+        </div>
+      </div>
+    </div>
+
+    <div id="antwort-liste"></div>
+  </div>
+
+  <!-- ══ SCHULEN ══ -->
+  <div class="screen" id="tab-schulen">
+    <div class="card">
+      <div class="card-tag">Warum Schulen?</div>
+      <div class="card-sub">Die meisten Jugendlichen finden ihre Lehrstelle über einen Schnuppertag. Wer bei den Schulen in der Nähe bekannt ist, wird von den Lehrkräften für Berufsorientierung empfohlen.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Wen anschreiben?</div>
+      <ul class="punkte">
+        <li>Polytechnische Schulen und Mittelschulen im 5. Bezirk und in den Nachbarbezirken</li>
+        <li>Adressat: die Lehrkraft für Berufsorientierung (am Telefon im Sekretariat nach dem Namen fragen) oder die Direktion</li>
+        <li>Am besten zu Schulbeginn im Herbst, wenn die Schulen ihre Schnuppertage planen, und noch einmal nach den Semesterferien</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">E-Mail an die Schule</div>
+      <div class="input-wrap" style="margin-top:6px;">
+        <label class="input-label" for="f-schule">Name der Schule (optional)</label>
+        <input type="text" id="f-schule" placeholder="z. B. Polytechnische Schule …" oninput="fuelleSchule()">
+      </div>
+      <div class="vorlage" id="schul-betreff" contenteditable="true"></div>
+      <div class="vorlage" id="schul-mail" contenteditable="true"></div>
+      <div class="knoepfe">
+        <button class="btn" onclick="kopiereText(['schul-betreff','schul-mail'], this)">📋 Betreff + Text kopieren</button>
+      </div>
+      <div class="wann">Vor dem Senden die Stellen in [eckigen Klammern] ausfüllen.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Aushang für die Schule</div>
+      <div class="card-sub">Ein A4-Plakat mit QR-Code zu deinem Bewerbungsformular. Zum Mitschicken mit der E-Mail oder zum Abgeben im Sekretariat.</div>
+      <div class="card-sub"><strong>So geht's:</strong> In „Aktion &amp; Aushang“ einen Spruch aus der Kategorie Lehrstelle wählen, Format A4, QR-Code an, QR-Zweck „Lehrstelle“.</div>
+      <div class="knoepfe">
+        <a class="btn-ghost" href="sprueche.html">🖼 Aushang gestalten</a>
+      </div>
+    </div>
+  </div>
+
+  <!-- ══ ELTERN ══ -->
+  <div class="screen" id="tab-eltern">
+    <div class="hinweis">
+      Bei der Lehrstelle entscheiden die Eltern mit. Dieses Blatt beantwortet ihre wichtigsten Fragen. Zum Mitgeben beim Schnuppertag, als PDF per WhatsApp oder mit der Schul-E-Mail. <strong>Alle Texte lassen sich antippen und ändern.</strong> Bitte vor dem ersten Druck den Teil „Was wir bieten“ prüfen.
+    </div>
+
+    <div class="blatt" id="blatt">
+      <h1 contenteditable="true">Eine Lehre bei A great hair day</h1>
+      <div class="blatt-sub">Infos für Eltern</div>
+
+      <h2>Die Lehre</h2>
+      <ul contenteditable="true">
+        <li>Lehrberuf Friseur:in, Dauer 3 Jahre</li>
+        <li>Ausbildung im Salon und in der Berufsschule</li>
+        <li>Abschluss mit der Lehrabschlussprüfung</li>
+      </ul>
+
+      <h2>Einkommen</h2>
+      <p id="blatt-gehalt" contenteditable="true"></p>
+
+      <h2>Was wir bieten</h2>
+      <ul contenteditable="true">
+        <li>Eine feste Ansprechperson im Team, die durch die ganze Lehre begleitet</li>
+        <li>Lernen am echten Kunden, Schritt für Schritt und mit Zeit für Fragen</li>
+        <li>Vorbereitung auf die Lehrabschlussprüfung</li>
+        <li>Ein kleines Team in Wien-Margareten, in dem jede:r gesehen wird</li>
+      </ul>
+
+      <h2>Und danach?</h2>
+      <ul contenteditable="true">
+        <li>Lehre mit Matura ist möglich und kostenlos</li>
+        <li>Nach dem Lehrabschluss: Weiterbildung bis zur Meisterprüfung, später auch der eigene Salon</li>
+        <li>Ein Handwerk, das man überall auf der Welt ausüben kann</li>
+      </ul>
+
+      <h2>Der nächste Schritt</h2>
+      <p contenteditable="true">Am besten lernt man uns beim Schnuppern kennen. Sie sind herzlich eingeladen, beim ersten Gespräch dabei zu sein. Fragen beantworte ich gern auch telefonisch.</p>
+
+      <div class="blatt-fuss">
+        <div class="blatt-qr" id="blatt-qr"></div>
+        <div contenteditable="true">
+          <strong>A great hair day</strong><br>
+          Rechte Wienzeile 47, 1050 Wien<br>
+          Telefon 01 5863130<br>
+          <span id="blatt-link"></span>
+        </div>
+      </div>
+    </div>
+
+    <div class="knoepfe">
+      <button class="btn" onclick="window.print()">🖨 Drucken / als PDF speichern</button>
+    </div>
+    <div class="wann">Am Handy: „Drucken“ antippen und dort „Als PDF sichern“ wählen. Das PDF lässt sich dann per WhatsApp schicken.</div>
+  </div>
+</div>
+
+<!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
+<script src="qrcode-generator.js"></script>
+<script src="gehalt.js"></script>
+<script>
+// Gleicher Speicher-Schlüssel wie index.html (Bewerbungs-Link im Mitarbeiter:innen-Screen)
+const BEWERBUNG_LINK = (() => { try { return localStorage.getItem('ghd_bewerbungslink'); } catch { return null; } })()
+  || 'https://www.greathairday.at/karriere/';
+const ADRESSE = 'A great hair day, Rechte Wienzeile 47, 1050 Wien';
+const TELEFON = '01 5863130';
+
+// {name}, {datum}, {uhrzeit}, {link} werden aus den Feldern bzw. dem Bewerbungs-Link ersetzt
+const ANTWORTEN = [
+  { titel:'Danke, ist angekommen', wann:'Sofort nach jeder Bewerbung, für alle',
+    text:`Hallo {name},
+
+danke für deine Bewerbung bei A great hair day! Ich habe sie bekommen und melde mich in den nächsten zwei Tagen telefonisch bei dir.
+
+Liebe Grüße
+Mirjam` },
+  { titel:'Einladung zum Schnuppern', wann:'Lehrlinge',
+    text:`Hallo {name},
+
+schön, dass du dich für eine Lehre bei uns interessierst! Magst du zum Schnuppern kommen?
+
+Mein Vorschlag: {datum} um {uhrzeit}
+Adresse: ${ADRESSE}
+
+Du musst noch nichts können, wir zeigen dir alles. Bitte mitnehmen: bequeme Schuhe und eine Jause. Wenn du an einem Schultag kommst, frag bitte in deiner Schule nach dem Formular für die Freistellung.
+
+Passt dir der Termin? Wenn deine Eltern Fragen haben, können sie mich gern anrufen: ${TELEFON}
+
+Liebe Grüße
+Mirjam` },
+  { titel:'Einladung zum Kennenlernen', wann:'Fachkräfte',
+    text:`Hallo {name},
+
+danke für dein Interesse an unserem Team! Ich würde dich gern kennenlernen, ganz unkompliziert bei uns im Salon. Dauert etwa eine halbe Stunde, und du bekommst gleich einen Eindruck von unserem Alltag.
+
+Mein Vorschlag: {datum} um {uhrzeit}
+Adresse: ${ADRESSE}
+
+Passt dir das? Sonst schick mir gern einen anderen Termin.
+
+Liebe Grüße
+Mirjam` },
+  { titel:'Kurz nachfragen', wann:'Wenn nach 3 bis 4 Tagen keine Antwort kam',
+    text:`Hallo {name},
+
+ich wollte nur kurz nachfragen, ob meine Nachricht angekommen ist. Hast du noch Interesse? Ein kurzes Ja oder Nein reicht völlig.
+
+Liebe Grüße
+Mirjam` },
+  { titel:'Schön war\'s – wie geht\'s weiter', wann:'Nach einem guten Schnuppertag',
+    text:`Hallo {name},
+
+danke, dass du bei uns warst! Es war richtig schön mit dir, und wir können uns gut vorstellen, dass du deine Lehre bei uns machst.
+
+Als Nächstes würde ich gern mit dir und deinen Eltern sprechen. Wann passt es euch? Ein Infoblatt für deine Eltern schicke ich dir gleich mit.
+
+Liebe Grüße
+Mirjam` },
+  { titel:'Freundliche Absage', wann:'Wenn es diesmal nicht passt',
+    text:`Hallo {name},
+
+danke für dein Interesse und deine Zeit. Wir haben uns diesmal für eine andere Person entschieden. Das war keine leichte Entscheidung.
+
+Ich wünsche dir für deinen weiteren Weg alles Gute. Wenn du magst, melde ich mich, falls wieder etwas frei wird.
+
+Liebe Grüße
+Mirjam` },
+];
+
+function zeigeTab(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function wert(id, platzhalter) {
+  return document.getElementById(id).value.trim() || platzhalter;
+}
+
+function ersetze(text) {
+  return text
+    .replaceAll('{name}', wert('f-name', '[Vorname]'))
+    .replaceAll('{datum}', wert('f-datum', '[Tag]'))
+    .replaceAll('{uhrzeit}', wert('f-uhrzeit', '[Uhrzeit]'))
+    .replaceAll('{link}', BEWERBUNG_LINK);
+}
+
+function renderAntworten() {
+  document.getElementById('antwort-liste').innerHTML = ANTWORTEN.map((a, i) => `
+    <div class="card" style="margin-bottom:14px;">
+      <div class="card-tag">${a.wann}</div>
+      <div class="card-title">${a.titel}</div>
+      <div class="vorlage" id="antwort-${i}" contenteditable="true"></div>
+      <div class="knoepfe">
+        <button class="btn" onclick="kopiereText(['antwort-${i}'], this)">📋 Kopieren</button>
+        <button class="btn-ghost" onclick="whatsapp('antwort-${i}')">WhatsApp</button>
+      </div>
+    </div>`).join('');
+  fuelleVorlagen();
+}
+
+function fuelleVorlagen() {
+  ANTWORTEN.forEach((a, i) => {
+    document.getElementById('antwort-' + i).textContent = ersetze(a.text);
+  });
+}
+
+function fuelleSchule() {
+  const schule = document.getElementById('f-schule').value.trim();
+  document.getElementById('schul-betreff').textContent =
+    'Betreff: Schnuppertage im Friseursalon für Ihre Schüler:innen' + (schule ? ' – ' + schule : '');
+  document.getElementById('schul-mail').textContent =
+`Sehr geehrte Damen und Herren,
+
+wir sind A great hair day, ein Friseursalon in Wien-Margareten, und bilden Lehrlinge aus. Gern möchten wir Ihre Schüler:innen bei der Berufsorientierung unterstützen und bieten an:
+
+• Schnuppertage bei uns im Salon, auch einzeln während der Schulzeit
+• Einen Besuch einer Klasse im Salon mit kurzem Einblick in den Beruf
+• Einen kurzen Vortrag zum Friseurberuf im Berufsorientierungs-Unterricht
+
+Interessierte können sich auch direkt bei uns melden, ganz ohne Lebenslauf:
+${BEWERBUNG_LINK}
+
+Im Anhang finden Sie einen Aushang mit QR-Code für Ihr Schwarzes Brett.
+
+Ich freue mich, von Ihnen zu hören.
+
+Mit freundlichen Grüßen
+Mirjam Walenta
+${ADRESSE}
+Telefon ${TELEFON}
+[eure Salon-E-Mail]`;
+}
+
+function bestaetige(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ Kopiert!';
+  setTimeout(() => { btn.innerHTML = orig; }, 2000);
+}
+
+function kopiereText(ids, btn) {
+  const text = ids.map(id => document.getElementById(id).innerText).join('\n\n');
+  navigator.clipboard.writeText(text).then(() => bestaetige(btn));
+}
+
+function whatsapp(id) {
+  const text = document.getElementById(id).innerText;
+  window.open('https://wa.me/?text=' + encodeURIComponent(text), '_blank', 'noopener');
+}
+
+function renderBlatt() {
+  document.getElementById('blatt-gehalt').textContent = (typeof GEHALT !== 'undefined' && GEHALT.lehrstelle)
+    || 'Lehrlingseinkommen laut Kollektivvertrag.';
+  document.getElementById('blatt-link').textContent = 'Bewerbung: ' + BEWERBUNG_LINK.replace(/^https?:\/\//, '').replace(/\/$/, '');
+  if (typeof qrcode === 'function') {
+    const qr = qrcode(0, 'M');
+    qr.addData(BEWERBUNG_LINK);
+    qr.make();
+    document.getElementById('blatt-qr').innerHTML = qr.createImgTag(4, 0);
+  }
+}
+
+renderAntworten();
+fuelleSchule();
+renderBlatt();
+</script>
+</body>
+</html>

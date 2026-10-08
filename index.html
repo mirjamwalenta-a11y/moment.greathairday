@@ -354,6 +354,60 @@ function tabnavScrollBy(direction) {
       <div class="anlass-format"><span class="format-chip">Story</span><span class="format-chip">Reel</span></div>
     </div>
   </div>
+  <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin:18px 0 4px;">Ideen, die auffallen</p>
+  <div class="anlass-intro" style="margin-bottom:10px;">Anders als das übliche „Wir suchen …“. Die Serien wirken am besten, wenn sie über Wochen laufen.</div>
+  <div class="anlass-grid">
+    <div class="anlass-card" style="border-color:#c4a96a; background:var(--gold-pale);" onclick="generateOutput('leerer-stuhl')">
+      <div class="anlass-title">🔁 Serie: Der leere Stuhl</div>
+      <div class="anlass-hint">Jede Woche dasselbe Foto vom freien Lehrlings-Platz. Moment zählt die Wochen mit.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Story</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('kunden-schild')">
+      <div class="anlass-title">„Meine Friseurin sucht Verstärkung“</div>
+      <div class="anlass-hint">Stammkund:innen halten das Schild — und teilen es in ihrem Umfeld.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span><span class="format-chip">Reel</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('pruferin')">
+      <div class="anlass-title">Die Prüferin verrät …</div>
+      <div class="anlass-hint">Dein Wissen aus den Lehrabschlussprüfungen — das hat kaum ein anderer Salon.</div>
+      <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">Post</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('ehrliche-anzeige')">
+      <div class="anlass-title">Die ehrliche Stellenanzeige</div>
+      <div class="anlass-hint">Müde Füße, strahlende Kund:innen — ehrlich statt Werbesprache.</div>
+      <div class="anlass-format"><span class="format-chip">Post</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('uebungskopf')">
+      <div class="anlass-title">🔁 Serie: Der Übungskopf wartet</div>
+      <div class="anlass-hint">Eine Figur mit Namen, jede Woche eine neue Frisur. Humor ganz von selbst.</div>
+      <div class="anlass-format"><span class="format-chip">Story</span><span class="format-chip">Post</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('jahre-30-sekunden')">
+      <div class="anlass-title">33 Jahre in 30 Sekunden</div>
+      <div class="anlass-hint">Alte Fotos seit 1993 bis heute — und die Frage nach dem nächsten Kapitel.</div>
+      <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">TikTok</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('schritte')">
+      <div class="anlass-title">Wie viele Schritte macht eine Friseurin?</div>
+      <div class="anlass-hint">Einen Tag lang zählen, die echte Zahl zeigen.</div>
+      <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">Story</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('pov-erster-tag')">
+      <div class="anlass-title">POV: Dein erster Tag bei uns</div>
+      <div class="anlass-hint">Aus der Sicht eines neuen Lehrlings gefilmt — bekanntes Trend-Format.</div>
+      <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">TikTok</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('fragen-traut')">
+      <div class="anlass-title">Fragen, die sich keiner traut</div>
+      <div class="anlass-hint">Gehalt, Fehler, strenge Chefin? Du antwortest direkt in die Kamera.</div>
+      <div class="anlass-format"><span class="format-chip">Reel</span><span class="format-chip">Story</span></div>
+    </div>
+    <div class="anlass-card" onclick="generateOutput('werkzeug-quiz')">
+      <div class="anlass-title">Welches Werkzeug ist das?</div>
+      <div class="anlass-hint">Quiz in der Story mit Nahaufnahmen — junge Leute machen gern mit.</div>
+      <div class="anlass-format"><span class="format-chip">Story</span></div>
+    </div>
+  </div>
   <div class="section-divider"></div>
   <p style="font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--soft);margin-bottom:10px;">Andere Wege</p>
   <div class="path-secondary" onclick="showScreen('screen-direkt')">
@@ -1744,6 +1798,86 @@ const outputs = {
     story_interaktion:null,
     cta:'Lust, Teil des Teams zu werden? Wir freuen uns auf dich.', cta_kanal:'Link in Bio / DM'
   },
+  'leerer-stuhl': {
+    ziel:'recruiting', format:'Post + Story (Serie)', serie:'leerer-stuhl',
+    text: () => `Woche ${serienFolge('leerer-stuhl')} ohne Lehrling.\n\nDer Stuhl ist bereit.\nDie Schere liegt da.\nDas Team wartet.\n\nFehlst nur noch du.\n\n#lehrstellewien #friseurlehre #lehrlingwien`,
+    foto:'Jede Woche dasselbe Foto: der freie Arbeitsplatz, gleicher Blickwinkel, gleiches Licht. Darauf groß „Woche X“. Gerade die Wiederholung macht die Serie aus.',
+    tipp:'Immer am selben Wochentag posten (z. B. am Recruiting-Tag). Wenn der Platz besetzt ist: großes Finale mit demselben Stuhl — diesmal mit Lehrling darauf („Woche X: Der Stuhl ist besetzt. Willkommen!“).',
+    story_interaktion:'Teilen-Bitte: „Kennst du jemanden, der hier sitzen sollte? Schick es weiter."',
+    cta:'Kennst du jemanden? Schick es weiter — oder meld dich selbst.', cta_kanal:'Link in Bio / DM'
+  },
+  'kunden-schild': {
+    ziel:'recruiting', format:'Post / Reel',
+    text:`Unsere Kund:innen haben etwas zu sagen. 💛\n\n„Meine Friseurin sucht Verstärkung."\n\nWir suchen einen Lehrling und eine:n Friseur:in.\nUnd wer könnte uns besser empfehlen als die Menschen, die seit Jahren zu uns kommen?\n\nTeilen hilft. Danke!\n\n#friseurwien #lehrstellewien #wirsuchendich`,
+    foto:'Stammkund:innen halten ein Schild (A4, z. B. aus „Aktion & Aushang“) mit „Meine Friseurin sucht Verstärkung“ in die Kamera — frisch frisiert im Salon. Als Reel: mehrere Kund:innen hintereinander, je 1 Sekunde.',
+    tipp:'Vorher schriftlich das Einverständnis für das Foto einholen. Die Kund:innen markieren bzw. bitten, den Post in ihrer Story zu teilen — so erreicht er ihr ganzes Umfeld.',
+    story_interaktion:null,
+    cta:'Kennst du jemanden? Schick ihm den Post.', cta_kanal:'Teilen / DM'
+  },
+  'pruferin': {
+    ziel:'recruiting', format:'Reel / Post (Serie möglich)',
+    text:`Ich bin Prüferin bei den Lehrabschlussprüfungen der Wiener Innung.\nHier sind 3 Dinge, die dabei den Unterschied machen:\n\n1. [Punkt aus deiner Erfahrung]\n2. [Punkt aus deiner Erfahrung]\n3. [Punkt aus deiner Erfahrung]\n\nGenau darauf bereiten wir unsere Lehrlinge vor.\n\n#lehrabschlussprüfung #friseurlehre #friseurwien`,
+    foto:'Du direkt in die Kamera, ruhig im Salon. Zu jedem Punkt eine kurze Einblendung oder ein Clip (Hände bei der Arbeit).',
+    tipp:'Die drei Punkte bitte aus deiner echten Erfahrung füllen — keine Prüfungsdetails, die vertraulich sind. Gut als Serie: „Die Prüferin verrät, Teil 2“ mit neuen Themen (Zeiteinteilung, Kundengespräch, häufige Fehler).',
+    story_interaktion:'Fragen-Sticker: „Was willst du über die Lehrabschlussprüfung wissen?"',
+    cta:'Lehrling bei uns werden? Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'ehrliche-anzeige': {
+    ziel:'recruiting', format:'Post',
+    text:`Die ehrliche Stellenanzeige.\n\nWas dich bei uns erwartet:\n— Müde Füße am Abend.\n— Kund:innen, die dir ihr halbes Leben erzählen.\n— Haare. Überall. Auch zuhause.\n— Den Moment, wenn jemand in den Spiegel schaut und strahlt.\n— Ein Team, das dir alles auch ein drittes Mal erklärt.\n\nWenn das für dich gut klingt: Wir suchen dich.\n\n#friseurwien #lehrstellewien #ehrlich`,
+    foto:'Ein ehrliches, ungestelltes Foto: Haare am Boden, Föhn in der Hand, ein lachendes Teammitglied.',
+    tipp:'Nur aufzählen, was bei euch wirklich stimmt — Punkte gern anpassen. Bei einer konkreten Stelle die Gehaltsangabe laut KV ergänzen (Pflicht bei Stelleninseraten).',
+    story_interaktion:'Umfrage-Sticker: „Klingt das nach deinem Traumjob?" Ja! / Eher nicht',
+    cta:'Klingt gut? Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'uebungskopf': {
+    ziel:'recruiting', format:'Story / Post (Serie)', serie:'uebungskopf',
+    text: () => `Rosi wartet. Folge ${serienFolge('uebungskopf')}. 💇\n\nNeue Woche, neue Frisur.\nAber eigentlich wartet Rosi nur auf eins:\nihren Lehrling.\n\nWillst du ihr Gesellschaft leisten?\n\n#lehrstellewien #friseurlehre #übungskopf`,
+    foto:'Der Übungskopf jede Woche mit neuer Frisur und einem Accessoire passend zur Saison (Sonnenbrille, Mütze, Schal, Weihnachtsmütze). Immer am selben Platz fotografiert.',
+    tipp:'„Rosi" ist nur ein Vorschlag — gebt eurem Übungskopf einen eigenen Namen und bleibt dabei. Wenn ein Lehrling kommt: „Rosi hat endlich ihren Lehrling gefunden!"',
+    story_interaktion:'Umfrage-Sticker: „Welche Frisur bekommt Rosi nächste Woche?" mit zwei Vorschlägen',
+    cta:'Rosi braucht dich: Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'jahre-30-sekunden': {
+    ziel:'recruiting', format:'Reel / TikTok',
+    text:`Seit 1993 in Wien-Margareten.\nIn 30 Sekunden.\n\nSo viele Köpfe. So viele Geschichten.\nSo viele Menschen, die bei uns gelernt haben.\n\nWer schreibt das nächste Kapitel mit uns?\n\n#seit1993 #friseurwien #lehrstellewien`,
+    foto:'Alte Fotos vom Salon, chronologisch, je etwa 1 Sekunde: Eröffnung, Team-Fotos über die Jahre, Umbauten, heute. Zum Schluss: der heutige Salon und ein leerer Platz.',
+    tipp:'Mit einem ruhigen, aktuellen Sound unterlegen. Alte Fotos von Menschen nur mit deren Einverständnis zeigen.',
+    story_interaktion:null,
+    cta:'Schreib das nächste Kapitel mit: Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'schritte': {
+    ziel:'recruiting', format:'Reel / Story',
+    text:`Wie viele Schritte macht eine Friseurin an einem Arbeitstag?\n\nWir haben gezählt: [Zahl] Schritte. 👟\n\nFriseur:in ist kein Bürojob.\nDu bist in Bewegung, mit Menschen, mit den Händen.\n\nGenau das Richtige für dich?\n\n#friseuralltag #friseurwien #keinbürojob`,
+    foto:'Kurzer Clip vom Schrittzähler am Morgen (0), Szenen aus dem Tag, am Abend die echte Zahl am Handy.',
+    tipp:'Die Zahl wirklich einen Tag lang mit dem Handy messen — keine Schätzung. Als Fitnesstrainerin kannst du einen Satz dazu sagen, warum Bewegung im Job guttut.',
+    story_interaktion:'Quiz-Sticker: „Wie viele Schritte macht eine Friseurin am Tag?" mit drei Zahlen zur Auswahl',
+    cta:'Lust auf einen Job in Bewegung? Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'pov-erster-tag': {
+    ziel:'recruiting', format:'Reel / TikTok',
+    text:`POV: Dein erster Tag bei uns. ✨\n\nDie Tür geht auf.\nDas Team sagt Hallo.\nJemand reicht dir einen Kaffee.\nUnd dann bekommst du deine eigene Schere.\n\nDer Platz ist frei.\n\n#pov #ersterarbeitstag #lehrstellewien #friseurlehre`,
+    foto:'Alles aus Ich-Perspektive (Handy auf Brusthöhe): Tür öffnen · Team winkt in die Kamera · Hand bekommt Kaffeetasse · Hand bekommt Schere · Blick in den Spiegel.',
+    tipp:'POV-Videos leben vom Text auf dem Bild: jede Szene mit einer kurzen Zeile beschriften. Mit einem aktuellen Trend-Sound posten.',
+    story_interaktion:null,
+    cta:'Dein erster Tag könnte bald sein: Link in der Bio.', cta_kanal:'Link in Bio / DM'
+  },
+  'fragen-traut': {
+    ziel:'recruiting', format:'Reel-Serie / Story',
+    text:`Fragen, die sich bei einer Bewerbung keiner traut. Ich beantworte sie trotzdem.\n\n„Was verdient man als Lehrling?"\n${(typeof GEHALT !== 'undefined' && GEHALT.lehrstelle) || 'Lehrlingseinkommen laut Kollektivvertrag.'}\n\n„Was, wenn ich Fehler mache?"\n[deine Antwort]\n\n„Bist du eine strenge Chefin?"\n[deine Antwort]\n\n#friseurlehre #lehrstellewien #ehrlichgefragt`,
+    foto:'Pro Frage ein kurzes Video: die Frage als Text eingeblendet, du antwortest direkt in die Kamera, 10 bis 20 Sekunden.',
+    tipp:'Am besten als Serie: ein Reel pro Frage. Antworten in deinen eigenen Worten, ehrlich. Weitere Fragen: „Muss ich gut in der Schule sein?", „Was, wenn ich schüchtern bin?", „Darf ich bald selbst schneiden?"',
+    story_interaktion:'Fragen-Sticker: „Welche Frage traust du dich nicht zu stellen?"',
+    cta:'Noch eine Frage? Schreib mir einfach.', cta_kanal:'DM / Link in Bio'
+  },
+  'werkzeug-quiz': {
+    ziel:'recruiting', format:'Story-Serie',
+    text:`Quiz-Zeit! 🤔\n\nErkennst du das Werkzeug?\nNahaufnahme — und drei Antworten zur Auswahl.\n\nAuflösung in der nächsten Story.`,
+    foto:'3 bis 5 Storys mit extremen Nahaufnahmen (Effilierschere, Rundbürste, Farbpinsel, Abteilklammer, Lockenstab). Jeweils danach die Auflösung mit einem Satz, wofür man es braucht.',
+    tipp:'Zum Schluss eine Story: „All das lernst du in der Friseurlehre bei uns." mit Link-Sticker zum Bewerbungsformular.',
+    story_interaktion:'Quiz-Sticker pro Bild: z. B. „Effilierschere / Nagelschere / Gartenschere"',
+    cta:'Willst du lernen, wie man damit arbeitet? Link in der Bio.', cta_kanal:'Story-Link-Sticker'
+  },
   'schnuppertag-einblick': {
     ziel:'recruiting', format:'Story-Serie / Reel',
     text:`So läuft ein Schnuppertag bei uns. 👀\n\nDu kommst in der Früh, wir zeigen dir den Salon.\nDu schaust zu, hilfst mit und probierst selbst etwas aus.\nDu musst nichts können — nur neugierig sein.\n\nMitbringen: bequeme Schuhe und eine Jause.\nDas war's.\n\n#schnuppern #lehrstellewien #friseurlehre`,
@@ -1850,8 +1984,30 @@ function vorHashtags(text, zeilen) {
 
 let letzterOutputRecruiting = false;
 
+// Serien (z. B. „Der leere Stuhl“): zählt die Folge ab der ersten Kalenderwoche, in der
+// der Vorschlag geöffnet wurde. Mehrmals in derselben Woche = dieselbe Folge.
+function serienFolge(id) {
+  const key = 'ghd_serie_' + id;
+  const heute = new Date();
+  const montag = new Date(heute.getFullYear(), heute.getMonth(), heute.getDate() - ((heute.getDay() + 6) % 7));
+  let start = null;
+  try { start = localStorage.getItem(key); } catch {}
+  if (!start) {
+    start = montag.toISOString().slice(0, 10);
+    try { localStorage.setItem(key, start); } catch {}
+  }
+  const [j, m, t] = start.split('-').map(Number);
+  return Math.floor((montag - new Date(j, m - 1, t)) / (7 * 86400000)) + 1;
+}
+
+function serieNeuStarten(id, key) {
+  try { localStorage.removeItem('ghd_serie_' + id); } catch {}
+  generateOutput(key);
+}
+
 function generateOutput(key) {
-  const data = outputs[key]; if(!data) return;
+  const roh = outputs[key]; if(!roh) return;
+  const data = typeof roh.text === 'function' ? { ...roh, text: roh.text() } : roh;
   const isR = data.ziel === 'recruiting';
   letzterOutputRecruiting = isR;
   const haupttext = vorHashtags(data.text,
@@ -1871,6 +2027,7 @@ function generateOutput(key) {
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text"><strong>Foto/Video:</strong> ${data.foto}</span></div>
         ${data.story_interaktion ? `<div class="output-meta-row"><span class="meta-icon">💬</span><span class="meta-text"><strong>Story-Interaktion:</strong> ${data.story_interaktion}</span></div>` : ''}
         ${data.haarkompass ? `<div class="output-meta-row"><span class="meta-icon">🧭</span><span class="meta-text"><strong>HaarKompass-Link:</strong> steht schon im Text. In der Instagram-Story als Link-Sticker einfügen: ${HAARKOMPASS_URL}</span></div>` : ''}
+        ${data.serie ? `<div class="output-meta-row"><span class="meta-icon">🔁</span><span class="meta-text"><strong>Serie, Folge ${serienFolge(data.serie)}:</strong> Moment zählt jede Woche weiter. <button class="copy-sm" onclick="serieNeuStarten('${data.serie}','${key}')">Bei Folge 1 neu starten</button></span></div>` : ''}
         ${data.tipp ? `<div class="output-meta-row"><span class="meta-icon">💡</span><span class="meta-text"><strong>Tipp:</strong> ${data.tipp}</span></div>` : ''}
         ${isR ? `<div class="output-meta-row"><span class="meta-icon">🔗</span><span class="meta-text"><strong>Bewerbungs-Link:</strong> steht schon im Text. Auf Instagram ist er im Post nicht klickbar: in die Bio stellen bzw. in der Story als Link-Sticker einfügen.</span></div>` : ''}
         ${data.cta ? `<div class="output-meta-row"><span class="meta-icon">→</span><span class="meta-text"><strong>Call-to-Action:</strong> ${data.cta} <em>(${data.cta_kanal})</em></span></div>` : ''}
@@ -4143,7 +4300,7 @@ function speichereKandidat(k) {
 // Zeigt bei Recruiting-Anlässen 1-3 echte, selbst gespeicherte Team-Zitate
 // vor. Keine erfundenen Texte — nur was hier manuell eingetragen wurde.
 const STIMMEN_KEY = 'ghd_team_stimmen';
-const LEHRLING_ANLAESSE = ['lernmoment','lehrling-alltag','lehrling-warum','lehrling-direkt','naechster-lehrling','lehrling-tag','frag-team','lehrling-gehalt','lehre-matura','quereinstieg','schnuppertag-einblick'];
+const LEHRLING_ANLAESSE = ['lernmoment','lehrling-alltag','lehrling-warum','lehrling-direkt','naechster-lehrling','lehrling-tag','frag-team','lehrling-gehalt','lehre-matura','quereinstieg','schnuppertag-einblick','leerer-stuhl','uebungskopf','pov-erster-tag','fragen-traut','werkzeug-quiz','pruferin'];
 
 function ladeTeamStimmen() {
   try { return JSON.parse(localStorage.getItem(STIMMEN_KEY)) || []; } catch { return []; }
@@ -5478,6 +5635,11 @@ const RECRUITING_ROTATION = [
   { key:'schnuppertag-einblick', titel:'So läuft ein Schnuppertag bei uns' },
   { key:'quereinstieg', titel:'Quereinstieg: Friseur:in mit 20, 30 oder 40' },
   { key:'lehre-matura', titel:'Lehre nach der Matura', monate:[6,7,9] },
+  { key:'ehrliche-anzeige', titel:'Die ehrliche Stellenanzeige' },
+  { key:'kunden-schild', titel:'„Meine Friseurin sucht Verstärkung“' },
+  { key:'pov-erster-tag', titel:'POV: Dein erster Tag bei uns' },
+  { key:'fragen-traut', titel:'Fragen, die sich keiner traut' },
+  { key:'werkzeug-quiz', titel:'Welches Werkzeug ist das?' },
   { key:'team-moment', titel:'Ein schöner Moment im Team' },
   { key:'arbeitsweise', titel:'So arbeiten wir hier' }
 ];

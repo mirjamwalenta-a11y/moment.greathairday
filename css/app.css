@@ -583,6 +583,7 @@ body {
   color: var(--gold);
 }
 .cta-gen-text {
+  white-space: pre-wrap;
   font-size: 14px;
   color: var(--black);
   line-height: 1.55;

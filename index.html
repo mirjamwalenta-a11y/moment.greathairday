@@ -262,6 +262,15 @@ function tabnavScrollBy(direction) {
   <p class="screen-eyebrow">Mitarbeiter:innen anziehen</p>
   <h2 class="screen-headline">Welcher Moment<br>passt gerade?</h2>
   <div class="anlass-intro">Wähle einen Moment — die App macht daraus sofort einen nutzbaren Text. Kein Inserat, kein Werbeton. Echter Einblick.</div>
+  <div class="card" style="border-left:3px solid var(--gold);">
+    <div class="card-tag">Bewerbungs-Link</div>
+    <div class="card-body">Wohin sollen Interessierte tippen? Dieser Link steht automatisch unter jedem Recruiting-Text und im QR-Code auf Stellen-Aushängen.</div>
+    <div class="input-wrap" style="margin:10px 0 6px;">
+      <input type="text" id="bewerbung-link-input" inputmode="url" placeholder="z. B. https://tally.so/r/…" oninput="bewerbungsLinkSpeichern(this.value)">
+    </div>
+    <div style="font-size:11px;color:var(--soft);" id="bewerbung-link-status"></div>
+    <button class="btn-ghost-sm" style="margin-top:8px;" onclick="location.href='bewerbung-formular.html'">📝 Fragen fürs Formular &amp; Tally-Anleitung</button>
+  </div>
   <div class="anlass-grid">
     <div class="anlass-card" style="border-color:#c4a96a; background:var(--gold-pale);" onclick="generateOutput('team-moment')">
       <div class="anlass-title">Ein schöner Moment im Team</div>
@@ -1658,9 +1667,56 @@ const outputs = {
 const HAARKOMPASS_URL = 'https://www.greathairday.at/haarkompass/';
 const HAARKOMPASS_ZEILE = 'Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort. ' + HAARKOMPASS_URL;
 
+// Bewerbungs-Link (z. B. Tally-Formular). Ohne eigenen Link: Karriere-Seite.
+// Gleicher Speicher-Schlüssel wie in sprueche.html (QR-Code auf Stellen-Aushängen).
+const BEWERBUNG_LINK_KEY = 'ghd_bewerbungslink';
+const BEWERBUNG_LINK_STANDARD = 'https://www.greathairday.at/karriere/';
+
+function eigenerBewerbungsLink() {
+  try { return localStorage.getItem(BEWERBUNG_LINK_KEY) || ''; } catch { return ''; }
+}
+
+function bewerbungsLink() {
+  return eigenerBewerbungsLink() || BEWERBUNG_LINK_STANDARD;
+}
+
+function bewerbungsZeile() {
+  return eigenerBewerbungsLink()
+    ? '👉 In 1 Minute bewerben, ohne Lebenslauf: ' + bewerbungsLink()
+    : '👉 Alle Infos und Bewerbung: ' + bewerbungsLink();
+}
+
+function bewerbungsLinkSpeichern(wert) {
+  const link = wert.trim();
+  const status = document.getElementById('bewerbung-link-status');
+  if (link && !/^https?:\/\/\S+\.\S+/.test(link)) {
+    status.textContent = 'Bitte den vollständigen Link einfügen (beginnt mit https://).';
+    return;
+  }
+  try {
+    if (link) localStorage.setItem(BEWERBUNG_LINK_KEY, link);
+    else localStorage.removeItem(BEWERBUNG_LINK_KEY);
+  } catch {}
+  bewerbungsLinkAnzeigen();
+}
+
+function bewerbungsLinkAnzeigen() {
+  const input = document.getElementById('bewerbung-link-input');
+  const status = document.getElementById('bewerbung-link-status');
+  if (!input || !status) return;
+  if (document.activeElement !== input) input.value = eigenerBewerbungsLink();
+  status.textContent = eigenerBewerbungsLink()
+    ? '✓ Gespeichert. Wird unter allen Recruiting-Texten eingefügt.'
+    : 'Noch kein eigener Link: Es wird die Karriere-Seite verwendet.';
+}
+document.addEventListener('DOMContentLoaded', bewerbungsLinkAnzeigen);
+
 function generateOutput(key) {
   const data = outputs[key]; if(!data) return;
   const isR = data.ziel === 'recruiting';
+  const haupttext = data.text
+    + (data.haarkompass ? '\n\n' + HAARKOMPASS_ZEILE : '')
+    + (isR ? '\n\n' + bewerbungsZeile() : '');
   const html = `
     <p class="screen-eyebrow" style="margin-bottom:4px;">${isR ? 'Mitarbeiter:innen anziehen' : 'Neukund:innen gewinnen'}</p>
     <h2 class="screen-headline" style="margin-bottom:18px;">Dein Vorschlag</h2>
@@ -1670,12 +1726,13 @@ function generateOutput(key) {
         <span class="output-format-badge">${data.format}</span>
       </div>
       <div class="output-body">
-        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(data.text + (data.haarkompass ? '\n\n' + HAARKOMPASS_ZEILE : ''), data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
+        <div class="output-text" contenteditable="true" id="output-text-main">${postAbschliessen(haupttext, data.adresse || /Rechte Wienzeile/.test(data.text))}</div>
       </div>
       <div class="output-meta">
         <div class="output-meta-row"><span class="meta-icon">📷</span><span class="meta-text"><strong>Foto/Video:</strong> ${data.foto}</span></div>
         ${data.story_interaktion ? `<div class="output-meta-row"><span class="meta-icon">💬</span><span class="meta-text"><strong>Story-Interaktion:</strong> ${data.story_interaktion}</span></div>` : ''}
         ${data.haarkompass ? `<div class="output-meta-row"><span class="meta-icon">🧭</span><span class="meta-text"><strong>HaarKompass-Link:</strong> steht schon im Text. In der Instagram-Story als Link-Sticker einfügen: ${HAARKOMPASS_URL}</span></div>` : ''}
+        ${isR ? `<div class="output-meta-row"><span class="meta-icon">🔗</span><span class="meta-text"><strong>Bewerbungs-Link:</strong> steht schon im Text. Auf Instagram ist er im Post nicht klickbar: in die Bio stellen bzw. in der Story als Link-Sticker einfügen.</span></div>` : ''}
         ${data.cta ? `<div class="output-meta-row"><span class="meta-icon">→</span><span class="meta-text"><strong>Call-to-Action:</strong> ${data.cta} <em>(${data.cta_kanal})</em></span></div>` : ''}
       </div>
     </div>
@@ -1985,7 +2042,9 @@ function flowFrameList(items, noun) {
 
 function flowShowOutput() {
   const { anlass, ziel, format } = flowState;
-  const data = FLOW_CONTENT[anlass][ziel];
+  const roh = FLOW_CONTENT[anlass][ziel];
+  const istRecruiting = ziel === 'lehrling-ansprechen' || ziel === 'mitarbeiterin-anziehen';
+  const data = istRecruiting ? { ...roh, cta: roh.cta + '\n' + bewerbungsZeile() } : roh;
   const formatLabel = FLOW_FORMAT_LABEL[format];
 
   document.getElementById('flow-output-eyebrow').textContent = `${formatLabel}-Vorschlag`;
@@ -5375,6 +5434,9 @@ Antworte NUR mit JSON: {"buchung":"...","engagement":"...","recruiting":"..."}`;
       recruiting: CTA_STATIC.recruiting[Math.floor(Math.random()*3)],
     };
   }
+
+  // Salon-Recruiting-CTA zeigt immer auf den Bewerbungs-Link
+  if (kontext !== 'haarnetzwerk' && result.recruiting) result.recruiting += '\n' + bewerbungsZeile();
 
   const typLabels = kontext === 'haarnetzwerk'
     ? { buchung:'📅 Anmeldung', engagement:'💬 Engagement', recruiting:'🤝 Vernetzung' }

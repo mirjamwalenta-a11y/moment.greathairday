@@ -861,7 +861,8 @@ const FRAGEN = {
 
 const FORMATE = { post:[1080,1350], quadrat:[1080,1080], story:[1080,1920], a4:[1240,1754], folie:[1920,1080] };  // folie = Präsentation 16:9
 const QR_LINK_STANDARD = 'https://www.greathairday.at/bewertung/';   // wie auf dem gedruckten Bewertungs-Aushang
-const JOB_LINK_STANDARD = 'https://www.greathairday.at/karriere/';   // Karriere-Seite der Homepage (Lehrling, Stylist:in)
+// Karriere-Seite der Homepage (Lehrling, Stylist:in) — außer in Moment ist ein eigener Bewerbungs-Link (z. B. Tally) hinterlegt
+const JOB_LINK_STANDARD = (() => { try { return localStorage.getItem('ghd_bewerbungslink'); } catch { return null; } })() || 'https://www.greathairday.at/karriere/';
 // Gehaltsangabe laut Gleichbehandlungsgesetz § 9 (2), bei Stellenausschreibungen Pflicht.
 // Beträge laut Friseur-KV ab 1.4.2026 (Stylist:in = Lohngruppe A2); bei jeder KV-Erhöhung (jährlich 1. April) hier und auf der Karriere-Seite anpassen.
 // Leerer Text = keine Zeile im Bildtext.

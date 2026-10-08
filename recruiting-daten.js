@@ -144,6 +144,19 @@ function rcBewerberHinweis(b) {
   return null;
 }
 
+// Aufgabe von außen als erledigt markieren (z. B. Recruiting-Post in Moment als „Gepostet“ markiert)
+function rcAufgabeErledigen(id) {
+  const stand = rcLade('aufgaben', {});
+  const heute = rcHeute();
+  if ((stand[id] || {}).erledigt === heute) return;
+  stand[id] = { ...(stand[id] || {}), vorher: (stand[id] || {}).erledigt || null, erledigt: heute };
+  rcSpeichere('aufgaben', stand);
+}
+
+function rcAufgabeDieseWocheErledigt(id) {
+  return (((rcLade('aufgaben', {})[id]) || {}).erledigt || '') >= rcWochenStart();
+}
+
 // Kurzfassung für die Startseite
 function rcZusammenfassung() {
   const bewerber = rcLade('bewerber', []);

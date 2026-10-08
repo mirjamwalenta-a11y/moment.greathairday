@@ -1134,3 +1134,4 @@ textarea { resize: none; min-height: 76px; }
   text-align: left; cursor: pointer;
 }
 .recruiting-start.dringend { background: #f8ecec; border-color: #a13a3a; color: #a13a3a; }
+.planer-day.planer-recruiting { border-left: 3px solid var(--gold); }

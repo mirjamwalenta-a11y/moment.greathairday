@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#F5F0EA">
+<title>Bewerbungsformular — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  /* Farben und Schriften wie fit-check.html / sprueche.html */
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--accent:#1C1B19;--gold:#8A7346;--gold-light:#EFE6D4;
+  --serif:'Playfair Display',Georgia,serif;--f:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--f);background:var(--bg);color:var(--ink);min-height:100vh;display:flex;justify-content:center;}
+.phone{width:100%;max-width:430px;display:flex;flex-direction:column;min-height:100vh;padding-bottom:60px;}
+.topbar{background:var(--surface);padding:16px 20px;border-bottom:1px solid var(--line);position:sticky;top:0;z-index:20;}
+.zurueck{font-size:12px;color:var(--sub);text-decoration:none;display:inline-block;margin-bottom:6px;}
+.wordmark{font-family:var(--serif);font-size:20px;font-weight:700;}
+.subtitle{font-size:12px;color:var(--sub);margin-top:2px;line-height:1.4;}
+.tabnav{background:var(--surface);border-bottom:1px solid var(--line);display:flex;position:sticky;top:86px;z-index:19;}
+.tab{flex:1;padding:12px 4px;font-size:12.5px;font-weight:600;color:var(--sub);border:none;background:none;cursor:pointer;font-family:var(--f);border-bottom:2px solid transparent;}
+.tab.active{color:var(--ink);border-bottom-color:var(--gold);}
+.screen{display:none;flex-direction:column;padding:18px 16px 40px;gap:14px;}
+.screen.active{display:flex;}
+.card{background:var(--surface);border-radius:var(--r);padding:16px;box-shadow:0 1px 8px rgba(0,0,0,.06);}
+.card-tag{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:5px;}
+.card-title{font-size:15px;font-weight:700;line-height:1.3;}
+.card-sub{font-size:13px;color:var(--sub);margin-top:5px;line-height:1.5;}
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:13px 15px;font-size:13px;color:#5a4a28;line-height:1.55;}
+.frage{display:flex;flex-direction:column;gap:4px;padding:12px 0;border-bottom:1px solid var(--line);}
+.frage:last-child{border-bottom:none;}
+.frage-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.frage-nr{font-size:10px;font-weight:700;color:var(--gold);text-transform:uppercase;letter-spacing:.4px;}
+.frage-typ{font-size:10px;font-weight:600;color:var(--sub);background:var(--bg);border-radius:20px;padding:2px 8px;white-space:nowrap;}
+.frage-text{font-size:14px;font-weight:600;line-height:1.45;}
+.frage-optionen{font-size:13px;color:var(--ink);line-height:1.5;}
+.frage-warum{font-size:11.5px;color:var(--sub);font-style:italic;line-height:1.4;}
+.schritt{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid var(--line);}
+.schritt:last-child{border-bottom:none;}
+.schritt-nr{width:24px;height:24px;border-radius:50%;background:var(--accent);color:var(--bg);font-size:12px;font-weight:700;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.schritt-text{font-size:13.5px;line-height:1.5;}
+.btn{width:100%;padding:14px;background:var(--accent);color:#fff;font-family:var(--f);font-size:14px;font-weight:600;border:none;border-radius:12px;cursor:pointer;}
+.btn-ghost{background:none;border:1.5px solid var(--line);border-radius:12px;padding:12px;width:100%;font-size:14px;font-weight:500;color:var(--sub);cursor:pointer;font-family:var(--f);text-align:center;text-decoration:none;display:block;}
+.vorlage{background:var(--bg);border-radius:10px;padding:12px;font-size:13px;line-height:1.55;white-space:pre-wrap;margin-top:8px;}
+ul.punkte{padding-left:18px;font-size:13.5px;line-height:1.6;}
+a{color:var(--gold);}
+</style>
+</head>
+<body>
+<div class="phone">
+  <div class="topbar">
+    <a class="zurueck" href="index.html">← Zurück zu Moment</a>
+    <div class="wordmark">Bewerbungsformular</div>
+    <div class="subtitle">Ein Formular für Lehrlinge und Fachkräfte. Ohne Lebenslauf, in einer Minute ausgefüllt.</div>
+  </div>
+  <div class="tabnav">
+    <button class="tab active" onclick="zeigeTab('fragen', this)">Fragen</button>
+    <button class="tab" onclick="zeigeTab('tally', this)">In Tally anlegen</button>
+    <button class="tab" onclick="zeigeTab('danach', this)">Danach</button>
+  </div>
+
+  <!-- ══ FRAGEN ══ -->
+  <div class="screen active" id="tab-fragen">
+    <div class="hinweis">
+      <strong>Grundregel:</strong> Nur fragen, was du fürs erste Telefonat wirklich brauchst. Jede zusätzliche Pflichtfrage kostet Bewerbungen. Lebenslauf, Zeugnisse und Fotos kommen später im Gespräch, nicht im Formular.
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Start · für alle</div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">Frage 1 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wofür interessierst du dich?</div>
+        <div class="frage-optionen">Lehrstelle · Schnuppern · Job als Friseur:in / Stylist:in · Weiß ich noch nicht</div>
+        <div class="frage-warum">Ab hier teilt sich das Formular: „Lehrstelle“ und „Schnuppern“ führen zu Teil A, „Job“ zu Teil B, „Weiß ich noch nicht“ direkt zum Schluss.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Teil A · Lehrstelle &amp; Schnuppern</div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A1 · Pflicht</span><span class="frage-typ">Kurzantwort</span></div>
+        <div class="frage-text">Wie heißt du?</div>
+        <div class="frage-warum">Vorname reicht.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A2 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wo stehst du gerade?</div>
+        <div class="frage-optionen">Mittelschule / AHS-Unterstufe · Polytechnische Schule · Weiterführende Schule · Schule fertig · Ich mache gerade eine andere Lehre · Anderes</div>
+        <div class="frage-warum">Ersetzt die Frage nach Alter und Zeugnis und sagt dir, wann ein Lehrbeginn realistisch ist.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A3 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wann könntest du zum Schnuppern kommen?</div>
+        <div class="frage-optionen">In den Ferien · Mit Freistellung von der Schule · Jederzeit · Weiß ich noch nicht</div>
+        <div class="frage-warum">Schnuppern ist der wichtigste Schritt: Die meisten Jugendlichen entscheiden sich beim Schnuppertag für einen Betrieb.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A4 · freiwillig</span><span class="frage-typ">Kurzantwort</span></div>
+        <div class="frage-text">Was gefällt dir am Friseurberuf?</div>
+        <div class="frage-warum">Hinweis im Feld: „Ein Satz reicht. Du kannst das Feld auch leer lassen.“ Nie zur Pflicht machen, sonst brechen viele hier ab.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A5 · Pflicht</span><span class="frage-typ">Telefonnummer</span></div>
+        <div class="frage-text">Unter welcher Nummer erreichen wir dich (Anruf oder WhatsApp)?</div>
+        <div class="frage-warum">Jugendliche lesen selten E-Mails. Telefon bzw. WhatsApp ist der Kanal, über den du sie erreichst.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">A6 · freiwillig</span><span class="frage-typ">Ja / Nein</span></div>
+        <div class="frage-text">Sollen wir beim ersten Gespräch auch deine Eltern dazu einladen?</div>
+        <div class="frage-warum">Eltern entscheiden bei der Lehrstelle mit. Wer früh mit den Eltern spricht, hat einen Vorteil gegenüber anderen Betrieben.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Teil B · Friseur:in / Stylist:in</div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B1 · Pflicht</span><span class="frage-typ">Kurzantwort</span></div>
+        <div class="frage-text">Wie heißt du?</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B2 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Deine Ausbildung</div>
+        <div class="frage-optionen">Lehrabschluss Friseur:in · Meisterprüfung · Ausbildung im Ausland · Gerade in Ausbildung · Anderes</div>
+        <div class="frage-warum">„Ausbildung im Ausland“ ausdrücklich anbieten. So fühlen sich auch Fachkräfte mit ausländischem Abschluss angesprochen.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B3 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wie lange arbeitest du schon im Beruf?</div>
+        <div class="frage-optionen">Unter 2 Jahre · 2 bis 5 Jahre · 5 bis 10 Jahre · Über 10 Jahre · Wiedereinstieg nach einer Pause</div>
+        <div class="frage-warum">„Wiedereinstieg“ spricht eine oft übersehene Gruppe an: Friseur:innen nach Karenz oder Branchenwechsel.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B4 · freiwillig</span><span class="frage-typ">Mehrfachauswahl</span></div>
+        <div class="frage-text">Was machst du besonders gern?</div>
+        <div class="frage-optionen">Schnitt · Farbe · Balayage / Blond · Herren · Locken · Hochsteck / Braut · Pflege &amp; Beratung</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B5 · Pflicht</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wie viele Stunden möchtest du arbeiten?</div>
+        <div class="frage-optionen">Vollzeit · Teilzeit · Geringfügig · Bin offen</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B6 · freiwillig</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Ab wann könntest du starten?</div>
+        <div class="frage-optionen">Sofort · In 1 bis 3 Monaten · Später</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B7 · freiwillig</span><span class="frage-typ">Kurzantwort</span></div>
+        <div class="frage-text">Hast du ein Instagram-Profil mit deinen Arbeiten?</div>
+        <div class="frage-warum">Ersetzt die Mappe. Ein Blick auf das Profil sagt dir oft mehr als ein Lebenslauf.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">B8 · Pflicht</span><span class="frage-typ">Telefonnummer</span></div>
+        <div class="frage-text">Unter welcher Nummer erreichen wir dich (Anruf oder WhatsApp)?</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Schluss · für alle</div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">S1 · freiwillig</span><span class="frage-typ">Auswahl</span></div>
+        <div class="frage-text">Wie hast du von uns erfahren?</div>
+        <div class="frage-optionen">Instagram · TikTok · Facebook · Google · Freund:innen / Familie · Schule · AMS · Aushang im Salon · Anderes</div>
+        <div class="frage-warum">So siehst du nach ein paar Wochen, welcher Kanal wirklich Bewerbungen bringt.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">S2 · Pflicht</span><span class="frage-typ">Checkbox</span></div>
+        <div class="frage-text">Datenschutz-Einwilligung</div>
+        <div class="vorlage" id="vorlage-datenschutz">Ich bin einverstanden, dass A great hair day meine Angaben speichert, um mich wegen meiner Bewerbung zu kontaktieren. Meine Daten werden nicht weitergegeben und spätestens 6 Monate nach Abschluss der Bewerbung gelöscht. Ich kann die Einwilligung jederzeit widerrufen.</div>
+        <button class="btn-ghost" style="margin-top:8px;" onclick="kopiere('vorlage-datenschutz', this)">📋 Text kopieren</button>
+        <div class="frage-warum">Zusätzlich auf eure Datenschutzerklärung verlinken. Löschfrist bitte mit eurer Datenschutzerklärung abstimmen.</div>
+      </div>
+      <div class="frage">
+        <div class="frage-kopf"><span class="frage-nr">Danke-Seite</span><span class="frage-typ">Text</span></div>
+        <div class="vorlage" id="vorlage-danke">Danke, das war's schon! 🙌
+Wir melden uns innerhalb von 2 Werktagen telefonisch oder per WhatsApp bei dir.
+Bis bald im Salon!</div>
+        <button class="btn-ghost" style="margin-top:8px;" onclick="kopiere('vorlage-danke', this)">📋 Text kopieren</button>
+      </div>
+    </div>
+
+    <button class="btn" onclick="kopiereAlleFragen(this)">📋 Alle Fragen als Liste kopieren</button>
+  </div>
+
+  <!-- ══ TALLY ══ -->
+  <div class="screen" id="tab-tally">
+    <div class="card">
+      <div class="card-tag">Was ist Tally?</div>
+      <div class="card-sub">Tally (tally.so) ist ein Formular-Baukasten im Browser, ähnlich wie Google Forms. Die Grundversion ist gratis und reicht für dieses Formular. Der Anbieter sitzt in Belgien, also in der EU.</div>
+    </div>
+
+    <div class="card">
+      <div class="card-tag">Schritt für Schritt (ca. 30 Minuten)</div>
+      <div class="schritt"><div class="schritt-nr">1</div><div class="schritt-text">Auf <a href="https://tally.so" target="_blank" rel="noopener">tally.so</a> mit der Salon-E-Mail registrieren (nicht mit der privaten Adresse).</div></div>
+      <div class="schritt"><div class="schritt-nr">2</div><div class="schritt-text">„Create form“ tippen und als Titel z. B. „Arbeiten bei A great hair day“ eingeben. Darunter ein Satz: „Dauert eine Minute, kein Lebenslauf nötig.“</div></div>
+      <div class="schritt"><div class="schritt-nr">3</div><div class="schritt-text">Die Fragen aus dem Tab <strong>Fragen</strong> der Reihe nach anlegen. In Tally tippst du dafür „/“ und wählst den Fragetyp (z. B. „Multiple choice“, „Phone number“, „Checkbox“). Pflichtfragen mit dem Schalter „Required“ markieren.</div></div>
+      <div class="schritt"><div class="schritt-nr">4</div><div class="schritt-text">Vor Teil A und vor Teil B jeweils einen Seitenumbruch („/page break“) einfügen. Dann bei Frage 1 über „Conditional logic“ einstellen: Lehrstelle oder Schnuppern → Seite Teil A, Job → Seite Teil B, Weiß ich noch nicht → Schluss-Seite.</div></div>
+      <div class="schritt"><div class="schritt-nr">5</div><div class="schritt-text">Am Ende den Danke-Text aus dem Tab Fragen als Abschluss-Seite („Thank you page“) einfügen.</div></div>
+      <div class="schritt"><div class="schritt-nr">6</div><div class="schritt-text">Unter „Settings“ die E-Mail-Benachrichtigung einschalten. Dann bekommst du jede Bewerbung sofort aufs Handy.</div></div>
+      <div class="schritt"><div class="schritt-nr">7</div><div class="schritt-text">„Publish“ tippen und den Link kopieren. Den Link in Moment unter <strong>Mitarbeiter:innen → Bewerbungs-Link</strong> einfügen. Ab dann steht er automatisch unter jedem Recruiting-Text.</div></div>
+      <div class="schritt"><div class="schritt-nr">8</div><div class="schritt-text">Einmal selbst am Handy ausfüllen und prüfen, ob die Mail ankommt.</div></div>
+    </div>
+
+    <div class="hinweis">
+      <strong>Tipp:</strong> Das Formular lässt sich auch direkt auf der Karriere-Seite (greathairday.at/karriere) einbetten: In Tally unter „Share“ → „Embed“. Dann kann der Link in den Posts weiter auf die Karriere-Seite zeigen, wo Infos und Formular zusammen stehen.
+    </div>
+  </div>
+
+  <!-- ══ DANACH ══ -->
+  <div class="screen" id="tab-danach">
+    <div class="card">
+      <div class="card-tag">Wo der Link hingehört</div>
+      <ul class="punkte">
+        <li>Instagram- und TikTok-Bio (Links im Post-Text sind auf Instagram nicht klickbar)</li>
+        <li>In Storys als Link-Sticker</li>
+        <li>Google-Unternehmensprofil: Beitrag „Wir stellen ein“</li>
+        <li>Als QR-Code auf einem Aushang im Salon und im Schaufenster (in Moment unter „Aktion &amp; Aushang“, QR-Zweck Lehrstelle bzw. Stylist:in)</li>
+        <li>Gratis-Inserate: AMS eJob-Room, AMS-Lehrstellenbörse und WKO-Lehrstellenbörse</li>
+        <li>Für Schulen in der Nähe (Mittelschulen, Polytechnische Schulen): Aushang mit QR-Code und Angebot für Schnuppertage</li>
+      </ul>
+    </div>
+    <div class="card">
+      <div class="card-tag">Wenn eine Bewerbung kommt</div>
+      <ul class="punkte">
+        <li><strong>Innerhalb von 1 bis 2 Werktagen melden.</strong> Wer schnell antwortet, bekommt die Leute. Gute Bewerber:innen haben oft mehrere Angebote.</li>
+        <li>Lehrlinge zuerst zum Schnuppertag einladen, nicht zu einem förmlichen Gespräch.</li>
+        <li>Für das Gespräch selbst: <a href="fit-check.html">Fit-Check</a> nutzen.</li>
+        <li>Absagen ebenfalls kurz beantworten. Das spricht sich herum, vor allem unter Jugendlichen.</li>
+      </ul>
+    </div>
+    <div class="hinweis">
+      <strong>Gehaltsangabe nicht vergessen:</strong> Bei jedem Stelleninserat (auch auf Instagram) muss das Mindestentgelt laut Kollektivvertrag stehen, mit dem Hinweis auf eine mögliche Überzahlung (Gleichbehandlungsgesetz). Die aktuellen Beträge stehen in „Aktion &amp; Aushang“ bei den Stellen-Sprüchen.
+    </div>
+    <a class="btn-ghost" href="index.html">← Zurück zu Moment</a>
+  </div>
+</div>
+
+<script>
+function zeigeTab(name, btn) {
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.getElementById('tab-' + name).classList.add('active');
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  btn.classList.add('active');
+  window.scrollTo(0, 0);
+}
+
+function bestaetige(btn) {
+  const orig = btn.innerHTML;
+  btn.innerHTML = '✓ Kopiert!';
+  setTimeout(() => { btn.innerHTML = orig; }, 2000);
+}
+
+function kopiere(id, btn) {
+  navigator.clipboard.writeText(document.getElementById(id).innerText).then(() => bestaetige(btn));
+}
+
+// Baut aus den Karten im Tab "Fragen" eine schlichte Liste zum Abtippen in Tally
+function kopiereAlleFragen(btn) {
+  const teile = [];
+  document.querySelectorAll('#tab-fragen .card').forEach(card => {
+    teile.push('== ' + card.querySelector('.card-tag').innerText + ' ==');
+    card.querySelectorAll('.frage').forEach(f => {
+      const nr = f.querySelector('.frage-nr')?.innerText || '';
+      const typ = f.querySelector('.frage-typ')?.innerText || '';
+      const text = f.querySelector('.frage-text')?.innerText || '';
+      const opt = f.querySelector('.frage-optionen')?.innerText;
+      const vorlage = f.querySelector('.vorlage')?.innerText;
+      teile.push(`${nr} (${typ}): ${text}` + (opt ? `\n   Antworten: ${opt}` : '') + (vorlage ? `\n   Text: ${vorlage}` : ''));
+    });
+    teile.push('');
+  });
+  navigator.clipboard.writeText(teile.join('\n').trim()).then(() => bestaetige(btn));
+}
+</script>
+</body>
+</html>

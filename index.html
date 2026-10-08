@@ -926,6 +926,11 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="haarnetzwerk" onclick="selectPlanerKontext('haarnetzwerk', this)">🤝 Haarnetzwerk</button>
     </div>
   </div>
+  <div class="input-wrap" id="planer-recruiting-wrap">
+    <div class="input-label">👥 Recruiting-Tag</div>
+    <div class="chip-row" id="planer-recruiting-row"></div>
+    <div style="font-size:11px;color:var(--soft);margin-top:2px;">An diesem Tag schlägt der Planer jede Woche eine andere Recruiting-Idee vor.</div>
+  </div>
   <div class="planer-week" id="planer-week"></div>
 
   <div class="card" style="margin-top:24px;">
@@ -1843,9 +1848,12 @@ function vorHashtags(text, zeilen) {
   return rumpf + '\n\n' + zeilen.join('\n\n') + (m ? '\n\n' + m[1].trim() : '');
 }
 
+let letzterOutputRecruiting = false;
+
 function generateOutput(key) {
   const data = outputs[key]; if(!data) return;
   const isR = data.ziel === 'recruiting';
+  letzterOutputRecruiting = isR;
   const haupttext = vorHashtags(data.text,
     [data.haarkompass ? HAARKOMPASS_ZEILE : '', isR ? bewerbungsZeile() : ''].filter(Boolean));
   const html = `
@@ -4089,6 +4097,11 @@ function abschlussEntscheidung(containerId, status, btn) {
   if (status === 'gepostet') {
     btn.classList.add('copied');
     markHeuteGepostet();
+    // Recruiting-Vorschlag gepostet → im Recruiting-Cockpit die Wochenaufgabe abhaken
+    if (containerId === 'output-container' && letzterOutputRecruiting && typeof rcAufgabeErledigen === 'function') {
+      rcAufgabeErledigen('post-woche');
+      if (document.getElementById('planer-week')?.innerHTML) initPlaner();
+    }
     // Empfehlung aus der Heute-Führung umgesetzt → merken (Team gilt ggf. als sichtbar)
     if (heuteOffen) {
       merkeHeuteErledigt(heuteOffen.titel);
@@ -4598,14 +4611,20 @@ function renderRecruitingHinweis() {
   if (typeof rcZusammenfassung !== 'function') return;
   const z = rcZusammenfassung();
   const teile = [];
+  if (recruitingTag() === getTodayIdx() && !recruitingDieseWocheGepostet()) {
+    teile.push('Heute ist Recruiting-Tag: ' + recruitingIdeeDieseWoche().titel);
+  }
   if (z.warten) teile.push(z.warten === 1 ? '1 Bewerbung wartet auf Antwort' : `${z.warten} Bewerbungen warten auf Antwort`);
   if (z.aufgaben) teile.push(z.aufgaben === 1 ? '1 Aufgabe diese Woche' : `${z.aufgaben} Aufgaben diese Woche`);
   const status = document.getElementById('recruiting-cockpit-status');
   if (status && teile.length) status.textContent = teile.join(' · ');
   const wrap = document.getElementById('recruiting-start-wrap');
   if (!wrap) return;
-  wrap.innerHTML = teile.length ? `<button class="recruiting-start${z.warten ? ' dringend' : ''}" onclick="location.href='recruiting-cockpit.html${z.warten ? '#bewerber' : ''}'">
-      <span>👥 Recruiting: ${teile.join(' · ')}</span><span aria-hidden="true">→</span>
+  const ziel = z.warten ? "location.href='recruiting-cockpit.html#bewerber'"
+    : (recruitingTag() === getTodayIdx() && !recruitingDieseWocheGepostet()) ? `generateOutput('${recruitingIdeeDieseWoche().key}')`
+    : "location.href='recruiting-cockpit.html'";
+  wrap.innerHTML = teile.length ? `<button class="recruiting-start${z.warten ? ' dringend' : ''}" onclick="${ziel}">
+      <span>👥 ${teile[0].startsWith('Heute ist') ? '' : 'Recruiting: '}${teile.join(' · ')}</span><span aria-hidden="true">→</span>
     </button>` : '';
 }
 
@@ -5443,7 +5462,66 @@ function currentPlanerTage() {
   return SEL.planerkontext === 'haarnetzwerk' ? PLANER_TAGE_HAARNETZWERK : PLANER_TAGE;
 }
 
+// ── Recruiting-Tag im Salon-Planer ──
+// Ein Wochentag (Standard: Donnerstag, passt zu „Hinter die Kulissen“) bekommt jede
+// Woche eine andere Recruiting-Idee. Erledigt gilt die Woche, sobald im Recruiting-
+// Cockpit die Aufgabe „Recruiting-Post dieser Woche“ abgehakt ist — das passiert
+// auch automatisch, wenn ein Recruiting-Vorschlag als „Gepostet“ markiert wird.
+const RECRUITING_TAG_KEY = 'ghd_recruiting_tag';
+const RECRUITING_TAG_STANDARD = 3;   // Mo=0 … So=6, -1 = aus
+const RECRUITING_ROTATION = [
+  { key:'naechster-lehrling', titel:'Wir suchen unseren nächsten Lehrling' },
+  { key:'lehrling-gehalt', titel:'Was verdient ein Lehrling?' },
+  { key:'team-vorstellung', titel:'Wer wir sind: eine Person aus dem Team' },
+  { key:'lehrling-tag', titel:'Ein Tag bei uns — als Lehrling würdest du …' },
+  { key:'frag-team', titel:'Frag unser Team: Wie war eure Lehre?' },
+  { key:'schnuppertag-einblick', titel:'So läuft ein Schnuppertag bei uns' },
+  { key:'quereinstieg', titel:'Quereinstieg: Friseur:in mit 20, 30 oder 40' },
+  { key:'lehre-matura', titel:'Lehre nach der Matura', monate:[6,7,9] },
+  { key:'team-moment', titel:'Ein schöner Moment im Team' },
+  { key:'arbeitsweise', titel:'So arbeiten wir hier' }
+];
+
+function recruitingTag() {
+  try {
+    const w = localStorage.getItem(RECRUITING_TAG_KEY);
+    return w === null ? RECRUITING_TAG_STANDARD : Number(w);
+  } catch { return RECRUITING_TAG_STANDARD; }
+}
+
+function setRecruitingTag(idx) {
+  try { localStorage.setItem(RECRUITING_TAG_KEY, String(idx)); } catch {}
+  initPlaner();
+  renderRecruitingHinweis();
+}
+
+// Jede Kalenderwoche eine andere Idee; saisonale Ideen nur in ihren Monaten
+function recruitingIdeeDieseWoche() {
+  const monat = new Date().getMonth() + 1;
+  const liste = RECRUITING_ROTATION.filter(r => !r.monate || r.monate.includes(monat));
+  const kw = Number(getKwKey().split('-W')[1]);
+  return liste[kw % liste.length];
+}
+
+function recruitingDieseWocheGepostet() {
+  return typeof rcAufgabeDieseWocheErledigt === 'function' && rcAufgabeDieseWocheErledigt('post-woche');
+}
+
+function renderPlanerRecruitingWahl() {
+  const wrap = document.getElementById('planer-recruiting-wrap');
+  if (!wrap) return;
+  wrap.style.display = SEL.planerkontext === 'haarnetzwerk' ? 'none' : '';
+  const tag = recruitingTag();
+  document.getElementById('planer-recruiting-row').innerHTML =
+    [...TAGE.map((t, i) => ({ i, label: t })), { i: -1, label: 'Aus' }].map(o =>
+      `<button class="chip-select${o.i === tag ? ' on' : ''}" onclick="setRecruitingTag(${o.i})">${o.label}</button>`
+    ).join('');
+}
+
 function initPlaner() {
+  renderPlanerRecruitingWahl();
+  const recruitingIdx = SEL.planerkontext === 'haarnetzwerk' ? -1 : recruitingTag();
+  const idee = recruitingIdeeDieseWoche();
   const heute = new Date().getDay(); // 0=So, 1=Mo ...
   // Wir mappen auf unsere Reihenfolge Mo=0...So=6
   const heuteIdx = heute === 0 ? 6 : heute - 1;
@@ -5459,6 +5537,25 @@ function initPlaner() {
     const datum = new Date(now);
     datum.setDate(now.getDate() + diff);
     const dayNum = datum.getDate();
+
+    if (i === recruitingIdx) {
+      const erledigt = recruitingDieseWocheGepostet();
+      return `<div class="planer-day planer-recruiting${istHeute ? ' heute-tag' : ''}">
+      <div class="planer-day-left">
+        <div class="planer-day-name">${d.tag}</div>
+        <div class="planer-day-num">${dayNum}</div>
+      </div>
+      <div class="planer-day-content">
+        <div class="planer-day-thema">${istHeute ? '☀️ ' : ''}👥 Recruiting-Tag${erledigt ? ' <span class="planer-gepostet">✓ erledigt</span>' : ''}</div>
+        <div class="planer-day-hint">Diese Woche: <strong>${idee.titel}</strong></div>
+        <div class="planer-day-chips">
+          <button class="planer-chip" onclick="generateOutput('${idee.key}')">✍ Vorschlag ansehen</button>
+          <button class="planer-chip" onclick="showScreen('screen-zeigen')">💡 Andere Idee</button>
+          <button class="planer-chip" onclick="location.href='recruiting-cockpit.html'">📋 Cockpit</button>
+        </div>
+      </div>
+    </div>`;
+    }
 
     return `<div class="planer-day${istHeute ? ' heute-tag' : ''}">
       <div class="planer-day-left">

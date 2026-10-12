@@ -11,7 +11,7 @@ Ein mobiler Prototyp für eine App, die Inhaber:innen kleiner Salons und lokaler
 ## Was die App tut
 
 - Führt durch einen einzigen, klaren Flow: Anlass → Output
-- Erzeugt Feed-Entwürfe, Story-Abfolgen, Kurzvideo-Ideen und Google-Beiträge
+- Erzeugt Feed-Entwürfe, Story-Abfolgen, Kurzvideo-Ideen, Google-Beiträge sowie Newsletter (Betreff, Vorschau, Text mit P.S.) und Meta-Anzeigen (Primärtext, Überschrift, Beschreibung, Button)
 - Schlägt den passenden Hauptkanal vor
 - Veröffentlicht **nichts automatisch** — alle Entwürfe sind zum manuellen Verwenden
 

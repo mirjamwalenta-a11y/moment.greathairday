@@ -630,9 +630,11 @@ function tabnavScrollBy(direction) {
   <div class="input-wrap">
     <div class="input-label">Kanal</div>
     <div class="chip-row">
-      <button class="chip-select on" data-val="instagram" onclick="pickSel(this,'postkanal')">📷 Instagram</button>
-      <button class="chip-select" data-val="facebook" onclick="pickSel(this,'postkanal')">👍 Facebook</button>
-      <button class="chip-select" data-val="alle" onclick="pickSel(this,'postkanal')">🌐 Alle Kanäle</button>
+      <button class="chip-select on" data-val="instagram" onclick="pickSel(this,'postkanal');postKanalUmschalten()">📷 Instagram</button>
+      <button class="chip-select" data-val="facebook" onclick="pickSel(this,'postkanal');postKanalUmschalten()">👍 Facebook</button>
+      <button class="chip-select" data-val="alle" onclick="pickSel(this,'postkanal');postKanalUmschalten()">🌐 Alle Kanäle</button>
+      <button class="chip-select" data-val="newsletter" onclick="pickSel(this,'postkanal');postKanalUmschalten()">✉️ Newsletter</button>
+      <button class="chip-select" data-val="anzeige" onclick="pickSel(this,'postkanal');postKanalUmschalten()">📢 Anzeige</button>
     </div>
   </div>
   <div class="input-wrap">
@@ -642,7 +644,7 @@ function tabnavScrollBy(direction) {
       <button class="chip-select" data-val="haarnetzwerk" onclick="pickSel(this,'postkontext')">🤝 Haarnetzwerk</button>
     </div>
   </div>
-  <div class="input-wrap">
+  <div class="input-wrap" id="post-adresse-wrap">
     <div class="input-label">Salon-Adresse als letzte Zeile?</div>
     <div class="chip-row" id="post-adresse-row">
       <button class="chip-select on" data-val="nein" onclick="pickSel(this,'postadresse')">Nein</button>
@@ -784,6 +786,44 @@ function tabnavScrollBy(direction) {
       <button class="btn-edit" onclick="abschlussEntscheidung('post-result-multi','spaeter',this)">Später</button>
     </div>
     <div class="abschluss-hint" style="display:none;font-size:12px;color:var(--mid);margin-top:6px;text-align:center;"></div>
+  </div>
+  <!-- Ergebnis bei Kanal "Newsletter" oder "Anzeige": mehrere Felder zum
+       einzeln Kopieren (Betreff/Vorschau/Text bzw. Primärtext/Überschrift/…) -->
+  <div id="post-result-text" style="display:none;margin-top:16px;">
+    <div id="post-text-felder"></div>
+    <div class="output-wrap">
+      <div class="output-header">
+        <span class="output-label" id="post-text-haupt-label">Text <span id="post-text-badge"></span></span>
+        <span class="output-format-badge" id="post-text-format-badge"></span>
+      </div>
+      <div class="output-body">
+        <div class="output-text" contenteditable="true" id="post-text-haupt" oninput="textFormatZaehler()"></div>
+        <div class="char-counter" id="post-text-char"></div>
+      </div>
+    </div>
+    <div class="cta-row">
+      <button class="btn-copy" id="post-text-copy" onclick="copyEl('post-text-haupt','post-text-copy')">📋 Text kopieren</button>
+      <button class="btn-edit" onclick="document.getElementById('post-text-haupt').focus()">✏️ Bearbeiten</button>
+    </div>
+    <div id="post-text-nachbessern" class="input-wrap" style="margin-top:14px;">
+      <div class="input-label">Noch nicht ganz? Wörni bessert nach</div>
+      <div class="chip-row">
+        <button class="chip-select" onclick="textFormatNachbessern('kuerzer')">Kürzer</button>
+        <button class="chip-select" onclick="textFormatNachbessern('lockerer')">Lockerer</button>
+        <button class="chip-select" onclick="textFormatNachbessern('persoenlicher')">Persönlicher</button>
+        <button class="chip-select" onclick="textFormatNachbessern('emoji')">Mit Emoji</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input type="text" id="post-text-wunsch" class="login-input" placeholder="Eigener Wunsch, z. B. „Betreff mit dem Datum“" style="max-width:100%;text-align:left;flex:1;" onkeydown="if(event.key==='Enter')textFormatNachbessern()">
+        <button class="chip-select" onclick="textFormatNachbessern()">Ändern</button>
+      </div>
+      <div id="post-text-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
+    </div>
+    <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
+    <div class="card" style="margin-top:20px;">
+      <div class="card-tag">Wichtig</div>
+      <div class="card-body" id="post-text-hinweis"></div>
+    </div>
   </div>
 </section>
 
@@ -1520,7 +1560,7 @@ Regeln zu Leistungen:
     hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — in der Wir-Form des Vereins, nicht wie Werbung für einen einzelnen Betrieb.`,
     kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
     reichweite: `Reichweite (Instagram/Facebook):
-- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen". KEINE Begriffe oder Adressen von Mirjams Salon.
+- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen" — nur wenn er in einen Satz passt, den man auch ohne Suchmaschine so sagen würde; sonst weglassen. KEINE Begriffe oder Adressen von Mirjams Salon.
 - Link-Sticker nur, wenn im eingegebenen Text ein Link steht; sonst keinen erfinden.`,
     standort: ''
   }
@@ -2509,7 +2549,7 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
     ? `Der Text des letzten Frames endet mit einer eigenen Zeile "${sig}".`
     : `Der Text endet mit einer eigenen Zeile "${sig}".`;
   const stimme = kontext === 'haarnetzwerk'
-    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen.'
+    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen. Nie "ich" — auch keine Erinnerungen oder Gefühle einer einzelnen Person.'
     : 'Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist.';
   const adresse = format === 'google'
     ? 'Salonname und Bezirk ("Wien-Margareten" oder "1050 Wien") dürfen im Text stehen — Straße, Hausnummer und Telefonnummer nicht, die zeigt das Google-Profil ohnehin an.'
@@ -2536,9 +2576,10 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
 2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
 3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
-5. Ruhig und klar: vollständige Sätze, keine Floskeln (wie "den man nicht oft genug würdigt"), ${emoji}.
+5. Ruhig und klar: vollständige Sätze, keine Floskeln und keine Stimmungsbilder (wie "den man nicht oft genug würdigt", "das Klirren der Gläser", "nicht um Schere und Föhn", "was uns so besonders macht", "ein Gefühl von Nähe", "in guter Gesellschaft ausklingen lassen"), ${emoji}.
 6. ${kurz}
-7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
+7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu, auch keine Szenen, Sinneseindrücke oder Erinnerungen ("Ich erinnere mich gern …", "ein Lachen hier …"). Ein konkretes Detail nur, wenn es in der Eingabe steht; sonst lieber schlicht bleiben. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
+   Einladung oder Rückblick: Klingt die Eingabe nach etwas, das noch kommt (z. B. "Einladung", "Anmeldung", "Plätze begrenzt", ein Datum), schreib eine Einladung in der Gegenwart, keinen Rückblick: was es ist, wann (falls angegeben, sonst [Datum]) und wie man sich anmeldet (so, wie es in der Eingabe steht). Diese Anmelde-Info ist erlaubt und zählt nicht als Verkaufs-CTA.
 8. Stichworte sind normal: Die Eingabe besteht oft nur aus ein paar Stichworten. Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
 9. Vor der Ausgabe prüfen: Ist klar, wer spricht? Steht nur drin, was die Eingabe hergibt? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
 }
@@ -2568,11 +2609,12 @@ function postAbschliessen(text, mitAdresse, unterschrift = 'Mirjam') {
   return out;
 }
 
+const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
+const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
+
 async function buildKanalPost(kanal, m, ton, wer, kontext) {
   // Adresszeile nur für den eigenen Salon, nie fürs Haarnetzwerk
   const mitAdresse = kontext !== 'haarnetzwerk' && SEL.postadresse === 'ja';
-  const tonMap = { nahbar:'nahbar und echt', stolz:'stolz und würdevoll', nachdenklich:'nachdenklich und tiefsinnig', direkt:'direkt und klar' };
-  const werMap = { kundinnen:'bestehende Stammkund:innen', neu:'potenzielle Neukund:innen', lehrlinge:'mögliche Lehrlinge', branche:'Branchenkolleg:innen' };
   const kanalMap = {
     instagram: { name:'Instagram', regel:'Kurzer, prägnanter Instagram-Post. Zeilenumbrüche für Lesbarkeit im Feed.' },
     facebook: { name:'Facebook', regel:'Facebook-Post — darf etwas persönlicher erzählen als auf Instagram (etwas längere Absätze, aber weiterhin 3 bis 4), da Facebook-Nutzer:innen in Wien oft älter und stärker lokal verwurzelt sind. Höchstens 1-2 Hashtags, dafür ruhig den Salonnamen und den Bezirk (Wien-Margareten) im Fließtext nennen — aber nie die Straßenadresse.' }
@@ -2596,7 +2638,7 @@ ${postSchreibregeln(kontext, wer, mitAdresse)}
 
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail aus der Eingabe, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer (Ausnahme: Anmelde-Info bei Einladungen, siehe Regel 7).
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, gleiche Tonalität wie der Post.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
 - "hashtags": ${hashtagRegel}.
@@ -2637,12 +2679,16 @@ async function generatePost() {
   if(kanal === 'alle') {
     return generatePostAlleKanaele(m);
   }
+  if(kanal === 'newsletter' || kanal === 'anzeige') {
+    return generateTextFormat(m, kanal);
+  }
 
   const ton = SEL.postton || 'nahbar';
   const wer = SEL.postwer || 'kundinnen';
   const kontext = SEL.postkontext || 'salon';
 
   document.getElementById('post-result-multi').style.display = 'none';
+  document.getElementById('post-result-text').style.display = 'none';
   document.getElementById('post-nicht-erreichbar').style.display = 'none';
   document.getElementById('post-format-badge').textContent = kanal === 'facebook' ? 'Facebook' : 'Post';
   document.getElementById('post-sticker-label').textContent = kanal === 'facebook' ? '💬 Kommentar-Frage' : '🎯 Interaktiver Sticker';
@@ -2715,6 +2761,262 @@ async function generatePost() {
   setTimeout(()=>document.getElementById('post-result').scrollIntoView({behavior:'smooth',block:'start'}),50);
 }
 
+// ════════════════════════════════════════════
+// NEWSLETTER & ANZEIGE: gleiche Stimme wie die Posts, aber eigenes Format
+// mit mehreren Feldern (Betreff/Vorschau/Text bzw. Anzeigen-Felder).
+// ════════════════════════════════════════════
+const BTN_TEXT_FORMAT = { newsletter: 'Newsletter erstellen', anzeige: 'Anzeige erstellen' };
+function postKanalUmschalten() {
+  const kanal = SEL.postkanal || 'instagram';
+  const textFormat = kanal === 'newsletter' || kanal === 'anzeige';
+  // Adresszeile gibt's nur bei Posts: im Newsletter steht sie im Impressum
+  // des Newsletter-Tools, bei Anzeigen im verknüpften Profil.
+  document.getElementById('post-adresse-wrap').style.display = textFormat ? 'none' : '';
+  document.getElementById('btn-post').textContent = BTN_TEXT_FORMAT[kanal] || 'Post erstellen';
+}
+
+// Grenzen von Meta (Instagram/Facebook-Anzeigen): Was darüber hinausgeht,
+// wird in der Anzeige abgeschnitten.
+const ANZEIGE_GRENZEN = { primaertext: 125, ueberschrift: 40, beschreibung: 30 };
+const ANZEIGE_BUTTONS = ['Jetzt buchen', 'Mehr dazu', 'Nachricht senden', 'Anrufen'];
+
+function textFormatRegeln(kontext, format) {
+  const sig = unterschriftFuer(kontext);
+  const stimme = kontext === 'haarnetzwerk'
+    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen. Nie "ich" — auch keine Erinnerungen oder Gefühle einer einzelnen Person.'
+    : 'Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist.';
+  const was = format === 'newsletter' ? 'DIESEN NEWSLETTER' : 'DIESE ANZEIGE';
+  const ende = format === 'newsletter'
+    ? `Gruß und Unterschrift ("${sig}") ergänzt die App automatisch — schreib sie nicht selbst.`
+    : 'Keine Unterschrift in der Anzeige.';
+  return `SCHREIBREGELN FÜR ${was} (verbindlich):
+1. ${stimme} Sprich die Leser:innen mit „du“ an, nie mit „Sie“. ${ende}
+2. Keine Adresse, keine Telefonnummer, keine E-Mail-Adresse im Text.
+3. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
+4. Ruhig und klar: vollständige Sätze, keine Floskeln und keine Stimmungsbilder (wie "das Klirren der Gläser", "was uns so besonders macht"), keine Ausrufezeichen, keine Großbuchstaben-Wörter, keine künstliche Dringlichkeit („nur heute“, „schnell sein“), ${format === 'newsletter' ? 'höchstens 1 Emoji im ganzen Newsletter' : 'kein Emoji'}.
+5. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Termine, Preise, Rabatte, Namen oder Erlebnisse dazu, auch keine Szenen oder Erinnerungen. Fehlt eine Angabe (z. B. Datum oder Preis), schreib den Text so, dass er ohne sie funktioniert, oder setze einen Platzhalter in eckigen Klammern, z. B. [Datum].
+6. Stichworte sind normal: Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
+7. Vor der Ausgabe prüfen: Rechtschreibung und Grammatik (österreichisches Deutsch, z. B. „Jänner“), ist klar, wer spricht, steht nur drin, was die Eingabe hergibt?`;
+}
+
+function textFormatSystem(format, ton, wer, kontext) {
+  const zielgruppe = werMap[wer] || 'Stammkund:innen';
+  const tonText = tonMap[ton] || 'nahbar und echt';
+  const felder = format === 'newsletter'
+    ? `- "betreff": Betreffzeile, höchstens 50 Zeichen. Konkret und ruhig: sagt, worum es geht, statt nur neugierig zu machen. Kein Clickbait, keine Ausrufezeichen.
+- "vorschau": Vorschautext (erscheint im Postfach neben dem Betreff), höchstens 90 Zeichen, ergänzt den Betreff statt ihn zu wiederholen.
+- "text": Der Mail-Text. Beginnt mit der Zeile "Hallo," und einer Leerzeile. Dann direkter Einstieg ins Thema, 2 bis 4 kurze Absätze, klar, was die Leser:innen davon haben, und zum Schluss eine ruhige, konkrete Handlungsaufforderung, wenn die Eingabe eine hergibt (z. B. Termin buchen, antworten, vorbeikommen). Ohne Gruß und Unterschrift.
+- "ps": Ein persönliches P.S. in einem Satz (ohne das "P.S." davor): ein kleines Detail oder ein Gedanke, der im Text noch nicht steht, aber aus der Eingabe kommt.`
+    : `- "primaertext": Der Text über dem Bild. Der erste Satz muss allein verständlich sein, denn Meta zeigt nur etwa ${ANZEIGE_GRENZEN.primaertext} Zeichen vor „mehr“. Insgesamt höchstens 3 kurze Sätze.
+- "ueberschrift": Überschrift unter dem Bild, höchstens ${ANZEIGE_GRENZEN.ueberschrift} Zeichen, nennt den Nutzen oder das Angebot sachlich.
+- "beschreibung": Kurze Ergänzung zur Überschrift, höchstens ${ANZEIGE_GRENZEN.beschreibung} Zeichen.
+- "button": Der passendste Button, genau einer von: ${ANZEIGE_BUTTONS.map(b => '"' + b + '"').join(', ')}.
+
+Regeln von Meta für Anzeigen (verbindlich): Sprich keine persönlichen Merkmale der Leser:innen an oder unterstelle sie (nicht „Hast du dünnes Haar?“, „Du bist über 40?“, „Leidest du unter …“), sondern beschreib das Angebot. Keine Vorher-nachher-Versprechen über den Körper, keine Gesundheits- oder Wirkversprechen.`;
+  const was = format === 'newsletter'
+    ? 'einen Newsletter (E-Mail an Menschen, die ihn abonniert haben)'
+    : 'eine bezahlte Anzeige für Instagram und Facebook (Meta)';
+
+  return `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+
+${kontextTeil(kontext)}
+
+${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln. Ton: ${tonText}. Zielgruppe: ${zielgruppe}.
+
+${textFormatRegeln(kontext, format)}
+
+Du schreibst ${was}. Das Ergebnis ist ein JSON-Objekt mit folgenden Feldern:
+
+${felder}`;
+}
+
+const TEXT_FORMAT_HAUPTFELD = { newsletter: 'text', anzeige: 'primaertext' };
+
+// Wörnis JSON-Antwort lesen; ohne Haupttext gilt sie als fehlgeschlagen.
+function textFormatAusAntwort(raw, format) {
+  if(!raw) return null;
+  const hauptFeld = TEXT_FORMAT_HAUPTFELD[format];
+  const { obj, text } = kiFeld(raw, hauptFeld);
+  // Sonst stünde unter „Technischer Hinweis“ nur „keine Details“
+  if(!text) { letzterKIFehler = `Antwort kam an, aber ohne Feld "${hauptFeld}": ` + String(raw).slice(0, 300); return null; }
+  return Object.assign({}, obj || {}, { [hauptFeld]: text });
+}
+
+async function buildTextFormat(format, m, ton, wer, kontext) {
+  const system = textFormatSystem(format, ton, wer, kontext) + `
+
+Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
+  let raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500);
+  if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500); }
+  return textFormatAusAntwort(raw, format);
+}
+
+// Gruß/Unterschrift/P.S. verlässlich selbst setzen, auch wenn die KI
+// sie doch mitschreibt.
+function newsletterAbschliessen(text, ps, kontext) {
+  let zeilen = ohneAdresse(text).trim().split('\n');
+  while (zeilen.length && /^(mirjam( walenta)?|euer haarnetzwerk|(liebe|viele|herzliche) grüße,?|alles liebe,?|p\.?\s?s\..*)?\s*$/i.test(zeilen[zeilen.length-1].trim())) zeilen.pop();
+  let out = zeilen.join('\n').replace(/\n{3,}/g, '\n\n') + '\n\nLiebe Grüße\n' + unterschriftFuer(kontext);
+  const psText = String(ps || '').replace(/^\s*p\.?\s?s\.?:?\s*/i, '').trim();
+  if (psText) out += '\n\nP.S. ' + psText;
+  return out;
+}
+
+function textFormatFeld(id, label, grenze) {
+  const zaehler = grenze ? `<span class="output-format-badge" id="${id}-zaehler"></span>` : '';
+  return `<div class="story-section-block">
+    <div class="section-copy-row">
+      <span class="sc-label">${label} ${zaehler}</span>
+      <button class="btn-section-copy" id="copy-${id}" aria-label="${label} kopieren" onclick="copySectionBlock('${id}','copy-${id}')">📋 Kopieren</button>
+    </div>
+    <div class="sc-val" id="${id}" contenteditable="true"${grenze ? ` oninput="textFormatFeldZaehler('${id}',${grenze})"` : ''}></div>
+  </div>`;
+}
+
+function textFormatFeldZaehler(id, grenze) {
+  const len = feldWert(id).length;
+  const el = document.getElementById(id + '-zaehler');
+  el.textContent = len > grenze ? `${len} / ${grenze} · zu lang` : `${len} / ${grenze}`;
+  el.style.background = len > grenze ? 'var(--black)' : '';
+}
+
+// Inhalt eines Feldes; der Platzhalter "—" zählt als leer.
+function feldWert(id) {
+  const t = document.getElementById(id).innerText.trim();
+  return t === '—' ? '' : t;
+}
+
+let textFormatGrenze = 0;
+function textFormatZaehler() {
+  const el = document.getElementById('post-text-char');
+  const len = document.getElementById('post-text-haupt').innerText.trim().length;
+  el.textContent = textFormatGrenze ? `${len} Zeichen · etwa ${textFormatGrenze} sichtbar vor „mehr“` : `${len} Zeichen`;
+}
+
+// Merkt sich Format und Auswahl des zuletzt erzeugten Newsletters bzw. der
+// Anzeige, damit Nachbessern mit denselben Regeln arbeitet.
+let letztesTextFormat = null;
+
+async function generateTextFormat(m, format) {
+  const ton = SEL.postton || 'nahbar';
+  const wer = SEL.postwer || 'kundinnen';
+  const kontext = SEL.postkontext || 'salon';
+
+  ['post-result', 'post-result-multi', 'post-result-text', 'post-nicht-erreichbar']
+    .forEach(id => document.getElementById(id).style.display = 'none');
+  const btn = document.getElementById('btn-post');
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni schreibt …';
+
+  const erg = await buildTextFormat(format, m, ton, wer, kontext);
+  btn.disabled = false;
+  btn.textContent = BTN_TEXT_FORMAT[format];
+  if(!erg) { zeigeWoerniNichtErreichbar(); return; }
+
+  letztesTextFormat = { format, ton, wer, kontext };
+  document.getElementById('post-text-wunsch').value = '';
+  document.getElementById('post-text-nachbessern-status').textContent = '';
+  zeigeTextFormat(erg);
+  document.getElementById('post-result-text').style.display = 'block';
+  setTimeout(()=>document.getElementById('post-result-text').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function zeigeTextFormat(erg) {
+  const { format, wer, kontext } = letztesTextFormat;
+  const felder = document.getElementById('post-text-felder');
+  const hinweis = document.getElementById('post-text-hinweis');
+  let haupt, felderDaten;
+  if(format === 'newsletter') {
+    felderDaten = [
+      ['nl-betreff', '✉️ Betreff', erg.betreff || '', 50],
+      ['nl-vorschau', '👁 Vorschautext', erg.vorschau || '', 90]
+    ];
+    haupt = newsletterAbschliessen(erg.text, erg.ps, kontext);
+    textFormatGrenze = 0;
+    document.getElementById('post-text-haupt-label').firstChild.textContent = 'Mail-Text ';
+    document.getElementById('post-text-format-badge').textContent = 'Newsletter';
+    hinweis.textContent = 'Nur an Menschen schicken, die dem Newsletter zugestimmt haben. Abmelde-Link und Impressum fügt dein Newsletter-Tool automatisch unten ein — bitte dort einmal prüfen, dass beides drin ist. Eckige Klammern wie [Datum] vor dem Versand ersetzen.';
+  } else {
+    const button = ANZEIGE_BUTTONS.includes(erg.button) ? erg.button : 'Mehr dazu';
+    felderDaten = [
+      ['ad-ueberschrift', '📰 Überschrift', erg.ueberschrift || '', ANZEIGE_GRENZEN.ueberschrift],
+      ['ad-beschreibung', '➕ Beschreibung', erg.beschreibung || '', ANZEIGE_GRENZEN.beschreibung],
+      ['ad-button', '🔘 Button', button, 0]
+    ];
+    haupt = ohneAdresse(erg.primaertext).trim();
+    textFormatGrenze = ANZEIGE_GRENZEN.primaertext;
+    document.getElementById('post-text-haupt-label').firstChild.textContent = 'Primärtext ';
+    document.getElementById('post-text-format-badge').textContent = 'Anzeige · Meta';
+    hinweis.textContent = (wer === 'lehrlinge'
+      ? 'Stellen- und Lehrlingsanzeigen musst du bei Meta in der Kategorie „Beschäftigung“ anlegen, sonst wird die Anzeige abgelehnt. '
+      : '') + 'Bevor du die Anzeige schaltest: Text noch einmal lesen und prüfen, ob Angebot, Preis und Datum stimmen. Keine Gesundheitsversprechen, auch nicht im Bild.';
+  }
+  // Newsletter: Betreff/Vorschau über dem Text. Anzeige: Primärtext zuerst,
+  // wie in der Anzeige selbst (Text über dem Bild, Überschrift darunter).
+  if(format === 'newsletter') document.querySelector('#post-result-text .output-wrap').insertAdjacentElement('beforebegin', felder);
+  else document.querySelector('#post-result-text .cta-row').insertAdjacentElement('afterend', felder);
+  felder.style.marginTop = format === 'newsletter' ? '' : '14px';
+  document.getElementById('post-text-wunsch').placeholder = format === 'newsletter'
+    ? 'Eigener Wunsch, z. B. „Betreff mit dem Datum“'
+    : 'Eigener Wunsch, z. B. „Überschrift mit dem Preis“';
+  felder.innerHTML = felderDaten.map(([id, label, , grenze]) => textFormatFeld(id, label, grenze)).join('');
+  // Werte per textContent setzen (nicht ins HTML), Zähler danach aktualisieren
+  felderDaten.forEach(([id, , wert, grenze]) => {
+    document.getElementById(id).textContent = wert || '—';
+    if (grenze) textFormatFeldZaehler(id, grenze);
+  });
+  document.getElementById('post-text-haupt').textContent = haupt;
+  textFormatZaehler();
+  setKiBadge('post-text-badge', true);
+}
+
+// Aktuellen (ggf. von Hand bearbeiteten) Stand in Wörnis JSON-Form bringen.
+// Beim Newsletter werden Gruß/Unterschrift weggelassen und das P.S. getrennt
+// mitgeschickt — beides setzt die App danach wieder selbst.
+function textFormatAktuell(format) {
+  const haupt = document.getElementById('post-text-haupt').innerText.trim();
+  if(format === 'newsletter') {
+    const psMatch = haupt.match(/\n\s*P\.\s?S\.:?\s*([\s\S]*)$/i);
+    const ohnePs = psMatch ? haupt.slice(0, psMatch.index) : haupt;
+    const text = newsletterAbschliessen(ohnePs, '', letztesTextFormat.kontext)
+      .replace(/\n\nLiebe Grüße\n[^\n]*$/, '');
+    return { betreff: feldWert('nl-betreff'), vorschau: feldWert('nl-vorschau'), text, ps: psMatch ? psMatch[1].trim() : '' };
+  }
+  return { primaertext: haupt, ueberschrift: feldWert('ad-ueberschrift'), beschreibung: feldWert('ad-beschreibung'), button: feldWert('ad-button') };
+}
+
+async function textFormatNachbessern(art) {
+  const feld = document.getElementById('post-text-wunsch');
+  const wunsch = art ? NACHBESSERN_WUENSCHE[art] : feld.value.trim();
+  const status = document.getElementById('post-text-nachbessern-status');
+  if(!wunsch || !letztesTextFormat) return;
+  const { format, ton, wer, kontext } = letztesTextFormat;
+  const aktuell = textFormatAktuell(format);
+  if(!aktuell[TEXT_FORMAT_HAUPTFELD[format]]) return;
+
+  const knoepfe = document.querySelectorAll('#post-text-nachbessern button');
+  knoepfe.forEach(b => b.disabled = true);
+  status.textContent = '✦ Wörni bessert nach …';
+
+  const system = textFormatSystem(format, ton, wer, kontext) + `
+
+Du bekommst eine fertige Fassung als JSON-Objekt und einen Änderungswunsch. Überarbeite genau nach diesem Wunsch und lass alles andere möglichst so, wie es ist. Widerspricht der Wunsch einer Schreibregel (z. B. Länge oder Emoji), hat der Wunsch Vorrang; ${format === 'anzeige' ? 'die Regeln von Meta, ' : ''}die Zeichengrenzen und „nichts erfinden“ gelten trotzdem. Antworte NUR mit dem überarbeiteten JSON-Objekt mit denselben Feldern. Kein Text drumherum. Kein Markdown.`;
+  const userText = `Bisherige Fassung:\n${JSON.stringify(aktuell, null, 2)}\n\nÄnderungswunsch: ${wunsch}`;
+
+  let erg = null;
+  try { erg = textFormatAusAntwort(await claudeAnfrage(system, userText, 1500), format); } catch(e) { erg = null; }
+
+  knoepfe.forEach(b => b.disabled = false);
+  if(!erg) {
+    status.textContent = 'Wörni ist gerade nicht erreichbar. Bitte nochmal versuchen.';
+    return;
+  }
+  // Felder, die Wörni weglässt, bleiben wie bisher
+  zeigeTextFormat(Object.assign({}, aktuell, erg));
+  if(!art) feld.value = '';
+  status.textContent = '✓ Überarbeitet. Gefällt es noch nicht? Einfach nochmal.';
+}
+
 // Liest ein Feld aus Wörnis JSON-Antwort. Ist die Antwort abgeschnitten
 // (Längenlimit) oder kein gültiges JSON, wird das Feld trotzdem herausgeholt
 // und bis zum letzten vollständigen Satz gekürzt, statt rohes JSON mit
@@ -2737,7 +3039,7 @@ function kiFeld(raw, feld) {
 // Wörni hat nicht geantwortet: klar sagen statt einen Ersatztext zu zeigen.
 // art: 'post' | 'story'
 function zeigeWoerniNichtErreichbar(art = 'post') {
-  (art === 'story' ? ['story-result'] : ['post-result', 'post-result-multi'])
+  (art === 'story' ? ['story-result'] : ['post-result', 'post-result-multi', 'post-result-text'])
     .forEach(id => document.getElementById(id).style.display = 'none');
   const box = document.getElementById(art + '-nicht-erreichbar');
   document.getElementById(art + '-nicht-erreichbar-technik').textContent = letzterKIFehler || 'keine Details';
@@ -2807,6 +3109,7 @@ async function generatePostAlleKanaele(m) {
   const mitGoogle = kontext === 'salon';
 
   document.getElementById('post-result').style.display = 'none';
+  document.getElementById('post-result-text').style.display = 'none';
   document.getElementById('post-nicht-erreichbar').style.display = 'none';
   document.getElementById('multi-google-block').style.display = mitGoogle ? 'block' : 'none';
   const btn = document.getElementById('btn-post');

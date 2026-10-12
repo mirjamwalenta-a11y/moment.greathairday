@@ -49,7 +49,7 @@
   <button class="tab" onclick="showTab('story')">📱 Story</button>
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
   <button class="tab" onclick="showTab('planer')">📅 Planer</button>
-  <button class="tab" onclick="location.href='recruiting-cockpit.html'">👥 Recruiting</button>
+  <button class="tab" onclick="location.href='recruiting-cockpit.html?von=heute'">👥 Recruiting</button>
   <button class="tab" onclick="showTab('cta')">📣 CTA</button>
   <button class="tab" onclick="showTab('google')">📍 Google</button>
   <button class="tab" onclick="showTab('ki-sichtbarkeit')">🤖 KI-Sichtbarkeit</button>
@@ -267,7 +267,7 @@ function tabnavScrollBy(direction) {
 <section class="screen" id="screen-zeigen">
   <p class="screen-eyebrow">Mitarbeiter:innen anziehen</p>
   <h2 class="screen-headline">Welcher Moment<br>passt gerade?</h2>
-  <div class="card" style="background:var(--black);color:#fff;cursor:pointer;" onclick="location.href='recruiting-cockpit.html'">
+  <div class="card" style="background:var(--black);color:#fff;cursor:pointer;" onclick="location.href='recruiting-cockpit.html?von=recruiting'">
     <div class="card-tag" style="color:var(--gold);">Recruiting-Cockpit</div>
     <div class="card-title" style="color:#fff;">Diese Woche suchen</div>
     <div class="card-body" style="color:rgba(255,255,255,.8);" id="recruiting-cockpit-status">Wochenaufgaben, Bewerber:innen und Kontakte an einem Ort.</div>
@@ -484,7 +484,7 @@ function tabnavScrollBy(direction) {
       <span class="heute-quick-label">Post schreiben</span>
       <span class="heute-quick-sub">Aus einem Moment</span>
     </div>
-    <div class="heute-quick-card" onclick="location.href='recruiting-cockpit.html'">
+    <div class="heute-quick-card" onclick="location.href='recruiting-cockpit.html?von=heute'">
       <span class="heute-quick-icon">👥</span>
       <span class="heute-quick-label">Recruiting</span>
       <span class="heute-quick-sub" id="heute-recruiting-sub">Aufgaben diese Woche</span>
@@ -1503,8 +1503,18 @@ function starteApp() {
   initHeuteTab();
   msSyncLogos();
   initRahmenSprueche();
-  // Rücksprung aus dem Recruiting-Cockpit: index.html?zeige=recruiting
-  if (new URLSearchParams(location.search).get('zeige') === 'recruiting') showScreen('screen-zeigen');
+  // Rücksprung aus dem Recruiting-Cockpit dorthin, von wo es geöffnet wurde:
+  // index.html?zeige=heute | planer | recruiting (sonst Startseite)
+  const zeige = new URLSearchParams(location.search).get('zeige');
+  if (zeige === 'recruiting') showScreen('screen-zeigen');
+  if (zeige === 'heute') showTabNav();
+  if (zeige === 'planer') {
+    showTab_direct('screen-planer');
+    initPlaner(); renderTermineListe();
+    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', /'planer'/.test(t.getAttribute('onclick') || '')));
+  }
+  // Beim Neuladen nicht wieder dorthin springen
+  if (zeige) history.replaceState(null, '', location.pathname + location.hash);
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -4971,9 +4981,9 @@ function renderRecruitingHinweis() {
   ].filter(Boolean).join(' · ') || 'Diese Woche alles erledigt';
   const wrap = document.getElementById('recruiting-start-wrap');
   if (!wrap) return;
-  const ziel = z.warten ? "location.href='recruiting-cockpit.html#bewerber'"
+  const ziel = z.warten ? "location.href='recruiting-cockpit.html?von=start#bewerber'"
     : (recruitingTag() === getTodayIdx() && !recruitingDieseWocheGepostet()) ? `generateOutput('${recruitingIdeeDieseWoche().key}')`
-    : "location.href='recruiting-cockpit.html'";
+    : "location.href='recruiting-cockpit.html?von=start'";
   wrap.innerHTML = teile.length ? `<button class="recruiting-start${z.warten ? ' dringend' : ''}" onclick="${ziel}">
       <span>👥 ${teile[0].startsWith('Heute ist') ? '' : 'Recruiting: '}${teile.join(' · ')}</span><span aria-hidden="true">→</span>
     </button>` : '';
@@ -5921,7 +5931,7 @@ function initPlaner() {
         <div class="planer-day-chips">
           <button class="planer-chip" onclick="generateOutput('${idee.key}')">✍ Vorschlag ansehen</button>
           <button class="planer-chip" onclick="showScreen('screen-zeigen')">💡 Andere Idee</button>
-          <button class="planer-chip" onclick="location.href='recruiting-cockpit.html'">📋 Cockpit</button>
+          <button class="planer-chip" onclick="location.href='recruiting-cockpit.html?von=planer'">📋 Cockpit</button>
         </div>
       </div>
     </div>`;

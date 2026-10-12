@@ -75,7 +75,7 @@ details summary::-webkit-details-marker{display:none;}
 <body>
 <div class="phone">
   <div class="topbar">
-    <a class="zurueck" href="index.html?zeige=recruiting">← Zurück zu Moment</a>
+    <a class="zurueck" id="zurueck-link" href="index.html?zeige=recruiting">← Zurück zu Moment</a>
     <div class="wordmark">Recruiting-Cockpit</div>
     <div class="subtitle">Jede Woche ein paar Schritte. Niemanden verlieren, der sich meldet.</div>
   </div>
@@ -525,6 +525,11 @@ function alles() {
 }
 
 alles();
+// Zurück dorthin, von wo das Cockpit geöffnet wurde (Heute-Tab, Planer,
+// Recruiting-Seite oder Startseite) — ?von=… setzt index.html beim Öffnen
+const VON = new URLSearchParams(location.search).get('von');
+if (['heute', 'planer', 'recruiting'].includes(VON)) document.getElementById('zurueck-link').href = 'index.html?zeige=' + VON;
+else if (VON === 'start') document.getElementById('zurueck-link').href = 'index.html';
 const start = location.hash.slice(1);
 if (['woche', 'bewerber', 'kontakte'].includes(start)) zeigeTab(start);
 </script>

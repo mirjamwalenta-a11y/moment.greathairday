@@ -820,6 +820,7 @@ function tabnavScrollBy(direction) {
       <div id="post-text-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
     </div>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
+    <div id="post-text-dauer" style="font-size:11px;color:var(--soft);margin-top:8px;text-align:center;"></div>
     <div class="card" style="margin-top:20px;">
       <div class="card-tag">Wichtig</div>
       <div class="card-body" id="post-text-hinweis"></div>
@@ -2933,10 +2934,17 @@ async function generateTextFormat(m, format) {
   btn.disabled = true;
   btn.textContent = '✦ Wörni schreibt …';
 
+  const logStart = kiAnfragenLog.length, zeitStart = Date.now();
   const erg = await buildTextFormat(format, m, ton, wer, kontext);
+  const dauer = kiDauerText(logStart, zeitStart);
   btn.disabled = false;
   btn.textContent = BTN_TEXT_FORMAT[format];
-  if(!erg) { zeigeWoerniNichtErreichbar(); return; }
+  if(!erg) {
+    zeigeWoerniNichtErreichbar();
+    document.getElementById('post-nicht-erreichbar-technik').textContent += ' · ' + dauer;
+    return;
+  }
+  document.getElementById('post-text-dauer').textContent = dauer;
 
   letztesTextFormat = { format, ton, wer, kontext };
   document.getElementById('post-text-wunsch').value = '';
@@ -3029,7 +3037,9 @@ Du bekommst eine fertige Fassung als JSON-Objekt und einen Änderungswunsch. Üb
   const userText = `Bisherige Fassung:\n${JSON.stringify(aktuell, null, 2)}\n\nÄnderungswunsch: ${wunsch}`;
 
   let erg = null;
+  const logStart = kiAnfragenLog.length, zeitStart = Date.now();
   try { erg = textFormatAusAntwort(await claudeAnfrage(system, userText, 1500), format); } catch(e) { erg = null; }
+  document.getElementById('post-text-dauer').textContent = kiDauerText(logStart, zeitStart);
 
   knoepfe.forEach(b => b.disabled = false);
   if(!erg) {
@@ -5519,6 +5529,17 @@ let letzterKIFehler = null;
 // Supabase-Funktion den Parameter ab (HTTP 400), wird ohne ihn wiederholt und er bleibt danach weg.
 let thinkingAbschaltenMoeglich = true;
 
+// Jede einzelne Anfrage an Wörni (Dauer + Ergebnis), damit sich bei
+// langen Wartezeiten zeigen lässt, ob Wörni langsam schreibt oder eine
+// Anfrage hängen blieb und wiederholt wurde.
+const kiAnfragenLog = [];
+function kiDauerText(abIndex, startMs) {
+  const sek = ms => Math.round(ms / 1000) + ' s';
+  const anfragen = kiAnfragenLog.slice(abIndex);
+  const einzeln = anfragen.map(a => a.ergebnis === 'ok' ? sek(a.ms) + ' ✓' : `${sek(a.ms)} (${a.ergebnis})`).join(', ');
+  return `Wörni: ${sek(Date.now() - startMs)} · ${anfragen.length} ${anfragen.length === 1 ? 'Anfrage' : 'Anfragen'}${anfragen.length > 1 || (anfragen[0] && anfragen[0].ergebnis !== 'ok') ? ': ' + einzeln : ''}`;
+}
+
 async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
   letzterKIFehler = null;
@@ -5554,8 +5575,10 @@ async function claudeAnfrage(system, userText, maxTokens) {
         messages: [{ role: 'user', content: userText }]
       };
       if (thinkingAbschaltenMoeglich) anfrage.thinking = { type: 'disabled' };
+      const start = Date.now();
+      let ergebnis = 'Fehler';
       try {
-        return await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
+        const res = await fetch('https://wrxlaltgtgkdomklgrlj.supabase.co/functions/v1/rapid-function', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -5564,8 +5587,14 @@ async function claudeAnfrage(system, userText, maxTokens) {
           body: JSON.stringify(anfrage),
           signal: controller.signal
         });
+        ergebnis = res.ok ? 'ok' : 'HTTP ' + res.status;
+        return res;
+      } catch(e) {
+        if (e && e.name === 'AbortError') ergebnis = `keine Antwort nach ${Math.round(timeoutMs/1000)} s`;
+        throw e;
       } finally {
         clearTimeout(timeoutId);
+        kiAnfragenLog.push({ ms: Date.now() - start, ergebnis });
       }
     };
 

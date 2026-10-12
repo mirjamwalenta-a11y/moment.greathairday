@@ -805,6 +805,20 @@ function tabnavScrollBy(direction) {
       <button class="btn-copy" id="post-text-copy" onclick="copyEl('post-text-haupt','post-text-copy')">📋 Text kopieren</button>
       <button class="btn-edit" onclick="document.getElementById('post-text-haupt').focus()">✏️ Bearbeiten</button>
     </div>
+    <div id="post-text-nachbessern" class="input-wrap" style="margin-top:14px;">
+      <div class="input-label">Noch nicht ganz? Wörni bessert nach</div>
+      <div class="chip-row">
+        <button class="chip-select" onclick="textFormatNachbessern('kuerzer')">Kürzer</button>
+        <button class="chip-select" onclick="textFormatNachbessern('lockerer')">Lockerer</button>
+        <button class="chip-select" onclick="textFormatNachbessern('persoenlicher')">Persönlicher</button>
+        <button class="chip-select" onclick="textFormatNachbessern('emoji')">Mit Emoji</button>
+      </div>
+      <div style="display:flex;gap:8px;margin-top:8px;">
+        <input type="text" id="post-text-wunsch" class="login-input" placeholder="Eigener Wunsch, z. B. „Betreff mit dem Datum“" style="max-width:100%;text-align:left;flex:1;" onkeydown="if(event.key==='Enter')textFormatNachbessern()">
+        <button class="chip-select" onclick="textFormatNachbessern()">Ändern</button>
+      </div>
+      <div id="post-text-nachbessern-status" style="font-size:12px;color:var(--mid);margin-top:6px;"></div>
+    </div>
     <button class="btn-ghost-sm" onclick="generatePost()">↺ Neue Variante</button>
     <div class="card" style="margin-top:20px;">
       <div class="card-tag">Wichtig</div>
@@ -2784,26 +2798,25 @@ function textFormatRegeln(kontext, format) {
 7. Vor der Ausgabe prüfen: Rechtschreibung und Grammatik (österreichisches Deutsch, z. B. „Jänner“), ist klar, wer spricht, steht nur drin, was die Eingabe hergibt?`;
 }
 
-async function buildTextFormat(format, m, ton, wer, kontext) {
+function textFormatSystem(format, ton, wer, kontext) {
   const zielgruppe = werMap[wer] || 'Stammkund:innen';
   const tonText = tonMap[ton] || 'nahbar und echt';
-  const aufgabe = format === 'newsletter'
-    ? `Erstelle einen Newsletter (E-Mail an Menschen, die ihn abonniert haben) als JSON-Objekt mit folgenden Feldern:
-
-- "betreff": Betreffzeile, höchstens 50 Zeichen. Konkret und ruhig: sagt, worum es geht, statt nur neugierig zu machen. Kein Clickbait, keine Ausrufezeichen.
+  const felder = format === 'newsletter'
+    ? `- "betreff": Betreffzeile, höchstens 50 Zeichen. Konkret und ruhig: sagt, worum es geht, statt nur neugierig zu machen. Kein Clickbait, keine Ausrufezeichen.
 - "vorschau": Vorschautext (erscheint im Postfach neben dem Betreff), höchstens 90 Zeichen, ergänzt den Betreff statt ihn zu wiederholen.
 - "text": Der Mail-Text. Beginnt mit der Zeile "Hallo," und einer Leerzeile. Dann direkter Einstieg ins Thema, 2 bis 4 kurze Absätze, klar, was die Leser:innen davon haben, und zum Schluss eine ruhige, konkrete Handlungsaufforderung, wenn die Eingabe eine hergibt (z. B. Termin buchen, antworten, vorbeikommen). Ohne Gruß und Unterschrift.
 - "ps": Ein persönliches P.S. in einem Satz (ohne das "P.S." davor): ein kleines Detail oder ein Gedanke, der im Text noch nicht steht, aber aus der Eingabe kommt.`
-    : `Erstelle eine bezahlte Anzeige für Instagram und Facebook (Meta) als JSON-Objekt mit folgenden Feldern:
-
-- "primaertext": Der Text über dem Bild. Der erste Satz muss allein verständlich sein, denn Meta zeigt nur etwa ${ANZEIGE_GRENZEN.primaertext} Zeichen vor „mehr“. Insgesamt höchstens 3 kurze Sätze.
+    : `- "primaertext": Der Text über dem Bild. Der erste Satz muss allein verständlich sein, denn Meta zeigt nur etwa ${ANZEIGE_GRENZEN.primaertext} Zeichen vor „mehr“. Insgesamt höchstens 3 kurze Sätze.
 - "ueberschrift": Überschrift unter dem Bild, höchstens ${ANZEIGE_GRENZEN.ueberschrift} Zeichen, nennt den Nutzen oder das Angebot sachlich.
 - "beschreibung": Kurze Ergänzung zur Überschrift, höchstens ${ANZEIGE_GRENZEN.beschreibung} Zeichen.
 - "button": Der passendste Button, genau einer von: ${ANZEIGE_BUTTONS.map(b => '"' + b + '"').join(', ')}.
 
 Regeln von Meta für Anzeigen (verbindlich): Sprich keine persönlichen Merkmale der Leser:innen an oder unterstelle sie (nicht „Hast du dünnes Haar?“, „Du bist über 40?“, „Leidest du unter …“), sondern beschreib das Angebot. Keine Vorher-nachher-Versprechen über den Körper, keine Gesundheits- oder Wirkversprechen.`;
+  const was = format === 'newsletter'
+    ? 'einen Newsletter (E-Mail an Menschen, die ihn abonniert haben)'
+    : 'eine bezahlte Anzeige für Instagram und Facebook (Meta)';
 
-  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+  return `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
 ${kontextTeil(kontext)}
 
@@ -2811,17 +2824,29 @@ ${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, kaum Emoji,
 
 ${textFormatRegeln(kontext, format)}
 
-${aufgabe}
+Du schreibst ${was}. Das Ergebnis ist ein JSON-Objekt mit folgenden Feldern:
 
-Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
+${felder}`;
+}
 
-  let raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500);
-  if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500); }
+const TEXT_FORMAT_HAUPTFELD = { newsletter: 'text', anzeige: 'primaertext' };
+
+// Wörnis JSON-Antwort lesen; ohne Haupttext gilt sie als fehlgeschlagen.
+function textFormatAusAntwort(raw, format) {
   if(!raw) return null;
-  const hauptFeld = format === 'newsletter' ? 'text' : 'primaertext';
+  const hauptFeld = TEXT_FORMAT_HAUPTFELD[format];
   const { obj, text } = kiFeld(raw, hauptFeld);
   if(!text) return null;
   return Object.assign({}, obj || {}, { [hauptFeld]: text });
+}
+
+async function buildTextFormat(format, m, ton, wer, kontext) {
+  const system = textFormatSystem(format, ton, wer, kontext) + `
+
+Antworte NUR mit dem JSON-Objekt. Kein Text drumherum. Kein Markdown.`;
+  let raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500);
+  if(!raw) { await new Promise(r => setTimeout(r, 1500)); raw = await claudeAnfrage(system, `Thema/Stichworte: ${m}`, 1500); }
+  return textFormatAusAntwort(raw, format);
 }
 
 // Gruß/Unterschrift/P.S. verlässlich selbst setzen, auch wenn die KI
@@ -2835,15 +2860,28 @@ function newsletterAbschliessen(text, ps, kontext) {
   return out;
 }
 
-function textFormatFeld(id, label, wert, grenze) {
-  const zaehler = grenze ? `<span class="output-format-badge">${wert.length} / ${grenze}</span>` : '';
+function textFormatFeld(id, label, grenze) {
+  const zaehler = grenze ? `<span class="output-format-badge" id="${id}-zaehler"></span>` : '';
   return `<div class="story-section-block">
     <div class="section-copy-row">
       <span class="sc-label">${label} ${zaehler}</span>
       <button class="btn-section-copy" id="copy-${id}" aria-label="${label} kopieren" onclick="copySectionBlock('${id}','copy-${id}')">📋 Kopieren</button>
     </div>
-    <div class="sc-val" id="${id}" contenteditable="true"></div>
+    <div class="sc-val" id="${id}" contenteditable="true"${grenze ? ` oninput="textFormatFeldZaehler('${id}',${grenze})"` : ''}></div>
   </div>`;
+}
+
+function textFormatFeldZaehler(id, grenze) {
+  const len = feldWert(id).length;
+  const el = document.getElementById(id + '-zaehler');
+  el.textContent = len > grenze ? `${len} / ${grenze} · zu lang` : `${len} / ${grenze}`;
+  el.style.background = len > grenze ? 'var(--black)' : '';
+}
+
+// Inhalt eines Feldes; der Platzhalter "—" zählt als leer.
+function feldWert(id) {
+  const t = document.getElementById(id).innerText.trim();
+  return t === '—' ? '' : t;
 }
 
 let textFormatGrenze = 0;
@@ -2852,6 +2890,10 @@ function textFormatZaehler() {
   const len = document.getElementById('post-text-haupt').innerText.trim().length;
   el.textContent = textFormatGrenze ? `${len} Zeichen · etwa ${textFormatGrenze} sichtbar vor „mehr“` : `${len} Zeichen`;
 }
+
+// Merkt sich Format und Auswahl des zuletzt erzeugten Newsletters bzw. der
+// Anzeige, damit Nachbessern mit denselben Regeln arbeitet.
+let letztesTextFormat = null;
 
 async function generateTextFormat(m, format) {
   const ton = SEL.postton || 'nahbar';
@@ -2869,6 +2911,16 @@ async function generateTextFormat(m, format) {
   btn.textContent = BTN_TEXT_FORMAT[format];
   if(!erg) { zeigeWoerniNichtErreichbar(); return; }
 
+  letztesTextFormat = { format, ton, wer, kontext };
+  document.getElementById('post-text-wunsch').value = '';
+  document.getElementById('post-text-nachbessern-status').textContent = '';
+  zeigeTextFormat(erg);
+  document.getElementById('post-result-text').style.display = 'block';
+  setTimeout(()=>document.getElementById('post-result-text').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+function zeigeTextFormat(erg) {
+  const { format, wer, kontext } = letztesTextFormat;
   const felder = document.getElementById('post-text-felder');
   const hinweis = document.getElementById('post-text-hinweis');
   let haupt, felderDaten;
@@ -2899,19 +2951,68 @@ async function generateTextFormat(m, format) {
   }
   // Newsletter: Betreff/Vorschau über dem Text. Anzeige: Primärtext zuerst,
   // wie in der Anzeige selbst (Text über dem Bild, Überschrift darunter).
-  document.querySelector('#post-result-text .output-wrap')
-    .insertAdjacentElement(format === 'newsletter' ? 'beforebegin' : 'afterend', felder);
-  felder.innerHTML = felderDaten.map(([id, label, , grenze]) => textFormatFeld(id, label, '', grenze)).join('');
+  if(format === 'newsletter') document.querySelector('#post-result-text .output-wrap').insertAdjacentElement('beforebegin', felder);
+  else document.querySelector('#post-result-text .cta-row').insertAdjacentElement('afterend', felder);
+  felder.style.marginTop = format === 'newsletter' ? '' : '14px';
+  document.getElementById('post-text-wunsch').placeholder = format === 'newsletter'
+    ? 'Eigener Wunsch, z. B. „Betreff mit dem Datum“'
+    : 'Eigener Wunsch, z. B. „Überschrift mit dem Preis“';
+  felder.innerHTML = felderDaten.map(([id, label, , grenze]) => textFormatFeld(id, label, grenze)).join('');
   // Werte per textContent setzen (nicht ins HTML), Zähler danach aktualisieren
-  felderDaten.forEach(([id, label, wert, grenze]) => {
+  felderDaten.forEach(([id, , wert, grenze]) => {
     document.getElementById(id).textContent = wert || '—';
-    if (grenze) document.getElementById(id).previousElementSibling.querySelector('.output-format-badge').textContent = `${wert.length} / ${grenze}`;
+    if (grenze) textFormatFeldZaehler(id, grenze);
   });
   document.getElementById('post-text-haupt').textContent = haupt;
   textFormatZaehler();
   setKiBadge('post-text-badge', true);
-  document.getElementById('post-result-text').style.display = 'block';
-  setTimeout(()=>document.getElementById('post-result-text').scrollIntoView({behavior:'smooth',block:'start'}),50);
+}
+
+// Aktuellen (ggf. von Hand bearbeiteten) Stand in Wörnis JSON-Form bringen.
+// Beim Newsletter werden Gruß/Unterschrift weggelassen und das P.S. getrennt
+// mitgeschickt — beides setzt die App danach wieder selbst.
+function textFormatAktuell(format) {
+  const haupt = document.getElementById('post-text-haupt').innerText.trim();
+  if(format === 'newsletter') {
+    const psMatch = haupt.match(/\n\s*P\.\s?S\.:?\s*([\s\S]*)$/i);
+    const ohnePs = psMatch ? haupt.slice(0, psMatch.index) : haupt;
+    const text = newsletterAbschliessen(ohnePs, '', letztesTextFormat.kontext)
+      .replace(/\n\nLiebe Grüße\n[^\n]*$/, '');
+    return { betreff: feldWert('nl-betreff'), vorschau: feldWert('nl-vorschau'), text, ps: psMatch ? psMatch[1].trim() : '' };
+  }
+  return { primaertext: haupt, ueberschrift: feldWert('ad-ueberschrift'), beschreibung: feldWert('ad-beschreibung'), button: feldWert('ad-button') };
+}
+
+async function textFormatNachbessern(art) {
+  const feld = document.getElementById('post-text-wunsch');
+  const wunsch = art ? NACHBESSERN_WUENSCHE[art] : feld.value.trim();
+  const status = document.getElementById('post-text-nachbessern-status');
+  if(!wunsch || !letztesTextFormat) return;
+  const { format, ton, wer, kontext } = letztesTextFormat;
+  const aktuell = textFormatAktuell(format);
+  if(!aktuell[TEXT_FORMAT_HAUPTFELD[format]]) return;
+
+  const knoepfe = document.querySelectorAll('#post-text-nachbessern button');
+  knoepfe.forEach(b => b.disabled = true);
+  status.textContent = '✦ Wörni bessert nach …';
+
+  const system = textFormatSystem(format, ton, wer, kontext) + `
+
+Du bekommst eine fertige Fassung als JSON-Objekt und einen Änderungswunsch. Überarbeite genau nach diesem Wunsch und lass alles andere möglichst so, wie es ist. Widerspricht der Wunsch einer Schreibregel (z. B. Länge oder Emoji), hat der Wunsch Vorrang; ${format === 'anzeige' ? 'die Regeln von Meta, ' : ''}die Zeichengrenzen und „nichts erfinden“ gelten trotzdem. Antworte NUR mit dem überarbeiteten JSON-Objekt mit denselben Feldern. Kein Text drumherum. Kein Markdown.`;
+  const userText = `Bisherige Fassung:\n${JSON.stringify(aktuell, null, 2)}\n\nÄnderungswunsch: ${wunsch}`;
+
+  let erg = null;
+  try { erg = textFormatAusAntwort(await claudeAnfrage(system, userText, 1500), format); } catch(e) { erg = null; }
+
+  knoepfe.forEach(b => b.disabled = false);
+  if(!erg) {
+    status.textContent = 'Wörni ist gerade nicht erreichbar. Bitte nochmal versuchen.';
+    return;
+  }
+  // Felder, die Wörni weglässt, bleiben wie bisher
+  zeigeTextFormat(Object.assign({}, aktuell, erg));
+  if(!art) feld.value = '';
+  status.textContent = '✓ Überarbeitet. Gefällt es noch nicht? Einfach nochmal.';
 }
 
 // Liest ein Feld aus Wörnis JSON-Antwort. Ist die Antwort abgeschnitten

@@ -1560,7 +1560,7 @@ Regeln zu Leistungen:
     hinweis: `Dieser Text ist für das Haarnetzwerk, NICHT für Mirjams eigenen Salon "A Great Hair Day" — die beiden nicht vermischen oder verwechseln. Zielgruppe: Friseurunternehmer:innen, deren Mitarbeiter:innen oder Kund:innen, die sich für Haarnetzwerk-Events interessieren. Ton: kollegial, einladend, vernetzend — in der Wir-Form des Vereins, nicht wie Werbung für einen einzelnen Betrieb.`,
     kontakt: `Erfinde KEINE Kontaktdaten (keine Telefonnummer, keine E-Mail-Adresse, keine Website-URL) für das Haarnetzwerk. Nenne nur Kontaktangaben, die explizit im eingegebenen Text mitgegeben wurden. Sonst bleibt die Handlungsaufforderung bewusst allgemein (z.B. "Mehr dazu beim Haarnetzwerk" oder "Sprecht uns beim nächsten Event an").`,
     reichweite: `Reichweite (Instagram/Facebook):
-- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen". KEINE Begriffe oder Adressen von Mirjams Salon.
+- Instagram durchsucht inzwischen Bildtexte wie eine Suchmaschine. Baue 1 passenden Branchenbegriff natürlich ein, z.B. "Friseur:innen in Österreich", "Friseurbranche", "Branchentreffen" — nur wenn er in einen Satz passt, den man auch ohne Suchmaschine so sagen würde; sonst weglassen. KEINE Begriffe oder Adressen von Mirjams Salon.
 - Link-Sticker nur, wenn im eingegebenen Text ein Link steht; sonst keinen erfinden.`,
     standort: ''
   }
@@ -2549,7 +2549,7 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
     ? `Der Text des letzten Frames endet mit einer eigenen Zeile "${sig}".`
     : `Der Text endet mit einer eigenen Zeile "${sig}".`;
   const stimme = kontext === 'haarnetzwerk'
-    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen.'
+    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen. Nie "ich" — auch keine Erinnerungen oder Gefühle einer einzelnen Person.'
     : 'Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist.';
   const adresse = format === 'google'
     ? 'Salonname und Bezirk ("Wien-Margareten" oder "1050 Wien") dürfen im Text stehen — Straße, Hausnummer und Telefonnummer nicht, die zeigt das Google-Profil ohnehin an.'
@@ -2576,9 +2576,10 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
 2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
 3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
-5. Ruhig und klar: vollständige Sätze, keine Floskeln (wie "den man nicht oft genug würdigt"), ${emoji}.
+5. Ruhig und klar: vollständige Sätze, keine Floskeln und keine Stimmungsbilder (wie "den man nicht oft genug würdigt", "das Klirren der Gläser", "nicht um Schere und Föhn", "was uns so besonders macht", "ein Gefühl von Nähe", "in guter Gesellschaft ausklingen lassen"), ${emoji}.
 6. ${kurz}
-7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
+7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu, auch keine Szenen, Sinneseindrücke oder Erinnerungen ("Ich erinnere mich gern …", "ein Lachen hier …"). Ein konkretes Detail nur, wenn es in der Eingabe steht; sonst lieber schlicht bleiben. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
+   Einladung oder Rückblick: Klingt die Eingabe nach etwas, das noch kommt (z. B. "Einladung", "Anmeldung", "Plätze begrenzt", ein Datum), schreib eine Einladung in der Gegenwart, keinen Rückblick: was es ist, wann (falls angegeben, sonst [Datum]) und wie man sich anmeldet (so, wie es in der Eingabe steht). Diese Anmelde-Info ist erlaubt und zählt nicht als Verkaufs-CTA.
 8. Stichworte sind normal: Die Eingabe besteht oft nur aus ein paar Stichworten. Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
 9. Vor der Ausgabe prüfen: Ist klar, wer spricht? Steht nur drin, was die Eingabe hergibt? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
 }
@@ -2637,7 +2638,7 @@ ${postSchreibregeln(kontext, wer, mitAdresse)}
 
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer.
+- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail aus der Eingabe, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer (Ausnahme: Anmelde-Info bei Einladungen, siehe Regel 7).
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, gleiche Tonalität wie der Post.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
 - "hashtags": ${hashtagRegel}.
@@ -2782,7 +2783,7 @@ const ANZEIGE_BUTTONS = ['Jetzt buchen', 'Mehr dazu', 'Nachricht senden', 'Anruf
 function textFormatRegeln(kontext, format) {
   const sig = unterschriftFuer(kontext);
   const stimme = kontext === 'haarnetzwerk'
-    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen.'
+    ? 'Eine Stimme: Schreib in der Wir-Form als Haarnetzwerk, der Verein der Friseurunternehmer:innen. Nie "ich" — auch keine Erinnerungen oder Gefühle einer einzelnen Person.'
     : 'Eine Stimme: Schreib in der Ich-Form als Mirjam. "Wir/uns" nur, wenn wirklich das ganze Team gemeint ist.';
   const was = format === 'newsletter' ? 'DIESEN NEWSLETTER' : 'DIESE ANZEIGE';
   const ende = format === 'newsletter'
@@ -2792,8 +2793,8 @@ function textFormatRegeln(kontext, format) {
 1. ${stimme} Sprich die Leser:innen mit „du“ an, nie mit „Sie“. ${ende}
 2. Keine Adresse, keine Telefonnummer, keine E-Mail-Adresse im Text.
 3. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
-4. Ruhig und klar: vollständige Sätze, keine Floskeln, keine Ausrufezeichen, keine Großbuchstaben-Wörter, keine künstliche Dringlichkeit („nur heute“, „schnell sein“), ${format === 'newsletter' ? 'höchstens 1 Emoji im ganzen Newsletter' : 'kein Emoji'}.
-5. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Termine, Preise, Rabatte, Namen oder Erlebnisse dazu. Fehlt eine Angabe (z. B. Datum oder Preis), schreib den Text so, dass er ohne sie funktioniert, oder setze einen Platzhalter in eckigen Klammern, z. B. [Datum].
+4. Ruhig und klar: vollständige Sätze, keine Floskeln und keine Stimmungsbilder (wie "das Klirren der Gläser", "was uns so besonders macht"), keine Ausrufezeichen, keine Großbuchstaben-Wörter, keine künstliche Dringlichkeit („nur heute“, „schnell sein“), ${format === 'newsletter' ? 'höchstens 1 Emoji im ganzen Newsletter' : 'kein Emoji'}.
+5. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Termine, Preise, Rabatte, Namen oder Erlebnisse dazu, auch keine Szenen oder Erinnerungen. Fehlt eine Angabe (z. B. Datum oder Preis), schreib den Text so, dass er ohne sie funktioniert, oder setze einen Platzhalter in eckigen Klammern, z. B. [Datum].
 6. Stichworte sind normal: Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
 7. Vor der Ausgabe prüfen: Rechtschreibung und Grammatik (österreichisches Deutsch, z. B. „Jänner“), ist klar, wer spricht, steht nur drin, was die Eingabe hergibt?`;
 }

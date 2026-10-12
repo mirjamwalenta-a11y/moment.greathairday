@@ -2836,7 +2836,8 @@ function textFormatAusAntwort(raw, format) {
   if(!raw) return null;
   const hauptFeld = TEXT_FORMAT_HAUPTFELD[format];
   const { obj, text } = kiFeld(raw, hauptFeld);
-  if(!text) return null;
+  // Sonst stünde unter „Technischer Hinweis“ nur „keine Details“
+  if(!text) { letzterKIFehler = `Antwort kam an, aber ohne Feld "${hauptFeld}": ` + String(raw).slice(0, 300); return null; }
   return Object.assign({}, obj || {}, { [hauptFeld]: text });
 }
 

@@ -2806,7 +2806,7 @@ function textFormatSystem(format, ton, wer, kontext) {
     ? `- "betreff": Betreffzeile, höchstens 50 Zeichen. Konkret und ruhig: sagt, worum es geht, statt nur neugierig zu machen. Kein Clickbait, keine Ausrufezeichen.
 - "vorschau": Vorschautext (erscheint im Postfach neben dem Betreff), höchstens 90 Zeichen, ergänzt den Betreff statt ihn zu wiederholen.
 - "text": Der Mail-Text. Beginnt mit der Zeile "Hallo," und einer Leerzeile. Dann direkter Einstieg ins Thema, 2 bis 4 kurze Absätze, klar, was die Leser:innen davon haben, und zum Schluss eine ruhige, konkrete Handlungsaufforderung, wenn die Eingabe eine hergibt (z. B. Termin buchen, antworten, vorbeikommen). Ohne Gruß und Unterschrift.
-- "ps": Ein persönliches P.S. in einem Satz (ohne das "P.S." davor): ein kleines Detail oder ein Gedanke, der im Text noch nicht steht, aber aus der Eingabe kommt.`
+- "ps": Ein persönliches P.S. in einem Satz (ohne das "P.S." davor): ein kleines Detail oder ein Gedanke, der im Text noch nicht steht, aber aus der Eingabe kommt. Nie Zweifel oder Unsicherheit über das Angebot (nicht „Ich bin selbst gespannt, ob …“). Gibt die Eingabe nichts Neues her, eine kurze, freundliche Einladung (z. B. auf eine Antwort oder den nächsten Besuch).`
     : `- "primaertext": Der Text über dem Bild. Der erste Satz muss allein verständlich sein, denn Meta zeigt nur etwa ${ANZEIGE_GRENZEN.primaertext} Zeichen vor „mehr“. Insgesamt höchstens 3 kurze Sätze.
 - "ueberschrift": Überschrift unter dem Bild, höchstens ${ANZEIGE_GRENZEN.ueberschrift} Zeichen, nennt den Nutzen oder das Angebot sachlich.
 - "beschreibung": Kurze Ergänzung zur Überschrift, höchstens ${ANZEIGE_GRENZEN.beschreibung} Zeichen.
@@ -2833,13 +2833,38 @@ ${felder}`;
 const TEXT_FORMAT_HAUPTFELD = { newsletter: 'text', anzeige: 'primaertext' };
 
 // Wörnis JSON-Antwort lesen; ohne Haupttext gilt sie als fehlgeschlagen.
+const TEXT_FORMAT_FELDER = {
+  newsletter: ['betreff', 'vorschau', 'text', 'ps'],
+  anzeige: ['primaertext', 'ueberschrift', 'beschreibung', 'button']
+};
+
+// Wörnis JSON-Antwort lesen; ohne Haupttext gilt sie als fehlgeschlagen.
+// Steht vor oder nach dem JSON noch Text, oder ist es nicht ganz gültig
+// (z. B. ein ungeschütztes " im Text), wird jedes Feld einzeln geholt —
+// sonst kam bei der Anzeige nur der Primärtext an, Überschrift und
+// Beschreibung blieben leer.
 function textFormatAusAntwort(raw, format) {
   if(!raw) return null;
+  const roh = String(raw);
   const hauptFeld = TEXT_FORMAT_HAUPTFELD[format];
-  const { obj, text } = kiFeld(raw, hauptFeld);
+  let obj = null;
+  const von = roh.indexOf('{'), bis = roh.lastIndexOf('}');
+  if (von >= 0 && bis > von) { try { obj = JSON.parse(roh.slice(von, bis + 1)); } catch(e) {} }
+  if (!obj) {
+    obj = {};
+    TEXT_FORMAT_FELDER[format].forEach(f => {
+      // Wert bis zum nächsten Feld bzw. zum Ende des Objekts — so übersteht
+      // er auch ein ungeschütztes " mitten im Text
+      const m = roh.match(new RegExp('"' + f + '"\\s*:\\s*"([\\s\\S]*?)"\\s*(?:,\\s*"[a-z]+"\\s*:|\\}\\s*(?:```\\s*)?$)'));
+      let t = null;
+      if (m) { try { t = JSON.parse('"' + m[1].replace(/(^|[^\\])"/g, '$1\\"') + '"'); } catch(e) { t = m[1].replace(/\\n/g, '\n'); } }
+      else if (roh.includes('"' + f + '"') || f === hauptFeld) t = kiFeld(roh, f).text;   // abgeschnitten oder reiner Text
+      if (t) obj[f] = t;
+    });
+  }
   // Sonst stünde unter „Technischer Hinweis“ nur „keine Details“
-  if(!text) { letzterKIFehler = `Antwort kam an, aber ohne Feld "${hauptFeld}": ` + String(raw).slice(0, 300); return null; }
-  return Object.assign({}, obj || {}, { [hauptFeld]: text });
+  if(!obj[hauptFeld]) { letzterKIFehler = `Antwort kam an, aber ohne Feld "${hauptFeld}": ` + roh.slice(0, 300); return null; }
+  return obj;
 }
 
 async function buildTextFormat(format, m, ton, wer, kontext) {

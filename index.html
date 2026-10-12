@@ -49,6 +49,7 @@
   <button class="tab" onclick="showTab('story')">📱 Story</button>
   <button class="tab" onclick="showTab('reel')">🎬 Reel</button>
   <button class="tab" onclick="showTab('planer')">📅 Planer</button>
+  <button class="tab" onclick="location.href='recruiting-cockpit.html'">👥 Recruiting</button>
   <button class="tab" onclick="showTab('cta')">📣 CTA</button>
   <button class="tab" onclick="showTab('google')">📍 Google</button>
   <button class="tab" onclick="showTab('ki-sichtbarkeit')">🤖 KI-Sichtbarkeit</button>
@@ -482,6 +483,11 @@ function tabnavScrollBy(direction) {
       <span class="heute-quick-icon">✍️</span>
       <span class="heute-quick-label">Post schreiben</span>
       <span class="heute-quick-sub">Aus einem Moment</span>
+    </div>
+    <div class="heute-quick-card" onclick="location.href='recruiting-cockpit.html'">
+      <span class="heute-quick-icon">👥</span>
+      <span class="heute-quick-label">Recruiting</span>
+      <span class="heute-quick-sub" id="heute-recruiting-sub">Aufgaben diese Woche</span>
     </div>
     <div class="heute-quick-card" onclick="showTab_direct('screen-story')">
       <span class="heute-quick-icon">📱</span>
@@ -4957,6 +4963,12 @@ function renderRecruitingHinweis() {
   if (z.aufgaben) teile.push(z.aufgaben === 1 ? '1 Aufgabe diese Woche' : `${z.aufgaben} Aufgaben diese Woche`);
   const status = document.getElementById('recruiting-cockpit-status');
   if (status && teile.length) status.textContent = teile.join(' · ');
+  // Kachel im Heute-Tab: nur Aufgaben/Bewerbungen, der Recruiting-Tag steht im Planer
+  const heuteSub = document.getElementById('heute-recruiting-sub');
+  if (heuteSub) heuteSub.textContent = [
+    z.warten ? (z.warten === 1 ? '1 Bewerbung wartet' : `${z.warten} Bewerbungen warten`) : '',
+    z.aufgaben ? (z.aufgaben === 1 ? '1 Aufgabe diese Woche' : `${z.aufgaben} Aufgaben diese Woche`) : ''
+  ].filter(Boolean).join(' · ') || 'Diese Woche alles erledigt';
   const wrap = document.getElementById('recruiting-start-wrap');
   if (!wrap) return;
   const ziel = z.warten ? "location.href='recruiting-cockpit.html#bewerber'"

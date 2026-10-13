@@ -83,3 +83,13 @@ Einfach `salon-app-v1.html` im Browser öffnen — kein Server, kein Build nöti
 ---
 
 *V1 — gebaut für schnelles Testen mit echten Nutzer:innen.*
+
+## Offline-Betrieb (PWA)
+
+- `sw.js` (Service Worker) speichert beim ersten Online-Öffnen alle App-Dateien, die Supabase-Bibliothek und Schriften im Handy. Danach startet die App auch ohne Netz.
+- `manifest.webmanifest` + `icons/`: „Zum Home-Bildschirm hinzufügen“ macht daraus eine eigenständige App.
+- `sw-registrieren.js` ist in jeder Seite eingebunden und zeigt unten einen Hinweis, solange kein Netz da ist.
+- Seiten werden zuerst aus dem Netz geladen (nach 4 s ohne Antwort aus dem Speicher). Dadurch kommen Änderungen sofort an, eine neue `VERSION` in `sw.js` ist dafür nicht nötig. Neue Dateien bitte in `VORAB` in `sw.js` ergänzen.
+- Supabase (Login, Wörni) wird **nie** zwischengespeichert. Wörni braucht weiterhin Netz.
+- Alle greathairday-Apps teilen sich die Adresse `mirjamwalenta-a11y.github.io` und damit den Browser-Speicher. Die Caches dieser App heißen deshalb `moment-ghd-*`, und nur diese werden aufgeräumt.
+- Diese App speichert ihre Daten nur lokal (localStorage) und schreibt keine Supabase-Tabellen. Deshalb gibt es hier keine Nachsync-Warteschlange.

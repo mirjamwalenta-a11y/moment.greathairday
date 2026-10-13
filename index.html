@@ -14,6 +14,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="css/app.css?v=20261006">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/icon-180.png">
+<meta name="theme-color" content="#F5F0EA">
+<meta name="mobile-web-app-capable" content="yes">
+<script src="sw-registrieren.js"></script>
 </head>
 <body>
 
@@ -1484,7 +1489,11 @@ async function loginMitSupabase() {
   btn.textContent = 'Einloggen';
   btn.disabled = false;
   if (error) {
-    document.getElementById('loginFehler').style.display = 'block';
+    const fehler = document.getElementById('loginFehler');
+    fehler.textContent = navigator.onLine
+      ? 'Falsche E-Mail oder Passwort — bitte nochmal versuchen.'
+      : 'Keine Internetverbindung — zum ersten Anmelden braucht es Netz.';
+    fehler.style.display = 'block';
     document.getElementById('loginPw').value = '';
     document.getElementById('loginPw').focus();
     return;
@@ -1519,13 +1528,38 @@ function starteApp() {
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
 (async function() {
-  const { data } = await AUTH_CLIENT.auth.getSession();
-  if (data && data.session) {
+  // Offline / schwaches Netz: Der Login-Token läuft nach ca. 1 h ab und kann
+  // ohne Netz nicht erneuert werden (Supabase versucht es dann bis zu ~30 s).
+  // Gibt es auf diesem Gerät noch eine gespeicherte Anmeldung (nicht
+  // abgemeldet), startet die App trotzdem — sie arbeitet dann nur mit den
+  // lokalen Daten im Handy. Wörni (Edge Function) prüft den Token weiterhin
+  // serverseitig und geht erst wieder, wenn er online erneuert wurde.
+  const gespeichert = hatGespeicherteAnmeldung();
+  let session = null;
+  if (gespeichert && !navigator.onLine) {
+    session = 'offline';
+  } else {
+    const warten = gespeichert ? 5000 : 30000;
+    session = await Promise.race([
+      AUTH_CLIENT.auth.getSession().then(r => r.data?.session || null, () => null),
+      new Promise(ok => setTimeout(() => ok(gespeichert ? 'offline' : null), warten))
+    ]);
+  }
+  // Ohne Netz kommt die Antwort sofort — erst starten, wenn die ganze Seite geladen ist
+  if (document.readyState === 'loading') await new Promise(ok => document.addEventListener('DOMContentLoaded', ok, { once: true }));
+  if (session) {
     document.getElementById('login-gate').classList.add('hidden');
     starteApp();
   }
   // sonst: login-gate bleibt sichtbar (Standard), App startet erst nach loginMitSupabase()
 })();
+
+function hatGespeicherteAnmeldung() {
+  try {
+    const roh = localStorage.getItem('sb-' + new URL(AUTH_URL).hostname.split('.')[0] + '-auth-token');
+    return !!(roh && JSON.parse(roh)?.refresh_token);
+  } catch(_) { return false; }
+}
 
 // ════════════════════════════════════════════
 // STATE
@@ -5565,6 +5599,10 @@ function kiDauerText(abIndex, startMs) {
 async function claudeAnfrage(system, userText, maxTokens) {
   maxTokens = maxTokens || 400;
   letzterKIFehler = null;
+  if (!navigator.onLine) {
+    letzterKIFehler = 'Keine Internetverbindung — Wörni braucht Netz. Deine Eingaben bleiben erhalten.';
+    return null;
+  }
   try {
     let { data: sessionData } = await AUTH_CLIENT.auth.getSession();
     let session = sessionData?.session || null;

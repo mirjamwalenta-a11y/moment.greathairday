@@ -83,3 +83,11 @@ Einfach `salon-app-v1.html` im Browser öffnen — kein Server, kein Build nöti
 ---
 
 *V1 — gebaut für schnelles Testen mit echten Nutzer:innen.*
+
+## Offline-Betrieb (PWA)
+
+- `sw.js` (Service Worker) und `ghd-offline.js` kommen aus dem gemeinsamen Offline-Baustein aller Great-Hair-Day-Apps (Repo `abwesenheiten-ghd`, siehe dort `OFFLINE.md`).
+- Beim ersten Öffnen mit Netz werden alle Seiten, Bilder, Schriften und die Supabase-Bibliothek im Handy gespeichert. Danach startet die App auch ohne Netz.
+- `manifest.webmanifest` + `icons/`: „Zum Home-Bildschirm hinzufügen“.
+- Wörni (Edge Function) braucht weiterhin Netz. Ohne Netz kommt sofort ein Hinweis statt eines Fehlers.
+- Neue Dateien bitte in `vorab` in `sw.js` ergänzen.

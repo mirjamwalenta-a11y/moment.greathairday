@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Hashtags">
+<meta name="theme-color" content="#F5F0EA">
+<title>Hashtags — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;--gold-ink:#5a4a28;--warn:#9A3B2E;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:480px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:18px;}
+header{text-align:center;padding:6px 0 2px;}
+.zurueck{align-self:flex-start;font-size:13px;color:var(--sub);text-decoration:none;}
+.zurueck:hover{color:var(--gold);}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+section{display:flex;flex-direction:column;}
+
+.mix{background:var(--surface);border:1px solid var(--gold);border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:10px;}
+.mix-tags{font-size:15px;line-height:1.6;min-height:24px;word-break:break-word;}
+.mix-tags.leer{color:var(--sub);font-size:14px;}
+.zaehler{font-size:13px;color:var(--sub);}
+.zaehler.zuviel{color:var(--warn);font-weight:600;}
+
+.gruppen{display:flex;flex-direction:column;gap:18px;}
+.sets{display:flex;flex-direction:column;gap:8px;}
+.set{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:11px 13px;display:flex;flex-direction:column;gap:6px;}
+.set-kopf{display:flex;justify-content:space-between;align-items:baseline;gap:8px;}
+.set-name{font-size:14px;font-weight:600;}
+.set-anzahl{font-size:12px;color:var(--sub);white-space:nowrap;}
+.set-tags{font-size:14px;color:var(--gold-ink);line-height:1.5;word-break:break-word;}
+.set-btns{display:flex;gap:8px;}
+
+.btn{border:none;border-radius:10px;padding:9px 12px;font:600 13px var(--sans);cursor:pointer;}
+.btn-main{background:var(--ink);color:var(--bg);}
+.btn-alt{background:var(--gold-light);color:var(--gold-ink);}
+.btn-leise{background:none;color:var(--sub);text-decoration:underline;padding:9px 4px;}
+.btn.on{background:var(--gold);color:#fff;}
+.buttons{display:flex;gap:10px;align-items:center;}
+.buttons .btn-main{flex:1;padding:12px;font-size:15px;}
+.hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--gold-ink);line-height:1.55;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+</style>
+<script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
+<script src="hashtag-sets.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="zurueck" href="index.html">← Zurück zu Reichweite</a>
+  <header>
+    <div class="wordmark">Great Hair<span>.</span>Day</div>
+    <div class="rule"></div>
+    <p class="intro">Alle festen Hashtag-Sets an einem Ort. Ein Set direkt kopieren oder mehrere mit „+ Dazu“ zusammenstellen.</p>
+  </header>
+
+  <section>
+    <div class="label">Zusammenstellen</div>
+    <div class="mix">
+      <div class="mix-tags leer" id="mix-tags">Noch nichts ausgewählt.</div>
+      <div class="zaehler" id="zaehler" aria-live="polite"></div>
+      <div class="buttons">
+        <button class="btn btn-main" id="mix-kopieren" disabled>Kopieren</button>
+        <button class="btn btn-leise" id="mix-leeren">Leeren</button>
+      </div>
+    </div>
+  </section>
+
+  <div class="gruppen" id="gruppen"></div>
+
+  <p class="hinweis">Instagram zeigt höchstens <b>5 Hashtags</b> pro Post, auf Facebook reichen 1–2. Wichtiger als viele Hashtags sind Suchbegriffe im Text, etwa „Friseur in Wien-Margareten“. Die Sets selbst stehen in <b>hashtag-sets.js</b>. Eine Änderung dort gilt auch für Sprüche und HaarKompass-Posts.</p>
+</div>
+
+<script>
+const gewaehlt = new Set();   // Index-Schlüssel "gruppe-set" der zugefügten Sets
+const alleSets = [];
+
+function anzahlText(n) { return n === 1 ? '1 Hashtag' : n + ' Hashtags'; }
+
+function kopiere(text, btn, label) {
+  navigator.clipboard.writeText(text).then(() => {
+    btn.textContent = '✓ Kopiert';
+    setTimeout(() => { btn.textContent = label; }, 1800);
+  }, () => {
+    btn.textContent = 'Kopieren ging nicht';
+    setTimeout(() => { btn.textContent = label; }, 2400);
+  });
+}
+
+function mixText() {
+  return htVerbinde.apply(null, alleSets.filter(s => gewaehlt.has(s.key)).map(s => s.tags));
+}
+
+function renderMix() {
+  const text = mixText();
+  const n = htListe(text).length;
+  const el = document.getElementById('mix-tags');
+  el.textContent = text || 'Noch nichts ausgewählt.';
+  el.classList.toggle('leer', !text);
+  const z = document.getElementById('zaehler');
+  z.textContent = n ? anzahlText(n) + ' · Instagram: höchstens ' + HT_LIMIT.instagram + (n > HT_LIMIT.instagram ? ' — bitte kürzen' : '') : '';
+  z.classList.toggle('zuviel', n > HT_LIMIT.instagram);
+  document.getElementById('mix-kopieren').disabled = !n;
+  alleSets.forEach(s => {
+    const an = gewaehlt.has(s.key);
+    s.btn.classList.toggle('on', an);
+    s.btn.textContent = an ? '✓ Drin' : '+ Dazu';
+    s.btn.setAttribute('aria-pressed', an);
+  });
+}
+
+function renderGruppen() {
+  const wrap = document.getElementById('gruppen');
+  HT_GRUPPEN.forEach((g, gi) => {
+    const sec = document.createElement('section');
+    const lab = document.createElement('div');
+    lab.className = 'label';
+    lab.textContent = g.titel;
+    const liste = document.createElement('div');
+    liste.className = 'sets';
+    g.sets.forEach((s, si) => {
+      const key = gi + '-' + si;
+      const karte = document.createElement('div');
+      karte.className = 'set';
+      karte.innerHTML = '<div class="set-kopf"><span class="set-name"></span><span class="set-anzahl"></span></div>'
+        + '<div class="set-tags"></div>'
+        + '<div class="set-btns"><button class="btn btn-alt" data-art="kopieren">Kopieren</button><button class="btn btn-alt" data-art="dazu" aria-pressed="false">+ Dazu</button></div>';
+      karte.querySelector('.set-name').textContent = s.name;
+      karte.querySelector('.set-anzahl').textContent = anzahlText(htListe(s.tags).length);
+      karte.querySelector('.set-tags').textContent = s.tags;
+      const kBtn = karte.querySelector('[data-art="kopieren"]');
+      const dBtn = karte.querySelector('[data-art="dazu"]');
+      kBtn.addEventListener('click', () => kopiere(s.tags, kBtn, 'Kopieren'));
+      dBtn.addEventListener('click', () => {
+        gewaehlt.has(key) ? gewaehlt.delete(key) : gewaehlt.add(key);
+        renderMix();
+      });
+      alleSets.push({ key, tags: s.tags, btn: dBtn });
+      liste.appendChild(karte);
+    });
+    sec.append(lab, liste);
+    wrap.appendChild(sec);
+  });
+}
+
+document.getElementById('mix-kopieren').addEventListener('click', e => kopiere(mixText(), e.currentTarget, 'Kopieren'));
+document.getElementById('mix-leeren').addEventListener('click', () => { gewaehlt.clear(); renderMix(); });
+
+renderGruppen();
+renderMix();
+</script>
+</body>
+</html>

@@ -3,8 +3,9 @@
 // Ersatz-Texte) und hashtags.html (Übersicht zum Kopieren).
 // Hier ändern → gilt überall. Reine Daten, nichts wird gespeichert oder gesendet.
 
-// Grundset, das an jeden Salon-Post kommt
-var HT_SALON = '#GreatHairDay #Friseur #Wien';
+// Grundset, das an jeden Salon-Post kommt. Bewusst nur 2, damit bis zum
+// Instagram-Limit von 5 noch Platz für 3 Hashtags zum Thema bleibt.
+var HT_SALON = '#GreatHairDay #Wien';
 // Vereins-Posts: keine Salon-Hashtags (Salon und Verein nicht vermischen)
 var HT_HAARNETZWERK = '#Haarnetzwerk #Friseurunternehmer #Friseurbranche #Österreich';
 
@@ -76,4 +77,10 @@ function htVerbinde() {
     });
   }
   return aus.join(' ');
+}
+
+// Wie htVerbinde, aber höchstens `max` Hashtags (die vorderen Sets haben Vorrang)
+function htPost(max) {
+  var teile = Array.prototype.slice.call(arguments, 1);
+  return htListe(htVerbinde.apply(null, teile)).slice(0, max).join(' ');
 }

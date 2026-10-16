@@ -879,7 +879,8 @@ function aktualisieren(){
   if (eigen) teile.push("Bei uns im Salon empfehlen wir dafür: " + eigen + ".");
   teile.push("Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort, ohne Login. " + LINK);
   teile.push("Mirjam");
-  teile.push(htVerbinde(HT_SALON, f.styling ? HT_HAARKOMPASS.styling : HT_HAARKOMPASS.pflege, f.hashtags));
+  // Höchstens 5 Hashtags: die zum Fall vor den allgemeinen
+  teile.push(htPost(HT_LIMIT.instagram, HT_SALON, f.hashtags, f.styling ? HT_HAARKOMPASS.styling : HT_HAARKOMPASS.pflege));
   $("#caption").value = teile.join("\n\n");
 
   const folien = [

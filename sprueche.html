@@ -1253,8 +1253,9 @@ function updateCaption() {
   teile.push(state.marke === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam');
   const extra = HT_THEMEN[state.k] || '';
   const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
-  // Haarnetzwerk: keine Salon-Hashtags (Salon und Verein nicht vermischen)
-  teile.push(state.marke === 'haarnetzwerk' ? HT_HAARNETZWERK : htVerbinde(HT_SALON, extra, eigene));
+  // Haarnetzwerk: keine Salon-Hashtags (Salon und Verein nicht vermischen).
+  // Salon: höchstens 5, die Hashtags des Spruchs selbst vor denen der Kategorie.
+  teile.push(state.marke === 'haarnetzwerk' ? HT_HAARNETZWERK : htPost(HT_LIMIT.instagram, HT_SALON, eigene, extra));
   document.getElementById('caption').value = teile.join('\n\n');
 }
 

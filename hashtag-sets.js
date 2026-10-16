@@ -3,9 +3,9 @@
 // Ersatz-Texte) und hashtags.html (Übersicht zum Kopieren).
 // Hier ändern → gilt überall. Reine Daten, nichts wird gespeichert oder gesendet.
 
-// Grundset, das an jeden Salon-Post kommt. Bewusst nur 2, damit bis zum
-// Instagram-Limit von 5 noch Platz für 3 Hashtags zum Thema bleibt.
-var HT_SALON = '#GreatHairDay #Wien';
+// Grundset, das an jeden Salon-Post kommt. Bis zum Instagram-Limit von 5
+// bleibt Platz für 2 Hashtags zum Thema.
+var HT_SALON = '#GreatHairDay #Friseur #Wien';
 // Vereins-Posts: keine Salon-Hashtags (Salon und Verein nicht vermischen)
 var HT_HAARNETZWERK = '#Haarnetzwerk #Friseurunternehmer #Friseurbranche #Österreich';
 

@@ -11,6 +11,7 @@
 <script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
 <script src="gehalt.js"></script>
 <script src="recruiting-daten.js"></script>
+<script src="hashtag-sets.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
@@ -169,7 +170,8 @@ function tabnavScrollBy(direction) {
     <button onclick="oeffneNachrichten()">Kund:innen zurückholen</button> ·
     <button onclick="generateOutput('freier-termin')">Termin füllen</button> ·
     <button onclick="showScreen('screen-flow-anlass')">Geführt</button> ·
-    <button onclick="showTabNav()">Werkbank</button>
+    <button onclick="showTabNav()">Werkbank</button> ·
+    <button onclick="location.href='hashtags.html'">Hashtags</button>
   </div>
 </section>
 
@@ -2675,7 +2677,7 @@ async function buildKanalPost(kanal, m, ton, wer, kontext) {
   const hn = kontext === 'haarnetzwerk';
   const hashtagRegel = kanal === 'facebook'
     ? `1–2 relevante Hashtags als String (Facebook lebt weniger von Hashtags), z.B. "${hn ? '#Haarnetzwerk' : '#GreatHairDay'}"`
-    : `3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), ${hn ? 'immer mit #Haarnetzwerk, Rest passend zum Thema, keine Salon-Hashtags wie #GreatHairDay' : 'immer mit #GreatHairDay #Wien, Rest passend zum Thema'}`;
+    : `3–5 relevante Hashtags als String (Instagram erlaubt nur noch wenige; die Suchbegriffe im Text sind wichtiger), ${hn ? 'immer mit #Haarnetzwerk, Rest passend zum Thema, keine Salon-Hashtags wie #GreatHairDay' : `immer mit ${HT_SALON}, Rest passend zum Thema`}`;
 
   const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
@@ -5797,7 +5799,7 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
           { timing:'3–' + laenge + ' Sek', label:'Inhalt', action: thema, text:'', tip:'Situation zeigen statt erklären.' }
         ],
         caption: thema + (urlMatch ? `\n\nAnmeldung: ${urlMatch[0]}` : '\n\nMehr dazu beim Haarnetzwerk.'),
-        hashtags: '#Haarnetzwerk #Friseurhandwerk'
+        hashtags: HT_HAARNETZWERK
       };
     })() : {
       scenes: [
@@ -5808,7 +5810,7 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
         { timing:'14–15 Sek', label:'CTA', action:'Salon-Name einblenden', text:'A great hair day.', tip:'Text-Overlay, ruhiger Abschluss.' }
       ],
       caption: m + '\n\nSo sieht echte Handwerkskunst aus.',
-      hashtags: '#GreatHairDay #Wien #Friseur #Haare #Salon #Handwerk'
+      hashtags: htVerbinde(HT_SALON, '#Handwerk')
     };
   }
 

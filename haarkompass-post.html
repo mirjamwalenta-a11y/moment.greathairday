@@ -158,6 +158,7 @@ textarea{resize:vertical;line-height:1.5;}
 
 <!-- HaarKompass-Regelwerk: eine gemeinsame Quelle mit der Website (website.greathairday/haarkompass/engine.js) -->
 <script src="https://www.greathairday.at/haarkompass/engine.js"></script>
+<script src="hashtag-sets.js"></script>
 <script>
 "use strict";
 
@@ -878,7 +879,7 @@ function aktualisieren(){
   if (eigen) teile.push("Bei uns im Salon empfehlen wir dafür: " + eigen + ".");
   teile.push("Welche Pflege braucht dein Haar wirklich? Mach den HaarKompass: 7 kurze Fragen, ehrliche Antwort, ohne Login. " + LINK);
   teile.push("Mirjam");
-  teile.push("#GreatHairDay #Friseur #Wien " + (f.styling ? "#Haarstyling " : "#Haarpflege #HaarKompass ") + f.hashtags);
+  teile.push(htVerbinde(HT_SALON, f.styling ? HT_HAARKOMPASS.styling : HT_HAARKOMPASS.pflege, f.hashtags));
   $("#caption").value = teile.join("\n\n");
 
   const folien = [

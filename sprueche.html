@@ -203,6 +203,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 <!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
 <script src="qrcode-generator.js"></script>
 <script src="gehalt.js"></script>
+<script src="hashtag-sets.js"></script>
 <script>
 // ── Rahmen-Modus: aus der App (Rahmen → „Im Spruch-Stil“) aufgerufen mit ?rahmen=1.
 // Aktions-Modus: aus der App (Aktion / Aushang) mit ?aktion=1 — Aushang oder Post für Salon-Aktionen, mit Rabatt-Kreis.
@@ -1250,23 +1251,10 @@ function updateCaption() {
   }
   // Unterschrift: Salon-Posts von Mirjam, Vereins-Posts vom Haarnetzwerk
   teile.push(state.marke === 'haarnetzwerk' ? 'Euer Haarnetzwerk' : 'Mirjam');
-  const extra = {
-    maenner:'#Herrenschnitt',
-    kinder:'#Kinderhaarschnitt',
-    pflege:'#Haarpflege',
-    styling:'#Haarstyling',
-    kopfhaut:'#Kopfhaut #Kopfhautpflege',
-    haartyp:'#Haarpflege',
-    beruf:'#Friseurhandwerk #Friseurleben',
-    team:'#Team #Friseurteam',
-    lehrstelle:'#Lehrstelle #Friseurlehre #Ausbildung',
-    stylist:'#FriseurJob #Jobs #Team'
-  }[state.k] || '';
+  const extra = HT_THEMEN[state.k] || '';
   const eigene = state.idx >= 0 ? (SPRUECHE[state.idx].h || '') : '';
   // Haarnetzwerk: keine Salon-Hashtags (Salon und Verein nicht vermischen)
-  teile.push(state.marke === 'haarnetzwerk'
-    ? '#Haarnetzwerk #Friseurunternehmer #Friseurbranche #Österreich'
-    : ['#GreatHairDay #Friseur #Wien', extra, eigene].filter(Boolean).join(' '));
+  teile.push(state.marke === 'haarnetzwerk' ? HT_HAARNETZWERK : htVerbinde(HT_SALON, extra, eigene));
   document.getElementById('caption').value = teile.join('\n\n');
 }
 

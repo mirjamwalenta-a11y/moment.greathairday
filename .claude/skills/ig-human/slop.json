@@ -1,0 +1,2259 @@
+{
+  "version": "2.0",
+  "note": "Wortliste für humanize.py und detect.py. Deutsche Einträge stehen vorne, die englischen aus der Ursprungsfassung dahinter. Felder: find = was gesucht wird; replace = Ersatz (\"\" heißt löschen, null heißt nur markieren, weil ein Ersatz den Satzbau brechen würde, zum Beispiel bei \"…, dass\"); beugung = true heißt, die Endung wird übernommen (innovative -> neue); regex = true heißt, find ist ein regulärer Ausdruck; sprache = de oder en. Bearbeite die Liste ruhig: Wenn du ein Wort wirklich so sagst, nimm es raus.",
+  "invisible": [
+    {
+      "cp": "U+200B",
+      "name": "ZERO WIDTH SPACE",
+      "action": "delete"
+    },
+    {
+      "cp": "U+200C",
+      "name": "ZERO WIDTH NON-JOINER",
+      "action": "delete"
+    },
+    {
+      "cp": "U+200D",
+      "name": "ZERO WIDTH JOINER",
+      "action": "delete"
+    },
+    {
+      "cp": "U+2060",
+      "name": "WORD JOINER",
+      "action": "delete"
+    },
+    {
+      "cp": "U+FEFF",
+      "name": "ZERO WIDTH NO-BREAK SPACE / BOM",
+      "action": "delete"
+    },
+    {
+      "cp": "U+00AD",
+      "name": "SOFT HYPHEN",
+      "action": "delete"
+    },
+    {
+      "cp": "U+180E",
+      "name": "MONGOLIAN VOWEL SEPARATOR",
+      "action": "delete"
+    },
+    {
+      "cp": "U+061C",
+      "name": "ARABIC LETTER MARK",
+      "action": "delete"
+    },
+    {
+      "cp": "U+200E",
+      "name": "LEFT-TO-RIGHT MARK",
+      "action": "delete"
+    },
+    {
+      "cp": "U+200F",
+      "name": "RIGHT-TO-LEFT MARK",
+      "action": "delete"
+    },
+    {
+      "cp": "U+E0000-U+E007F",
+      "name": "TAG CHARACTERS (invisible ASCII smuggling)",
+      "action": "delete"
+    },
+    {
+      "cp": "U+00A0",
+      "name": "NO-BREAK SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+202F",
+      "name": "NARROW NO-BREAK SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+2009",
+      "name": "THIN SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+2007",
+      "name": "FIGURE SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+2003",
+      "name": "EM SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+2002",
+      "name": "EN SPACE",
+      "action": "space"
+    },
+    {
+      "cp": "U+2063",
+      "name": "INVISIBLE SEPARATOR",
+      "action": "delete"
+    }
+  ],
+  "typographic": [
+    {
+      "from": "—",
+      "name": "EM DASH",
+      "to": ", "
+    },
+    {
+      "from": "–",
+      "name": "EN DASH",
+      "to": "-"
+    },
+    {
+      "from": "‘",
+      "name": "LEFT SINGLE QUOTE",
+      "to": "'"
+    },
+    {
+      "from": "’",
+      "name": "RIGHT SINGLE QUOTE",
+      "to": "'"
+    },
+    {
+      "from": "“",
+      "name": "LEFT DOUBLE QUOTE",
+      "to": "\""
+    },
+    {
+      "from": "”",
+      "name": "RIGHT DOUBLE QUOTE",
+      "to": "\""
+    },
+    {
+      "from": "…",
+      "name": "HORIZONTAL ELLIPSIS",
+      "to": "..."
+    },
+    {
+      "from": "′",
+      "name": "PRIME",
+      "to": "'"
+    },
+    {
+      "from": "·",
+      "name": "MIDDLE DOT",
+      "to": "-"
+    },
+    {
+      "from": "•",
+      "name": "BULLET",
+      "to": "-"
+    },
+    {
+      "from": "→",
+      "name": "RIGHTWARDS ARROW",
+      "to": "->"
+    },
+    {
+      "from": "„",
+      "name": "DEUTSCHES ANFÜHRUNGSZEICHEN UNTEN",
+      "to": "\""
+    },
+    {
+      "from": "‚",
+      "name": "DEUTSCHES EINFACHES ANFÜHRUNGSZEICHEN UNTEN",
+      "to": "'"
+    },
+    {
+      "from": "»",
+      "name": "GUILLEMET RECHTS",
+      "to": "\""
+    },
+    {
+      "from": "«",
+      "name": "GUILLEMET LINKS",
+      "to": "\""
+    }
+  ],
+  "words": [
+    {
+      "find": "innovativ",
+      "replace": "neu",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "bahnbrechend",
+      "replace": "neu",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "revolutionär",
+      "replace": "neu",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "zukunftsweisend",
+      "replace": "neu",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "wegweisend",
+      "replace": "wichtig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "essenziell",
+      "replace": "wichtig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "essentiell",
+      "replace": "wichtig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "unerlässlich",
+      "replace": "nötig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "maßgeschneidert",
+      "replace": "passend",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "nahtlos",
+      "replace": "reibungslos",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "ganzheitlich",
+      "replace": "vollständig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "umfassend",
+      "replace": "vollständig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "facettenreich",
+      "replace": "vielseitig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "vielschichtig",
+      "replace": "kompliziert",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "transformativ",
+      "replace": "groß",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "atemberaubend",
+      "replace": "schön",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "fesselnd",
+      "replace": "interessant",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "herausragend",
+      "replace": "sehr gut",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "erstklassig",
+      "replace": "sehr gut",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "zielgerichtet",
+      "replace": "gezielt",
+      "family": "Eigenschaftswörter",
+      "sprache": "de",
+      "beugung": true
+    },
+    {
+      "find": "Mehrwert",
+      "replace": "Nutzen",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Ökosystem",
+      "replace": "System",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Paradigmenwechsel",
+      "replace": "Umbruch",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Lifehack",
+      "replace": "Trick",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Life-Hack",
+      "replace": "Trick",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Hack",
+      "replace": "Trick",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Gamechanger",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Game-Changer",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Game Changer",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Must-have",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Synergie",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Synergien",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Geheimrezept",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Next Level",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "darüber hinaus",
+      "replace": "außerdem",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "des Weiteren",
+      "replace": "außerdem",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "nichtsdestotrotz",
+      "replace": "trotzdem",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "letztendlich",
+      "replace": "am Ende",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "letztlich",
+      "replace": "am Ende",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "folglich",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "somit",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "demzufolge",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "zweifellos",
+      "replace": "sicher",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "zweifelsohne",
+      "replace": "sicher",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "im Wesentlichen",
+      "replace": "im Grunde",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "insbesondere",
+      "replace": "vor allem",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "alles in allem",
+      "replace": "insgesamt",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "last but not least",
+      "replace": "zum Schluss",
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "hinsichtlich",
+      "replace": null,
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "im Hinblick auf",
+      "replace": null,
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "in Bezug auf",
+      "replace": null,
+      "family": "Bindewörter",
+      "sprache": "de"
+    },
+    {
+      "find": "revolutionieren",
+      "replace": "verändern",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "revolutioniert",
+      "replace": "verändert",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "revolutionierte",
+      "replace": "veränderte",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "boosten",
+      "replace": "steigern",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "boostet",
+      "replace": "steigert",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "beleuchten",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "beleuchtet",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "entfesseln",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "entfessle",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "eintauchen",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "delve into",
+      "replace": "look at",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "delve",
+      "replace": "look",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "dive deep into",
+      "replace": "get into",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "deep dive",
+      "replace": "breakdown",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "leverage",
+      "replace": "use",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "leveraging",
+      "replace": "using",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "utilize",
+      "replace": "use",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "utilizing",
+      "replace": "using",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "harness",
+      "replace": "use",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "embark on",
+      "replace": "start",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "foster",
+      "replace": "build",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "facilitate",
+      "replace": "help",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "showcase",
+      "replace": "show",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "unlock",
+      "replace": "get",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "elevate",
+      "replace": "improve",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "streamline",
+      "replace": "simplify",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "spearhead",
+      "replace": "lead",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "underscore",
+      "replace": "show",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "underscores",
+      "replace": "shows",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "cultivate",
+      "replace": "build",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "amplify",
+      "replace": "boost",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "curate",
+      "replace": "pick",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "curated",
+      "replace": "picked",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "empower",
+      "replace": "let",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "revolutionize",
+      "replace": "change",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "transformative",
+      "replace": "big",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "robust",
+      "replace": "solid",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "seamless",
+      "replace": "clean",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "seamlessly",
+      "replace": "cleanly",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "pivotal",
+      "replace": "key",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "crucial",
+      "replace": "important",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "vital",
+      "replace": "important",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "comprehensive",
+      "replace": "complete",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "cutting-edge",
+      "replace": "new",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "game-changing",
+      "replace": "big",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "game-changer",
+      "replace": "big deal",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "groundbreaking",
+      "replace": "new",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "unparalleled",
+      "replace": "unmatched",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "invaluable",
+      "replace": "useful",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "meticulous",
+      "replace": "careful",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "meticulously",
+      "replace": "carefully",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "myriad of",
+      "replace": "many",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "myriad",
+      "replace": "many",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "multifaceted",
+      "replace": "complicated",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "holistic",
+      "replace": "whole",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "bespoke",
+      "replace": "custom",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "innovative",
+      "replace": "new",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "profound",
+      "replace": "big",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "remarkable",
+      "replace": "notable",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "compelling",
+      "replace": "convincing",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "tapestry",
+      "replace": "mix",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "realm",
+      "replace": "world",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "landscape",
+      "replace": "market",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "journey",
+      "replace": "process",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "testament to",
+      "replace": "proof of",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "cornerstone",
+      "replace": "base",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "beacon",
+      "replace": "signal",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "paradigm",
+      "replace": "model",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "synergy",
+      "replace": "overlap",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "ecosystem",
+      "replace": "system",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "treasure trove",
+      "replace": "pile",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "plethora of",
+      "replace": "lots of",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "plethora",
+      "replace": "lots",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "arsenal",
+      "replace": "set",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "north star",
+      "replace": "goal",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "moreover",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "furthermore",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "additionally",
+      "replace": "also",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "nevertheless",
+      "replace": "still",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "consequently",
+      "replace": "so",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "thus",
+      "replace": "so",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "hence",
+      "replace": "so",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "notably",
+      "replace": "",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "importantly",
+      "replace": "",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "ultimately",
+      "replace": "in the end",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "in essence",
+      "replace": "basically",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "in conclusion",
+      "replace": "so",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "when it comes to",
+      "replace": "with",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "in order to",
+      "replace": "to",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "a wide range of",
+      "replace": "many",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "it is worth noting that",
+      "replace": "note that",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "supercharge",
+      "replace": "speed up",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "skyrocket",
+      "replace": "raise",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "unleash",
+      "replace": "release",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "effortlessly",
+      "replace": "easily",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "captivating",
+      "replace": "interesting",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "stunning",
+      "replace": "good",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "breathtaking",
+      "replace": "striking",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "iconic",
+      "replace": "known",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "must-have",
+      "replace": "worth having",
+      "family": "Eigenschaftswörter",
+      "sprache": "en"
+    },
+    {
+      "find": "no-brainer",
+      "replace": "obvious",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "hidden gem",
+      "replace": "good one",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "secret sauce",
+      "replace": "the actual method",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "ultimate guide",
+      "replace": "guide",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "level up",
+      "replace": "improve",
+      "family": "Verben",
+      "sprache": "en"
+    },
+    {
+      "find": "hack",
+      "replace": "trick",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    }
+  ],
+  "phrases": [
+    {
+      "find": "in der heutigen schnelllebigen Welt",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "in unserer schnelllebigen Welt",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "in der heutigen digitalen Welt",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "in der heutigen Zeit",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "im heutigen digitalen Zeitalter",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "im digitalen Zeitalter",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "in Zeiten von Social Media",
+      "replace": "heute",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "lass(?:t)? uns (?:\\w+ ){0,2}eintauchen",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Lass uns (direkt) eintauchen"
+    },
+    {
+      "find": "tauchen wir (?:\\w+ ){0,2}ein\\b",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Tauchen wir (tiefer) ein"
+    },
+    {
+      "find": "tauch(?:e|t)? (?:\\w+ ){0,2}ein in",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Tauche ein in ..."
+    },
+    {
+      "find": "lass(?:t)? uns (?:\\w+ )?loslegen",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Lass uns loslegen"
+    },
+    {
+      "find": "es ist wichtig zu beachten, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "es ist wichtig zu beachten",
+      "replace": "wichtig",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "es ist wichtig zu wissen, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "es ist erwähnenswert, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "es sei darauf hingewiesen, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "es ist kein Geheimnis, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "die harte Wahrheit ist, dass",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "die harte Wahrheit ist",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "die harte Wahrheit",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "Hand aufs Herz",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "seien wir (?:mal )?ehrlich",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Seien wir (mal) ehrlich"
+    },
+    {
+      "find": "wir alle kennen das",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "wir kennen es alle",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "stell dir eine Welt vor",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "hast du dich jemals gefragt",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "ich freue mich(?: sehr)?,? (?:euch |dir |ihnen )?(?:mitteilen|bekannt ?geben|verkünden) zu (?:können|dürfen)",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Ich freue mich, euch mitteilen zu können, ..."
+    },
+    {
+      "find": "mit stolz (?:kann|darf) ich verkünden",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Mit Stolz kann ich verkünden"
+    },
+    {
+      "find": "ohne (?:weitere )?umschweife",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Ohne (weitere) Umschweife"
+    },
+    {
+      "find": "schnall dich an",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "schnallt euch an",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "Spoiler-Alarm",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "Spoiler Alert",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "hör auf zu scrollen",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "nicht weiterscrollen",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "stopp,? nicht (?:weiter)?scrollen",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Stopp, nicht weiterscrollen"
+    },
+    {
+      "find": "in diesem (?:video|reel|beitrag) (?:zeige|zeig) ich (?:dir|euch)",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "In diesem Video zeige ich dir ..."
+    },
+    {
+      "find": "im heutigen Video",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "schau(?:t)? (?:unbedingt )?bis zum ende",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Schau bis zum Ende"
+    },
+    {
+      "find": "bleib(?:t)? bis zum ende dran",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Bleib bis zum Ende dran"
+    },
+    {
+      "find": "du wirst nicht glauben",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "niemand spricht darüber",
+      "replace": "das machen wenige",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "keiner spricht darüber",
+      "replace": "das machen wenige",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "darüber spricht niemand",
+      "replace": "das machen wenige",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "das hat alles verändert",
+      "replace": "das hat geholfen",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "das ändert alles",
+      "replace": "das hilft",
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "das ist dein Zeichen",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de"
+    },
+    {
+      "find": "in einer welt,? in der",
+      "replace": null,
+      "family": "Einstiege",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "In einer Welt, in der ..."
+    },
+    {
+      "find": "zusammenfassend lässt sich sagen, dass",
+      "replace": null,
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "zusammenfassend lässt sich sagen",
+      "replace": "kurz gesagt",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "abschließend lässt sich sagen, dass",
+      "replace": null,
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "abschließend lässt sich sagen",
+      "replace": "kurz gesagt",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "lass(?:t)? das (?:mal )?sacken",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Lass das (mal) sacken"
+    },
+    {
+      "find": "lies das (?:nochmal|noch einmal)",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Lies das nochmal"
+    },
+    {
+      "find": "die Wahl liegt bei dir",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "die zukunft ist (?:jetzt|da|hier)",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Die Zukunft ist jetzt"
+    },
+    {
+      "find": "was sind (?:deine|eure) gedanken dazu\\?",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Was sind deine Gedanken dazu?"
+    },
+    {
+      "find": "lass(?:t)? (?:es )?mich (?:es )?in den kommentaren wissen",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Lass es mich in den Kommentaren wissen"
+    },
+    {
+      "find": "am Ende des Tages",
+      "replace": "am Ende",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "in diesem Sinne",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "der Rest ist Geschichte",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "spul(?:en wir)? vor bis heute",
+      "replace": "heute",
+      "family": "Bindewörter",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Spul vor bis heute"
+    },
+    {
+      "find": "folg(?:e|t)? (?:mir|uns) für mehr(?: tipps| inhalte| content| ideen| inspiration| davon)?",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Folge mir für mehr (Tipps)"
+    },
+    {
+      "find": "folge für mehr",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de"
+    },
+    {
+      "find": "markier(?:e|t)? (?:jemanden|eine person|einen freund|eine freundin),? (?:der|die|den) (?:das|dies) (?:braucht|sehen muss|wissen muss)",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Markiere jemanden, der das braucht"
+    },
+    {
+      "find": "teil(?:e|t)? (?:das|diesen beitrag|dieses reel) mit (?:jemandem|einer person),? (?:der|die) (?:das|es) (?:braucht|wissen muss|sehen muss)",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Teile das mit jemandem, der es braucht"
+    },
+    {
+      "find": "speicher(?:e|t)? (?:dir|euch) (?:das|diesen beitrag|dieses reel) für später",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Speichere dir das für später"
+    },
+    {
+      "find": "doppeltipp,? wenn",
+      "replace": null,
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Doppeltipp, wenn ..."
+    },
+    {
+      "find": "like,? wenn",
+      "replace": null,
+      "family": "Schlusssätze",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Like, wenn ..."
+    },
+    {
+      "find": "der Schlüssel zum Erfolg",
+      "replace": "das Wichtigste",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "Schlüssel zum Erfolg",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "das Geheimrezept",
+      "replace": "die Methode",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "mein Geheimrezept",
+      "replace": "meine Methode",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "dein Geheimrezept",
+      "replace": "deine Methode",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "unser Geheimrezept",
+      "replace": "unsere Methode",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "ein echter Gamechanger",
+      "replace": "ein großer Schritt",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "ein Gamechanger",
+      "replace": "ein großer Schritt",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "ein absolutes Must-have",
+      "replace": "Pflicht",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "digitale Landschaft",
+      "replace": null,
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "(?:auf|aufs) (?:das |ein )?(?:nächste|neues) level",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "auf das nächste Level"
+    },
+    {
+      "find": "(?:dein|euer|ihr) (?:volles )?potenzial (?:entfalten|ausschöpfen|freisetzen|entfesseln)",
+      "replace": null,
+      "family": "Verben",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "Dein volles Potenzial entfalten"
+    },
+    {
+      "find": "der Algorithmus liebt",
+      "replace": "Instagram zeigt öfter",
+      "family": "Hauptwörter",
+      "sprache": "de"
+    },
+    {
+      "find": "den algorithmus (?:austricksen|schlagen|knacken|hacken)",
+      "replace": "Reichweite bekommen",
+      "family": "Hauptwörter",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "den Algorithmus austricksen"
+    },
+    {
+      "find": "über nacht viral (?:gehen|werden)",
+      "replace": "Reichweite bekommen",
+      "family": "Hauptwörter",
+      "sprache": "de",
+      "regex": true,
+      "anzeige": "über Nacht viral gehen"
+    },
+    {
+      "find": "wirkt wahre Wunder",
+      "replace": "hilft sehr",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "wirken wahre Wunder",
+      "replace": "helfen sehr",
+      "family": "Verben",
+      "sprache": "de"
+    },
+    {
+      "find": "nicht zu unterschätzen",
+      "replace": "wichtig",
+      "family": "Eigenschaftswörter",
+      "sprache": "de"
+    },
+    {
+      "find": "in today's fast-paced world",
+      "replace": "right now",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "in today's digital age",
+      "replace": "right now",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "in the ever-evolving landscape of",
+      "replace": "in",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "in the ever-changing world of",
+      "replace": "in",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "let's face it",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "here's the thing",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "picture this",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "imagine a world where",
+      "replace": "imagine if",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "it's no secret that",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "we've all been there",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "let that sink in",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "the choice is yours",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "food for thought",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "the future is here",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "what are your thoughts?",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "drop a comment below",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "at the end of the day",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "needle-moving",
+      "replace": "useful",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "move the needle",
+      "replace": "make a difference",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "a testament to",
+      "replace": "proof of",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "had the opportunity to",
+      "replace": "got to",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "i am excited to announce",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "i'm thrilled to share",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "i am humbled to",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "without further ado",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "buckle up",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "the harsh truth is",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "spoiler alert",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "read that again",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "you're welcome",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "save this for later",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "who's with me",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "stop scrolling",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "don't scroll past this",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "in this video i'm going to show you",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "in today's video",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "watch till the end",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "you won't believe",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "nobody is talking about this",
+      "replace": "few people do this",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "no one is talking about this",
+      "replace": "few people do this",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "this changed everything",
+      "replace": "this worked",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "this is your sign to",
+      "replace": "",
+      "family": "Einstiege",
+      "sprache": "en"
+    },
+    {
+      "find": "little did i know",
+      "replace": "",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "fast forward to today",
+      "replace": "now",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "and just like that",
+      "replace": "",
+      "family": "Bindewörter",
+      "sprache": "en"
+    },
+    {
+      "find": "the rest is history",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "run don't walk",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "trust me on this one",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "don't sleep on this",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "follow for more(?: tips| content| videos| ideas)?",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en",
+      "anzeige": "follow for more",
+      "regex": true
+    },
+    {
+      "find": "hit follow for more(?: tips| content| videos| ideas)?",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en",
+      "anzeige": "hit follow for more",
+      "regex": true
+    },
+    {
+      "find": "double tap if",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "tag someone who needs this",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "let me know in the comments",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "share this with someone who needs it",
+      "replace": "",
+      "family": "Schlusssätze",
+      "sprache": "en"
+    },
+    {
+      "find": "the algorithm loves",
+      "replace": "Instagram pushes",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "beat the algorithm",
+      "replace": "get reach",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    },
+    {
+      "find": "go viral overnight",
+      "replace": "get reach",
+      "family": "Hauptwörter",
+      "sprache": "en"
+    }
+  ],
+  "structures": [
+    {
+      "id": "nicht-nur",
+      "regex": "(?i)\\bnicht nur\\b[^.!?\\n]{2,80}\\bsondern auch\\b",
+      "name": "„Nicht nur X, sondern auch Y“",
+      "fix": "Sag das eine, was du meinst. Oder mach zwei Sätze daraus."
+    },
+    {
+      "id": "geht-nicht-um",
+      "regex": "(?i)\\bes geht nicht (?:nur )?um\\b[^.!?\\n]{2,80}[,.;]\\s*(?:sondern|es geht) um\\b",
+      "name": "„Es geht nicht um X, sondern um Y“",
+      "fix": "Fang mit Y an. Die Umkehr ist das Erkennungszeichen."
+    },
+    {
+      "id": "das-ergebnis",
+      "regex": "(?im)^\\s*(?:und )?(?:das ergebnis|der clou|das beste daran|der haken|der knackpunkt|die lösung|die antwort|der grund)\\?\\s*$",
+      "name": "Rhetorische Kurzfrage als eigene Zeile („Das Ergebnis?“)",
+      "fix": "Sag die Antwort gleich im Satz, statt eine Enthüllung zu inszenieren."
+    },
+    {
+      "id": "was-ich-gelernt",
+      "regex": "(?i)\\b(?:hier ist|das ist|das sind|hier sind),? was (?:ich|wir) gelernt (?:habe|haben)\\b|\\bdas habe ich (?:daraus )?gelernt:",
+      "name": "„Hier ist, was ich gelernt habe“",
+      "fix": "Sag die Lektion. Spar dir die Ankündigung."
+    },
+    {
+      "id": "dreier",
+      "regex": "(?i)\\b\\w+(?: \\w+)?, \\w+(?: \\w+)? und \\w+(?: \\w+)?[.!]",
+      "name": "Dreier-Aufzählung",
+      "fix": "Zwei Dinge oder vier. Drei ist der Standard-Rhythmus von KI-Texten."
+    },
+    {
+      "id": "als-ki",
+      "regex": "(?i)\\bals (?:eine )?(?:ki|künstliche intelligenz|sprachmodell)\\b",
+      "name": "KI spricht über sich selbst",
+      "fix": "Satz löschen."
+    },
+    {
+      "id": "fazit-einstieg",
+      "regex": "(?im)^\\s*(?:zusammenfassend|abschließend|alles in allem|letztendlich|fazit:)",
+      "name": "Aufsatz-Schluss als Einstieg („Zusammenfassend …“)",
+      "fix": "Ein Beitrag braucht keinen Schlussabsatz."
+    },
+    {
+      "id": "kommentar-koeder",
+      "regex": "(?im)(?:\\bwas meint ihr\\?|\\bwas denkt ihr\\?|\\bwer noch\\?|\\bwer kennt's\\?|\\bseht ihr das auch so\\?|\\bstimmt's\\?|\\bbin ich (?:der|die) einzige\\b\\??)\\s*$",
+      "name": "Reflex-Frage am Ende („Was meint ihr?“)",
+      "fix": "Stell eine Frage, die nur du stellen kannst, zu genau dem, was darüber steht."
+    },
+    {
+      "id": "scroll-stopp",
+      "regex": "(?im)^\\s*(?:hör(?:t)? auf zu scrollen|stopp[,!.]?\\s*nicht (?:weiter)?scrollen|nicht (?:weiter)?scrollen|scroll nicht weiter)\\b",
+      "name": "„Hör auf zu scrollen“ als Einstieg",
+      "fix": "Der Stopp muss die Aussage selbst sein. Wer um Aufmerksamkeit bittet, hat sie sich nicht verdient."
+    },
+    {
+      "id": "video-vorrede",
+      "regex": "(?i)\\b(?:in diesem (?:video|reel|beitrag)|im heutigen (?:video|reel)|heute zeige? ich (?:dir|euch)|ich zeige? (?:dir|euch) heute)\\b",
+      "name": "Video-Vorrede („In diesem Video zeige ich dir …“)",
+      "fix": "Streich sie und fang beim Ergebnis an. Die ersten zwei Sekunden entscheiden das ganze Reel."
+    },
+    {
+      "id": "folge-koeder",
+      "regex": "(?i)\\b(?:folg(?:e|t)? (?:mir |uns )?für mehr|markier(?:e|t)? jemanden|teil(?:e|t)? (?:das|dies) mit jemandem|doppeltipp|like,? wenn|kommentier(?:e|t)? unten,? wenn)\\b",
+      "name": "Reflex-Bitte (folgen, markieren, liken)",
+      "fix": "Bitte um die eine Handlung, die dieser Beitrag wirklich verdient. Die allgemeine Bitte bringt dein Publikum dazu, jede Bitte zu überlesen."
+    },
+    {
+      "id": "spannend",
+      "regex": "(?is)\\bspannend\\w*\\b(?=.*\\bspannend\\w*\\b)",
+      "name": "„spannend“-Inflation (mehr als einmal)",
+      "fix": "Einmal „spannend“ geht. Ab dem zweiten Mal: Zeig, was spannend ist, statt es zu behaupten."
+    },
+    {
+      "id": "gedankenstrich-kette",
+      "regex": "(?s)(?:\\s[–—]\\s|—)(?=(?:.*?(?:\\s[–—]\\s|—)){2})",
+      "name": "Gedankenstrich-Kette (drei oder mehr Gedankenstriche)",
+      "fix": "Mach aus den Gedankenstrichen Punkte oder Kommas. Drei in einem kurzen Text wirken wie KI."
+    },
+    {
+      "id": "welt-einstieg",
+      "regex": "(?i)\\bin einer welt,? in der\\b",
+      "name": "„In einer Welt, in der …“",
+      "fix": "Fang beim konkreten Fall an, nicht bei der ganzen Welt."
+    },
+    {
+      "id": "bist-du-bereit",
+      "regex": "(?i)\\bbist du bereit\\b[^.!?\\n]{0,60}\\?",
+      "name": "„Bist du bereit, …?“",
+      "fix": "Frag nicht, ob jemand bereit ist. Sag, was passiert."
+    },
+    {
+      "id": "not-just",
+      "regex": "(?i)\\bit'?s not (?:just|only) [^.!?\\n]{2,60}[,.] it'?s\\b",
+      "name": "„It's not just X, it's Y“ (englisch)",
+      "fix": "Sag das eine, was du meinst. Lösch die Hälfte mit dem Anlauf."
+    },
+    {
+      "id": "not-only",
+      "regex": "(?i)\\bnot only\\b[^.!?\\n]{2,80}\\bbut also\\b",
+      "name": "„Not only X but also Y“ (englisch)",
+      "fix": "In zwei Sätze teilen oder die schwächere Hälfte streichen."
+    },
+    {
+      "id": "isnt-about",
+      "regex": "(?i)\\b(?:this|it) is(?:n'?t| not) about [^.!?\\n]{2,60}[.!] it'?s about\\b",
+      "name": "„It isn't about X. It's about Y.“ (englisch)",
+      "fix": "Fang mit Y an. Die Umkehr ist das Erkennungszeichen."
+    },
+    {
+      "id": "the-result",
+      "regex": "(?i)^\\s*(?:the result|the best part|the kicker|the catch)\\?\\s*$",
+      "name": "Rhetorische Kurzfrage als eigene Zeile (englisch)",
+      "fix": "Sag die Antwort gleich im Satz."
+    },
+    {
+      "id": "heres-what",
+      "regex": "(?i)\\bhere'?s what (?:i|we) learned\\b",
+      "name": "„Here's what I learned“ (englisch)",
+      "fix": "Sag die Lektion. Spar dir die Ankündigung."
+    },
+    {
+      "id": "triad",
+      "regex": "(?i)\\b\\w+, \\w+, and \\w+\\.",
+      "name": "Dreier-Aufzählung (englisch)",
+      "fix": "Zwei Dinge oder vier. Drei ist der Standard-Rhythmus von KI-Texten."
+    },
+    {
+      "id": "rocket",
+      "regex": "[\\U0001F680\\U0001F525\\U0001F4A1\\u2728\\U0001F3AF]",
+      "name": "Raketen-, Feuer-, Glühbirnen-, Funkel- oder Zielscheiben-Emoji",
+      "fix": "Höchstens ein Emoji, und nicht eins von diesen fünf."
+    },
+    {
+      "id": "hashtag-wall",
+      "regex": "(?:#\\w+[ \\t]*){5,}",
+      "name": "Hashtag-Wand (5 oder mehr am Stück)",
+      "fix": "Höchstens fünf, besser drei, die das Thema benennen."
+    },
+    {
+      "id": "as-an-ai",
+      "regex": "(?i)\\bas an ai\\b|\\bas a language model\\b",
+      "name": "KI spricht über sich selbst (englisch)",
+      "fix": "Satz löschen."
+    },
+    {
+      "id": "in-summary",
+      "regex": "(?i)^\\s*(?:in summary|to summarize|in conclusion)\\b",
+      "name": "Aufsatz-Schluss als Einstieg (englisch)",
+      "fix": "Ein Beitrag braucht keinen Schlussabsatz."
+    },
+    {
+      "id": "engagement-bait",
+      "regex": "(?i)\\b(?:agree\\?|thoughts\\?|who else\\b|am i wrong\\?)\\s*$",
+      "name": "Reflex-Frage am Ende (englisch)",
+      "fix": "Stell eine Frage, die nur du stellen kannst."
+    },
+    {
+      "id": "stop-scroll",
+      "regex": "(?im)^\\s*(?:stop scrolling|don'?t scroll|wait[,.]? don'?t scroll)\\b",
+      "name": "„Stop scrolling“ als Einstieg (englisch)",
+      "fix": "Der Stopp muss die Aussage selbst sein."
+    },
+    {
+      "id": "in-this-video",
+      "regex": "(?i)\\b(?:in (?:this|today'?s) (?:video|reel|post)|today i'?m going to show you|i'?m going to (?:show|teach) you how)\\b",
+      "name": "Video-Vorrede (englisch)",
+      "fix": "Streich sie und fang beim Ergebnis an."
+    },
+    {
+      "id": "emoji-bullets",
+      "regex": "(?m)^\\s*[\\U0001F300-\\U0001FAFF✅➡⬅✔✨]\\s*\\S",
+      "name": "Aufzählung mit Emoji statt Strichen",
+      "fix": "Nimm Bindestriche oder Zeilenumbrüche. Emoji-Aufzählungen sehen am meisten nach Vorlage aus."
+    },
+    {
+      "id": "caps-shout",
+      "regex": "\\b[A-ZÄÖÜ]{3,}\\b(?:\\s+\\b[A-ZÄÖÜ]{3,}\\b){2,}",
+      "name": "Drei oder mehr Wörter in GROSSBUCHSTABEN hintereinander",
+      "fix": "Großbuchstaben sind ein Lautstärkeregler, kein Textmarker. Höchstens ein Wort."
+    },
+    {
+      "id": "follow-bait",
+      "regex": "(?i)\\b(?:follow for more|tag someone who|double tap if|share this if|comment below if)\\b",
+      "name": "Reflex-Bitte (englisch)",
+      "fix": "Bitte um die eine Handlung, die dieser Beitrag wirklich verdient."
+    }
+  ]
+}

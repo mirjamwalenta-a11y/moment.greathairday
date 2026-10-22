@@ -73,3 +73,11 @@ das Sicherheitsnetz für den Fall, dass eine davon trotzdem übersehen wird.
   Code-Fix in `index.greathairday`
 - Private E-Mail hartcodiert in `salon-checklist.html` und drei Stellen
   in `lernquiz.greathairday` → entfernt, rollenbasiert ersetzt
+
+## Instagram-Helfer
+
+In `.claude/skills/ig-*` liegen 13 Instagram-Skills (MIT, siehe
+`.claude/skills/LIZENZ-ig-skills.md`). Bevor du einen davon nutzt, lies
+`INSTAGRAM.md` (Regeln: nichts posten, nichts erfinden, Stimme zuerst) und
+`stimme.md`. Entwürfe und Pläne kommen nach `ablage/`; der Ordner ist in
+`.gitignore`, weil dieses Repo öffentlich ist.

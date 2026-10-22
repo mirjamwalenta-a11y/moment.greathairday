@@ -91,3 +91,28 @@ Einfach `salon-app-v1.html` im Browser öffnen — kein Server, kein Build nöti
 - `manifest.webmanifest` + `icons/`: „Zum Home-Bildschirm hinzufügen“.
 - Wörni (Edge Function) braucht weiterhin Netz. Ohne Netz kommt sofort ein Hinweis statt eines Fehlers.
 - Neue Dateien bitte in `vorab` in `sw.js` ergänzen.
+
+## Instagram-Helfer (Claude-Skills)
+
+In `.claude/skills/ig-*` liegen 13 Instagram-Helfer von MakersLab (MIT-Lizenz). Sie laufen in jeder Claude-Code-Sitzung zu diesem Repo. Einfach schreiben, was du willst:
+
+| Helfer | Beispiel |
+| --- | --- |
+| Reel-Skript (`/ig-reel`) | „Mach mir ein Reel darüber, dass eine Balayage drei Stunden dauert.“ |
+| Caption (`/ig-caption`) | „Schreib die Caption zu diesem Reel, ich will unter ‚Balayage Wien‘ gefunden werden: …“ |
+| Humanizer (`/ig-human`) | „Klingt das nach KI? Mach es menschlicher: …“ |
+| Karussell (`/ig-carousel`) | „Mach ein Karussell: 5 Fragen vor einer Balayage.“ |
+| Storys (`/ig-story`) | „Was poste ich heute in meine Story? Heute war Prüfungstag bei der Innung.“ |
+| Profil-Check (`/ig-profile`) | „Bewerte mein Instagram-Profil: [Screenshot oder Bio]“ |
+| Wochenplan (`/ig-plan`) | „Plan meine Instagram-Woche. Diese Woche ist passiert: …“ |
+| Kommentar (`/ig-comment`) | „Was schreib ich unter diesen Beitrag? …“ |
+| Antworten (`/ig-reply`) | „Hilf mir, auf diese Kommentare zu antworten: …“ |
+| DMs (`/ig-dm`) | „Jemand hat nach freien Lehrstellen gefragt. Was schreib ich?“ |
+| Weiterverwerten (`/ig-repurpose`) | „Mach aus diesem Newsletter Beiträge für eine Woche: …“ |
+| Rückblick (`/ig-audit`) | „Schau dir die Zahlen meiner letzten 20 Beiträge an: [Screenshots]“ |
+| Was gerade läuft (`/ig-viral`) | „Was funktioniert gerade bei Friseur:innen auf Instagram? Hier sind Konten, die ich mag: …“ |
+
+- Regeln für Claude: `INSTAGRAM.md`. Deine Stimme: `stimme.md` (aus Wörnis Regeln abgeleitet, bitte ergänzen).
+- Nichts wird gepostet. Claude schreibt, du postest.
+- Entwürfe landen in `ablage/` und werden **nicht** ins (öffentliche) Repo hochgeladen.
+- Vier Helfer haben kleine Python-Werkzeuge (Hook-Punkte, Zeitplan, Caption-Vorschau, Humanizer-Wert). Ohne Python schätzt Claude von Hand.

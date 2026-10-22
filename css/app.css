@@ -1135,3 +1135,34 @@ textarea { resize: none; min-height: 76px; }
 }
 .recruiting-start.dringend { background: #f8ecec; border-color: #a13a3a; color: #a13a3a; }
 .planer-day.planer-recruiting { border-left: 3px solid var(--gold); }
+
+/* ── KI-Check, Hook-Punkte, Caption-Prüfung (ki-check.js) ── */
+.kic { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-sm); margin: 0 0 12px; font-size: 13px; color: var(--mid); }
+.kic summary { cursor: pointer; padding: 11px 14px; font-weight: 600; color: var(--black); list-style: none; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.kic summary::-webkit-details-marker { display: none; }
+.kic summary::after { content: '▾'; margin-left: auto; color: var(--soft); }
+.kic[open] summary::after { content: '▴'; }
+.kic-sum { font-size: 11px; font-weight: 700; border-radius: 20px; padding: 2px 9px; }
+.kic-gut { background: var(--ok-bg); color: var(--ok); }
+.kic-offen { background: var(--gold-pale); color: var(--gold); }
+.kic-block { padding: 10px 14px; border-top: 1px solid var(--line); }
+.kic-titel { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; }
+.kic-feed { background: var(--bg); border-radius: 8px; padding: 9px 11px; color: var(--black); white-space: pre-wrap; line-height: 1.45; word-break: break-word; }
+.kic-mehr { color: var(--soft); }
+.kic-zitat { color: var(--black); font-style: italic; margin-bottom: 6px; word-break: break-word; }
+.kic-zeile { margin: 4px 0; line-height: 1.4; word-break: break-word; }
+.kic-zeile b { color: var(--black); font-weight: 600; }
+.kic-balken { display: inline-block; width: 38px; height: 5px; border-radius: 3px; background: var(--gold-pale2); vertical-align: middle; margin-right: 6px; overflow: hidden; }
+.kic-balken span { display: block; height: 100%; background: var(--gold); }
+.kic-punkte { font-size: 10px; font-weight: 700; letter-spacing: 0; text-transform: none; border-radius: 20px; padding: 1px 8px; }
+.kic-stark { background: var(--ok-bg); color: var(--ok); }
+.kic-ok { background: var(--gold-pale2); color: var(--mid); }
+.kic-schwach { background: #F3E1DA; color: #8A3B22; }
+.kic-warn { margin-top: 6px; color: #8A3B22; }
+.kic-tipp { margin-top: 6px; color: var(--soft); font-size: 12px; }
+.kic-liste { margin: 0; padding-left: 18px; }
+.kic-liste li { margin: 5px 0; line-height: 1.4; word-break: break-word; }
+.kic-liste b { color: var(--black); font-weight: 600; }
+.kic-fix { color: var(--soft); font-size: 12px; }
+.kic-btn { margin-top: 8px; }
+.kic-hinweis { padding: 8px 14px 11px; border-top: 1px solid var(--line); font-size: 11px; color: var(--soft); }

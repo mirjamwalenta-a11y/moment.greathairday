@@ -91,3 +91,14 @@ Einfach `salon-app-v1.html` im Browser öffnen — kein Server, kein Build nöti
 - `manifest.webmanifest` + `icons/`: „Zum Home-Bildschirm hinzufügen“.
 - Wörni (Edge Function) braucht weiterhin Netz. Ohne Netz kommt sofort ein Hinweis statt eines Fehlers.
 - Neue Dateien bitte in `vorab` in `sw.js` ergänzen.
+
+## Klingt das nach KI? (Prüfung unter Post, Reel-Caption und „Alle Kanäle“)
+
+Unter jedem fertigen Instagram-Text erscheint ein aufklappbares Feld „🔍 Klingt das nach KI?“. Es rechnet komplett im Handy, nichts wird verschickt:
+
+- **Was der Feed zeigt:** die ersten ca. 125 Zeichen, so wie sie vor „… mehr“ stehen.
+- **Hook-Punkte** (0–100) für die erste Zeile und beim Reel für das Overlay der ersten Szene: Länge, konkret (Leistung, Ort, Zahl), das Wichtige vorne, Ansprache. Auch die Einstiege im Hook-Bereich bekommen eine Punktzahl.
+- **Caption-Prüfung:** erste Zeile, höchstens 5 Hashtags, keine Allerwelts-Hashtags, keine Links, höchstens eine Bitte, Emoji, Suchbegriffe (Wien, 1050, Margareten).
+- **KI-Spuren:** Floskeln, Muster wie „nicht nur …, sondern auch …“, Gedankenstriche, unsichtbare Zeichen. „✨ Automatisch aufräumen“ ersetzt nur Floskeln mit einfachem Ersatz; Adresszeile und Unterschrift bleiben unberührt.
+
+Dieselben Regeln stehen auch in Wörnis Schreibregeln (Regel 10 und 11 in `postSchreibregeln`), damit die Texte schon so geschrieben werden. Wortliste zum Bearbeiten: `ki-check-daten.js`. Herkunft und Lizenz: `LIZENZEN-DRITTE.md`. Alles sind Faustregeln, kein KI-Detektor.

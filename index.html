@@ -11,10 +11,12 @@
 <script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
 <script src="gehalt.js"></script>
 <script src="recruiting-daten.js"></script>
+<script src="ki-check-daten.js"></script>
+<script src="ki-check.js"></script>  <!-- „Klingt das nach KI?“, Hook-Punkte, Caption-Prüfung -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=20261006">
+<link rel="stylesheet" href="css/app.css?v=20261022">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#F5F0EA">
@@ -710,6 +712,7 @@ function tabnavScrollBy(direction) {
       </div>
     </div>
 
+    <div id="post-ki-check"></div>
     <div class="cta-row">
       <button class="btn-copy" id="post-copy-btn" onclick="copyEl('post-text-main','post-copy-btn')">
         📋 Caption kopieren
@@ -752,6 +755,7 @@ function tabnavScrollBy(direction) {
         <div class="output-meta-row"><span class="meta-icon">#️⃣</span><span class="meta-text" id="multi-ig-hashtags"></span></div>
       </div>
     </div>
+    <div id="multi-ig-ki-check"></div>
     <div class="cta-row">
       <button class="btn-copy" id="multi-ig-copy" onclick="copyEl('multi-ig-text','multi-ig-copy')">📋 Kopieren</button>
       <button class="btn-edit" onclick="document.getElementById('multi-ig-text').focus()">✏️ Bearbeiten</button>
@@ -948,6 +952,7 @@ function tabnavScrollBy(direction) {
         </div>
         <div class="sc-val" id="reel-caption-val">—</div>
       </div>
+      <div id="reel-ki-check"></div>
       <div class="story-section-block" style="margin-top:8px;">
         <div class="section-copy-row">
           <span class="sc-label">#️⃣ Hashtags</span>
@@ -2554,8 +2559,9 @@ function generateEinstiege() {
   const familie = HOOK_WIRKUNG_FAMILIE[ziel] || 'ruhig';
   const einstiege = [...moment.varianten[familie]].sort(() => Math.random() - .5);
   document.getElementById('hook-list').innerHTML = einstiege.map((txt, i) => {
+    const h = KiCheck.hook(txt, 'caption');
     return `<div class="hook-item">
-      <div class="hook-num">Einstieg ${i + 1} · ${EINSTIEG_LABEL[ziel]}</div>
+      <div class="hook-num">Einstieg ${i + 1} · ${EINSTIEG_LABEL[ziel]} <span class="kic-punkte kic-${h.urteil}" title="Hook-Punkte · am schwächsten: ${h.schwaechste.name}">${h.gesamt}</span></div>
       <div class="hook-text">„${txt}"</div>
       <button class="copy-sm" onclick="copyHookBtn(this)" data-text="${txt}">Kopieren</button>
     </div>`;
@@ -2632,7 +2638,9 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
 7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu, auch keine Szenen, Sinneseindrücke oder Erinnerungen ("Ich erinnere mich gern …", "ein Lachen hier …"). Ein konkretes Detail nur, wenn es in der Eingabe steht; sonst lieber schlicht bleiben. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
    Einladung oder Rückblick: Klingt die Eingabe nach etwas, das noch kommt (z. B. "Einladung", "Anmeldung", "Plätze begrenzt", ein Datum), schreib eine Einladung in der Gegenwart, keinen Rückblick: was es ist, wann (falls angegeben, sonst [Datum]) und wie man sich anmeldet (so, wie es in der Eingabe steht). Diese Anmelde-Info ist erlaubt und zählt nicht als Verkaufs-CTA.
 8. Stichworte sind normal: Die Eingabe besteht oft nur aus ein paar Stichworten. Formuliere daraus einen vollständigen, natürlichen Text, statt die Stichworte wörtlich aneinanderzureihen.
-9. Vor der Ausgabe prüfen: Ist klar, wer spricht? Steht nur drin, was die Eingabe hergibt? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.`;
+9. Vor der Ausgabe prüfen: Ist klar, wer spricht? Steht nur drin, was die Eingabe hergibt? Versteht eine Kundin jeden Satz ohne Fachwissen? Fachbegriffe, die nötig sind, kurz und einfach erklären.
+10. Klingt nicht nach KI: keine Gedankenstriche als Satzverbinder (lieber Punkt oder Komma), kein „nicht nur …, sondern auch …“, kein „Es geht nicht um X, sondern um Y“, keine Dreier-Aufzählungen als Rhythmus, nicht jeder Satz gleich lang. Keine Wörter wie essenziell, ganzheitlich, Mehrwert, Gamechanger, darüber hinaus, maßgeschneidert, atemberaubend, innovativ, „am Ende des Tages“, „in der heutigen Zeit“.${istStory || format === 'google' ? '' : `
+11. Erste Zeile und Caption: Die erste Zeile muss vor „… mehr“ ganz sichtbar sein (höchstens ca. 120 Zeichen). Sie beginnt nie mit einer Begrüßung („Hallo ihr Lieben“), einem Hashtag, einem Emoji oder einer Vorrede („In diesem Beitrag …“). Das Konkrete aus der Eingabe (Leistung, Tag, Zahl, Ort) steht in den ersten Wörtern. Kein Link im Text, Captions sind nicht anklickbar. Höchstens eine Bitte, keine Reflex-Bitten („Folge mir für mehr“, „Markiere jemanden“, „Was meint ihr?“).`}`;
 }
 
 // Entfernt Adresse/Telefon aus einem Text (gehört nie in den Fließtext).
@@ -2805,6 +2813,7 @@ async function generatePost() {
       blocksWrap.style.display = 'block';
     }
   }
+  kiCheckPost();
 
   btn.disabled = false;
   btn.textContent = 'Post erstellen';
@@ -3137,6 +3146,18 @@ function zeigeWoerniNichtErreichbar(art = 'post') {
 // statt ihn komplett neu zu schreiben.
 // ════════════════════════════════════════════
 let letzterPost = null;
+
+// Begriffe, unter denen der Salon in der Instagram-Suche gefunden werden soll
+// (siehe KONTEXT_INFO.reichweite). Fürs Haarnetzwerk bewusst keine.
+const SUCHBEGRIFFE = { salon: ['Wien', '1050', 'Margareten'], haarnetzwerk: [] };
+function kiCheckPost() {
+  const hashtags = document.getElementById('post-hashtags-val');
+  KiCheck.zeigen('post-text-main', 'post-ki-check', {
+    hashtags: () => document.getElementById('post-structured-blocks').style.display === 'none' ? '' : (hashtags?.textContent || '').replace('—', ''),
+    suchbegriffe: SUCHBEGRIFFE[letzterPost?.kontext] || [],
+    nachAufraeumen: () => updateCharCount('post-text-main', 'post-char')
+  });
+}
 const NACHBESSERN_WUENSCHE = {
   kuerzer: 'Mach den Text deutlich kürzer (etwa die Hälfte). Die Kernaussage bleibt.',
   lockerer: 'Schreib lockerer und umgangssprachlicher, weniger förmlich, aber weiterhin ohne Floskeln.',
@@ -3177,6 +3198,7 @@ Du bekommst einen fertigen ${kanalName}-Post und einen Änderungswunsch. Überar
   }
   textEl.textContent = postAbschliessen(neu.trim(), mitAdresse, unterschriftFuer(kontext));
   updateCharCount('post-text-main', 'post-char');
+  kiCheckPost();
   setKiBadge('post-ki-badge', true);
   if(!art) feld.value = '';
   status.textContent = '✓ Überarbeitet. Gefällt es noch nicht? Einfach nochmal.';
@@ -3217,6 +3239,10 @@ async function generatePostAlleKanaele(m) {
   document.getElementById('multi-ig-text').textContent = ig.text || fehltText;
   document.getElementById('multi-ig-hashtags').textContent = ig.structured?.hashtags || '—';
   document.getElementById('multi-ig-badge').innerHTML = ig.text ? '<span class="ki-badge ai">✦ Wörni</span>' : '';
+  if(ig.text) KiCheck.zeigen('multi-ig-text', 'multi-ig-ki-check', {
+    hashtags: () => (ig.structured?.hashtags || ''),
+    suchbegriffe: SUCHBEGRIFFE[kontext] || []
+  }); else document.getElementById('multi-ig-ki-check').innerHTML = '';
 
   document.getElementById('multi-fb-text').textContent = fb.text || fehltText;
   document.getElementById('multi-fb-hashtags').textContent = fb.structured?.hashtags || '—';
@@ -5762,6 +5788,7 @@ Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Obj
 
 Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht folgen):
 - Die erste Szene (0–2 Sek) zeigt sofort das Spannendste: Ergebnis, Verwandlung oder eine Frage als Text-Overlay. Keine Einleitung, kein Logo am Anfang.
+- Das Text-Overlay der ersten Szene ist der Hook: höchstens 6 Wörter, konkret (Leistung, Zahl, Ergebnis aus der Eingabe), keine Begrüßung, kein „In diesem Video …“, kein Emoji.
 - Jede Szene hat ein kurzes Text-Overlay, weil viele ohne Ton schauen.
 - Der "tip" der letzten Szene erwähnt: Als „Test-Reel“ posten (wird zuerst nur Nicht-Follower:innen gezeigt), wenn das Ziel neue Menschen erreichen soll.
 ${reichweiteTeil(kontext)}
@@ -5833,6 +5860,12 @@ Antworte NUR mit dem JSON. Kein Text drumherum.`;
     document.getElementById('reel-caption-val').textContent = result.caption;
     document.getElementById('reel-hash-val').textContent    = result.hashtags || '';
     document.getElementById('reel-caption-block').style.display = 'block';
+    KiCheck.zeigen('reel-caption-val', 'reel-ki-check', {
+      art: 'reel',
+      hookText: (result.scenes[0] && result.scenes[0].text) || '',
+      hashtags: () => result.hashtags || '',
+      suchbegriffe: SUCHBEGRIFFE[kontext] || []
+    });
   }
 
   setKiBadge('reel-ki-badge', reelKiHatGeantwortet);

@@ -1,0 +1,79 @@
+{
+  "version": "1.0",
+  "total": 100,
+  "note": "Zwölf Prüfpunkte. Bewerte jeden ehrlich, eine großzügige Bewertung hilft niemandem. Die meisten Profile landen beim ersten Durchgang bei 30 bis 49 Punkten. Die Gewichtung ist Absicht: Namensfeld, erste Bio-Zeile und die drei angepinnten Beiträge zählen mehr als das Foto. Genau diese Teile nimmt jemand wahr, der über ein einziges Reel kommt und entscheidet, ob er folgt.",
+  "items": [
+    {
+      "id": "name_field",
+      "points": 12,
+      "full_marks": "Das Namensfeld (30 Zeichen, die fett gedruckte Zeile, nicht der Benutzername) enthält den Namen plus das, was die Person macht, in Wörtern, nach denen gesucht wird: „Mia Muster | Angebotsvorlagen“. Die Instagram-Suche durchsucht dieses Feld, und die meisten Konten verschenken es mit einem bloßen Namen.",
+      "common_fail": "Nur ein Name, oder ein Name mit Emoji."
+    },
+    {
+      "id": "bio_first_line",
+      "points": 12,
+      "full_marks": "Zeile eins sagt, für wen das ist und was sich für diese Leute ändert, in ihren eigenen Worten. Keine Berufsbezeichnung, keine Liste von Adjektiven, keine drei Emojis mit senkrechten Strichen dazwischen.",
+      "common_fail": "„Unternehmerin | Kaffeeliebhaberin | Hundemama“."
+    },
+    {
+      "id": "bio_body",
+      "points": 8,
+      "full_marks": "Der Rest der 150 Zeichen trägt einen Beleg oder ein konkretes Angebot und liest sich als Sätze, nicht als Liste mit senkrechten Strichen.",
+      "common_fail": "Ein Haufen Schlagwörter, oder leerer Platz."
+    },
+    {
+      "id": "pinned_three",
+      "points": 10,
+      "full_marks": "Drei Beiträge oben im Profil-Raster angepinnt, mit drei verschiedenen Aufgaben: der beste Beweis, die klarste Erklärung des Angebots und die beste Vorstellung der Person. Nicht zufällig die drei Beiträge mit den meisten Aufrufen.",
+      "common_fail": "Nichts angepinnt, also steht oben im Raster, was zuletzt gepostet wurde."
+    },
+    {
+      "id": "link",
+      "points": 8,
+      "full_marks": "Ein Ziel, das zu dem passt, was die Bio gerade versprochen hat. Bis zu fünf Links sind erlaubt. Mehr als zwei sind ein Menü, und ein Menü bringt weniger als eine Tür.",
+      "common_fail": "Eine Linkseite mit elf Möglichkeiten, oder gar kein Link."
+    },
+    {
+      "id": "highlights",
+      "points": 8,
+      "full_marks": "Vier bis sechs Highlights, benannt nach den Fragen, die Kaufinteressierte wirklich stellen: Preise, Ergebnisse, So läuft's, Über mich. Einheitliche Titelbilder. Vorne steht nichts, was älter als ein Jahr ist.",
+      "common_fail": "„Sonstiges“, „Privat“, „Lieblinge“, oder 14 Highlights ohne Ordnung."
+    },
+    {
+      "id": "grid_legibility",
+      "points": 8,
+      "full_marks": "Die ersten neun Titelbilder sind in Vorschaugröße lesbar und sagen ohne einen einzigen Tipp, worum es im Konto geht. Reel-Titelbilder sind bewusst ausgesucht, nicht einfach das erste Bild des Videos.",
+      "common_fail": "Neun Titelbilder mit einem Gesicht mitten im Wort und ohne Text."
+    },
+    {
+      "id": "photo",
+      "points": 6,
+      "full_marks": "Das Gesicht füllt etwa 60 % eines Kreises, der nur rund 40 Pixel groß angezeigt wird. Augen sichtbar, in den letzten zwei Jahren aufgenommen, der Hintergrund lenkt nicht ab.",
+      "common_fail": "Ein Ganzkörperfoto, ein Logo für eine Personenmarke, oder ein Selfie mit ausgestrecktem Arm in einem dunklen Raum."
+    },
+    {
+      "id": "handle",
+      "points": 6,
+      "full_marks": "Gut lesbar, laut aussprechbar und derselbe Benutzername wie auf den anderen Plattformen. Keine gestapelten Unterstriche und keine Zahlen, die Buchstaben ersetzen.",
+      "common_fail": "Ein Benutzername, den niemand schreiben kann, nachdem er ihn einmal gehört hat."
+    },
+    {
+      "id": "category_contact",
+      "points": 6,
+      "full_marks": "Professionelles Konto (Business- oder Creator-Konto) mit einer Kategorie, die zum Angebot passt, und Kontakt-Buttons, die funktionieren. Eine E-Mail-Adresse, die auch gelesen wird, nicht die von 2019.",
+      "common_fail": "Privates Konto, also keine Statistiken (Insights) und kein Kontakt-Button."
+    },
+    {
+      "id": "recent_activity",
+      "points": 10,
+      "full_marks": "In den letzten sieben Tagen gepostet und auf die Kommentare unter dem neuesten Beitrag geantwortet. Ein Konto, das zuletzt im März gepostet hat, wirkt wie geschlossen.",
+      "common_fail": "Fünf Wochen Pause, oder eine Wand aus unbeantworteten Kommentaren."
+    },
+    {
+      "id": "story_presence",
+      "points": 6,
+      "full_marks": "Gerade eine Story online, oder zumindest an den meisten Tagen. Das ist der Unterschied zwischen einem Profil und einem Menschen.",
+      "common_fail": "Nie ein Ring ums Profilbild."
+    }
+  ]
+}

@@ -1,0 +1,106 @@
+<!doctype html>
+<!--
+  Karussell-Vorlage für Instagram (1080x1350, 4:5) im Moment-Design.
+  Für jedes neue Karussell diese Datei nach ablage/entwurf/ kopieren,
+  nur die <section>-Inhalte ändern und mit vorlagen/karussell-bilder.js
+  zu PNG-Bildern machen. CSS nicht ändern, damit alle Karussells gleich aussehen.
+
+  Folientypen:
+    <section>                 helle Folie (Standard)
+    <section class="dunkel">  dunkle Folie, z. B. Folie 2 („Warum“)
+    <div class="nr">1</div>   große Ziffer oben rechts (für Schritte/Fragen)
+    <ol><li>…</li></ol>       nummerierte Liste (Zusammenfassung)
+    <img class="logo" …>      Unterschrift Mirjam Walenta (nur Titelbild)
+  Jede Folie hat unten .fuss mit „A Great Hair Day · Wien“ und n/gesamt.
+  Text: Titel höchstens 6 Wörter, pro Folie höchstens 25 Wörter darunter.
+  Inhalt: Karussell „Alpha Cooling“.
+-->
+<html lang="de"><head><meta charset="utf-8">
+<title>Karussell</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,600;0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{--gold:#8A7346;--gold-pale:#EFE6D4;--black:#1C1B19;--mid:#5B5750;--soft:#857F76;--bg:#F5F0EA;--white:#FCFAF5}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:#ccc;font-family:Inter,system-ui,sans-serif}
+section{width:1080px;height:1350px;background:var(--bg);position:relative;overflow:hidden;padding:160px 130px;display:flex;flex-direction:column;justify-content:center;color:var(--black)}
+section.dunkel{background:var(--black);color:var(--white)}
+.fuss{position:absolute;left:130px;right:130px;bottom:80px;display:flex;justify-content:space-between;font-size:32px;color:var(--soft);letter-spacing:.04em}
+.dunkel .fuss{color:#B39A6B}
+.kicker{font-size:34px;font-weight:600;letter-spacing:.18em;text-transform:uppercase;color:var(--gold);margin-bottom:44px}
+h1{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:118px;line-height:1.06}
+h2{font-family:'Playfair Display',Georgia,serif;font-weight:700;font-size:84px;line-height:1.12;margin-bottom:56px}
+p{font-size:48px;line-height:1.45;color:var(--mid)}
+.dunkel p{color:#E4DCCD}
+.unter{font-family:'Playfair Display',Georgia,serif;font-style:italic;font-weight:500;font-size:54px;color:var(--gold);margin-top:56px}
+.linie{width:120px;height:6px;background:var(--gold);margin:56px 0}
+.nr{font-family:'Playfair Display',Georgia,serif;font-size:220px;line-height:1;color:var(--gold);opacity:.35;position:absolute;top:110px;right:120px}
+.logo{width:520px;mix-blend-mode:multiply;margin-top:70px;margin-left:-30px}
+ol{list-style:none;counter-reset:f}
+ol li{counter-increment:f;font-size:46px;line-height:1.35;padding:26px 0 26px 92px;position:relative;border-bottom:2px solid #E4DCCD}
+ol li:last-child{border-bottom:0}
+ol li::before{content:counter(f);position:absolute;left:0;top:18px;width:62px;height:62px;border-radius:50%;background:var(--gold);color:#fff;font-size:34px;font-weight:600;display:flex;align-items:center;justify-content:center}
+</style></head><body>
+
+<section id="f1">
+  <div class="kicker">Alpha Cooling</div>
+  <h1>2 Minuten Kälte, ohne dass du frierst</h1>
+  <div class="unter">So läuft Alpha Cooling ab.</div>
+  <img class="logo" src="../logo-name.png" alt="">
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>1/8</span></div>
+</section>
+
+<section id="f2" class="dunkel">
+  <div class="kicker">Die Idee</div>
+  <h2>Man kennt sie vom Eisbad oder der Kältekammer.</h2>
+  <p>Alpha Cooling ist die angenehme, unkomplizierte Variante.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>2/8</span></div>
+</section>
+
+<section id="f3"><div class="nr">1</div>
+  <div class="kicker">So geht’s</div>
+  <h2>Hände auflegen</h2>
+  <p>Du legst deine Handflächen auf gekühlte Flächen. Dazu kommt ein sanfter Unterdruck.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>3/8</span></div>
+</section>
+
+<section id="f4"><div class="nr">2</div>
+  <div class="kicker">Das Gefühl</div>
+  <h2>Kühl, nicht eisig</h2>
+  <p>Die Flächen haben etwa 4 bis 5 °C. Kein Brennen und kein Pochen wie nach einem Schneeball in der Hand.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>4/8</span></div>
+</section>
+
+<section id="f5"><div class="nr">3</div>
+  <div class="kicker">Im Körper</div>
+  <h2>Die Kühle verteilt sich</h2>
+  <p>Gekühlt werden nur die Handflächen. Über das Blut verteilt sich die Kühle im Körper.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>5/8</span></div>
+</section>
+
+<section id="f6"><div class="nr">4</div>
+  <div class="kicker">Die Dauer</div>
+  <h2>Etwa 2 Minuten</h2>
+  <p>Ohne Ausziehen, ohne Frieren, ohne Nässe.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>6/8</span></div>
+</section>
+
+<section id="f7"><div class="nr">5</div>
+  <div class="kicker">Wann</div>
+  <h2>Wann es gut passt</h2>
+  <p>Viele empfinden es als erfrischend, zum Beispiel im Mittagstief oder nach dem Sport. Einzeln buchbar oder nach deinem Friseurtermin.</p>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>7/8</span></div>
+</section>
+
+<section id="f8" style="padding-top:130px">
+  <div class="kicker">Zum Speichern</div>
+  <h2 style="font-size:70px;margin-bottom:30px">Alpha Cooling auf einen Blick</h2>
+  <ol>
+    <li>Handflächen auf gekühlte Flächen</li>
+    <li>Etwa 4 bis 5 °C, angenehm kühl</li>
+    <li>Die Kühle verteilt sich im Körper</li>
+    <li>Etwa 2 Minuten</li>
+    <li>Ohne Ausziehen, Frieren oder Nässe</li>
+  </ol>
+  <div class="fuss"><span>A Great Hair Day · Wien</span><span>8/8</span></div>
+</section>
+</body></html>

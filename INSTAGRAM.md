@@ -123,3 +123,14 @@ Schriften, Unterschrift und Fußzeile sind dort festgelegt, keine eigene Palette
 erfinden. Ablauf: Datei nach `ablage/` kopieren, nur die `<section>`-Inhalte
 ändern, nach Freigabe des Texts mit `node vorlagen/karussell-bilder.js
 <datei> <zielordner>` die PNGs bauen und der Person als Dateien geben.
+
+## Instagram-Mappe in der App (`instagram.html`)
+
+Fertiges, das öffentlich gepostet wird, kommt zusätzlich in die Mappe, damit
+die Person es in Moment findet:
+- Karussell: Quelle nach `vorlagen/karussell-<id>.html`, Bilder nach
+  `bilder/karussells/<id>/folie-01.png …`, Eintrag (Caption, Alternativtext,
+  Zielprofil) oben in `KARUSSELLS` in `instagram-mappe.js`.
+- Profil-Check: neue Texte und To-dos in `PROFILE` in `instagram-mappe.js`.
+Das Repo ist öffentlich: nur Inhalte ablegen, die ohnehin gepostet werden,
+keine Kundendaten, keine Zugangsdaten.

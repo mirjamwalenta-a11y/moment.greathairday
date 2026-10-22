@@ -2681,7 +2681,7 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
     ? 'keine Emoji im Frame-Text'
     : format === 'google'
       ? 'höchstens 1 Emoji'
-      : `höchstens 2 Emoji${mitAdresse ? ' — das 📍 der Adresszeile zählt mit, also höchstens 1 Emoji im Text' : ''}`;
+      : `höchstens 3 Emoji, am liebsten Herzen wie ❤️ oder 🥰${mitAdresse ? ' — das 📍 der Adresszeile zählt mit, also höchstens 2 Emoji im Text' : ''}`;
   const kurz = istStory
     ? 'Kurz: jeder Frame 1 bis 3 kurze Sätze.'
     : format === 'google'
@@ -2692,7 +2692,7 @@ function postSchreibregeln(kontext, wer, mitAdresse, format = 'post') {
 2. Die Adresse steht NIE im Fließtext (keine Straße, keine Hausnummer, keine Telefonnummer). ${adresse}
 3. ${format === 'google' ? 'Falls eine Frage vorkommt, sie' : istStory ? 'Die Schlussfrage (bzw. die Frage im Sticker)' : 'Die Schlussfrage'} ${frage}
 4. Spracheingabe prüfen: Der Input ist oft diktiert. Ergibt ein Wort im Friseur-Zusammenhang keinen Sinn, ersetze es durch den naheliegenden Fachbegriff (z. B. "gefolgt" → "gefoilt", "Ansatz", "Balayage", "Strähnen", "Tönung").
-5. Ruhig und klar: vollständige Sätze, keine Floskeln und keine Stimmungsbilder (wie "den man nicht oft genug würdigt", "das Klirren der Gläser", "nicht um Schere und Föhn", "was uns so besonders macht", "ein Gefühl von Nähe", "in guter Gesellschaft ausklingen lassen"), ${emoji}.
+5. Herzlich und klar (Mirjams echter Stil): warm und begeistert, vollständige Sätze, höchstens ein Ausrufezeichen, keine Floskeln und keine Stimmungsbilder (wie "den man nicht oft genug würdigt", "das Klirren der Gläser", "nicht um Schere und Föhn", "was uns so besonders macht", "ein Gefühl von Nähe", "in guter Gesellschaft ausklingen lassen"), ${emoji}.
 6. ${kurz}
 7. Nur was in der Eingabe steht: Erfinde keine Fakten, Zahlen, Jahre, Namen, Preise oder Erlebnisse dazu, auch keine Szenen, Sinneseindrücke oder Erinnerungen ("Ich erinnere mich gern …", "ein Lachen hier …"). Ein konkretes Detail nur, wenn es in der Eingabe steht; sonst lieber schlicht bleiben. Mirjams Werdegang (seit wann im Beruf, Ausbildungen, Funktionen) nur erwähnen, wenn die Eingabe selbst darauf Bezug nimmt.
    Einladung oder Rückblick: Klingt die Eingabe nach etwas, das noch kommt (z. B. "Einladung", "Anmeldung", "Plätze begrenzt", ein Datum), schreib eine Einladung in der Gegenwart, keinen Rückblick: was es ist, wann (falls angegeben, sonst [Datum]) und wie man sich anmeldet (so, wie es in der Eingabe steht). Diese Anmelde-Info ist erlaubt und zählt nicht als Verkaufs-CTA.
@@ -2748,7 +2748,7 @@ async function buildKanalPost(kanal, m, ton, wer, kontext) {
 
 ${kontextTeil(kontext)}
 
-${stimmeLabel(kontext)}: ruhig, gehoben, klare vollständige Sätze, kaum Emoji, keine Marketing-Floskeln.
+${stimmeLabel(kontext)}: warm, herzlich und echt, in klaren vollständigen Sätzen, gern mit persönlichem Dank an die Menschen, die dabei waren, keine Marketing-Floskeln.
 
 ${reichweiteTeil(kontext)}
 
@@ -2756,7 +2756,7 @@ ${postSchreibregeln(kontext, wer, mitAdresse)}
 
 Erstelle einen vollständigen ${kanalMap[kanal].name}-Post als JSON-Objekt mit folgenden Feldern:
 
-- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Ruhig, gehoben, klare vollständige Sätze, kaum Emoji (max 1–2), keine Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail aus der Eingabe, eine Beobachtung oder eine leise Frage, die neugierig macht – ruhig im Ton, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer (Ausnahme: Anmelde-Info bei Einladungen, siehe Regel 7).
+- "caption": Der ${kanalMap[kanal].name}-Post-Text, ${stimmeLabel(kontext)}. Warm, herzlich und echt, klare vollständige Sätze, bis zu 3 Emoji (am liebsten Herzen), höchstens ein Ausrufezeichen, keine Marketing-Floskeln. Ton: ${tonMap[ton] || 'nahbar und echt'}. Zielgruppe: ${werMap[wer] || 'Stammkund:innen'}. ${kanalMap[kanal].regel} Aufbau: Erste Zeile = Hook, höchstens ca. 120 Zeichen, denn Instagram zeigt nur so viel vor „mehr“: ein konkretes Detail aus der Eingabe, eine Beobachtung oder eine Frage, die neugierig macht, auch gern ein kurzer, starker Einstieg wie „Vier Tage Kitzbühel. Vier Tage voller Klarheit.“ – herzlich, kein Clickbait. → 2–3 weitere kurze Absätze (insgesamt 3 bis 4) → Schluss mit einer echten Frage an die Leser:innen (siehe Regel 3) → letzte Zeile: "${unterschriftFuer(kontext)}". Kein Verkaufs-CTA, kein „Jetzt buchen“, keine Adresse, keine Telefonnummer (Ausnahme: Anmelde-Info bei Einladungen, siehe Regel 7).
 - "overlay": Kurzer Story-Overlay-Text (max 5 Wörter) direkt auf Video/Foto. Klar, prägnant, gleiche Tonalität wie der Post.
 - "sticker": ${kanal === 'facebook' ? 'Eine konkrete Frage für die Kommentare unter dem Facebook-Post, die zum Antworten einlädt, z.B. "Was beschäftigt dich gerade?"' : 'Konkreter Instagram-Sticker-Vorschlag mit Typ und Fragetext, z.B. "Umfrage: Kürzer oder länger?" oder "Frage: Was beschäftigt dich gerade?"'}.
 - "hashtags": ${hashtagRegel}.
@@ -3768,7 +3768,7 @@ ${kontextTeil(kontext)}
 
 Schreibe genau 5 Instagram-Story-Frames als JSON-Array. Jeder Frame hat:
 - "label": kurzer Titel des Frames (z.B. "Einstieg", "Der Moment", "Warum", "Einladung", "Abschluss")
-- "text": der Text für diesen Frame (kurz, 1–3 Sätze, ${stimmeLabel(kontext)}: ruhig, echt, klar, gehoben)
+- "text": der Text für diesen Frame (kurz, 1–3 Sätze, ${stimmeLabel(kontext)}: warm, herzlich, echt, klar)
 - "tip": ein konkreter visueller Hinweis (was man zeigen/fotografieren könnte)
 - "overlay": Sehr kurzer Overlay-Text für diesen Frame (max 4–5 Wörter direkt aufs Bild/Video), oder leer ""
 - "sticker": Konkreter Sticker-Vorschlag mit Typ und Text (z.B. "Umfrage: Kürzer oder länger?", "Frage: Was wünscht ihr euch?", "Quiz: Was war es?", "Emoji-Slider: Wie sehr gefällt dir das Ergebnis?"), sonst leer ""
@@ -3782,7 +3782,7 @@ Reichweite für Storys:
 ${ziel === 'termin' && kontext !== 'haarnetzwerk' ? '- Der letzte Frame hat einen Link-Sticker zur Online-Terminbuchung: "Link: Termin buchen → https://stylisten.eu/pranz#online-buchung".' : ''}
 ${reichweiteTeil(kontext)}
 
-${kontext === 'haarnetzwerk' ? 'Sprache des Haarnetzwerks (Wir-Form)' : 'Mirjams Sprache'}: ruhig, keine Ausrufezeichen, keine Emoji im Text selbst, keine Marketing-Floskeln, klare vollständige Sätze.
+${kontext === 'haarnetzwerk' ? 'Sprache des Haarnetzwerks (Wir-Form)' : 'Mirjams Sprache'}: warm und herzlich, höchstens ein Ausrufezeichen, keine Emoji im Text selbst (die kommen als Sticker), keine Marketing-Floskeln, klare vollständige Sätze.
 
 ${postSchreibregeln(kontext, ziel === 'lehrling' ? 'lehrlinge' : 'kundinnen', false, 'story')}
 
@@ -6117,7 +6117,7 @@ Erstelle ein Reel-Script für ein ${laenge}-Sekunden-Instagram-Reel als JSON-Obj
   - "action": Was gezeigt/gefilmt wird (1 klarer Satz)
   - "text": Text-Overlay oder gesprochener Text für diese Szene (max 6 Wörter, oder leer "")
   - "tip": Konkreter Kamera-/Regie-Hinweis (1 Satz)
-- "caption": Fertige Instagram-Caption, ${stimmeLabel(kontext)} (ruhig, keine Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage (siehe Regel 3), danach die Zeile "${unterschriftFuer(kontext)}". Die Schreibregeln unten gelten für die Caption.
+- "caption": Fertige Instagram-Caption, ${stimmeLabel(kontext)} (warm und herzlich, bis zu 3 Emoji, höchstens ein Ausrufezeichen, max 150 Wörter). Erste Zeile = Hook (max ca. 120 Zeichen). Schluss mit einer echten Frage (siehe Regel 3), danach die Zeile "${unterschriftFuer(kontext)}". Die Schreibregeln unten gelten für die Caption.
 - "hashtags": 3–5 Hashtags passend zum Ziel
 
 Reichweite für Reels (Reels sind der Weg zu Menschen, die Mirjam noch nicht folgen):

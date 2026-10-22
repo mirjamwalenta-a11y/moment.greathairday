@@ -39,6 +39,8 @@ header{text-align:center;padding:6px 0 2px;}
 .knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
 .btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font:600 13px var(--sans);color:var(--ink);cursor:pointer;}
 .btn.haupt{background:var(--gold);border-color:var(--gold);color:#fff;}
+.btn.neu{width:100%;padding:13px;font-size:15px;background:var(--ink);border-color:var(--ink);color:#fff;}
+.folien canvas{width:128px;height:160px;border-radius:8px;border:1px solid var(--line);display:block;flex:0 0 auto;background:var(--gold-light);}
 .btn.ok{background:var(--gold-light);border-color:var(--gold);color:var(--gold-ink);}
 details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-ink);}
 .text{white-space:pre-wrap;font-size:14px;line-height:1.5;background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;word-break:break-word;}
@@ -59,6 +61,7 @@ details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-i
 </style>
 <script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
 <script src="instagram-mappe.js"></script>
+<script src="karussell-canvas.js"></script>
 </head>
 <body>
 <div class="wrap">
@@ -74,7 +77,11 @@ details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-i
     <button role="tab" id="tab-profile" aria-selected="false" onclick="zeigeTab('profile')">Profile</button>
   </div>
 
-  <section id="karussells" class="liste"></section>
+  <section id="karussells" class="liste">
+    <button class="btn neu" onclick="location.href='index.html?zeige=karussell'">＋ Neues Karussell</button>
+    <div id="eigene" class="liste"></div>
+    <div id="feste" class="liste"></div>
+  </section>
   <section id="profile" class="liste" hidden></section>
 
   <p class="fuss">Neue Karussells und Profil-Checks macht Claude mit den Instagram-Helfern im Repo und legt sie hier ab.</p>
@@ -120,8 +127,10 @@ async function alleTeilen(id, btn) {
     } else {
       for (const d of dateien) {
         const a = document.createElement('a');
-        a.href = URL.createObjectURL(d); a.download = d.name;
-        document.body.appendChild(a); a.click(); a.remove();
+        const url = URL.createObjectURL(d);
+        a.href = url; a.download = d.name;
+        document.body.appendChild(a); a.click();
+        setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
         await new Promise(r => setTimeout(r, 300));
       }
     }
@@ -132,7 +141,7 @@ async function alleTeilen(id, btn) {
 }
 
 function renderKarussells() {
-  document.getElementById('karussells').innerHTML = KARUSSELLS.map(k => `
+  document.getElementById('feste').innerHTML = KARUSSELLS.map(k => `
     <div class="card">
       <div class="label">Karussell · ${k.folien} Folien</div>
       <h2>${esc(k.titel)}</h2>
@@ -142,9 +151,37 @@ function renderKarussells() {
         <button class="btn haupt" onclick="alleTeilen('${k.id}', this)">📲 Alle Bilder teilen</button>
         <button class="btn" onclick="kopieren(KARUSSELLS.find(x => x.id === '${k.id}').caption, this)">📋 Caption</button>
         <button class="btn" onclick="kopieren(KARUSSELLS.find(x => x.id === '${k.id}').alt, this)">📋 Alternativtext</button>
+        ${k.daten ? `<button class="btn" onclick="location.href='index.html?zeige=karussell&k=${k.id}'">✏️ Bearbeiten</button>` : ''}
       </div>
       <details><summary>Caption ansehen</summary><div class="text">${esc(k.caption)}</div></details>
     </div>`).join('');
+}
+
+// Karussells, die in Moment erstellt und „In Mappe“ gespeichert wurden (nur auf diesem Gerät).
+function eigeneLaden() { try { return JSON.parse(localStorage.getItem('ig-karussells-eigene') || '[]'); } catch (_) { return []; } }
+function eigenesLoeschen(id) {
+  if (!confirm('Dieses Karussell von diesem Gerät löschen?')) return;
+  try { localStorage.setItem('ig-karussells-eigene', JSON.stringify(eigeneLaden().filter(k => k.id !== id))); } catch (_) {}
+  renderEigene();
+}
+async function renderEigene() {
+  const liste = eigeneLaden();
+  const wrap = document.getElementById('eigene');
+  wrap.innerHTML = liste.map(k => `
+    <div class="card">
+      <div class="label">Auf diesem Gerät · ${esc(k.erstellt || '')}</div>
+      <h2>${esc(k.titel)}</h2>
+      <div class="folien" id="vorschau-${esc(k.id)}">${k.daten.folien.map(() => '<canvas></canvas>').join('')}</div>
+      <div class="knoepfe">
+        <button class="btn haupt" onclick="location.href='index.html?zeige=karussell&k=${encodeURIComponent(k.id)}'">✏️ Öffnen &amp; teilen</button>
+        <button class="btn" onclick="kopieren(eigeneLaden().find(x => x.id === '${esc(k.id)}').caption, this)">📋 Caption</button>
+        <button class="btn" onclick="eigenesLoeschen('${esc(k.id)}')">🗑</button>
+      </div>
+    </div>`).join('');
+  for (const k of liste) {
+    const leinwaende = document.getElementById('vorschau-' + k.id).children;
+    for (let i = 0; i < leinwaende.length; i++) await KarussellCanvas.zeichne(leinwaende[i], k.daten, i);
+  }
 }
 
 function ladeErledigt() { try { return JSON.parse(localStorage.getItem('ig-mappe-todo') || '{}'); } catch (_) { return {}; } }
@@ -181,6 +218,7 @@ function renderProfile() {
 }
 
 renderKarussells();
+renderEigene();
 renderProfile();
 try { if (localStorage.getItem('ig-mappe-tab') === 'profile') zeigeTab('profile'); } catch (_) {}
 </script>

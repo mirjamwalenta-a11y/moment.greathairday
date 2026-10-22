@@ -1166,3 +1166,24 @@ textarea { resize: none; min-height: 76px; }
 .kic-fix { color: var(--soft); font-size: 12px; }
 .kic-btn { margin-top: 8px; }
 .kic-hinweis { padding: 8px 14px 11px; border-top: 1px solid var(--line); font-size: 11px; color: var(--soft); }
+.recruiting-start + .recruiting-start { margin-top: -10px; }
+
+/* ── Karussell-Editor (screen-karussell, karussell-canvas.js) ── */
+.kar-kopf { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-bottom: 8px; }
+.kar-kopf .btn-ghost-sm { margin: 0; }
+.kar-vorschau { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 6px; scroll-snap-type: x mandatory; }
+.kar-vorschau canvas { flex: 0 0 auto; width: 132px; height: 165px; border-radius: 8px; border: 1px solid var(--line); scroll-snap-align: start; cursor: pointer; background: var(--gold-pale); }
+.kar-tipp { font-size: 12px; color: var(--soft); line-height: 1.45; margin: 6px 0 10px; }
+.kar-tipp a { color: var(--gold); }
+.kar-hinweis { font-size: 13px; color: var(--mid); background: var(--gold-pale); border-radius: 10px; padding: 10px 12px; margin-top: 10px; line-height: 1.45; word-break: break-word; }
+.kar-folie { background: var(--white); border: 1px solid var(--line); border-radius: var(--radius-sm); margin-bottom: 8px; }
+.kar-folie summary { cursor: pointer; padding: 11px 13px; list-style: none; display: flex; flex-direction: column; gap: 2px; }
+.kar-folie summary::-webkit-details-marker { display: none; }
+.kar-folie summary span { font-size: 10px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; color: var(--gold); }
+.kar-folie summary em { font-style: normal; font-size: 14px; color: var(--black); font-weight: 600; line-height: 1.35; }
+.kar-folie[open] summary { border-bottom: 1px solid var(--line); }
+.kar-folie .btn-ghost-sm { margin: 0 13px 12px; }
+.kar-feld { display: flex; flex-direction: column; gap: 4px; padding: 8px 13px 4px; }
+.kar-feld span { font-size: 11px; color: var(--soft); }
+.kar-feld textarea { min-height: 60px; }
+.kar-edit { min-height: 120px; outline: none; }

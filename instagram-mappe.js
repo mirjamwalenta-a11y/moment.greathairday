@@ -1,6 +1,8 @@
 // Inhalte der Instagram-Mappe (instagram.html).
-// Neues Karussell: Bilder nach bilder/karussells/<id>/folie-01.png …,
-// Quelle nach vorlagen/karussell-<id>.html, hier einen Eintrag ergänzen.
+// Neues Karussell: am einfachsten in Moment über „Neues Karussell“ (wird
+// dann auf dem Gerät gespeichert). Fest hier ablegen: Bilder nach
+// bilder/karussells/<id>/folie-01.png …, Quelle nach vorlagen/karussell-<id>.html,
+// Eintrag mit `daten` (Folientexte, damit „Bearbeiten“ geht) hier ergänzen.
 // Alles hier ist für öffentliche Posts gedacht: dieses Repo ist öffentlich.
 
 const KARUSSELLS = [
@@ -21,6 +23,7 @@ Hast du schon einmal ein Eisbad ausprobiert?
 Mirjam
 
 #GreatHairDay #Wien #AlphaCooling`,
+    daten: {"kontext": "salon", "folien": [{"typ": "titel", "kicker": "Alpha Cooling", "titel": "2 Minuten Kälte, ohne dass du frierst", "unter": "So läuft Alpha Cooling ab."}, {"typ": "dunkel", "kicker": "Die Idee", "titel": "Man kennt sie vom Eisbad oder der Kältekammer.", "text": "Alpha Cooling ist die angenehme, unkomplizierte Variante."}, {"typ": "punkt", "nr": 1, "kicker": "So geht’s", "titel": "Hände auflegen", "text": "Du legst deine Handflächen auf gekühlte Flächen. Dazu kommt ein sanfter Unterdruck."}, {"typ": "punkt", "nr": 2, "kicker": "Das Gefühl", "titel": "Kühl, nicht eisig", "text": "Die Flächen haben etwa 4 bis 5 °C. Kein Brennen und kein Pochen wie nach einem Schneeball in der Hand."}, {"typ": "punkt", "nr": 3, "kicker": "Im Körper", "titel": "Die Kühle verteilt sich", "text": "Gekühlt werden nur die Handflächen. Über das Blut verteilt sich die Kühle im Körper."}, {"typ": "punkt", "nr": 4, "kicker": "Die Dauer", "titel": "Etwa 2 Minuten", "text": "Ohne Ausziehen, ohne Frieren, ohne Nässe."}, {"typ": "punkt", "nr": 5, "kicker": "Wann", "titel": "Wann es gut passt", "text": "Viele empfinden es als erfrischend, zum Beispiel im Mittagstief oder nach dem Sport. Einzeln buchbar oder nach deinem Friseurtermin."}, {"typ": "liste", "kicker": "Zum Speichern", "titel": "Alpha Cooling auf einen Blick", "punkte": ["Handflächen auf gekühlte Flächen", "Etwa 4 bis 5 °C, angenehm kühl", "Die Kühle verteilt sich im Körper", "Etwa 2 Minuten", "Ohne Ausziehen, Frieren oder Nässe"]}]},
     alt: 'Titelbild in Beige und Gold mit dem Text „2 Minuten Kälte, ohne dass du frierst. So läuft Alpha Cooling ab.“ und der Unterschrift Mirjam Walenta, A Great Hair Day.'
   },
   {
@@ -40,6 +43,7 @@ Welche Frage hättest du dir vor deiner letzten Farbe gern gestellt?
 Mirjam
 
 #GreatHairDay #Wien #Balayage`,
+    daten: {"kontext": "salon", "folien": [{"typ": "titel", "kicker": "Vor dem Färben", "titel": "5 Fragen vor deiner Balayage", "unter": "Damit das Ergebnis zu dir passt."}, {"typ": "dunkel", "kicker": "Warum", "titel": "Eine Balayage wächst lange mit dir.", "text": "Ein gutes Gespräch vorher erspart dir später eine Korrektur."}, {"typ": "punkt", "nr": 1, "kicker": "Frage 1", "titel": "Wie hell soll es werden?", "text": "Bring ein Foto mit. „Etwas heller“ bedeutet für jede etwas anderes."}, {"typ": "punkt", "nr": 2, "kicker": "Frage 2", "titel": "Wie oft willst du nachfärben?", "text": "Eine Balayage wächst weicher heraus als klassische Strähnen. Sag, wie viel Pflege du dir wünschst."}, {"typ": "punkt", "nr": 3, "kicker": "Frage 3", "titel": "Was war schon in deinem Haar?", "text": "Frühere Farbe oder Tönung verändert, wie das Haar aufhellt. Auch wenn sie Jahre her ist."}, {"typ": "punkt", "nr": 4, "kicker": "Frage 4", "titel": "Wie trägst du dein Haar im Alltag?", "text": "Offen, gebunden, glatt oder gelockt: Danach richtet sich, wo die hellen Partien sitzen."}, {"typ": "punkt", "nr": 5, "kicker": "Frage 5", "titel": "Wie viel Zeit hast du an dem Tag?", "text": "Eine Balayage braucht Ruhe. Plane den Termin so, dass du nicht auf die Uhr schauen musst."}, {"typ": "liste", "kicker": "Zum Speichern", "titel": "5 Fragen vor deiner Balayage", "punkte": ["Wie hell soll es werden?", "Wie oft willst du nachfärben?", "Was war schon in deinem Haar?", "Wie trägst du dein Haar im Alltag?", "Wie viel Zeit hast du an dem Tag?"]}]},
     alt: 'Titelbild in Beige und Gold mit dem Text „5 Fragen vor deiner Balayage. Damit das Ergebnis zu dir passt.“ und der Unterschrift Mirjam Walenta, A Great Hair Day.'
   }
 ];

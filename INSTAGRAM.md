@@ -115,3 +115,11 @@ nimmst du `/ig-reel`.
   2 heißt: Eingabe fehlt oder ist unlesbar.
 - Zeig der Person immer das Ergebnis selbst (Kasten, Rangliste, vorher und
   nachher), nie nur eine Zahl.
+
+## Marken-Vorgabe für Bilder (Karussell)
+
+Für Karussells (`/ig-carousel`) immer `vorlagen/karussell.html` nehmen: Farben,
+Schriften, Unterschrift und Fußzeile sind dort festgelegt, keine eigene Palette
+erfinden. Ablauf: Datei nach `ablage/` kopieren, nur die `<section>`-Inhalte
+ändern, nach Freigabe des Texts mit `node vorlagen/karussell-bilder.js
+<datei> <zielordner>` die PNGs bauen und der Person als Dateien geben.

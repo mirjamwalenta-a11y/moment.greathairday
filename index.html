@@ -5873,52 +5873,63 @@ async function karussellSchreiben() {
   const kontext = SEL.karkontext || 'salon';
   const btn = document.getElementById('btn-kar');
   const fehler = document.getElementById('kar-fehler');
-  btn.disabled = true; btn.textContent = '✦ Wörni schreibt …';
+  btn.disabled = true; btn.textContent = '✦ Wörni schreibt … (bis zu 30 Sekunden)';
   fehler.style.display = 'none';
 
-  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+  // Zwei kleine Anfragen gleichzeitig statt einer großen: Eine Antwort mit
+  // allen Folien und der Caption dauerte so lange, dass die Verbindung
+  // abbrach (Post-Texte kommen in Sekunden, das Karussell gar nicht).
+  const basis = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
 
 ${kontextTeil(kontext)}
 
 ${postSchreibregeln(kontext, 'kundinnen', false, 'post')}
 
-AUFGABE: ein Instagram-Karussell (Beitrag mit mehreren Bildern zum Wischen). Ein Karussell lebt von einer Idee in Schritten: eine Liste, Fragen, Tipps oder ein Ablauf. Folientext ist kurz, weil er auf dem Handy in kleiner Größe gelesen wird.
+Es geht um ein Instagram-Karussell (Beitrag mit mehreren Bildern zum Wischen) zu einem Thema. Nur was in der Eingabe oder oben steht: keine erfundenen Zahlen, Preise, Dauern oder Ergebnisse. Fehlt eine Zahl, formuliere ohne Zahl.
+Antworte NUR mit einem JSON-Objekt, ohne Markdown. Anführungszeichen im Text nur als „…“, nie als gerade Anführungszeichen.`;
+  const folienAuftrag = `${basis}
 
-Antworte NUR mit einem JSON-Objekt, ohne Markdown, mit diesen Feldern:
-- "kicker": Thema in 1 bis 3 Wörtern (steht klein über dem Titel)
+AUFGABE: nur der Text auf den Folien. Kurz, weil er auf dem Handy klein gelesen wird. Felder:
+- "kicker": Thema in 1 bis 3 Wörtern
 - "titel": Titelbild, höchstens 6 Wörter, konkret, kein Clickbait
-- "unterzeile": eine Zeile mit dem Versprechen, höchstens 8 Wörter
-- "warum": {"titel": ein Satz, höchstens 10 Wörter, warum das wichtig ist (keine Vorrede), "text": höchstens 20 Wörter}
+- "unterzeile": höchstens 8 Wörter, das Versprechen
+- "warum": {"titel": höchstens 10 Wörter, warum das wichtig ist, "text": höchstens 20 Wörter}
 - "punkte": 3 bis 5 Objekte {"kicker": 1 bis 2 Wörter, "titel": 3 bis 7 Wörter, "text": höchstens 25 Wörter}
-- "zusammenfassung": {"titel": höchstens 6 Wörter, "punkte": je Punkt höchstens 6 Wörter, in derselben Reihenfolge}
-- "caption": Beitragstext. Erste Zeile ist der Hook (höchstens ca. 120 Zeichen, konkret). Dann 2 bis 3 kurze Absätze. Genau eine Bitte: das Karussell speichern. Schluss mit einer echten Frage (siehe Regel 3). Ohne Unterschrift, ohne Hashtags, ohne Adresse.
+- "zusammenfassung": {"titel": höchstens 6 Wörter, "punkte": je Punkt höchstens 6 Wörter, gleiche Reihenfolge}`;
+  const captionAuftrag = `${basis}
+
+AUFGABE: nur der Beitragstext unter dem Karussell. Felder:
+- "caption": Erste Zeile ist der Hook (höchstens ca. 120 Zeichen, konkret). Dann 2 bis 3 kurze Absätze. Genau eine Bitte: das Karussell speichern. Schluss mit einer echten Frage (siehe Regel 3). Ohne Unterschrift, ohne Hashtags, ohne Adresse.
 - "hashtags": 3 Hashtags als String
-- "alt": Alternativtext fürs Titelbild, ein Satz, beschreibt Text und Gestaltung (Beige und Gold)
+- "alt": Alternativtext fürs Titelbild, ein Satz (Titel des Karussells, Gestaltung in Beige und Gold)`;
 
-Nur was in der Eingabe oder oben steht: keine erfundenen Zahlen, Preise, Dauern oder Ergebnisse. Fehlt eine Zahl, formuliere ohne Zahl.
-Anführungszeichen im Text nur als „…“, nie als gerade Anführungszeichen, sonst ist das JSON kaputt.`;
-
-  // Wörni antwortet manchmal mit deutschem „…" (gerades Schlusszeichen) im
-  // Text, das bricht JSON.parse. Dann reparieren und einmal neu fragen.
+  // Wörni setzt manchmal „…" mit geradem Schlusszeichen, das bricht JSON.parse.
   const lies = raw => {
     const t = String(raw || '').replace(/```json|```/g, '').trim();
     const json = t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1);
     try { return JSON.parse(json); } catch (_) {}
     try { return JSON.parse(json.replace(/„([^„"“”\n]{0,120})"/g, '„$1“')); } catch (_) { return null; }
   };
-  let res = null, antwortKam = false;
-  for (let versuch = 0; versuch < 2 && !res; versuch++) {
-    const raw = await claudeAnfrage(system, `Thema: ${thema}`, 3000);
-    if (raw) { antwortKam = true; res = lies(raw); }
-  }
+  const fehlerTexte = [];
+  const frage = async (auftrag, pruef) => {
+    for (let versuch = 0; versuch < 2; versuch++) {
+      const raw = await claudeAnfrage(auftrag, `Thema: ${thema}`, 1500);
+      const obj = raw ? lies(raw) : null;
+      if (obj && pruef(obj)) return obj;
+      fehlerTexte.push(raw ? 'Antwort unvollständig' : (letzterKIFehler || 'keine Antwort'));
+    }
+    return null;
+  };
+  const [res, cap] = await Promise.all([
+    frage(folienAuftrag, o => o.titel && Array.isArray(o.punkte) && o.punkte.length),
+    frage(captionAuftrag, o => o.caption)
+  ]);
   btn.textContent = '✦ Wörni schreibt die Folien';
   karThemaCheck();
 
-  if (!res || !res.titel || !Array.isArray(res.punkte)) {
-    fehler.innerHTML = (antwortKam
-        ? 'Wörni hat geantwortet, aber die Folien kamen unvollständig an. Bitte nochmal tippen oder <b>„Selbst schreiben“</b> nehmen.'
-        : 'Wörni ist gerade nicht erreichbar. Nochmal versuchen oder <b>„Selbst schreiben“</b> nehmen.') +
-      (!antwortKam && letzterKIFehler ? `<details style="margin-top:6px"><summary>Technischer Hinweis</summary>${escHtml(letzterKIFehler)}</details>` : '');
+  if (!res) {
+    fehler.innerHTML = 'Wörni hat die Folien gerade nicht geschafft. Nochmal versuchen oder <b>„Selbst schreiben“</b> nehmen.' +
+      `<div style="margin-top:6px;font-size:11px;color:var(--soft)">Technischer Hinweis: ${escHtml([...new Set(fehlerTexte)].join(' · ') || 'keine Details')}</div>`;
     fehler.style.display = 'block';
     return;
   }
@@ -5926,8 +5937,8 @@ Anführungszeichen im Text nur als „…“, nie als gerade Anführungszeichen,
   const zus = res.zusammenfassung || {};
   karAktuell = {
     id: 'eigen-' + Date.now(), titel: res.titel,
-    caption: postAbschliessen([res.caption || '', res.hashtags || ''].join('\n\n'), false, unterschriftFuer(kontext)),
-    alt: res.alt || '',
+    caption: cap ? postAbschliessen([cap.caption || '', cap.hashtags || ''].join('\n\n'), false, unterschriftFuer(kontext)) : '',
+    alt: (cap && cap.alt) || '',
     daten: { kontext, folien: [
       { typ: 'titel', kicker: res.kicker || '', titel: res.titel, unter: res.unterzeile || '' },
       { typ: 'dunkel', kicker: 'Warum', titel: res.warum?.titel || '', text: res.warum?.text || '' },
@@ -5936,6 +5947,7 @@ Anführungszeichen im Text nur als „…“, nie als gerade Anführungszeichen,
     ] }
   };
   karEditorZeigen();
+  if (!cap) document.getElementById('kar-status').textContent = 'Die Caption hat Wörni gerade nicht geschafft. Du kannst sie selbst ins Caption-Feld schreiben.';
 }
 
 const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));

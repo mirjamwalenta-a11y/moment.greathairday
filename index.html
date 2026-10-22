@@ -5895,22 +5895,30 @@ Antworte NUR mit einem JSON-Objekt, ohne Markdown, mit diesen Feldern:
 - "hashtags": 3 Hashtags als String
 - "alt": Alternativtext fürs Titelbild, ein Satz, beschreibt Text und Gestaltung (Beige und Gold)
 
-Nur was in der Eingabe oder oben steht: keine erfundenen Zahlen, Preise, Dauern oder Ergebnisse. Fehlt eine Zahl, formuliere ohne Zahl.`;
+Nur was in der Eingabe oder oben steht: keine erfundenen Zahlen, Preise, Dauern oder Ergebnisse. Fehlt eine Zahl, formuliere ohne Zahl.
+Anführungszeichen im Text nur als „…“, nie als gerade Anführungszeichen, sonst ist das JSON kaputt.`;
 
-  let res = null;
-  try {
-    const raw = await claudeAnfrage(system, `Thema: ${thema}`, 2000);
-    if (raw) {
-      const t = raw.replace(/```json|```/g, '').trim();
-      res = JSON.parse(t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1));
-    }
-  } catch (e) { res = null; }
+  // Wörni antwortet manchmal mit deutschem „…" (gerades Schlusszeichen) im
+  // Text, das bricht JSON.parse. Dann reparieren und einmal neu fragen.
+  const lies = raw => {
+    const t = String(raw || '').replace(/```json|```/g, '').trim();
+    const json = t.slice(t.indexOf('{'), t.lastIndexOf('}') + 1);
+    try { return JSON.parse(json); } catch (_) {}
+    try { return JSON.parse(json.replace(/„([^„"“”\n]{0,120})"/g, '„$1“')); } catch (_) { return null; }
+  };
+  let res = null, antwortKam = false;
+  for (let versuch = 0; versuch < 2 && !res; versuch++) {
+    const raw = await claudeAnfrage(system, `Thema: ${thema}`, 3000);
+    if (raw) { antwortKam = true; res = lies(raw); }
+  }
   btn.textContent = '✦ Wörni schreibt die Folien';
   karThemaCheck();
 
   if (!res || !res.titel || !Array.isArray(res.punkte)) {
-    fehler.innerHTML = 'Wörni ist gerade nicht erreichbar. Nochmal versuchen oder <b>„Selbst schreiben“</b> nehmen.' +
-      (letzterKIFehler ? `<details style="margin-top:6px"><summary>Technischer Hinweis</summary>${escHtml(letzterKIFehler)}</details>` : '');
+    fehler.innerHTML = (antwortKam
+        ? 'Wörni hat geantwortet, aber die Folien kamen unvollständig an. Bitte nochmal tippen oder <b>„Selbst schreiben“</b> nehmen.'
+        : 'Wörni ist gerade nicht erreichbar. Nochmal versuchen oder <b>„Selbst schreiben“</b> nehmen.') +
+      (!antwortKam && letzterKIFehler ? `<details style="margin-top:6px"><summary>Technischer Hinweis</summary>${escHtml(letzterKIFehler)}</details>` : '');
     fehler.style.display = 'block';
     return;
   }

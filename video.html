@@ -64,6 +64,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .schnitt-leiste span.raffer{background:var(--sub);}
 .schnitt-leiste span.stand{background:var(--ink);}
 .knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
+.gruppe{display:flex;flex-direction:column;gap:10px;}
+.eingabe{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 15px var(--sans);background:var(--surface);color:var(--ink);}
 .effekt{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:13px;}
 .effekt-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums;}
 .feld{display:flex;flex-direction:column;gap:4px;}
@@ -145,6 +147,41 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     </div>
 
     <div class="card">
+      <div class="label">Vorher / Nachher</div>
+      <p class="klein">Ein Vorher-Foto am Anfang zeigen, danach läuft dein Video als Nachher.</p>
+      <label class="btn" for="vorher-datei" id="vorher-waehlen">📷 Vorher-Foto wählen</label>
+      <input type="file" id="vorher-datei" accept="image/*" hidden>
+      <div id="vorher-optionen" class="gruppe" hidden>
+        <div class="feld"><span class="feld-name">Wie lange zeigen</span>
+          <div class="chips" id="vorher-dauer" data-wahl="dauer"></div></div>
+        <div class="feld"><span class="feld-name">Beschriftung auf dem Foto</span>
+          <input class="eingabe" id="vorher-text" value="Vorher" maxlength="40"></div>
+        <div class="feld"><span class="feld-name">Beschriftung am Anfang vom Video (leer = keine)</span>
+          <input class="eingabe" id="nachher-text" value="Nachher" maxlength="40"></div>
+        <div class="feld"><span class="feld-name">Foto-Ausschnitt verschieben</span>
+          <input type="range" id="vorher-versatz" min="-1" max="1" step="0.01" value="0" aria-label="Foto-Ausschnitt verschieben"></div>
+        <div class="knoepfe">
+          <button class="btn" id="vorher-ansehen">👁 Ansehen</button>
+          <button class="btn" id="vorher-weg">Foto entfernen</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Endkarte</div>
+      <label class="reihe"><input type="checkbox" id="endkarte-an" style="accent-color:var(--gold);width:16px;height:16px;"> Am Schluss Logo und Text zeigen</label>
+      <div id="endkarte-optionen" class="gruppe" hidden>
+        <div class="feld"><span class="feld-name">Titel</span>
+          <input class="eingabe" id="endkarte-titel" value="Termin buchen" maxlength="60"></div>
+        <div class="feld"><span class="feld-name">Zweite Zeile</span>
+          <input class="eingabe" id="endkarte-unter" value="Link in der Bio" maxlength="80"></div>
+        <div class="feld"><span class="feld-name">Wie lange zeigen</span>
+          <div class="chips" id="endkarte-dauer" data-wahl="dauer"></div></div>
+        <button class="btn" id="endkarte-ansehen">👁 Ansehen</button>
+      </div>
+    </div>
+
+    <div class="card">
       <div class="label">Texte im Video</div>
       <div id="texte" style="display:flex;flex-direction:column;gap:10px;"></div>
       <button class="btn" id="text-neu">＋ Text hinzufügen</button>
@@ -155,6 +192,14 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <div class="label">Ton</div>
       <label class="reihe"><input type="checkbox" id="ton" checked style="accent-color:var(--gold);width:16px;height:16px;"> Originalton behalten</label>
       <p class="klein">Musik legst du beim Posten in Instagram drauf. Läuft im Salon Radio oder Musik im Hintergrund, Ton lieber weglassen.</p>
+    </div>
+
+    <div class="card">
+      <div class="label">Titelbild fürs Profil</div>
+      <p class="klein">Regler unter dem Video auf das schönste Bild stellen, Titel eingeben, speichern. In Instagram beim Reel „Titelbild bearbeiten“ und dann das Foto aus der Galerie wählen. Im Profil zeigt Instagram nur die Mitte, deshalb steht der Titel dort.</p>
+      <input class="eingabe" id="titelbild-text" placeholder="Titel, z. B. Wunsch-Blond" maxlength="60" aria-label="Titel fürs Titelbild">
+      <button class="btn" id="titelbild">🖼 Titelbild speichern</button>
+      <img id="titelbild-vorschau" alt="Titelbild" hidden style="width:50%;align-self:center;border-radius:10px;">
     </div>
 
     <button class="btn neu" id="erstellen">Video erstellen</button>
@@ -227,7 +272,15 @@ const TEMPO_WAHL = { lupe: { 0.5: '½ Tempo', 0.25: '¼ Tempo' }, raffer: { 2: '
 const DAUER_WAHL = { 1: '1 Sek.', 2: '2 Sek.', 3: '3 Sek.' };
 let videoUrl = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
 let audio = null; // { ctx, lautsprecher, ziel }
-let standbildZeit = null; // Zeit im fertigen Video, während ein Standbild läuft
+let haltZeit = null; // Zeit im fertigen Video, während ein Standbild/Vorher-Foto/Endkarte steht
+// Was gerade gezeigt wird: 'vorher' (Foto am Anfang), 'video' oder 'ende' (Endkarte)
+let phase = 'video';
+const vorher = { bild: null, url: null, dauer: 3, text: 'Vorher', nachText: 'Nachher', versatz: 0 };
+const endkarte = { an: false, dauer: 3, titel: 'Termin buchen', unter: 'Link in der Bio' };
+const ZEIGE_DAUER = { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.' };
+const NACHHER_SCHILD = 2; // so lange steht „Nachher“ am Anfang vom Video
+const logo = new Image();
+logo.src = 'bilder/unterschrift-export.png';
 
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
 
@@ -266,8 +319,12 @@ function ausgabeZeit(x, s = zustand.start, e = zustand.ende) {
   for (const f of aktiveStandbilder(s, e, schnitte)) if (f.bei < x) t += f.dauer;
   return t;
 }
-const clipLaenge = () => ausgabeZeit(zustand.ende);
-const jetztImVideo = () => standbildZeit ?? ausgabeZeit(video.currentTime);
+// Fertiges Video = Vorher-Foto + Video (nach Schnitten/Tempo) + Endkarte
+const introDauer = () => vorher.bild ? vorher.dauer : 0;
+const endDauer = () => endkarte.an ? endkarte.dauer : 0;
+const videoEnde = () => introDauer() + ausgabeZeit(zustand.ende);
+const clipLaenge = () => videoEnde() + endDauer();
+const jetztImVideo = () => haltZeit ?? introDauer() + ausgabeZeit(video.currentTime);
 
 // ── Video laden ─────────────────────────────
 $('datei').addEventListener('change', e => {
@@ -303,7 +360,10 @@ video.addEventListener('loadedmetadata', () => {
   video.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
 });
 video.addEventListener('error', () => alert('Dieses Video kann der Browser leider nicht öffnen. Probier es mit einem Video aus der Kamera-App.'));
-video.addEventListener('seeked', zeichnen);
+video.addEventListener('seeked', () => {
+  if (!spielt && !zustand.exportiert) phase = 'video';
+  zeichnen();
+});
 video.addEventListener('loadeddata', zeichnen);
 
 $('anderes').addEventListener('click', () => {
@@ -356,7 +416,8 @@ function stoppen() {
   video.pause();
   video.playbackRate = 1;
   video.muted = false;
-  standbildZeit = null;
+  haltZeit = null;
+  phase = 'video';
   playAnzeige(false);
   zeichnen();
 }
@@ -381,9 +442,30 @@ async function abspielen(rec = null) {
   const aktiv = () => lauf === meiner;
   const gesamt = clipLaenge();
   const fortschritt = () => { if (rec) $('balken').style.width = Math.min(100, jetztImVideo() / gesamt * 100) + '%'; };
+  // Bild stehen lassen (Standbild, Vorher-Foto, Endkarte); die Zeit im fertigen Video läuft weiter
+  const halten = async (dauer, basis) => {
+    const t0 = performance.now();
+    for (;;) {
+      const d = (performance.now() - t0) / 1000;
+      if (!aktiv() || d >= dauer) break;
+      haltZeit = basis + d;
+      fortschritt();
+      zeichnen();
+      await naechstesBild();
+    }
+    haltZeit = null;
+  };
   const erledigt = new Set();
   for (const f of zustand.standbilder) if (f.bei < video.currentTime - 0.05) erledigt.add(f);
+  const vonAnfang = Math.abs(video.currentTime - zustand.start) < 0.05;
   if (!rec) playAnzeige(true);
+
+  if (vonAnfang && introDauer()) {
+    video.pause();
+    phase = 'vorher';
+    await halten(introDauer(), 0);
+    phase = 'video';
+  }
 
   while (aktiv()) {
     const x = video.currentTime;
@@ -398,16 +480,7 @@ async function abspielen(rec = null) {
     if (f) {
       erledigt.add(f);
       video.pause();
-      const basis = ausgabeZeit(f.bei), t0 = performance.now();
-      for (;;) {
-        const dauer = (performance.now() - t0) / 1000;
-        if (!aktiv() || dauer >= f.dauer) break;
-        standbildZeit = basis + dauer;
-        fortschritt();
-        zeichnen();
-        await naechstesBild();
-      }
-      standbildZeit = null;
+      await halten(f.dauer, introDauer() + ausgabeZeit(f.bei));
       continue;
     }
     const faktor = tempoBei(x);
@@ -419,9 +492,15 @@ async function abspielen(rec = null) {
     await naechstesBild();
   }
   if (!aktiv()) return; // gestoppt oder neu gestartet
-  lauf++;
   video.pause();
   video.playbackRate = 1;
+  if (endDauer()) {
+    phase = 'ende';
+    await halten(endDauer(), videoEnde());
+    phase = 'video';
+    if (!aktiv()) return;
+  }
+  lauf++;
   if (!rec) {
     video.muted = false;
     playAnzeige(false);
@@ -441,7 +520,7 @@ function kuerzenAnzeigen() {
   const laenge = clipLaenge();
   $('laenge').textContent = `Länge im fertigen Video: ${laenge.toFixed(1)} Sekunden`
     + (weg > 0.05 ? ` (${weg.toFixed(1)} Sek. herausgeschnitten)` : '')
-    + (laenge > MAX_LAENGE + 0.05 ? ' – durch Zeitlupe/Standbild länger als 1 Minute, bitte kürzen' : '');
+    + (laenge > MAX_LAENGE + 0.05 ? ' – länger als 1 Minute, bitte kürzen' : '');
   $('zeit').max = (zustand.ende - zustand.start).toFixed(2);
   schnittLeiste();
 }
@@ -450,7 +529,7 @@ function kuerzen(welches) {
   const max = Number($('start').max);
   let s = Number($('start').value), e = Number($('ende').value);
   // die Höchstlänge gilt fürs fertige Video (Schnitte, Tempo, Standbilder eingerechnet)
-  const zuViel = (a, b) => ausgabeZeit(b, a, b) - MAX_LAENGE;
+  const zuViel = (a, b) => introDauer() + ausgabeZeit(b, a, b) + endDauer() - MAX_LAENGE;
   if (welches === 'start') {
     if (e < s + 0.5) e = Math.min(max, s + 0.5);
     for (let i = 0; i < 20 && zuViel(s, e) > 0.05; i++) e = Math.max(s + 0.5, e - zuViel(s, e));
@@ -576,6 +655,85 @@ function effekteAnzeigen() {
   kuerzenAnzeigen();
   zeichnen();
 }
+
+// ── Vorher-Foto und Endkarte ────────────────
+function dauerChips(el, aktuell) {
+  el.innerHTML = Object.entries(ZEIGE_DAUER).map(([k, n]) =>
+    `<button data-wert="${k}" aria-pressed="${Number(k) === aktuell}">${n}</button>`).join('');
+}
+
+// zeigt Vorher-Foto oder Endkarte in der Vorschau, solange nichts abspielt
+function zeigePhase(p) {
+  if (spielt || zustand.exportiert) return;
+  phase = p;
+  zeichnen();
+}
+
+function vorherAnzeigen() {
+  $('vorher-optionen').hidden = !vorher.bild;
+  $('vorher-waehlen').textContent = vorher.bild ? '📷 Anderes Vorher-Foto wählen' : '📷 Vorher-Foto wählen';
+  dauerChips($('vorher-dauer'), vorher.dauer);
+  kuerzenAnzeigen();
+}
+
+$('vorher-datei').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  const url = URL.createObjectURL(f);
+  const bild = new Image();
+  bild.src = url;
+  try { await bild.decode(); } catch (_) {
+    URL.revokeObjectURL(url);
+    return alert('Dieses Foto kann der Browser leider nicht öffnen.');
+  }
+  if (vorher.url) URL.revokeObjectURL(vorher.url);
+  Object.assign(vorher, { bild, url });
+  vorherAnzeigen();
+  stoppen();
+  zeigePhase('vorher');
+});
+
+$('vorher-weg').addEventListener('click', () => {
+  if (vorher.url) URL.revokeObjectURL(vorher.url);
+  Object.assign(vorher, { bild: null, url: null });
+  vorherAnzeigen();
+  stoppen();
+});
+
+$('vorher-dauer').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  vorher.dauer = Number(b.dataset.wert);
+  vorherAnzeigen();
+});
+$('vorher-text').addEventListener('input', e => { vorher.text = e.target.value; zeigePhase('vorher'); });
+$('nachher-text').addEventListener('input', e => { vorher.nachText = e.target.value; zeigePhase('video'); });
+$('vorher-versatz').addEventListener('input', e => { vorher.versatz = Number(e.target.value); zeigePhase('vorher'); });
+$('vorher-ansehen').addEventListener('click', () => { stoppen(); zeigePhase('vorher'); $('leinwand').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+
+function endkarteAnzeigen() {
+  $('endkarte-optionen').hidden = !endkarte.an;
+  dauerChips($('endkarte-dauer'), endkarte.dauer);
+  kuerzenAnzeigen();
+}
+$('endkarte-an').addEventListener('change', e => {
+  endkarte.an = e.target.checked;
+  endkarteAnzeigen();
+  if (endkarte.an) zeigePhase('ende'); else stoppen();
+});
+$('endkarte-dauer').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  endkarte.dauer = Number(b.dataset.wert);
+  endkarteAnzeigen();
+});
+$('endkarte-titel').addEventListener('input', e => { endkarte.titel = e.target.value; zeigePhase('ende'); });
+$('endkarte-unter').addEventListener('input', e => { endkarte.unter = e.target.value; zeigePhase('ende'); });
+$('endkarte-ansehen').addEventListener('click', () => { stoppen(); zeigePhase('ende'); $('leinwand').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
+logo.addEventListener('load', () => { if (phase === 'ende') zeichnen(); });
+vorherAnzeigen();
+endkarteAnzeigen();
 
 // ── Bildausschnitt ──────────────────────────
 $('modus').addEventListener('click', e => {
@@ -726,28 +884,70 @@ function textZeichnen(t, alpha) {
   ctx.globalAlpha = 1;
 }
 
-function zeichnen() {
+function medienZeichnen(quelle, qw, qh, modus, versatz) {
   ctx.fillStyle = '#1C1B19';
   ctx.fillRect(0, 0, B, H);
-  const vw = video.videoWidth, vh = video.videoHeight;
-  if (vw && vh) {
-    const s = zustand.modus === 'fuellen' ? Math.max(B / vw, H / vh) : Math.min(B / vw, H / vh);
-    const w = vw * s, h = vh * s;
-    // versatz −1 = linker/oberer Rand sichtbar, +1 = rechter/unterer
-    const x = w > B ? -(w - B) * (zustand.versatz + 1) / 2 : (B - w) / 2;
-    const y = h > H ? -(h - H) * (zustand.versatz + 1) / 2 : (H - h) / 2;
-    ctx.drawImage(video, x, y, w, h);
+  if (!qw || !qh) return;
+  const s = modus === 'fuellen' ? Math.max(B / qw, H / qh) : Math.min(B / qw, H / qh);
+  const w = qw * s, h = qh * s;
+  // versatz −1 = linker/oberer Rand sichtbar, +1 = rechter/unterer
+  const x = w > B ? -(w - B) * (versatz + 1) / 2 : (B - w) / 2;
+  const y = h > H ? -(h - H) * (versatz + 1) / 2 : (H - h) / 2;
+  ctx.drawImage(quelle, x, y, w, h);
+}
+
+// „Vorher“/„Nachher“-Schild unten mittig, über der Instagram-Beschriftung
+function vorherSchild(text) {
+  if (!text.trim()) return;
+  ctx.font = `700 64px ${SERIF}`;
+  const w = ctx.measureText(text).width + 90;
+  ctx.fillStyle = 'rgba(28,27,25,.72)';
+  rundesRechteck((B - w) / 2, 1450, w, 110, 55);
+  ctx.fill();
+  ctx.fillStyle = '#fff';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(text, B / 2, 1507);
+}
+
+// Endkarte im Moment-Design: Beige, Logo mit Unterschrift, Titel, Gold-Linie, zweite Zeile
+function endkarteZeichnen() {
+  ctx.fillStyle = '#F5F0EA';
+  ctx.fillRect(0, 0, B, H);
+  if (logo.complete && logo.naturalWidth) {
+    const w = 700, h = w * logo.naturalHeight / logo.naturalWidth;
+    ctx.drawImage(logo, (B - w) / 2, 360, w, h);
   }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.font = `700 92px ${SERIF}`;
+  ctx.fillStyle = '#1C1B19';
+  let y = 1080;
+  for (const z of zeilen(endkarte.titel, B - 2 * RAND)) { ctx.fillText(z, B / 2, y); y += 112; }
+  ctx.fillStyle = '#8A7346';
+  ctx.fillRect(B / 2 - 60, y - 30, 120, 4);
+  y += 50;
+  ctx.font = `500 54px ${SANS}`;
+  ctx.fillStyle = '#5B5750';
+  for (const z of zeilen(endkarte.unter, B - 2 * RAND)) { ctx.fillText(z, B / 2, y); y += 70; }
+}
+
+function zeichnen() {
+  if (phase === 'ende') return endkarteZeichnen();
+  if (phase === 'vorher' && vorher.bild) medienZeichnen(vorher.bild, vorher.bild.naturalWidth, vorher.bild.naturalHeight, 'fuellen', vorher.versatz);
+  else medienZeichnen(video, video.videoWidth, video.videoHeight, zustand.modus, zustand.versatz);
   const t = jetztImVideo();
+  if (phase === 'vorher') vorherSchild(vorher.text);
+  else if (vorher.bild && t - introDauer() < NACHHER_SCHILD) vorherSchild(vorher.nachText);
   for (const tx of zustand.texte) {
-    const bis = tx.bis ?? clipLaenge();
+    const bis = tx.bis ?? videoEnde();
     if (!tx.text.trim() || t < tx.von || t > bis) continue;
     // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende
     const ein = tx.von > 0 ? (t - tx.von) / BLENDE : 1;
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
     textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)));
   }
-  if (zustand.exportiert) return;
+  if (zustand.exportiert || phase !== 'video') return;
   // nur in der Vorschau: zeigen, dass diese Stelle nicht ins fertige Video kommt
   if (schnittBei(video.currentTime) || (zustand.schnittAb != null && video.currentTime >= zustand.schnittAb)) {
     ctx.fillStyle = 'rgba(138,59,34,.85)';
@@ -760,7 +960,7 @@ function zeichnen() {
   } else {
     // nur in der Vorschau: kleines Schild für Tempo und Standbild
     const faktor = tempoBei(video.currentTime);
-    const schild = standbildZeit != null ? '⏸ Standbild'
+    const schild = haltZeit != null ? '⏸ Standbild'
       : faktor < 1 ? `🐢 Zeitlupe ${TEMPO_WAHL.lupe[faktor] || ''}`
       : faktor > 1 ? `🐇 ${TEMPO_WAHL.raffer[faktor] || 'Zeitraffer'}` : '';
     if (schild) {
@@ -843,8 +1043,7 @@ $('erstellen').addEventListener('click', async () => {
   const blob = new Blob(teile, { type: typ });
   if (ergebnisUrl) URL.revokeObjectURL(ergebnisUrl);
   ergebnisUrl = URL.createObjectURL(blob);
-  const stempel = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
-  ergebnisDatei = new File([blob], `moment-video-${stempel}.${endung}`, { type: typ });
+  ergebnisDatei = new File([blob], `moment-video-${stempel()}.${endung}`, { type: typ });
   $('fertig').src = ergebnisUrl;
   $('format-hinweis').hidden = endung === 'mp4';
   $('format-hinweis').textContent = 'Dieser Browser speichert nur als WebM. Instagram nimmt das nicht immer an – am besten Chrome aktualisieren und neu erstellen.';
@@ -855,19 +1054,43 @@ $('erstellen').addEventListener('click', async () => {
 
 // Teilen öffnet am Handy das Teilen-Menü („Video sichern“ / Instagram).
 // Geht das nicht, wird die Datei heruntergeladen.
-$('teilen').addEventListener('click', async () => {
-  if (!ergebnisDatei) return;
+async function teilen(datei) {
   try {
-    if (navigator.canShare && navigator.canShare({ files: [ergebnisDatei] })) {
-      await navigator.share({ files: [ergebnisDatei] });
+    if (navigator.canShare && navigator.canShare({ files: [datei] })) {
+      await navigator.share({ files: [datei] });
       return;
     }
   } catch (e) {
     if (e && e.name === 'AbortError') return;
   }
+  const url = URL.createObjectURL(datei);
   const a = document.createElement('a');
-  a.href = ergebnisUrl; a.download = ergebnisDatei.name;
+  a.href = url; a.download = datei.name;
   document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+$('teilen').addEventListener('click', () => { if (ergebnisDatei) teilen(ergebnisDatei); });
+
+const stempel = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+
+// ── Titelbild ───────────────────────────────
+// Bild an der aktuellen Stelle + Titel in der Mitte (Instagram zeigt im
+// Profil nur den mittleren 3:4-Ausschnitt). Stil wie der erste Text.
+let titelbildUrl = null;
+$('titelbild').addEventListener('click', async () => {
+  stoppen();
+  medienZeichnen(video, video.videoWidth, video.videoHeight, zustand.modus, zustand.versatz);
+  const titel = $('titelbild-text').value.trim();
+  const vorbild = zustand.texte[0] || VORLAGEN.hook;
+  if (titel) textZeichnen({ text: titel, schrift: vorbild.schrift, hg: vorbild.hg, farbe: vorbild.farbe, pos: 'mitte', groesse: 'l' }, 1);
+  const blob = await new Promise(ok => leinwand.toBlob(ok, 'image/jpeg', 0.92));
+  zeichnen();
+  if (!blob) return alert('Das Titelbild konnte nicht erstellt werden.');
+  if (titelbildUrl) URL.revokeObjectURL(titelbildUrl);
+  titelbildUrl = URL.createObjectURL(blob);
+  $('titelbild-vorschau').src = titelbildUrl;
+  $('titelbild-vorschau').hidden = false;
+  teilen(new File([blob], `moment-titelbild-${stempel()}.jpg`, { type: 'image/jpeg' }));
 });
 </script>
 </body>

@@ -44,7 +44,7 @@
 <header class="app-header">
   <div class="header-logo">Reichweite <span>· A Great Hair Day</span></div>
   <button class="logout-link" onclick="abmelden()">Abmelden</button>
-  <div class="header-back" id="backBtn" onclick="goBack()">
+  <div class="header-back" id="backBtn" onclick="zurueck()">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M19 12H5M12 5l-7 7 7 7"/></svg>
     Zurück
   </div>
@@ -1839,6 +1839,10 @@ function starteApp() {
   }
   // Beim Neuladen nicht wieder dorthin springen
   if (zeige) history.replaceState(null, '', location.pathname + location.hash);
+  history.replaceState({ moment: document.querySelector('.screen.active')?.id || 'screen-start' }, '');
+  // Zurück von einer eigenen Seite (Clips & Fotos, Sprüche …): in den Bereich davor
+  const bereich = !zeige && rueckkehrBereich();
+  if (bereich) zeigeBereich(bereich);
 }
 
 // Bereits eingeloggt: Supabase-Session prüfen, bevor die App startet
@@ -1947,6 +1951,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById(id).classList.add('active');
   screenHistory.push(id);
+  verlaufMerken(id);
   bereichMarkieren(id);
   const isStart = id === 'screen-start';
   if (isStart) renderHeute();
@@ -1955,6 +1960,44 @@ function showScreen(id) {
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
   window.scrollTo(0, 0);
+}
+
+// ── Zurück-Taste des Geräts ─────────────────
+// Jeder Bildschirmwechsel bekommt einen Eintrag im Browser-Verlauf. So gehen
+// die Zurück-Taste von Handy/Tablet und „Zurück“ oben denselben Weg: einen
+// Bildschirm zurück, statt die App zu verlassen.
+let ausVerlauf = false;
+function verlaufMerken(id) {
+  if (!ausVerlauf) history.pushState({ moment: id }, '');
+}
+window.addEventListener('popstate', () => {
+  if (screenHistory.length <= 1) return;
+  ausVerlauf = true;
+  goBack();
+  ausVerlauf = false;
+});
+function zurueck() {
+  if (history.state && history.state.moment) history.back();
+  else goBack();
+}
+
+// Wer aus einem Bereich auf eine eigene Seite wechselt (z. B. Clips & Fotos,
+// Sprüche), kommt mit „Zurück zu Moment“ wieder in diesen Bereich.
+const RUECKKEHR_KEY = 'moment-rueckkehr';
+window.addEventListener('pagehide', () => {
+  const aktiv = document.querySelector('.screen.active')?.id || '';
+  try {
+    if (aktiv.startsWith('screen-b-')) sessionStorage.setItem(RUECKKEHR_KEY, JSON.stringify({ bereich: aktiv.slice(9), zeit: Date.now() }));
+    else sessionStorage.removeItem(RUECKKEHR_KEY);
+  } catch (_) {}
+});
+function rueckkehrBereich() {
+  try {
+    const r = JSON.parse(sessionStorage.getItem(RUECKKEHR_KEY) || 'null');
+    sessionStorage.removeItem(RUECKKEHR_KEY);
+    if (r && Date.now() - r.zeit < 30 * 60 * 1000 && document.getElementById('screen-b-' + r.bereich)) return r.bereich;
+  } catch (_) {}
+  return null;
 }
 
 function goBack() {
@@ -1988,6 +2031,7 @@ function showTabNav() {
   document.querySelector('.tab').classList.add('active');
   tabNavVisible = true;
   screenHistory.push('screen-heute');
+  verlaufMerken('screen-heute');
   initHeuteTab();
   window.scrollTo(0, 0);
 }
@@ -2048,6 +2092,7 @@ function oeffneTab(id) {
   if (!btn) return;
   btn.click();
   screenHistory.push('screen-' + id);
+  verlaufMerken('screen-' + id);
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
   document.getElementById('backBtn').classList.add('visible');
@@ -2067,6 +2112,7 @@ const SCHREIB_FORMAT_NAME = { post: 'Post', story: 'Story', reel: 'Reel', google
 function inWerkzeugWechseln(format, moment) {
   oeffneGenerator(format, moment, SEL.postkontext || 'salon');
   screenHistory.push(GENERATOR_ZIEL[format].screen);
+  verlaufMerken(GENERATOR_ZIEL[format].screen);
   bereichMarkieren(GENERATOR_ZIEL[format].screen);
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;

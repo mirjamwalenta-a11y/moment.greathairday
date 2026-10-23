@@ -1,0 +1,682 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Clips & Fotos">
+<meta name="theme-color" content="#F5F0EA">
+<title>Clips &amp; Fotos — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;--gold-ink:#5a4a28;--warn:#8A3B22;--warn-bg:#F3E1DA;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:480px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:18px;}
+header{text-align:center;padding:6px 0 2px;}
+.zurueck{align-self:flex-start;font-size:13px;color:var(--sub);text-decoration:none;}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:10px;}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font:600 13px var(--sans);color:var(--ink);cursor:pointer;text-align:center;}
+.btn.haupt{background:var(--gold);border-color:var(--gold);color:#fff;}
+.btn.neu{width:100%;padding:13px;font-size:15px;background:var(--ink);border-color:var(--ink);color:#fff;display:block;}
+.btn:disabled{opacity:.5;cursor:default;}
+.hinweis{font-size:13px;line-height:1.45;color:var(--gold-ink);background:var(--gold-light);border-radius:10px;padding:8px 11px;}
+.hinweis.warnung{color:var(--warn);background:var(--warn-bg);}
+.fuss{font-size:12px;color:var(--sub);line-height:1.5;text-align:center;}
+.fuss a{color:var(--gold-ink);}
+.buehne{position:relative;align-self:center;width:min(100%, calc(62vh * 9 / 16));}
+.buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);}
+.play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:none;background:rgba(28,27,25,.55);color:#fff;font-size:26px;cursor:pointer;}
+.play.laeuft{opacity:0;}
+.buehne:hover .play.laeuft{opacity:.8;}
+input[type=range]{width:100%;accent-color:var(--gold);}
+.reihe{display:flex;align-items:center;gap:8px;font-size:13px;}
+.reihe .wert{margin-left:auto;font-variant-numeric:tabular-nums;color:var(--sub);}
+.chips{display:flex;flex-wrap:wrap;gap:6px;}
+.chips button{border:1px solid var(--line);background:var(--surface);border-radius:20px;padding:6px 11px;font:500 13px var(--sans);color:var(--ink);cursor:pointer;}
+.chips button[aria-pressed="true"]{background:var(--gold-light);border-color:var(--gold);color:var(--gold-ink);font-weight:600;}
+.klein{font-size:12px;color:var(--sub);}
+.knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
+.eingabe{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 15px var(--sans);background:var(--surface);color:var(--ink);}
+.teil{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg);}
+.teil-kopf{display:flex;align-items:center;gap:10px;}
+.teil-kopf canvas{width:40px;height:71px;border-radius:6px;background:var(--ink);flex:0 0 auto;}
+.teil-kopf .name{font-size:13px;font-weight:600;line-height:1.35;}
+.teil-kopf .name small{display:block;font-weight:400;color:var(--sub);font-variant-numeric:tabular-nums;}
+.teil-kopf .knoepfe{margin-left:auto;gap:4px;flex-wrap:nowrap;}
+.teil-kopf .btn{padding:6px 9px;}
+.feld{display:flex;flex-direction:column;gap:4px;}
+.feld-name{font-size:11px;font-weight:600;color:var(--sub);}
+.gruppe{display:flex;flex-direction:column;gap:10px;}
+.balken{height:8px;background:var(--gold-light);border-radius:4px;overflow:hidden;}
+.balken div{height:100%;width:0;background:var(--gold);transition:width .2s;}
+.ergebnis video{width:min(100%, calc(55vh * 9 / 16));align-self:center;border-radius:12px;background:var(--ink);}
+.medien{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+[hidden]{display:none!important;}
+</style>
+<script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
+</head>
+<body>
+<div class="wrap">
+  <a class="zurueck" href="index.html">← Zurück zu Moment</a>
+  <header>
+    <div class="wordmark">Clips <span>&amp; Fotos</span></div>
+    <div class="rule"></div>
+    <p class="intro">Mehrere kurze Clips und Fotos zu einem Hochkant-Video verbinden, mit Text im Bild. Alles bleibt auf deinem Gerät, nichts wird hochgeladen oder gepostet.</p>
+  </header>
+
+  <section class="card">
+    <label class="btn neu" for="datei">＋ Clips oder Fotos hinzufügen</label>
+    <input type="file" id="datei" accept="video/*,image/*" multiple hidden>
+    <p class="klein">Mehrere auf einmal auswählen geht. Die Reihenfolge änderst du danach mit ↑ ↓. Wer zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+  </section>
+
+  <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
+    <div class="buehne">
+      <canvas id="leinwand" width="1080" height="1920"></canvas>
+      <button class="play" id="play" aria-label="Abspielen">▶</button>
+    </div>
+    <input type="range" id="zeit" min="0" max="1" step="0.05" value="0" aria-label="Stelle im Video">
+    <div class="klein" id="laenge" style="text-align:center;"></div>
+
+    <div class="card">
+      <div class="label">Reihenfolge</div>
+      <div id="teile" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Für das ganze Video</div>
+      <div class="feld"><span class="feld-name">Übergang</span>
+        <div class="chips" data-global="uebergang"><button data-wert="weich" aria-pressed="true">Weich</button><button data-wert="hart" aria-pressed="false">Harter Schnitt</button></div></div>
+      <div class="feld"><span class="feld-name">Ton der Clips</span>
+        <div class="chips" data-global="ton"><button data-wert="aus" aria-pressed="true">Aus (Musik in Instagram)</button><button data-wert="an" aria-pressed="false">Originalton</button></div></div>
+      <div class="feld"><span class="feld-name">Leichter Ranzoom</span>
+        <div class="chips" data-global="zoom"><button data-wert="an" aria-pressed="true">An</button><button data-wert="aus" aria-pressed="false">Aus</button></div></div>
+      <label class="reihe"><input type="checkbox" id="rahmen-an" style="accent-color:var(--gold);width:16px;height:16px;"> Goldrahmen mit Logo</label>
+      <label class="reihe"><input type="checkbox" id="endkarte-an" checked style="accent-color:var(--gold);width:16px;height:16px;"> Am Schluss Logo und Text zeigen</label>
+      <div id="endkarte-optionen" class="gruppe">
+        <div class="feld"><span class="feld-name">Titel der Endkarte</span><input class="eingabe" id="endkarte-titel" value="A Great Hair Day" maxlength="60"></div>
+        <div class="feld"><span class="feld-name">Zweite Zeile</span><input class="eingabe" id="endkarte-unter" value="Wien" maxlength="80"></div>
+      </div>
+    </div>
+
+    <button class="btn neu" id="erstellen">Video erstellen</button>
+    <div id="fortschritt" class="card" hidden>
+      <div class="reihe"><span>Video wird erstellt …</span></div>
+      <div class="balken"><div id="balken"></div></div>
+      <p class="klein">Dauert so lange wie das Video. Bitte die App offen lassen und den Bildschirm nicht sperren.</p>
+    </div>
+
+    <div id="ergebnis" class="card ergebnis" hidden>
+      <div class="label">Fertig</div>
+      <video id="fertig" controls playsinline></video>
+      <button class="btn haupt" id="teilen">📲 Video teilen</button>
+      <button class="btn" id="speichern">⬇ Video aufs Handy speichern</button>
+      <p class="klein">iPhone: „Video teilen“ und dann „Video sichern“. Android: „Video aufs Handy speichern“, das Video liegt dann im Ordner „Downloads“ und erscheint in Instagram in der Galerie. Musik legst du beim Posten in Instagram drauf.</p>
+      <div class="hinweis warnung" id="format-hinweis" hidden></div>
+    </div>
+  </section>
+
+  <p class="fuss">Ein einzelnes Video kürzen, mit Zeitlupe oder Vorher-Foto: <a href="video.html">Video + Text</a>.</p>
+</div>
+
+<div class="medien" id="medien"></div>
+
+<script>
+// ════════════════════════════════════════════
+// CLIPS & FOTOS: mehrere Clips und Fotos zu einem Hochkant-Video
+// ════════════════════════════════════════════
+// Wie „Video + Text“: alles läuft im Browser. Jeder Clip hat ein eigenes
+// <video>, Fotos ein <img>; die Zeitachse legt die Teile hintereinander
+// (bei „Weich“ überlappen sie kurz), Canvas + MediaRecorder nehmen auf.
+
+const B = 1080, H = 1920, RAND = 90, UEBERGANG = 0.4, EMPFOHLEN = 60;
+const SERIF = "'Playfair Display', Georgia, serif";
+const SANS = "Inter, system-ui, sans-serif";
+const MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
+// Text-Stile wie im Backstage-Reel: Einstieg auf Beige, Info auf dunklem Band
+const STILE = {
+  einstieg: { name: 'Einstieg', font: `700 84px ${SERIF}`, g: 84, farbe: '#1C1B19', box: '#F5F0EA' },
+  info:     { name: 'Info',     font: `700 60px ${SANS}`,  g: 60, farbe: '#fff',    box: 'rgba(28,27,25,.75)' }
+};
+// Mitte des Textblocks; oben/unten mit Abstand zu den Instagram-Bedienelementen
+const POSITIONEN = { oben: 420, mitte: H / 2, unten: 1330 };
+
+const $ = id => document.getElementById(id);
+const leinwand = $('leinwand');
+// Die Zeichenfunktionen malen auf ctx; für Überblendungen zeigt es kurz auf eine Zwischenebene
+let ctx = leinwand.getContext('2d');
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
+const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
+
+const zustand = { teile: [], uebergang: 'weich', ton: 'aus', zoom: 'an', rahmen: false,
+  endkarte: { an: true, titel: 'A Great Hair Day', unter: 'Wien', dauer: 3 }, exportiert: false };
+let naechsteId = 1, ergebnisUrl = null, ergebnisDatei = null, audio = null;
+let lauf = 0, spielt = false, jetzt = 0;
+
+const logo = new Image(); logo.src = 'bilder/unterschrift-export.png';
+const logoM = new Image(); logoM.src = 'bilder/logo-m-export.png';
+const UNTERSCHRIFT_AB = 0.58; // nur Name + „A Great Hair Day“ (wie im Foto-Rahmen)
+
+// ── Zeitachse ───────────────────────────────
+const teilLaenge = t => t.art === 'video' ? t.ende - t.start : t.dauer;
+const ueberlapp = () => zustand.uebergang === 'weich' ? UEBERGANG : 0;
+
+// Alle Abschnitte (Teile + Endkarte) mit Startzeit im fertigen Video
+function zeitachse() {
+  const liste = [...zustand.teile];
+  if (zustand.endkarte.an && liste.length) liste.push({ art: 'ende', dauer: zustand.endkarte.dauer });
+  let t = 0;
+  return liste.map((teil, i) => {
+    const von = i ? t - ueberlapp() : 0;
+    const len = teilLaenge(teil);
+    t = von + len;
+    return { teil, von, bis: von + len };
+  });
+}
+const gesamtLaenge = () => { const a = zeitachse(); return a.length ? a[a.length - 1].bis : 0; };
+
+// ── Dateien laden ───────────────────────────
+$('datei').addEventListener('change', async e => {
+  const dateien = [...e.target.files];
+  e.target.value = '';
+  for (const f of dateien) {
+    const url = URL.createObjectURL(f);
+    try {
+      if (f.type.startsWith('image/')) {
+        const img = new Image(); img.src = url; await img.decode();
+        zustand.teile.push({ id: naechsteId++, art: 'foto', url, el: img, w: img.naturalWidth, h: img.naturalHeight, dauer: 3, ...textStart() });
+      } else {
+        const v = document.createElement('video');
+        v.playsInline = true; v.preload = 'auto'; v.muted = true; v.src = url;
+        $('medien').appendChild(v);
+        await new Promise((ok, nein) => { v.onloadedmetadata = ok; v.onerror = nein; });
+        const d = isFinite(v.duration) ? v.duration : 10;
+        v.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
+        v.addEventListener('seeked', () => { vorschauBild(t => t.el === v); if (!spielt) zeichnen(jetzt); });
+        zustand.teile.push({ id: naechsteId++, art: 'video', url, el: v, w: v.videoWidth, h: v.videoHeight, dauer: d, start: 0, ende: Math.min(d, 10), ...textStart() });
+      }
+    } catch (_) {
+      URL.revokeObjectURL(url);
+      alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
+    }
+  }
+  $('editor').hidden = !zustand.teile.length;
+  teileAnzeigen();
+});
+
+// Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
+function textStart() { return { text: '', stil: zustand.teile.length ? 'info' : 'einstieg', pos: 'unten', fit: null }; }
+const fitVon = t => t.fit || (t.w / t.h > 0.75 ? 'ganz' : 'fuellen');
+
+// ── Liste der Teile ─────────────────────────
+function chips(feld, auswahl, aktuell) {
+  return `<div class="chips" data-feld="${feld}">${Object.entries(auswahl).map(([k, n]) =>
+    `<button data-wert="${k}" aria-pressed="${String(k) === String(aktuell)}">${n}</button>`).join('')}</div>`;
+}
+
+function teileAnzeigen() {
+  $('teile').innerHTML = zustand.teile.map((t, i) => `
+    <div class="teil" data-id="${t.id}">
+      <div class="teil-kopf">
+        <canvas width="80" height="142"></canvas>
+        <div class="name">${i + 1}. ${t.art === 'video' ? 'Clip' : 'Foto'}<small>${t.art === 'video' ? `${fmt(t.start)} – ${fmt(t.ende)}` : `${t.dauer} Sek.`}</small></div>
+        <div class="knoepfe">
+          <button class="btn" data-aktion="hoch" aria-label="Nach oben" ${i ? '' : 'disabled'}>↑</button>
+          <button class="btn" data-aktion="runter" aria-label="Nach unten" ${i < zustand.teile.length - 1 ? '' : 'disabled'}>↓</button>
+          <button class="btn" data-aktion="weg" aria-label="Entfernen">✕</button>
+        </div>
+      </div>
+      ${t.art === 'video' ? `
+        <div class="reihe"><span>Start</span><span class="wert" data-wert-von="start">${fmt(t.start)}</span></div>
+        <input type="range" data-feld="start" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.start}" aria-label="Start">
+        <div class="reihe"><span>Ende</span><span class="wert" data-wert-von="ende">${fmt(t.ende)}</span></div>
+        <input type="range" data-feld="ende" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.ende}" aria-label="Ende">`
+      : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
+      <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
+      <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'}"></div>
+      <div class="feld"><span class="feld-name">Stil und Position</span>${chips('stil', { einstieg: 'Einstieg', info: 'Info' }, t.stil)}${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.pos)}</div>
+    </div>`).join('');
+  vorschauBild(() => true);
+  laengeAnzeigen();
+  zeichnen(Math.min(jetzt, gesamtLaenge()));
+}
+
+function vorschauBild(filter) {
+  for (const t of zustand.teile.filter(filter)) {
+    const c = document.querySelector(`.teil[data-id="${t.id}"] canvas`);
+    if (!c) continue;
+    const k = c.getContext('2d');
+    const s = Math.max(c.width / t.w, c.height / t.h);
+    k.fillStyle = '#1C1B19'; k.fillRect(0, 0, c.width, c.height);
+    try { k.drawImage(t.el, (c.width - t.w * s) / 2, (c.height - t.h * s) / 2, t.w * s, t.h * s); } catch (_) {}
+  }
+}
+
+function laengeAnzeigen() {
+  const T = gesamtLaenge();
+  $('zeit').max = T.toFixed(2);
+  $('laenge').textContent = `Länge: ${T.toFixed(1)} Sekunden` + (T > EMPFOHLEN ? ' – für ein Reel lieber unter 1 Minute bleiben' : '');
+}
+
+const teilVon = el => zustand.teile.find(t => t.id === Number(el.closest('.teil').dataset.id));
+
+$('teile').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b || b.disabled) return;
+  const t = teilVon(b), i = zustand.teile.indexOf(t);
+  if (b.dataset.aktion) {
+    stoppen();
+    if (b.dataset.aktion === 'weg') {
+      zustand.teile.splice(i, 1);
+      if (t.art === 'video') t.el.remove();
+      URL.revokeObjectURL(t.url);
+      $('editor').hidden = !zustand.teile.length;
+    } else {
+      const j = b.dataset.aktion === 'hoch' ? i - 1 : i + 1;
+      [zustand.teile[i], zustand.teile[j]] = [zustand.teile[j], zustand.teile[i]];
+    }
+    teileAnzeigen();
+    return;
+  }
+  const gruppe = b.closest('.chips');
+  if (!gruppe) return;
+  const feld = gruppe.dataset.feld;
+  t[feld] = feld === 'dauer' ? Number(b.dataset.wert) : b.dataset.wert;
+  for (const x of gruppe.children) x.setAttribute('aria-pressed', x === b);
+  if (feld === 'dauer') { b.closest('.teil').querySelector('.name small').textContent = `${t.dauer} Sek.`; laengeAnzeigen(); }
+  zeigeTeil(t);
+});
+
+$('teile').addEventListener('input', e => {
+  const t = teilVon(e.target), feld = e.target.dataset.feld;
+  if (feld === 'text') { t.text = e.target.value; zeigeTeil(t); return; }
+  if (feld !== 'start' && feld !== 'ende') return;
+  let s = feld === 'start' ? Number(e.target.value) : t.start;
+  let en = feld === 'ende' ? Number(e.target.value) : t.ende;
+  if (en < s + 0.5) { if (feld === 'start') en = Math.min(t.dauer, s + 0.5); else s = Math.max(0, en - 0.5); }
+  t.start = s; t.ende = en;
+  const karte = e.target.closest('.teil');
+  karte.querySelector('[data-feld="start"]').value = s;
+  karte.querySelector('[data-feld="ende"]').value = en;
+  karte.querySelector('[data-wert-von="start"]').textContent = fmt(s);
+  karte.querySelector('[data-wert-von="ende"]').textContent = fmt(en);
+  karte.querySelector('.name small').textContent = `${fmt(s)} – ${fmt(en)}`;
+  laengeAnzeigen();
+  stoppen();
+  t.el.currentTime = feld === 'start' ? s : Math.max(s, en - 0.05);
+  jetzt = zeitachse().find(a => a.teil === t).von + (t.el.currentTime - s);
+});
+
+// In der Vorschau zu einem Teil springen, wenn daran etwas geändert wird
+function zeigeTeil(t) {
+  if (spielt) return;
+  const a = zeitachse().find(x => x.teil === t);
+  if (!a) return;
+  jetzt = Math.min(a.von + ueberlapp() + 0.5, a.bis - 0.05);
+  synchron(jetzt, false);
+  zeichnen(jetzt);
+}
+
+// ── Einstellungen fürs ganze Video ──────────
+document.querySelectorAll('[data-global]').forEach(g => g.addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  zustand[g.dataset.global] = b.dataset.wert;
+  for (const x of g.children) x.setAttribute('aria-pressed', x === b);
+  laengeAnzeigen();
+  zeichnen(jetzt);
+}));
+$('rahmen-an').addEventListener('change', e => { zustand.rahmen = e.target.checked; zeichnen(jetzt); });
+$('endkarte-an').addEventListener('change', e => {
+  zustand.endkarte.an = e.target.checked;
+  $('endkarte-optionen').hidden = !e.target.checked;
+  laengeAnzeigen();
+  if (e.target.checked) zeigeEnde(); else zeichnen(jetzt);
+});
+$('endkarte-titel').addEventListener('input', e => { zustand.endkarte.titel = e.target.value; zeigeEnde(); });
+$('endkarte-unter').addEventListener('input', e => { zustand.endkarte.unter = e.target.value; zeigeEnde(); });
+function zeigeEnde() { if (spielt) return; jetzt = gesamtLaenge() - 0.5; synchron(jetzt, false); zeichnen(jetzt); }
+logo.addEventListener('load', () => zeichnen(jetzt));
+logoM.addEventListener('load', () => zeichnen(jetzt));
+
+// ── Zeichnen ────────────────────────────────
+function zeilen(text, breite) {
+  const out = [];
+  let zeile = '';
+  for (const wort of String(text || '').split(/\s+/).filter(Boolean)) {
+    const probe = zeile ? zeile + ' ' + wort : wort;
+    if (ctx.measureText(probe).width <= breite || !zeile) zeile = probe;
+    else { out.push(zeile); zeile = wort; }
+  }
+  if (zeile) out.push(zeile);
+  return out;
+}
+
+function rundesRechteck(x, y, w, h, r) {
+  ctx.beginPath();
+  ctx.moveTo(x + r, y);
+  ctx.arcTo(x + w, y, x + w, y + h, r);
+  ctx.arcTo(x + w, y + h, x, y + h, r);
+  ctx.arcTo(x, y + h, x, y, r);
+  ctx.arcTo(x, y, x + w, y, r);
+  ctx.closePath();
+}
+
+// Bild oder Clip ins Hochformat: füllen, oder ganz zeigen mit unscharfem Hintergrund
+function medienZeichnen(t, zoom) {
+  const cover = Math.max(B / t.w, H / t.h), contain = Math.min(B / t.w, H / t.h);
+  const mitte = (s) => { const w = t.w * s * zoom, h = t.h * s * zoom; ctx.drawImage(t.el, (B - w) / 2, (H - h) / 2, w, h); };
+  if (fitVon(t) === 'ganz') {
+    ctx.save();
+    if ('filter' in ctx) ctx.filter = 'blur(40px) brightness(0.7)';
+    mitte(cover * 1.1);
+    ctx.restore();
+    mitte(contain);
+  } else mitte(cover);
+}
+
+function textZeichnen(t, alpha) {
+  const st = STILE[t.stil];
+  ctx.font = st.font;
+  const pad = st.g * 0.45;
+  const zs = zeilen(t.text, B - 2 * RAND - 2 * pad);
+  if (!zs.length) return;
+  const zh = st.g * 1.2, hoehe = zs.length * zh;
+  const oben = Math.min(Math.max(POSITIONEN[t.pos] - hoehe / 2, zustand.rahmen ? 380 : 260), 1560 - hoehe);
+  const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * pad;
+  ctx.globalAlpha = alpha;
+  ctx.fillStyle = st.box;
+  rundesRechteck((B - breite) / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
+  ctx.fill();
+  ctx.fillStyle = st.farbe;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  zs.forEach((z, i) => ctx.fillText(z, B / 2, oben + i * zh + zh / 2));
+  ctx.globalAlpha = 1;
+}
+
+function endkarteZeichnen() {
+  ctx.fillStyle = '#F5F0EA';
+  ctx.fillRect(0, 0, B, H);
+  if (logo.complete && logo.naturalWidth) {
+    const w = 640, h = w * logo.naturalHeight / logo.naturalWidth;
+    ctx.drawImage(logo, (B - w) / 2, 400, w, h);
+  }
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  let y = 1080;
+  ctx.font = `700 88px ${SERIF}`;
+  ctx.fillStyle = '#1C1B19';
+  for (const z of zeilen(zustand.endkarte.titel, B - 2 * RAND)) { ctx.fillText(z, B / 2, y); y += 108; }
+  ctx.fillStyle = '#8A7346';
+  ctx.fillRect(B / 2 - 60, y - 30, 120, 4);
+  y += 50;
+  ctx.font = `500 52px ${SANS}`;
+  ctx.fillStyle = '#5B5750';
+  for (const z of zeilen(zustand.endkarte.unter, B - 2 * RAND)) { ctx.fillText(z, B / 2, y); y += 68; }
+}
+
+// Goldrahmen wie „Foto im Rahmen“ in der App: Linie, M oben, Unterschrift unten
+function rahmenZeichnen() {
+  const r = Math.round(B * 0.03);
+  ctx.strokeStyle = '#896c32';
+  ctx.lineWidth = Math.max(1, Math.round(B * 0.003));
+  ctx.strokeRect(r, r, B - 2 * r, H - 2 * r);
+  if (logoM.complete && logoM.naturalWidth) {
+    const w = Math.round(B * 0.2), h = Math.round(logoM.naturalHeight / logoM.naturalWidth * w);
+    ctx.drawImage(logoM, Math.round((B - w) / 2), Math.round(H * 0.055), w, h);
+  }
+  if (logo.complete && logo.naturalWidth) {
+    const vonY = Math.round(logo.naturalHeight * UNTERSCHRIFT_AB), hoch = logo.naturalHeight - vonY;
+    const w = Math.round(B * 0.52), h = Math.round(hoch / logo.naturalWidth * w);
+    ctx.drawImage(logo, 0, vonY, logo.naturalWidth, hoch, Math.round((B - w) / 2), Math.round(H * 0.945) - h, w, h);
+  }
+}
+
+function abschnittZeichnen(a, t) {
+  if (a.teil.art === 'ende') return endkarteZeichnen();
+  const lokal = t - a.von, len = a.bis - a.von;
+  const zoom = zustand.zoom === 'an' ? 1 + 0.06 * Math.min(1, Math.max(0, lokal / len)) : 1;
+  ctx.fillStyle = '#1C1B19';
+  ctx.fillRect(0, 0, B, H);
+  medienZeichnen(a.teil, zoom);
+  if (zustand.rahmen) rahmenZeichnen();
+  if (a.teil.text.trim()) {
+    // weich einblenden, am Ende vor dem nächsten Teil wieder ausblenden
+    const ein = (lokal - 0.15) / 0.3, aus = (len - lokal) / 0.25;
+    textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)));
+  }
+}
+
+function zeichnen(t) {
+  const achse = zeitachse();
+  if (!achse.length) { ctx.fillStyle = '#1C1B19'; ctx.fillRect(0, 0, B, H); return; }
+  t = Math.max(0, Math.min(t, achse[achse.length - 1].bis - 0.001));
+  const aktiv = achse.filter(a => t >= a.von && t < a.bis);
+  aktiv.forEach((a, i) => {
+    if (i === 0) return abschnittZeichnen(a, t);
+    // zweiter Teil im Übergang: auf eine eigene Ebene zeichnen und darüberblenden
+    const haupt = ctx, zwischen = zwischenEbene();
+    ctx = zwischen.getContext('2d');
+    abschnittZeichnen(a, t);
+    ctx = haupt;
+    ctx.globalAlpha = Math.min(1, (t - a.von) / Math.max(ueberlapp(), 0.001));
+    ctx.drawImage(zwischen, 0, 0);
+    ctx.globalAlpha = 1;
+  });
+  if (!zustand.exportiert) $('zeit').value = t;
+}
+
+let ebene = null;
+function zwischenEbene() {
+  if (!ebene) { ebene = document.createElement('canvas'); ebene.width = B; ebene.height = H; }
+  return ebene;
+}
+
+if (document.fonts) document.fonts.ready.then(() => zeichnen(jetzt));
+
+// ── Abspielen ───────────────────────────────
+// Clips laufen, solange ihr Abschnitt dran ist; der nächste Clip wird kurz
+// vorher an seinen Start gesetzt, damit er sofort ein Bild hat.
+function synchron(t, laeuft) {
+  for (const a of zeitachse()) {
+    if (a.teil.art !== 'video') continue;
+    const v = a.teil.el;
+    const aktiv = t >= a.von - 0.05 && t < a.bis;
+    v.muted = zustand.ton === 'aus' || zustand.exportiert && !audio;
+    if (aktiv) {
+      const soll = a.teil.start + Math.max(0, t - a.von);
+      if (laeuft) {
+        if (v.paused) { v.currentTime = soll; v.play().catch(() => {}); }
+        else if (Math.abs(v.currentTime - soll) > 0.35) v.currentTime = soll;
+      } else {
+        v.pause();
+        if (Math.abs(v.currentTime - soll) > 0.04) v.currentTime = soll;
+      }
+    } else {
+      if (!v.paused) v.pause();
+      const bald = a.von - t;
+      if (bald > 0 && bald < 1.5 && Math.abs(v.currentTime - a.teil.start) > 0.1) v.currentTime = a.teil.start;
+    }
+  }
+}
+
+function playAnzeige(an) {
+  spielt = an;
+  $('play').textContent = an ? '❚❚' : '▶';
+  $('play').classList.toggle('laeuft', an);
+}
+
+function stoppen() {
+  lauf++;
+  playAnzeige(false);
+  for (const t of zustand.teile) if (t.art === 'video') t.el.pause();
+}
+
+const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
+
+async function abspielen(beiBild) {
+  const meiner = ++lauf, T = gesamtLaenge();
+  if (!beiBild) playAnzeige(true);
+  let t0 = performance.now() - jetzt * 1000;
+  while (lauf === meiner) {
+    const t = (performance.now() - t0) / 1000;
+    if (t >= T) break;
+    jetzt = t;
+    synchron(t, true);
+    zeichnen(t);
+    if (beiBild) beiBild(t / T);
+    await naechstesBild();
+  }
+  if (lauf !== meiner) return false;
+  lauf++;
+  for (const x of zustand.teile) if (x.art === 'video') x.el.pause();
+  if (!beiBild) { playAnzeige(false); jetzt = 0; synchron(0, false); zeichnen(0); }
+  return true;
+}
+
+$('play').addEventListener('click', () => {
+  if (zustand.exportiert) return;
+  if (spielt) return stoppen();
+  if (zustand.ton === 'an') audioVorbereiten();
+  if (jetzt >= gesamtLaenge() - 0.1) jetzt = 0;
+  abspielen();
+});
+
+$('zeit').addEventListener('input', e => {
+  stoppen();
+  jetzt = Number(e.target.value);
+  synchron(jetzt, false);
+  zeichnen(jetzt);
+});
+
+// Originalton: alle Clips in einen gemeinsamen Ton-Ausgang für die Aufnahme
+function audioVorbereiten() {
+  const AC = window.AudioContext || window.webkitAudioContext;
+  if (!AC) return;
+  try {
+    if (!audio) {
+      const actx = new AC();
+      audio = { ctx: actx, lautsprecher: actx.createGain(), ziel: actx.createMediaStreamDestination(), quellen: new Map() };
+      audio.lautsprecher.connect(actx.destination);
+    }
+    for (const t of zustand.teile) {
+      if (t.art !== 'video' || audio.quellen.has(t.el)) continue;
+      const q = audio.ctx.createMediaElementSource(t.el);
+      q.connect(audio.lautsprecher);
+      q.connect(audio.ziel);
+      audio.quellen.set(t.el, q);
+    }
+    audio.ctx.resume();
+  } catch (_) { audio = null; }
+}
+
+// ── Erstellen ───────────────────────────────
+const warten = (el, ev) => new Promise(ok => el.addEventListener(ev, ok, { once: true }));
+
+$('erstellen').addEventListener('click', async () => {
+  if (!window.MediaRecorder || !leinwand.captureStream) {
+    alert('Dieser Browser kann leider keine Videos erstellen. Bitte Safari (iPhone/iPad) oder Chrome (Android) in der neuesten Version verwenden.');
+    return;
+  }
+  stoppen();
+  const mitTon = zustand.ton === 'an';
+  if (mitTon) audioVorbereiten();
+  const mime = MIMES.find(m => MediaRecorder.isTypeSupported(m)) || '';
+  const stream = leinwand.captureStream(30);
+  if (mitTon && audio) stream.addTrack(audio.ziel.stream.getAudioTracks()[0]);
+  let rec;
+  try {
+    rec = new MediaRecorder(stream, { mimeType: mime || undefined, videoBitsPerSecond: 8000000 });
+  } catch (e) {
+    alert('Das Video konnte nicht erstellt werden: ' + e.message);
+    return;
+  }
+  const stuecke = [];
+  rec.ondataavailable = e => { if (e.data && e.data.size) stuecke.push(e.data); };
+
+  let sperre = null;
+  try { sperre = await navigator.wakeLock?.request('screen'); } catch (_) {}
+  zustand.exportiert = true;
+  for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = true;
+  $('ergebnis').hidden = true;
+  $('fortschritt').hidden = false;
+  $('balken').style.width = '0';
+  if (audio) audio.lautsprecher.gain.value = 0;
+
+  // erster Clip auf Anfang, damit das erste Bild stimmt
+  jetzt = 0;
+  const erster = zustand.teile[0];
+  if (erster.art === 'video' && Math.abs(erster.el.currentTime - erster.start) > 0.01) {
+    erster.el.currentTime = erster.start;
+    await warten(erster.el, 'seeked');
+  }
+  synchron(0, false);
+  zeichnen(0);
+
+  const fertig = new Promise(ok => { rec.onstop = ok; });
+  rec.start(1000);
+  await abspielen(anteil => { $('balken').style.width = Math.min(100, anteil * 100) + '%'; });
+  rec.stop();
+  await fertig;
+
+  stream.getVideoTracks().forEach(tr => tr.stop());
+  if (audio) audio.lautsprecher.gain.value = 1;
+  zustand.exportiert = false;
+  try { await sperre?.release(); } catch (_) {}
+  for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = false;
+  $('fortschritt').hidden = true;
+
+  const typ = (rec.mimeType || mime || 'video/mp4').split(';')[0];
+  const endung = typ.includes('mp4') ? 'mp4' : 'webm';
+  const blob = new Blob(stuecke, { type: typ });
+  if (ergebnisUrl) URL.revokeObjectURL(ergebnisUrl);
+  ergebnisUrl = URL.createObjectURL(blob);
+  const stempel = new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
+  ergebnisDatei = new File([blob], `moment-clips-${stempel}.${endung}`, { type: typ });
+  $('fertig').src = ergebnisUrl;
+  $('format-hinweis').hidden = endung === 'mp4';
+  $('format-hinweis').textContent = 'Dieser Browser speichert nur als WebM. Instagram nimmt das nicht immer an – am besten Chrome aktualisieren und neu erstellen.';
+  $('ergebnis').hidden = false;
+  $('ergebnis').scrollIntoView({ behavior: 'smooth' });
+  jetzt = 0; synchron(0, false); zeichnen(0);
+});
+
+function herunterladen(datei) {
+  const url = URL.createObjectURL(datei);
+  const a = document.createElement('a');
+  a.href = url; a.download = datei.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
+async function teilen(datei) {
+  try {
+    if (navigator.canShare && navigator.canShare({ files: [datei] })) {
+      await navigator.share({ files: [datei] });
+      return;
+    }
+  } catch (e) {
+    if (e && e.name === 'AbortError') return;
+  }
+  herunterladen(datei);
+}
+$('teilen').addEventListener('click', () => { if (ergebnisDatei) teilen(ergebnisDatei); });
+// Android hat im Teilen-Menü oft kein „Speichern“, deshalb direkt aufs Gerät laden
+$('speichern').addEventListener('click', () => { if (ergebnisDatei) herunterladen(ergebnisDatei); });
+</script>
+</body>
+</html>

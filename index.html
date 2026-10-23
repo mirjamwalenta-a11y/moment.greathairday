@@ -316,6 +316,11 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-titel">Video + Text</span>
       <span class="start-kachel-desc">Kürzen, Text drauf, auch mit Goldrahmen</span>
     </button>
+    <button class="start-kachel" onclick="location.href='montage.html'">
+      <span class="start-kachel-icon">🎞</span>
+      <span class="start-kachel-titel">Clips &amp; Fotos</span>
+      <span class="start-kachel-desc">Mehrere Clips und Fotos zu einem Video</span>
+    </button>
     <button class="start-kachel" onclick="oeffneTab('mediasave')">
       <span class="start-kachel-icon">📸</span>
       <span class="start-kachel-titel">Foto im Rahmen</span>
@@ -331,10 +336,16 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-titel">Karussell</span>
       <span class="start-kachel-desc">Neues Karussell mit Folien</span>
     </button>
-    <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='instagram.html'">
+    <button class="start-kachel" onclick="location.href='instagram.html'">
       <span class="start-kachel-icon">📁</span>
       <span class="start-kachel-titel">Instagram-Mappe</span>
       <span class="start-kachel-desc">Fertige Karussells &amp; Profiltexte</span>
+    </button>
+    <!-- Nur ein Link: der Videomaker selbst liegt in einem privaten Repo (Lizenz) und läuft in Claude Code -->
+    <button class="start-kachel" style="grid-column:1/-1" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">
+      <span class="start-kachel-icon">🤖</span>
+      <span class="start-kachel-titel">Videomaker (Claude)</span>
+      <span class="start-kachel-desc">Lange Aufnahmen mit Untertiteln: in Claude Code eine Sitzung mit deinem privaten Videomaker starten</span>
     </button>
   </div>
 </section>

@@ -11,7 +11,8 @@
 //       { typ:'titel',  kicker, titel, unter },
 //       { typ:'dunkel', kicker, titel, text },
 //       { typ:'punkt',  nr, kicker, titel, text },
-//       { typ:'liste',  kicker, titel, punkte:[…] } ] }
+//       { typ:'liste',  kicker, titel, punkte:[…] },
+//       { typ:'foto',   foto (Daten-URL), kicker, titel, text } ] }   // Text freiwillig
 
 const KarussellCanvas = (() => {
   const B = 1080, H = 1350, RAND = 130;
@@ -129,6 +130,7 @@ const KarussellCanvas = (() => {
     const dunkel = f.typ === 'dunkel';
     const ctx = canvas.getContext('2d');
     canvas.width = B; canvas.height = H;
+    if (f.typ === 'foto') return fotoFolie(canvas, ctx, daten, index);
     ctx.fillStyle = dunkel ? F.black : F.bg;
     ctx.fillRect(0, 0, B, H);
 
@@ -162,6 +164,41 @@ const KarussellCanvas = (() => {
       ctx.globalCompositeOperation = 'source-over';
     }
     fuss(ctx, f, index + 1, folien.length, daten.kontext, dunkel);
+    return canvas;
+  }
+
+  // Foto-Folie: das eigene Foto füllt die Folie. Titel und Text sind
+  // freiwillig und stehen unten auf einem dunklen Verlauf.
+  async function fotoFolie(canvas, ctx, daten, index) {
+    const f = daten.folien[index];
+    const img = f.foto ? await bild(f.foto) : null;
+    if (img) {
+      const m = Math.max(B / img.naturalWidth, H / img.naturalHeight);
+      const w = img.naturalWidth * m, h = img.naturalHeight * m;
+      ctx.drawImage(img, (B - w) / 2, (H - h) / 2, w, h);
+    } else {
+      ctx.fillStyle = F.linie;
+      ctx.fillRect(0, 0, B, H);
+    }
+
+    const platz = H * 0.55;
+    let s = 1, hoehe = 0;
+    for (; s > 0.55; s -= 0.05) {
+      hoehe = bloecke(f, s, true).reduce((h, b) => h + block(ctx, b, 0, false), 0);
+      if (hoehe <= platz) break;
+    }
+    // Ohne Text nur ein schmaler Verlauf, damit die Fußzeile lesbar bleibt.
+    const oben = hoehe ? H - 170 - hoehe - 260 : H - 300;
+    const verlauf = ctx.createLinearGradient(0, oben, 0, H);
+    verlauf.addColorStop(0, 'rgba(28,27,25,0)');
+    verlauf.addColorStop(hoehe ? 0.3 : 0.6, 'rgba(28,27,25,.78)');
+    verlauf.addColorStop(1, 'rgba(28,27,25,.88)');
+    ctx.fillStyle = verlauf;
+    ctx.fillRect(0, oben, B, H - oben);
+
+    let y = H - 170 - hoehe;
+    for (const b of bloecke(f, s, true)) y += block(ctx, b, y, true);
+    fuss(ctx, f, index + 1, daten.folien.length, daten.kontext, true);
     return canvas;
   }
 

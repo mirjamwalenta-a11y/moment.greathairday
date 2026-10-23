@@ -853,6 +853,10 @@ function tabnavScrollBy(direction) {
     <p class="kar-tipp">Tipp auf eine Folie, um ihren Text zu ändern. Die Vorschau passt sich sofort an.</p>
     <div id="kar-folien"></div>
     <button class="btn-ghost-sm" onclick="karPunktDazu()">＋ Folie hinzufügen</button>
+    <button class="btn-ghost-sm" onclick="karFotoWaehlen()">📷 Foto aus der Galerie</button>
+    <button class="btn-ghost-sm" onclick="karFotoWaehlen(undefined, true)">📁 Aus Galerie oder Dateien</button>
+    <input type="file" id="kar-foto-input" accept="image/*" hidden onchange="karFotosGewaehlt(this)">
+    <p class="kar-tipp">Du kannst mehrere Fotos auf einmal wählen, jedes wird eine eigene Folie. Öffnet sich Google Fotos? Unter „Sammlungen“ (oder „Alben“) sind die Ordner auf dem Handy, zum Beispiel Kamera, Download und WhatsApp. Oder nimm „Aus Galerie oder Dateien“. Standort und Kameradaten werden entfernt.</p>
 
     <div class="story-section-block" style="margin-top:14px">
       <div class="section-copy-row">
@@ -6468,7 +6472,7 @@ AUFGABE: nur der Beitragstext unter dem Karussell. Felder:
 }
 
 const escHtml = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
-const KAR_TYP_NAME = { titel: 'Titelbild', dunkel: 'Warum', punkt: 'Folie', liste: 'Zusammenfassung' };
+const KAR_TYP_NAME = { titel: 'Titelbild', dunkel: 'Warum', punkt: 'Folie', liste: 'Zusammenfassung', foto: 'Foto' };
 
 function karEditorZeigen() {
   document.getElementById('kar-start').style.display = 'none';
@@ -6492,12 +6496,14 @@ function karFelderZeigen() {
   document.getElementById('kar-folien').innerHTML = f.map((x, i) => `
     <details class="kar-folie" id="kar-folie-${i}">
       <summary><span>${i + 1}. ${KAR_TYP_NAME[x.typ]}${x.typ === 'punkt' ? ' ' + x.nr : ''}</span><em>${escHtml(x.titel)}</em></summary>
+      ${x.typ === 'foto' ? `<p class="kar-tipp" style="margin:8px 13px 0">Text ist freiwillig. Alles leer lassen, dann zeigt die Folie nur das Foto.</p>
+      <button class="btn-ghost-sm" style="margin-top:8px" onclick="karFotoWaehlen(${i})">📷 Anderes Foto</button>` : ''}
       ${feld(i, 'kicker', 'Kleine Überschrift', x.kicker)}
       ${feld(i, 'titel', 'Titel', x.titel, true)}
       ${x.typ === 'titel' ? feld(i, 'unter', 'Unterzeile', x.unter) : ''}
-      ${x.typ === 'dunkel' || x.typ === 'punkt' ? feld(i, 'text', 'Text', x.text, true) : ''}
+      ${x.typ === 'dunkel' || x.typ === 'punkt' || x.typ === 'foto' ? feld(i, 'text', 'Text', x.text, true) : ''}
       ${x.typ === 'liste' ? feld(i, 'punkte', 'Punkte (einer pro Zeile)', (x.punkte || []).join('\n'), true) : ''}
-      ${x.typ === 'punkt' ? `<button class="btn-ghost-sm" onclick="karFolieWeg(${i})">🗑 Folie entfernen</button>` : ''}
+      ${x.typ === 'punkt' || x.typ === 'foto' ? `<button class="btn-ghost-sm" onclick="karFolieWeg(${i})">🗑 Folie entfernen</button>` : ''}
     </details>`).join('');
 }
 
@@ -6524,6 +6530,61 @@ function karPunktDazu() {
   const pos = f.findIndex(x => x.typ === 'liste');
   f.splice(pos < 0 ? f.length : pos, 0, { typ: 'punkt', nr: 0, kicker: '', titel: 'Neuer Punkt', text: '' });
   karNummerieren(); karFelderZeigen(); karVorschau(); karSpeichernMerken();
+}
+
+// Fotos aus der Galerie: auf das Folienformat 1080x1350 zuschneiden und als
+// JPEG merken. Das Neuzeichnen entfernt Standort- und Kameradaten.
+// alle = true: ohne accept, dann bietet Android statt der Foto-Auswahl
+// (oft nur Google Fotos) auch Galerie, Dateien und Downloads an.
+let karFotoZiel = null;
+function karFotoWaehlen(i, alle = false) {
+  karFotoZiel = i === undefined ? null : i;
+  const input = document.getElementById('kar-foto-input');
+  if (alle) input.removeAttribute('accept'); else input.accept = 'image/*';
+  input.multiple = karFotoZiel === null;
+  input.value = '';
+  input.click();
+}
+function karFotoLesen(datei) {
+  return new Promise((ok, fehler) => {
+    const url = URL.createObjectURL(datei);
+    const img = new Image();
+    img.onload = () => {
+      const c = document.createElement('canvas');
+      c.width = 1080; c.height = 1350;
+      const ctx = c.getContext('2d');
+      const m = Math.max(c.width / img.naturalWidth, c.height / img.naturalHeight);
+      const w = img.naturalWidth * m, h = img.naturalHeight * m;
+      ctx.fillStyle = '#ffffff';            // transparente PNGs nicht schwarz werden lassen
+      ctx.fillRect(0, 0, c.width, c.height);
+      ctx.drawImage(img, (c.width - w) / 2, (c.height - h) / 2, w, h);
+      URL.revokeObjectURL(url);
+      ok(c.toDataURL('image/jpeg', 0.82));
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); fehler(new Error('Foto konnte nicht gelesen werden')); };
+    img.src = url;
+  });
+}
+async function karFotosGewaehlt(input) {
+  const dateien = [...input.files];
+  if (!dateien.length || !karAktuell) return;
+  const status = document.getElementById('kar-status');
+  status.textContent = dateien.length > 1 ? 'Fotos werden eingefügt …' : 'Foto wird eingefügt …';
+  const fotos = [];
+  for (const d of dateien) { try { fotos.push(await karFotoLesen(d)); } catch (_) {} }
+  status.textContent = fotos.length < dateien.length
+    ? 'Ein Foto kann der Browser nicht öffnen. Bitte als JPG oder PNG versuchen.' : '';
+  if (!fotos.length) return;
+  const f = karAktuell.daten.folien;
+  let ziel = karFotoZiel;
+  if (ziel !== null && f[ziel]) f[ziel].foto = fotos[0];
+  else {
+    const pos = f.findIndex(x => x.typ === 'liste');
+    ziel = pos < 0 ? f.length : pos;
+    f.splice(ziel, 0, ...fotos.map(foto => ({ typ: 'foto', foto, kicker: '', titel: '', text: '' })));
+  }
+  karFelderZeigen(); await karVorschau(); karSpeichernMerken();
+  karFolieOeffnen(ziel);
 }
 function karFolieWeg(i) {
   karAktuell.daten.folien.splice(i, 1);
@@ -6563,9 +6624,12 @@ function karussellSpeichern() {
   liste.unshift({ ...karAktuell, erstellt: new Date().toISOString().slice(0, 10) });
   const ok = karEigeneSchreiben(liste);
   document.getElementById('kar-speichern').textContent = ok ? '✓ Gespeichert' : '💾 In Mappe';
+  const mitFotos = karAktuell.daten.folien.some(f => f.typ === 'foto');
   document.getElementById('kar-status').innerHTML = ok
     ? 'Gespeichert in der <a href="instagram.html">Instagram-Mappe</a>, auf diesem Gerät.'
-    : 'Speichern ging nicht (privates Fenster?). Bilder und Caption kannst du trotzdem teilen und kopieren.';
+    : mitFotos
+      ? 'Speichern ging nicht: Mit Fotos ist das Karussell zu groß für den Speicher dieses Geräts. Lösch ältere Karussells in der Mappe, oder teile die Bilder gleich.'
+      : 'Speichern ging nicht (privates Fenster?). Bilder und Caption kannst du trotzdem teilen und kopieren.';
 }
 
 // direkt = true: ohne Teilen-Menü aufs Gerät laden (Android hat dort oft kein „Speichern“)

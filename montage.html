@@ -81,7 +81,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   <section class="card">
     <label class="btn neu" for="datei">＋ Clips oder Fotos hinzufügen</label>
     <input type="file" id="datei" accept="video/*,image/*" multiple hidden>
+    <label class="btn" for="datei-alle" style="display:block;margin-top:8px">📁 Aus Galerie oder Dateien wählen</label>
+    <input type="file" id="datei-alle" multiple hidden>
     <p class="klein">Mehrere auf einmal auswählen geht. Die Reihenfolge änderst du danach mit ↑ ↓. Wer zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+    <p class="klein">Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ (oder „Alben“) findest du die Ordner auf dem Handy, zum Beispiel Kamera, Download und InShot. Oder nimm den zweiten Knopf: Er öffnet die Auswahl mit Galerie, Dateien und Downloads.</p>
   </section>
 
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
@@ -206,13 +209,28 @@ function zeitachse() {
 const gesamtLaenge = () => { const a = zeitachse(); return a.length ? a[a.length - 1].bis : 0; };
 
 // ── Dateien laden ───────────────────────────
-$('datei').addEventListener('change', async e => {
+// Zwei Knöpfe: „datei“ öffnet auf Android die Foto-Auswahl (zeigt oft zuerst
+// nur Google Fotos), „datei-alle“ ohne accept die normale Auswahl mit
+// Galerie, Dateien und Downloads. Dort kann auch anderes kommen, deshalb die
+// Art notfalls an der Dateiendung erkennen.
+const artVon = f => {
+  if (f.type.startsWith('image/')) return 'foto';
+  if (f.type.startsWith('video/')) return 'video';
+  if (/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return 'foto';
+  if (/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name)) return 'video';
+  return null;
+};
+$('datei').addEventListener('change', dateienLaden);
+$('datei-alle').addEventListener('change', dateienLaden);
+async function dateienLaden(e) {
   const dateien = [...e.target.files];
   e.target.value = '';
   for (const f of dateien) {
+    const art = artVon(f);
+    if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); continue; }
     const url = URL.createObjectURL(f);
     try {
-      if (f.type.startsWith('image/')) {
+      if (art === 'foto') {
         const img = new Image(); img.src = url; await img.decode();
         zustand.teile.push({ id: naechsteId++, art: 'foto', url, el: img, w: img.naturalWidth, h: img.naturalHeight, dauer: 3, ...textStart() });
       } else {
@@ -232,7 +250,7 @@ $('datei').addEventListener('change', async e => {
   }
   $('editor').hidden = !zustand.teile.length;
   teileAnzeigen();
-});
+}
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
 function textStart() { return { text: '', stil: zustand.teile.length ? 'info' : 'einstieg', pos: 'unten', fit: null }; }

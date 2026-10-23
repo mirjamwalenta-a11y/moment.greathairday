@@ -60,6 +60,12 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .zeitleiste{position:relative;}
 .schnitt-leiste{position:relative;height:6px;border-radius:3px;background:var(--gold-light);margin-top:2px;overflow:hidden;}
 .schnitt-leiste span{position:absolute;top:0;bottom:0;background:var(--warn);}
+.schnitt-leiste span.lupe{background:var(--gold);}
+.schnitt-leiste span.raffer{background:var(--sub);}
+.schnitt-leiste span.stand{background:var(--ink);}
+.knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
+.effekt{display:flex;flex-direction:column;gap:6px;background:var(--bg);border-radius:10px;padding:8px 10px;font-size:13px;}
+.effekt-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums;}
 .feld{display:flex;flex-direction:column;gap:4px;}
 .feld-name{font-size:11px;font-weight:600;color:var(--sub);}
 .schnitt-zeile{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;font-size:13px;font-variant-numeric:tabular-nums;}
@@ -111,6 +117,19 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <p class="klein">Video bis zur Stelle abspielen oder den Regler unter dem Video schieben, dann „Schnitt ab hier“. Danach bis zum Ende der Stelle weiter und „bis hier“ tippen.</p>
       <button class="btn" id="schnitt">✂ Schnitt ab hier</button>
       <div id="schnitte" style="display:flex;flex-direction:column;gap:6px;"></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Tempo &amp; Standbild</div>
+      <p class="klein">Stelle wählen wie beim Schneiden. Zeitlupe und Zeitraffer: „ab hier“, dann weiter bis zum Ende der Stelle und „bis hier“. Ein Standbild hält das Bild an dieser Stelle kurz an.</p>
+      <div class="knoepfe" id="effekt-knoepfe">
+        <button class="btn" id="zeitlupe">🐢 Zeitlupe ab hier</button>
+        <button class="btn" id="zeitraffer">🐇 Zeitraffer ab hier</button>
+        <button class="btn" id="standbild">⏸ Standbild hier</button>
+      </div>
+      <button class="btn aktiv" id="tempo-bis" hidden></button>
+      <div id="effekte" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="klein">In Zeitlupe und Zeitraffer ist der Originalton stumm, weil er sonst verzerrt klingt.</p>
     </div>
 
     <div class="card">
@@ -196,11 +215,19 @@ const $ = id => document.getElementById(id);
 const video = $('quelle'), leinwand = $('leinwand'), ctx = leinwand.getContext('2d');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 
-// start/ende/schnitte sind Zeiten im Originalvideo; Text-Zeiten (von/bis)
-// zählen im fertigen Video, also ohne die herausgeschnittenen Stellen.
-const zustand = { start: 0, ende: 0, schnitte: [], schnittAb: null, modus: 'fuellen', versatz: 0, texte: [], exportiert: false };
+// start/ende/schnitte/tempi/standbilder sind Zeiten im Originalvideo;
+// Text-Zeiten (von/bis) zählen im fertigen Video, also nach Schnitten,
+// Tempo-Änderungen und Standbildern.
+const zustand = {
+  start: 0, ende: 0, schnitte: [], schnittAb: null,
+  tempi: [], tempoAb: null, standbilder: [],
+  modus: 'fuellen', versatz: 0, texte: [], exportiert: false, tonAn: true
+};
+const TEMPO_WAHL = { lupe: { 0.5: '½ Tempo', 0.25: '¼ Tempo' }, raffer: { 2: '2× schneller', 4: '4× schneller' } };
+const DAUER_WAHL = { 1: '1 Sek.', 2: '2 Sek.', 3: '3 Sek.' };
 let videoUrl = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
 let audio = null; // { ctx, lautsprecher, ziel }
+let standbildZeit = null; // Zeit im fertigen Video, während ein Standbild läuft
 
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
 
@@ -216,14 +243,31 @@ function aktiveSchnitte(s = zustand.start, e = zustand.ende) {
   }
   return out;
 }
-const schnittBei = x => aktiveSchnitte().find(c => x >= c.von && x < c.bis);
-// Originalzeit → Zeit im fertigen Video
+const schnittBei = (x, schnitte = aktiveSchnitte()) => schnitte.find(c => x >= c.von && x < c.bis);
+// zuletzt angelegtes Tempo gewinnt, wenn sich Bereiche überlappen
+const tempoBei = x => zustand.tempi.reduce((f, z) => x >= z.von && x < z.bis ? z.faktor : f, 1);
+const aktiveStandbilder = (s = zustand.start, e = zustand.ende, schnitte = aktiveSchnitte(s, e)) =>
+  zustand.standbilder.filter(f => f.bei >= s && f.bei < e && !schnittBei(f.bei, schnitte)).sort((a, b) => a.bei - b.bei);
+
+// Originalzeit → Zeit im fertigen Video: Abschnitte zwischen allen Grenzen
+// einzeln, geschnittene zählen nicht, Tempo teilt, Standbilder kommen dazu.
 function ausgabeZeit(x, s = zustand.start, e = zustand.ende) {
-  let t = x - s;
-  for (const c of aktiveSchnitte(s, e)) if (c.von < x) t -= Math.min(c.bis, x) - c.von;
-  return Math.max(0, t);
+  x = Math.min(Math.max(x, s), e);
+  const schnitte = aktiveSchnitte(s, e);
+  const grenzen = [s, x];
+  for (const c of schnitte) grenzen.push(c.von, c.bis);
+  for (const z of zustand.tempi) grenzen.push(z.von, z.bis);
+  const g = [...new Set(grenzen.filter(v => v >= s && v <= x))].sort((a, b) => a - b);
+  let t = 0;
+  for (let i = 0; i < g.length - 1; i++) {
+    const mitte = (g[i] + g[i + 1]) / 2;
+    if (!schnittBei(mitte, schnitte)) t += (g[i + 1] - g[i]) / tempoBei(mitte);
+  }
+  for (const f of aktiveStandbilder(s, e, schnitte)) if (f.bei < x) t += f.dauer;
+  return t;
 }
 const clipLaenge = () => ausgabeZeit(zustand.ende);
+const jetztImVideo = () => standbildZeit ?? ausgabeZeit(video.currentTime);
 
 // ── Video laden ─────────────────────────────
 $('datei').addEventListener('change', e => {
@@ -243,7 +287,11 @@ video.addEventListener('loadedmetadata', () => {
   zustand.ende = Math.min(d, MAX_LAENGE);
   zustand.schnitte = [];
   zustand.schnittAb = null;
+  zustand.tempi = [];
+  zustand.tempoAb = null;
+  zustand.standbilder = [];
   schnitteAnzeigen();
+  effekteAnzeigen();
   $('start').value = 0; $('ende').value = zustand.ende;
   $('zu-lang').hidden = d <= MAX_LAENGE;
   $('zu-lang').textContent = `Dein Video ist ${fmt(d)} lang. Verwendet wird höchstens 1 Minute – mit Start und Ende wählst du den Teil aus.`;
@@ -259,7 +307,7 @@ video.addEventListener('seeked', zeichnen);
 video.addEventListener('loadeddata', zeichnen);
 
 $('anderes').addEventListener('click', () => {
-  video.pause();
+  stoppen();
   $('editor').hidden = true;
   $('wahl').hidden = false;
   $('datei').click();
@@ -285,25 +333,100 @@ function audioVorbereiten() {
 $('play').addEventListener('click', () => {
   if (zustand.exportiert) return;
   audioVorbereiten();
-  if (video.paused) {
-    if (video.currentTime < zustand.start || video.currentTime >= zustand.ende - 0.05) video.currentTime = zustand.start;
-    video.play();
-  } else video.pause();
+  if (spielt) return stoppen();
+  if (video.currentTime < zustand.start || video.currentTime >= zustand.ende - 0.05) video.currentTime = zustand.start;
+  abspielen();
 });
-video.addEventListener('play', () => { $('play').textContent = '❚❚'; $('play').classList.add('laeuft'); schleife(); });
-video.addEventListener('pause', () => { $('play').textContent = '▶'; $('play').classList.remove('laeuft'); });
 
-function schleife() {
-  if (video.paused || zustand.exportiert) return; // beim Erstellen zeichnet die eigene Schleife
-  const c = schnittBei(video.currentTime);
-  if (video.currentTime >= zustand.ende || (c && c.bis >= zustand.ende)) {
-    video.pause();
-    video.currentTime = zustand.start;
-    return;
-  }
-  if (c) video.currentTime = c.bis;
+// Eine Schleife für Vorschau und Erstellen: springt über Schnitte, hält bei
+// Standbildern an und stellt das Tempo um. Jeder Start/Stopp erhöht `lauf`,
+// damit eine alte Schleife sich selbst beendet.
+let lauf = 0, spielt = false;
+const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
+const warten = (el, ev) => new Promise(ok => el.addEventListener(ev, ok, { once: true }));
+
+function playAnzeige(an) {
+  spielt = an;
+  $('play').textContent = an ? '❚❚' : '▶';
+  $('play').classList.toggle('laeuft', an);
+}
+
+function stoppen() {
+  lauf++;
+  video.pause();
+  video.playbackRate = 1;
+  video.muted = false;
+  standbildZeit = null;
+  playAnzeige(false);
   zeichnen();
-  requestAnimationFrame(schleife);
+}
+
+// in Zeitlupe/Zeitraffer stumm, weil der Ton sonst verzerrt klingt
+function tonSetzen(faktor) { video.muted = !zustand.tonAn || faktor !== 1; }
+
+// Beim Erstellen pausiert die Aufnahme, solange das Video springt.
+async function springen(ziel, rec) {
+  if (rec && rec.state === 'recording' && rec.pause) rec.pause();
+  video.pause();
+  if (Math.abs(video.currentTime - ziel) > 0.01) {
+    video.currentTime = ziel;
+    await warten(video, 'seeked');
+  }
+  zeichnen();
+  if (rec && rec.state === 'paused') rec.resume();
+}
+
+async function abspielen(rec = null) {
+  const meiner = ++lauf;
+  const aktiv = () => lauf === meiner;
+  const gesamt = clipLaenge();
+  const fortschritt = () => { if (rec) $('balken').style.width = Math.min(100, jetztImVideo() / gesamt * 100) + '%'; };
+  const erledigt = new Set();
+  for (const f of zustand.standbilder) if (f.bei < video.currentTime - 0.05) erledigt.add(f);
+  if (!rec) playAnzeige(true);
+
+  while (aktiv()) {
+    const x = video.currentTime;
+    if (x >= zustand.ende - 0.02 || video.ended) break;
+    const c = schnittBei(x);
+    if (c) {
+      if (c.bis >= zustand.ende) break;
+      await springen(c.bis, rec);
+      continue;
+    }
+    const f = aktiveStandbilder().find(s => !erledigt.has(s) && x >= s.bei);
+    if (f) {
+      erledigt.add(f);
+      video.pause();
+      const basis = ausgabeZeit(f.bei), t0 = performance.now();
+      for (;;) {
+        const dauer = (performance.now() - t0) / 1000;
+        if (!aktiv() || dauer >= f.dauer) break;
+        standbildZeit = basis + dauer;
+        fortschritt();
+        zeichnen();
+        await naechstesBild();
+      }
+      standbildZeit = null;
+      continue;
+    }
+    const faktor = tempoBei(x);
+    if (video.playbackRate !== faktor) video.playbackRate = faktor;
+    tonSetzen(faktor);
+    if (video.paused) await video.play().catch(() => null);
+    fortschritt();
+    zeichnen();
+    await naechstesBild();
+  }
+  if (!aktiv()) return; // gestoppt oder neu gestartet
+  lauf++;
+  video.pause();
+  video.playbackRate = 1;
+  if (!rec) {
+    video.muted = false;
+    playAnzeige(false);
+    video.currentTime = zustand.start;
+  }
 }
 
 $('zeit').addEventListener('input', e => {
@@ -314,8 +437,11 @@ $('zeit').addEventListener('input', e => {
 function kuerzenAnzeigen() {
   $('start-wert').textContent = fmt(zustand.start);
   $('ende-wert').textContent = fmt(zustand.ende);
-  const weg = zustand.ende - zustand.start - clipLaenge();
-  $('laenge').textContent = `Länge: ${clipLaenge().toFixed(1)} Sekunden` + (weg > 0.05 ? ` (${weg.toFixed(1)} Sek. herausgeschnitten)` : '');
+  const weg = aktiveSchnitte().reduce((summe, c) => summe + c.bis - c.von, 0);
+  const laenge = clipLaenge();
+  $('laenge').textContent = `Länge im fertigen Video: ${laenge.toFixed(1)} Sekunden`
+    + (weg > 0.05 ? ` (${weg.toFixed(1)} Sek. herausgeschnitten)` : '')
+    + (laenge > MAX_LAENGE + 0.05 ? ' – durch Zeitlupe/Standbild länger als 1 Minute, bitte kürzen' : '');
   $('zeit').max = (zustand.ende - zustand.start).toFixed(2);
   schnittLeiste();
 }
@@ -323,21 +449,21 @@ function kuerzenAnzeigen() {
 function kuerzen(welches) {
   const max = Number($('start').max);
   let s = Number($('start').value), e = Number($('ende').value);
-  // herausgeschnittene Stellen zählen nicht zur Höchstlänge
-  const weg = (a, b) => b - a - ausgabeZeit(b, a, b);
+  // die Höchstlänge gilt fürs fertige Video (Schnitte, Tempo, Standbilder eingerechnet)
+  const zuViel = (a, b) => ausgabeZeit(b, a, b) - MAX_LAENGE;
   if (welches === 'start') {
     if (e < s + 0.5) e = Math.min(max, s + 0.5);
-    for (let i = 0; i < 3 && ausgabeZeit(e, s, e) > MAX_LAENGE; i++) e = Math.min(max, s + MAX_LAENGE + weg(s, e));
+    for (let i = 0; i < 20 && zuViel(s, e) > 0.05; i++) e = Math.max(s + 0.5, e - zuViel(s, e));
     if (e < s + 0.5) s = e - 0.5;
   } else {
     if (s > e - 0.5) s = Math.max(0, e - 0.5);
-    for (let i = 0; i < 3 && ausgabeZeit(e, s, e) > MAX_LAENGE; i++) s = Math.max(0, e - MAX_LAENGE - weg(s, e));
+    for (let i = 0; i < 20 && zuViel(s, e) > 0.05; i++) s = Math.min(e - 0.5, s + zuViel(s, e));
     if (s > e - 0.5) e = s + 0.5;
   }
   zustand.start = s; zustand.ende = e;
   $('start').value = s; $('ende').value = e;
   kuerzenAnzeigen();
-  video.pause();
+  stoppen();
   video.currentTime = welches === 'start' ? s : Math.max(s, e - 0.05);
 }
 $('start').addEventListener('input', () => kuerzen('start'));
@@ -376,12 +502,79 @@ function schnitteAnzeigen() {
   zeichnen();
 }
 
+// Leiste unter dem Regler: rot = Schnitt, gold = Zeitlupe, grau = Zeitraffer, schwarz = Standbild
 function schnittLeiste() {
   const s = zustand.start, len = zustand.ende - s;
-  const teile = aktiveSchnitte().map(c => [c.von, c.bis]);
-  if (zustand.schnittAb != null) teile.push([zustand.schnittAb, Math.max(zustand.schnittAb, video.currentTime)]);
-  $('schnitt-leiste').innerHTML = len > 0 ? teile.map(([a, b]) =>
-    `<span style="left:${(a - s) / len * 100}%;width:${Math.max(0.5, (b - a) / len * 100)}%"></span>`).join('') : '';
+  const offen = ab => [ab, Math.max(ab, video.currentTime)];
+  const teile = [
+    ...zustand.tempi.map(z => [z.von, z.bis, z.faktor < 1 ? 'lupe' : 'raffer']),
+    ...(zustand.tempoAb ? [[...offen(zustand.tempoAb.von), zustand.tempoAb.art]] : []),
+    ...aktiveSchnitte().map(c => [c.von, c.bis, '']),
+    ...(zustand.schnittAb != null ? [[...offen(zustand.schnittAb), '']] : []),
+    ...zustand.standbilder.map(f => [f.bei, f.bei, 'stand'])
+  ];
+  $('schnitt-leiste').innerHTML = len > 0 ? teile.map(([a, b, k]) =>
+    `<span class="${k}" style="left:${(Math.max(a, s) - s) / len * 100}%;width:${Math.max(0.6, (Math.min(b, zustand.ende) - Math.max(a, s)) / len * 100)}%"></span>`).join('') : '';
+}
+
+// ── Tempo & Standbild ───────────────────────
+const jetztGerundet = () => Math.round(video.currentTime * 10) / 10;
+
+for (const [id, art] of [['zeitlupe', 'lupe'], ['zeitraffer', 'raffer']]) {
+  $(id).addEventListener('click', () => {
+    zustand.tempoAb = { art, von: jetztGerundet() };
+    effekteAnzeigen();
+  });
+}
+
+$('tempo-bis').addEventListener('click', () => {
+  const { art, von: ab } = zustand.tempoAb;
+  const x = jetztGerundet();
+  const von = Math.min(ab, x), bis = Math.max(ab, x);
+  zustand.tempoAb = null;
+  if (bis - von >= 0.1) zustand.tempi.push({ von, bis, faktor: art === 'lupe' ? 0.5 : 2 });
+  effekteAnzeigen();
+});
+
+$('standbild').addEventListener('click', () => {
+  const bei = jetztGerundet();
+  if (!zustand.standbilder.some(f => Math.abs(f.bei - bei) < 0.05)) zustand.standbilder.push({ bei, dauer: 2 });
+  effekteAnzeigen();
+});
+
+$('effekte').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  const zeile = b && b.closest('.effekt');
+  if (!zeile) return;
+  const liste = zustand[zeile.dataset.liste];
+  const eintrag = liste[Number(zeile.dataset.i)];
+  if (b.hasAttribute('data-weg')) liste.splice(liste.indexOf(eintrag), 1);
+  else if (zeile.dataset.liste === 'tempi') eintrag.faktor = Number(b.dataset.wert);
+  else eintrag.dauer = Number(b.dataset.wert);
+  effekteAnzeigen();
+});
+
+function effekteAnzeigen() {
+  const ab = zustand.tempoAb;
+  $('effekt-knoepfe').hidden = !!ab;
+  $('tempo-bis').hidden = !ab;
+  if (ab) $('tempo-bis').textContent = `${ab.art === 'lupe' ? '🐢 Zeitlupe' : '🐇 Zeitraffer'} … bis hier (ab ${fmt(ab.von)})`;
+  const wahl = (auswahl, aktuell) => `<div class="chips">${Object.entries(auswahl).map(([k, n]) =>
+    `<button data-wert="${k}" aria-pressed="${Number(k) === aktuell}">${n}</button>`).join('')}</div>`;
+  $('effekte').innerHTML = [
+    ...zustand.tempi.map((z, i) => ({ zeit: z.von, html: `
+      <div class="effekt" data-liste="tempi" data-i="${i}">
+        <div class="effekt-kopf"><span>${z.faktor < 1 ? '🐢 Zeitlupe' : '🐇 Zeitraffer'} ${fmt(z.von)} – ${fmt(z.bis)}</span><button class="entfernen" data-weg>Entfernen</button></div>
+        ${wahl(TEMPO_WAHL[z.faktor < 1 ? 'lupe' : 'raffer'], z.faktor)}
+      </div>` })),
+    ...zustand.standbilder.map((f, i) => ({ zeit: f.bei, html: `
+      <div class="effekt" data-liste="standbilder" data-i="${i}">
+        <div class="effekt-kopf"><span>⏸ Standbild bei ${fmt(f.bei)}</span><button class="entfernen" data-weg>Entfernen</button></div>
+        ${wahl(DAUER_WAHL, f.dauer)}
+      </div>` }))
+  ].sort((a, b) => a.zeit - b.zeit).map(x => x.html).join('');
+  kuerzenAnzeigen();
+  zeichnen();
 }
 
 // ── Bildausschnitt ──────────────────────────
@@ -454,7 +647,7 @@ $('texte').addEventListener('click', e => {
     return;
   }
   if (b.dataset.jetzt) {
-    const jetzt = Math.round(ausgabeZeit(video.currentTime) * 10) / 10;
+    const jetzt = Math.round(jetztImVideo() * 10) / 10;
     t[b.dataset.jetzt] = jetzt;
     b.closest('.text-karte').querySelector(`[data-feld="${b.dataset.jetzt}"]`).value = jetzt;
     zeichnen();
@@ -545,7 +738,7 @@ function zeichnen() {
     const y = h > H ? -(h - H) * (zustand.versatz + 1) / 2 : (H - h) / 2;
     ctx.drawImage(video, x, y, w, h);
   }
-  const t = ausgabeZeit(video.currentTime);
+  const t = jetztImVideo();
   for (const tx of zustand.texte) {
     const bis = tx.bis ?? clipLaenge();
     if (!tx.text.trim() || t < tx.von || t > bis) continue;
@@ -564,6 +757,23 @@ function zeichnen() {
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
     ctx.fillText(zustand.schnittAb != null && !schnittBei(video.currentTime) ? '✂ Schnitt läuft …' : '✂ wird herausgeschnitten', B / 2, 62);
+  } else {
+    // nur in der Vorschau: kleines Schild für Tempo und Standbild
+    const faktor = tempoBei(video.currentTime);
+    const schild = standbildZeit != null ? '⏸ Standbild'
+      : faktor < 1 ? `🐢 Zeitlupe ${TEMPO_WAHL.lupe[faktor] || ''}`
+      : faktor > 1 ? `🐇 ${TEMPO_WAHL.raffer[faktor] || 'Zeitraffer'}` : '';
+    if (schild) {
+      ctx.font = `600 44px ${SANS}`;
+      const w = ctx.measureText(schild).width + 48;
+      ctx.fillStyle = 'rgba(28,27,25,.7)';
+      rundesRechteck(40, 40, w, 76, 38);
+      ctx.fill();
+      ctx.fillStyle = '#fff';
+      ctx.textAlign = 'left';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(schild, 64, 80);
+    }
   }
   $('zeit').value = Math.max(0, video.currentTime - zustand.start);
   schnittLeiste();
@@ -574,8 +784,6 @@ Promise.all([SCHRIFTEN.serif.font(80), SCHRIFTEN.sans.font(60), `700 52px ${SANS
   .map(f => document.fonts ? document.fonts.load(f).catch(() => null) : null)).then(zeichnen);
 
 // ── Erstellen ───────────────────────────────
-const warten = (el, ev) => new Promise(ok => el.addEventListener(ev, ok, { once: true }));
-
 $('erstellen').addEventListener('click', async () => {
   if (!window.MediaRecorder || !leinwand.captureStream) {
     alert('Dieser Browser kann leider keine Videos erstellen. Bitte Safari (iPhone/iPad) oder Chrome (Android) in der neuesten Version verwenden.');
@@ -607,45 +815,24 @@ $('erstellen').addEventListener('click', async () => {
   $('balken').style.width = '0';
   $('fortschritt-text').textContent = 'Video wird erstellt …';
 
-  video.pause();
-  const warMuted = video.muted;
-  if (!mitTon) video.muted = true;
+  stoppen();
+  zustand.tonAn = mitTon;
   if (audio) audio.lautsprecher.gain.value = 0;
-  video.currentTime = zustand.start;
-  await warten(video, 'seeked');
+  if (Math.abs(video.currentTime - zustand.start) > 0.01) {
+    video.currentTime = zustand.start;
+    await warten(video, 'seeked');
+  }
 
   const fertig = new Promise(ok => { rec.onstop = ok; });
   rec.start(1000);
-  await video.play().catch(() => null);
-  const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
-  const gesamt = clipLaenge();
-  for (;;) {
-    const t = video.currentTime;
-    if (t >= zustand.ende || video.ended) break;
-    const c = schnittBei(t);
-    if (c) {
-      // Aufnahme anhalten, über die Stelle springen, weiter aufnehmen
-      if (c.bis >= zustand.ende) break;
-      if (rec.state === 'recording' && rec.pause) rec.pause();
-      video.pause();
-      video.currentTime = c.bis;
-      await warten(video, 'seeked');
-      zeichnen();
-      if (rec.state === 'paused') rec.resume();
-      await video.play().catch(() => null);
-      continue;
-    }
-    $('balken').style.width = Math.min(100, ausgabeZeit(t) / gesamt * 100) + '%';
-    zeichnen();
-    await naechstesBild();
-  }
-  video.pause();
+  await abspielen(rec);
   rec.stop();
   await fertig;
 
   stream.getVideoTracks().forEach(tr => tr.stop());
   if (audio) audio.lautsprecher.gain.value = 1;
-  video.muted = warMuted;
+  zustand.tonAn = true;
+  video.muted = false;
   zustand.exportiert = false;
   try { await sperre?.release(); } catch (_) {}
   for (const id of ['erstellen', 'anderes', 'play']) $(id).disabled = false;

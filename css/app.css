@@ -1187,3 +1187,33 @@ textarea { resize: none; min-height: 76px; }
 .kar-feld span { font-size: 11px; color: var(--soft); }
 .kar-feld textarea { min-height: 60px; }
 .kar-edit { min-height: 120px; outline: none; }
+
+/* ── FÜR WEN: gemeinsamer Salon/Haarnetzwerk-Schalter ── */
+.kontext-leiste {
+  display: flex; align-items: center; gap: 6px;
+  padding: 8px 18px; background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.kontext-leiste-label { font-size: 12px; color: var(--soft); margin-right: 2px; }
+.kontext-leiste button {
+  border: 1px solid var(--line); background: var(--white); border-radius: 20px;
+  padding: 5px 11px; font: 500 12px var(--f); color: var(--black); cursor: pointer;
+}
+.kontext-leiste button.on { background: var(--gold-pale); border-color: var(--gold); color: var(--ok); font-weight: 600; }
+
+/* ── BEREICHE: untere Leiste ── */
+.bereich-nav {
+  position: fixed; bottom: 0; left: 50%; transform: translateX(-50%);
+  width: 100%; max-width: 430px; z-index: 150;
+  display: grid; grid-template-columns: repeat(6, 1fr);
+  background: var(--white); border-top: 1px solid var(--line);
+  padding: 6px 2px calc(6px + env(safe-area-inset-bottom));
+}
+.bereich-nav button {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  background: none; border: none; cursor: pointer; padding: 4px 0;
+  font: 500 10px var(--f); color: var(--soft); border-radius: 10px;
+}
+.bereich-nav button span { font-size: 19px; line-height: 1; }
+.bereich-nav button.on { color: var(--black); font-weight: 700; background: var(--gold-pale); }
+.screen { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+.bereich-intro { font-size: 14px; color: var(--mid); line-height: 1.5; margin: 4px 0 16px; }

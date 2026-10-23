@@ -1216,6 +1216,19 @@ textarea { resize: none; min-height: 76px; }
 .bereich-nav button span { font-size: 19px; line-height: 1; }
 .bereich-nav button.on { color: var(--black); font-weight: 700; background: var(--gold-pale); }
 .screen { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+/* Tablet: Leiste schwebt mit Abstand zum unteren Rand, damit sie nicht
+   hinter der Browser- bzw. Gestenleiste verschwindet; etwas größer zum Tippen */
+@media (min-width: 600px) {
+  .bereich-nav {
+    bottom: 24px; width: calc(100% - 32px);
+    border: 1px solid var(--line); border-radius: 18px;
+    box-shadow: 0 6px 24px rgba(100,80,40,0.16);
+    padding: 8px 4px;
+  }
+  .bereich-nav button { font-size: 12px; padding: 6px 0; }
+  .bereich-nav button span { font-size: 23px; }
+  .screen { padding-bottom: 150px; }
+}
 .bereich-intro { font-size: 14px; color: var(--mid); line-height: 1.5; margin: 4px 0 16px; }
 
 /* ── SCHREIBEN: „Weiter“-Leiste unter jedem Ergebnis ── */

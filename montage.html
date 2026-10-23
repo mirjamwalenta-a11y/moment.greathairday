@@ -31,6 +31,7 @@ header{text-align:center;padding:6px 0 2px;}
 .btn.haupt{background:var(--gold);border-color:var(--gold);color:#fff;}
 .btn.neu{width:100%;padding:13px;font-size:15px;background:var(--ink);border-color:var(--ink);color:#fff;display:block;}
 .btn:disabled{opacity:.5;cursor:default;}
+.btn.aktiv{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
 .hinweis{font-size:13px;line-height:1.45;color:var(--gold-ink);background:var(--gold-light);border-radius:10px;padding:8px 11px;}
 .hinweis.warnung{color:var(--warn);background:var(--warn-bg);}
 .fuss{font-size:12px;color:var(--sub);line-height:1.5;text-align:center;}
@@ -112,6 +113,18 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       </div>
     </div>
 
+    <div class="card">
+      <div class="label">Sprechertext</div>
+      <p class="klein">Sprich deinen Text, während das Video in der Vorschau läuft. Oder wähl eine fertige Sprachaufnahme, z. B. ein Sprachmemo.</p>
+      <div class="knoepfe">
+        <button class="btn haupt" id="aufnahme">🎙 Aufnahme starten</button>
+        <label class="btn" for="stimme-datei" id="stimme-waehlen">📁 Aufnahme auswählen</label>
+        <input type="file" id="stimme-datei" accept="audio/*" hidden>
+      </div>
+      <div class="reihe" id="stimme-info" hidden><span id="stimme-text"></span><button class="btn" id="stimme-weg" style="margin-left:auto;">Entfernen</button></div>
+      <p class="klein" id="stimme-hinweis"></p>
+    </div>
+
     <button class="btn neu" id="erstellen">Video erstellen</button>
     <div id="fortschritt" class="card" hidden>
       <div class="reihe"><span>Video wird erstellt …</span></div>
@@ -165,6 +178,10 @@ const zustand = { teile: [], uebergang: 'weich', ton: 'aus', zoom: 'an', rahmen:
   endkarte: { an: true, titel: 'A Great Hair Day', unter: 'Wien', dauer: 3 }, exportiert: false };
 let naechsteId = 1, ergebnisUrl = null, ergebnisDatei = null, audio = null;
 let lauf = 0, spielt = false, jetzt = 0;
+// Sprechertext: zustand.stimme = { buffer, dauer, name }; während der Aufnahme läuft das Video ohne Originalton
+zustand.stimme = null;
+let aufnahmeLaeuft = false, stimmeQuelle = null;
+const ORIGINALTON_UNTER_STIMME = 0.25; // Originalton leiser, solange gesprochen wird
 
 const logo = new Image(); logo.src = 'bilder/unterschrift-export.png';
 const logoM = new Image(); logoM.src = 'bilder/logo-m-export.png';
@@ -267,6 +284,7 @@ function vorschauBild(filter) {
 
 function laengeAnzeigen() {
   const T = gesamtLaenge();
+  stimmeAnzeigen();
   $('zeit').max = T.toFixed(2);
   $('laenge').textContent = `Länge: ${T.toFixed(1)} Sekunden` + (T > EMPFOHLEN ? ' – für ein Reel lieber unter 1 Minute bleiben' : '');
 }
@@ -496,7 +514,7 @@ function synchron(t, laeuft) {
     if (a.teil.art !== 'video') continue;
     const v = a.teil.el;
     const aktiv = t >= a.von - 0.05 && t < a.bis;
-    v.muted = zustand.ton === 'aus' || zustand.exportiert && !audio;
+    v.muted = zustand.ton === 'aus' || aufnahmeLaeuft || zustand.exportiert && !audio;
     if (aktiv) {
       const soll = a.teil.start + Math.max(0, t - a.von);
       if (laeuft) {
@@ -523,7 +541,23 @@ function playAnzeige(an) {
 function stoppen() {
   lauf++;
   playAnzeige(false);
+  stimmeStoppen();
   for (const t of zustand.teile) if (t.art === 'video') t.el.pause();
+}
+
+// Sprechertext ab Sekunde `ab` abspielen (genau, weil aus dem dekodierten Ton)
+function stimmeStarten(ab) {
+  stimmeStoppen();
+  if (!zustand.stimme || !audio || aufnahmeLaeuft || ab >= zustand.stimme.dauer) return;
+  const q = audio.ctx.createBufferSource();
+  q.buffer = zustand.stimme.buffer;
+  q.connect(audio.stimme);
+  q.start(0, ab);
+  stimmeQuelle = q;
+}
+function stimmeStoppen() {
+  try { stimmeQuelle?.stop(); } catch (_) {}
+  stimmeQuelle = null;
 }
 
 const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
@@ -532,6 +566,7 @@ async function abspielen(beiBild) {
   const meiner = ++lauf, T = gesamtLaenge();
   if (!beiBild) playAnzeige(true);
   let t0 = performance.now() - jetzt * 1000;
+  stimmeStarten(jetzt);
   while (lauf === meiner) {
     const t = (performance.now() - t0) / 1000;
     if (t >= T) break;
@@ -543,6 +578,7 @@ async function abspielen(beiBild) {
   }
   if (lauf !== meiner) return false;
   lauf++;
+  stimmeStoppen();
   for (const x of zustand.teile) if (x.art === 'video') x.el.pause();
   if (!beiBild) { playAnzeige(false); jetzt = 0; synchron(0, false); zeichnen(0); }
   return true;
@@ -551,7 +587,7 @@ async function abspielen(beiBild) {
 $('play').addEventListener('click', () => {
   if (zustand.exportiert) return;
   if (spielt) return stoppen();
-  if (zustand.ton === 'an') audioVorbereiten();
+  if (zustand.ton === 'an' || zustand.stimme) audioVorbereiten();
   if (jetzt >= gesamtLaenge() - 0.1) jetzt = 0;
   abspielen();
 });
@@ -563,26 +599,113 @@ $('zeit').addEventListener('input', e => {
   zeichnen(jetzt);
 });
 
-// Originalton: alle Clips in einen gemeinsamen Ton-Ausgang für die Aufnahme
+// Ton: Originalton der Clips und Sprechertext laufen über je einen Regler
+// in die Lautsprecher und in den gemeinsamen Ton-Ausgang für die Aufnahme.
 function audioVorbereiten() {
   const AC = window.AudioContext || window.webkitAudioContext;
-  if (!AC) return;
+  if (!AC) return null;
   try {
     if (!audio) {
       const actx = new AC();
-      audio = { ctx: actx, lautsprecher: actx.createGain(), ziel: actx.createMediaStreamDestination(), quellen: new Map() };
+      audio = { ctx: actx, lautsprecher: actx.createGain(), ziel: actx.createMediaStreamDestination(),
+        original: actx.createGain(), stimme: actx.createGain(), quellen: new Map() };
       audio.lautsprecher.connect(actx.destination);
+      for (const regler of [audio.original, audio.stimme]) { regler.connect(audio.lautsprecher); regler.connect(audio.ziel); }
     }
-    for (const t of zustand.teile) {
-      if (t.art !== 'video' || audio.quellen.has(t.el)) continue;
-      const q = audio.ctx.createMediaElementSource(t.el);
-      q.connect(audio.lautsprecher);
-      q.connect(audio.ziel);
-      audio.quellen.set(t.el, q);
+    if (zustand.ton === 'an') {
+      for (const t of zustand.teile) {
+        if (t.art !== 'video' || audio.quellen.has(t.el)) continue;
+        const q = audio.ctx.createMediaElementSource(t.el);
+        q.connect(audio.original);
+        audio.quellen.set(t.el, q);
+      }
     }
+    audio.original.gain.value = zustand.stimme ? ORIGINALTON_UNTER_STIMME : 1;
     audio.ctx.resume();
   } catch (_) { audio = null; }
+  return audio;
 }
+
+// ── Sprechertext ────────────────────────────
+function stimmeAnzeigen() {
+  const st = zustand.stimme, T = gesamtLaenge();
+  $('stimme-info').hidden = !st;
+  if (st) $('stimme-text').textContent = `🎙 ${st.name} · ${st.dauer.toFixed(1)} Sek.`;
+  $('stimme-hinweis').textContent = !st ? ''
+    : (st.dauer > T + 0.3 ? `Die Aufnahme ist länger als das Video (${T.toFixed(1)} Sek.), der Rest wird abgeschnitten. ` : '')
+      + (zustand.ton === 'an' ? 'Der Originalton der Clips läuft leise darunter.' : 'Der Originalton der Clips bleibt aus.')
+      + ' Mit ▶ hörst du dir alles zusammen an.';
+  if (audio) audio.original.gain.value = st ? ORIGINALTON_UNTER_STIMME : 1;
+}
+
+async function stimmeUebernehmen(daten, name) {
+  const a = audioVorbereiten();
+  if (!a) throw new Error('Kein Ton im Browser');
+  const buffer = await new Promise((ok, nein) => a.ctx.decodeAudioData(daten, ok, nein));
+  zustand.stimme = { buffer, dauer: buffer.duration, name };
+  stimmeAnzeigen();
+}
+
+$('stimme-datei').addEventListener('change', async e => {
+  const f = e.target.files[0];
+  e.target.value = '';
+  if (!f) return;
+  stoppen();
+  try { await stimmeUebernehmen(await f.arrayBuffer(), 'Sprachaufnahme'); }
+  catch (_) { alert('Diese Aufnahme kann der Browser leider nicht abspielen. Probier eine Datei als MP3 oder M4A.'); }
+});
+
+$('stimme-weg').addEventListener('click', () => {
+  stoppen();
+  zustand.stimme = null;
+  stimmeAnzeigen();
+});
+
+// Aufnahme: Video läuft von vorn (ohne Originalton), das Mikrofon nimmt mit
+let aufnahme = null;
+$('aufnahme').addEventListener('click', async () => {
+  if (aufnahme) { stoppen(); return; } // zweiter Tipp beendet die Aufnahme
+  if (!navigator.mediaDevices?.getUserMedia || !window.MediaRecorder) {
+    alert('Dieser Browser kann leider nicht aufnehmen. Nimm dein Sprachmemo mit dem Handy auf und wähl es mit „Aufnahme auswählen“ aus.');
+    return;
+  }
+  if (zustand.stimme && !confirm('Die bisherige Aufnahme wird ersetzt. Weiter?')) return;
+  stoppen();
+  audioVorbereiten();
+  let mikro;
+  try {
+    mikro = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
+  } catch (_) {
+    alert('Moment darf das Mikrofon nicht benutzen. Erlaube es in den Einstellungen des Browsers und versuch es nochmal.');
+    return;
+  }
+  const typ = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/webm'].find(m => MediaRecorder.isTypeSupported(m));
+  aufnahme = new MediaRecorder(mikro, typ ? { mimeType: typ } : undefined);
+  const stuecke = [];
+  aufnahme.ondataavailable = e => { if (e.data && e.data.size) stuecke.push(e.data); };
+  const fertig = new Promise(ok => { aufnahme.onstop = ok; });
+  zustand.stimme = null;
+  aufnahmeLaeuft = true;
+  $('aufnahme').textContent = '■ Aufnahme beenden';
+  $('aufnahme').classList.add('aktiv');
+  for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = true;
+  jetzt = 0;
+  synchron(0, false);
+  aufnahme.start();
+  await abspielen(() => {});
+  aufnahme.stop();
+  await fertig;
+  mikro.getTracks().forEach(tr => tr.stop());
+  aufnahmeLaeuft = false;
+  $('aufnahme').textContent = '🎙 Neu aufnehmen';
+  $('aufnahme').classList.remove('aktiv');
+  for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = false;
+  const blob = new Blob(stuecke, { type: aufnahme.mimeType || typ || 'audio/webm' });
+  aufnahme = null;
+  jetzt = 0; synchron(0, false); zeichnen(0);
+  try { await stimmeUebernehmen(await blob.arrayBuffer(), 'Deine Aufnahme'); }
+  catch (_) { alert('Die Aufnahme konnte nicht gespeichert werden. Bitte nochmal versuchen.'); stimmeAnzeigen(); }
+});
 
 // ── Erstellen ───────────────────────────────
 const warten = (el, ev) => new Promise(ok => el.addEventListener(ev, ok, { once: true }));
@@ -593,7 +716,7 @@ $('erstellen').addEventListener('click', async () => {
     return;
   }
   stoppen();
-  const mitTon = zustand.ton === 'an';
+  const mitTon = zustand.ton === 'an' || !!zustand.stimme;
   if (mitTon) audioVorbereiten();
   const mime = MIMES.find(m => MediaRecorder.isTypeSupported(m)) || '';
   const stream = leinwand.captureStream(30);

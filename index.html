@@ -854,8 +854,9 @@ function tabnavScrollBy(direction) {
     <div id="kar-folien"></div>
     <button class="btn-ghost-sm" onclick="karPunktDazu()">＋ Folie hinzufügen</button>
     <button class="btn-ghost-sm" onclick="karFotoWaehlen()">📷 Foto aus der Galerie</button>
+    <button class="btn-ghost-sm" onclick="karFotoWaehlen(undefined, true)">📁 Aus Galerie oder Dateien</button>
     <input type="file" id="kar-foto-input" accept="image/*" hidden onchange="karFotosGewaehlt(this)">
-    <p class="kar-tipp">Du kannst mehrere Fotos auf einmal wählen, jedes wird eine eigene Folie. Siehst du nur Google Fotos? Tippe oben auf „Alben“, dort sind Kamera, Downloads und WhatsApp. Standort und Kameradaten werden entfernt.</p>
+    <p class="kar-tipp">Du kannst mehrere Fotos auf einmal wählen, jedes wird eine eigene Folie. Öffnet sich Google Fotos? Unter „Sammlungen“ (oder „Alben“) sind die Ordner auf dem Handy, zum Beispiel Kamera, Download und WhatsApp. Oder nimm „Aus Galerie oder Dateien“. Standort und Kameradaten werden entfernt.</p>
 
     <div class="story-section-block" style="margin-top:14px">
       <div class="section-copy-row">
@@ -6533,10 +6534,13 @@ function karPunktDazu() {
 
 // Fotos aus der Galerie: auf das Folienformat 1080x1350 zuschneiden und als
 // JPEG merken. Das Neuzeichnen entfernt Standort- und Kameradaten.
+// alle = true: ohne accept, dann bietet Android statt der Foto-Auswahl
+// (oft nur Google Fotos) auch Galerie, Dateien und Downloads an.
 let karFotoZiel = null;
-function karFotoWaehlen(i) {
+function karFotoWaehlen(i, alle = false) {
   karFotoZiel = i === undefined ? null : i;
   const input = document.getElementById('kar-foto-input');
+  if (alle) input.removeAttribute('accept'); else input.accept = 'image/*';
   input.multiple = karFotoZiel === null;
   input.value = '';
   input.click();

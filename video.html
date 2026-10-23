@@ -147,6 +147,12 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     </div>
 
     <div class="card">
+      <div class="label">Goldrahmen</div>
+      <label class="reihe"><input type="checkbox" id="rahmen-an" style="accent-color:var(--gold);width:16px;height:16px;"> Goldrahmen mit Logo, wie bei „Foto im Rahmen“</label>
+      <p class="klein">Feine Goldlinie, oben das M, unten deine Unterschrift. Gilt fürs ganze Video, das Vorher-Foto und das Titelbild.</p>
+    </div>
+
+    <div class="card">
       <div class="label">Vorher / Nachher</div>
       <p class="klein">Ein Vorher-Foto am Anfang zeigen, danach läuft dein Video als Nachher.</p>
       <label class="btn" for="vorher-datei" id="vorher-waehlen">📷 Vorher-Foto wählen</label>
@@ -281,6 +287,10 @@ const ZEIGE_DAUER = { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.' };
 const NACHHER_SCHILD = 2; // so lange steht „Nachher“ am Anfang vom Video
 const logo = new Image();
 logo.src = 'bilder/unterschrift-export.png';
+const logoM = new Image();
+logoM.src = 'bilder/logo-m-export.png';
+const UNTERSCHRIFT_AB = 0.58; // nur Name + „A Great Hair Day“, ohne das M darüber (wie im Foto-Rahmen)
+let rahmenAn = false;
 
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
 
@@ -731,7 +741,9 @@ $('endkarte-dauer').addEventListener('click', e => {
 $('endkarte-titel').addEventListener('input', e => { endkarte.titel = e.target.value; zeigePhase('ende'); });
 $('endkarte-unter').addEventListener('input', e => { endkarte.unter = e.target.value; zeigePhase('ende'); });
 $('endkarte-ansehen').addEventListener('click', () => { stoppen(); zeigePhase('ende'); $('leinwand').scrollIntoView({ behavior: 'smooth', block: 'center' }); });
-logo.addEventListener('load', () => { if (phase === 'ende') zeichnen(); });
+logo.addEventListener('load', () => zeichnen());
+logoM.addEventListener('load', () => zeichnen());
+$('rahmen-an').addEventListener('change', e => { rahmenAn = e.target.checked; zeigePhase('video'); });
 vorherAnzeigen();
 endkarteAnzeigen();
 
@@ -864,7 +876,8 @@ function textZeichnen(t, alpha) {
   const zh = g * 1.2;
   const hoehe = zs.length * zh;
   // im sicheren Bereich halten (oben Profilzeile, unten Beschriftung von Instagram)
-  const oben = Math.min(Math.max(POSITIONEN[t.pos] - hoehe / 2, 260), 1560 - hoehe);
+  // mit Goldrahmen etwas tiefer, damit der Text nicht über dem M liegt
+  const oben = Math.min(Math.max(POSITIONEN[t.pos] - hoehe / 2, rahmenAn ? 380 : 260), 1560 - hoehe);
   ctx.globalAlpha = alpha;
   if (st.box) {
     const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * pad;
@@ -894,6 +907,23 @@ function medienZeichnen(quelle, qw, qh, modus, versatz) {
   const x = w > B ? -(w - B) * (versatz + 1) / 2 : (B - w) / 2;
   const y = h > H ? -(h - H) * (versatz + 1) / 2 : (H - h) / 2;
   ctx.drawImage(quelle, x, y, w, h);
+}
+
+// Goldrahmen wie „Foto im Rahmen“ in der App: Linie, M oben, Unterschrift unten
+function rahmenZeichnen() {
+  const rand = Math.round(B * 0.03);
+  ctx.strokeStyle = '#896c32';
+  ctx.lineWidth = Math.max(1, Math.round(B * 0.003));
+  ctx.strokeRect(rand, rand, B - 2 * rand, H - 2 * rand);
+  if (logoM.complete && logoM.naturalWidth) {
+    const w = Math.round(B * 0.2), h = Math.round(logoM.naturalHeight / logoM.naturalWidth * w);
+    ctx.drawImage(logoM, Math.round((B - w) / 2), Math.round(H * 0.055), w, h);
+  }
+  if (logo.complete && logo.naturalWidth) {
+    const vonY = Math.round(logo.naturalHeight * UNTERSCHRIFT_AB), hoch = logo.naturalHeight - vonY;
+    const w = Math.round(B * 0.52), h = Math.round(hoch / logo.naturalWidth * w);
+    ctx.drawImage(logo, 0, vonY, logo.naturalWidth, hoch, Math.round((B - w) / 2), Math.round(H * 0.945) - h, w, h);
+  }
 }
 
 // „Vorher“/„Nachher“-Schild unten mittig, über der Instagram-Beschriftung
@@ -936,6 +966,7 @@ function zeichnen() {
   if (phase === 'ende') return endkarteZeichnen();
   if (phase === 'vorher' && vorher.bild) medienZeichnen(vorher.bild, vorher.bild.naturalWidth, vorher.bild.naturalHeight, 'fuellen', vorher.versatz);
   else medienZeichnen(video, video.videoWidth, video.videoHeight, zustand.modus, zustand.versatz);
+  if (rahmenAn) rahmenZeichnen();
   const t = jetztImVideo();
   if (phase === 'vorher') vorherSchild(vorher.text);
   else if (vorher.bild && t - introDauer() < NACHHER_SCHILD) vorherSchild(vorher.nachText);
@@ -1080,6 +1111,7 @@ let titelbildUrl = null;
 $('titelbild').addEventListener('click', async () => {
   stoppen();
   medienZeichnen(video, video.videoWidth, video.videoHeight, zustand.modus, zustand.versatz);
+  if (rahmenAn) rahmenZeichnen();
   const titel = $('titelbild-text').value.trim();
   const vorbild = zustand.texte[0] || VORLAGEN.hook;
   if (titel) textZeichnen({ text: titel, schrift: vorbild.schrift, hg: vorbild.hg, farbe: vorbild.farbe, pos: 'mitte', groesse: 'l' }, 1);

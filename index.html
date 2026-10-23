@@ -8,6 +8,7 @@
 <meta name="apple-mobile-web-app-title" content="Reichweite">
 <title>Reichweite – A Great Hair Day</title>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script src="eigene-saetze.js"></script>
 <script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
 <script src="gehalt.js"></script>
 <script src="recruiting-daten.js"></script>
@@ -305,30 +306,20 @@ function tabnavScrollBy(direction) {
   <h2 class="screen-headline">Bilder &amp;<br>Videos</h2>
   <p class="bereich-intro">Fertig zum Posten, im Moment-Design.</p>
   <div class="start-kacheln">
-    <button class="start-kachel" onclick="location.href='sprueche.html'">
+    <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='sprueche.html'">
       <span class="start-kachel-icon">🖼</span>
-      <span class="start-kachel-titel">Spruch als Bild</span>
-      <span class="start-kachel-desc">Für Post oder Story</span>
-    </button>
-    <button class="start-kachel" onclick="location.href='sprueche.html?aktion=herbst'">
-      <span class="start-kachel-icon">📣</span>
-      <span class="start-kachel-titel">Aktion &amp; Aushang</span>
-      <span class="start-kachel-desc">Als Post oder A4 zum Drucken</span>
-    </button>
-    <button class="start-kachel" onclick="oeffneTab('rahmen')">
-      <span class="start-kachel-icon">🖼️</span>
-      <span class="start-kachel-titel">Vorlagen</span>
-      <span class="start-kachel-desc">Text im Spruch-Stil gestalten</span>
-    </button>
-    <button class="start-kachel" onclick="oeffneTab('mediasave')">
-      <span class="start-kachel-icon">📸</span>
-      <span class="start-kachel-titel">Foto/Video im Rahmen</span>
-      <span class="start-kachel-desc">Für die Story</span>
+      <span class="start-kachel-titel">Sprüche &amp; Aushänge</span>
+      <span class="start-kachel-desc">Spruch, eigener Text oder Aktion: als Bild, Story oder A4</span>
     </button>
     <button class="start-kachel" onclick="location.href='video.html'">
       <span class="start-kachel-icon">🎬</span>
       <span class="start-kachel-titel">Video + Text</span>
-      <span class="start-kachel-desc">Kürzen, Text drauf, speichern</span>
+      <span class="start-kachel-desc">Kürzen, Text drauf, auch mit Goldrahmen</span>
+    </button>
+    <button class="start-kachel" onclick="oeffneTab('mediasave')">
+      <span class="start-kachel-icon">📸</span>
+      <span class="start-kachel-titel">Foto im Rahmen</span>
+      <span class="start-kachel-desc">Goldrahmen mit Logo für die Story</span>
     </button>
     <button class="start-kachel" onclick="location.href='haarkompass-post.html'">
       <span class="start-kachel-icon">🧭</span>
@@ -340,7 +331,7 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-titel">Karussell</span>
       <span class="start-kachel-desc">Neues Karussell mit Folien</span>
     </button>
-    <button class="start-kachel" onclick="location.href='instagram.html'">
+    <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='instagram.html'">
       <span class="start-kachel-icon">📁</span>
       <span class="start-kachel-titel">Instagram-Mappe</span>
       <span class="start-kachel-desc">Fertige Karussells &amp; Profiltexte</span>
@@ -1765,6 +1756,7 @@ function tabnavScrollBy(direction) {
     <!-- Video-Hinweis -->
     <div id="ms-video-tip" style="display:none;background:#fff8e8;border:1px solid #e0c070;border-radius:10px;padding:12px 14px;font-size:13px;color:#7a6020;line-height:1.5;">
       <strong>📱 Video gespeichert!</strong> Das ist ein Standbild deines Videos mit Rahmen. Um das echte Video mit Rahmen zu posten: Instagram Story → dein Video → Sticker → dieses Bild auswählen → auf Vollbild aufziehen.
+      <br><strong>Einfacher:</strong> In <a href="video.html" style="color:inherit;">Video + Text</a> „Goldrahmen mit Logo“ einschalten, dann ist der Rahmen direkt im Video.
     </div>
 
     <div style="display:flex;gap:8px;">
@@ -4473,16 +4465,8 @@ function showTab_direct(screenId) {
 // RAHMEN
 // ════════════════════════════════════════════
 
-const DEFAULT_SPRUECHE = [
-  {val:'s0', label:'Bei uns musst du dich nicht erklären.'},
-  {val:'s1', label:'Vertrauen wächst still. Seit über 30 Jahren.'},
-  {val:'s2', label:'Schneide die Vergangenheit ab. Entdecke deinen neuen Stil.'},
-  {val:'s3', label:'Wer aufhört zu lernen, hört auf zu wachsen.'},
-  {val:'s4', label:'Qualität ist keine Entscheidung. Sie ist eine Haltung.'},
-  {val:'s5', label:'Äußeres und inneres Wohlbefinden gehören zusammen.'},
-  {val:'s6', label:'Eine Stunde bei uns — und du gehst anders raus.'},
-  {val:'s7', label:'Manche Kund:innen kommen seit 30 Jahren. Das sagt mehr als jede Werbung.'},
-];
+// Standard-Sätze stehen in eigene-saetze.js (auch von sprueche.html genutzt)
+const DEFAULT_SPRUECHE = EIGENE_SAETZE_STANDARD;
 
 function loadChipData(key, defaults) {
   try { return JSON.parse(localStorage.getItem('ghd_'+key)) || defaults; } catch { return defaults; }

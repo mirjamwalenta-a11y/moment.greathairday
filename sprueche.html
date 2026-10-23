@@ -32,6 +32,9 @@ header{text-align:center;padding:6px 0 2px;}
 .chips{display:flex;flex-wrap:wrap;gap:8px;}
 .chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 13px var(--sans);padding:8px 13px;border-radius:999px;cursor:pointer;}
 .chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+.modus{display:grid;grid-template-columns:repeat(3,1fr);gap:4px;background:var(--gold-light, #EFE6D4);padding:4px;border-radius:12px;}
+.modus a{text-align:center;border-radius:9px;padding:9px 4px;font:600 13px var(--sans);color:var(--gold);text-decoration:none;}
+.modus a.on{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 
 .preview{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:flex;justify-content:center;}
 canvas{width:100%;height:auto;border-radius:6px;box-shadow:0 2px 14px rgba(0,0,0,.08);}
@@ -65,6 +68,18 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
     <div class="rule"></div>
     <p class="intro" id="intro">Spruch wählen oder selbst schreiben, Format aussuchen, Bild speichern.</p>
   </header>
+
+  <!-- Drei Wege in einem Werkzeug (früher: Spruch als Bild, Vorlagen, Aktion & Aushang) -->
+  <nav class="modus" id="modus" aria-label="Was gestalten">
+    <a href="sprueche.html" data-modus="sprueche">💬 Sprüche</a>
+    <a href="sprueche.html?rahmen=1" data-modus="eigen">✏️ Eigener Text</a>
+    <a href="sprueche.html?aktion=1" data-modus="aktion">🏷 Aktion</a>
+  </nav>
+
+  <section id="saetze-section" style="display:none;">
+    <div class="label">Deine Sätze</div>
+    <div class="chips" id="saetze-chips"></div>
+  </section>
 
   <section id="aktion-section" style="display:none;flex-direction:column;gap:10px;">
     <div class="label">Aktion wählen</div>
@@ -202,6 +217,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 
 <!-- QR-Code-Generator (Kazuhiko Arase, MIT-Lizenz), lokal eingebunden -->
 <script src="qrcode-generator.js"></script>
+<script src="eigene-saetze.js"></script>
 <script src="gehalt.js"></script>
 <script>
 // ── Rahmen-Modus: aus der App (Rahmen → „Im Spruch-Stil“) aufgerufen mit ?rahmen=1.
@@ -228,6 +244,29 @@ if (EIGEN) {
   // Textfelder ganz nach oben, damit man gleich lostippen kann
   const text = document.getElementById('text-section');
   text.parentNode.insertBefore(text, document.getElementById('format-section'));
+}
+document.querySelectorAll('#modus a').forEach(a => a.classList.toggle('on',
+  a.dataset.modus === (AKTION ? 'aktion' : RAHMEN ? 'eigen' : 'sprueche')));
+if (RAHMEN) {
+  // Die eigenen Sätze aus „Vorlagen“ zum Antippen
+  const saetze = eigeneSaetzeLaden();
+  if (saetze.length) {
+    document.getElementById('saetze-section').style.display = 'block';
+    const chips = document.getElementById('saetze-chips');
+    chips.innerHTML = saetze.map((x, i) => `<button class="chip" data-i="${i}"></button>`).join('');
+    chips.querySelectorAll('.chip').forEach(c => {
+      const label = saetze[Number(c.dataset.i)].label;
+      c.textContent = label.length > 40 ? label.slice(0, 40) + '…' : label;
+      c.addEventListener('click', () => {
+        const [a, b] = teileText(label);
+        Object.assign(state, { k:'eigen', idx:-1, a, b, c:'' });
+        document.getElementById('f-a').value = a;
+        document.getElementById('f-b').value = b;
+        draw();
+        document.getElementById('preview').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      });
+    });
+  }
 }
 if (RAHMEN) {
   const rt = document.getElementById('reeltext-section');

@@ -204,8 +204,12 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <div class="label">Titelbild fürs Profil</div>
       <p class="klein">Regler unter dem Video auf das schönste Bild stellen, Titel eingeben, speichern. In Instagram beim Reel „Titelbild bearbeiten“ und dann das Foto aus der Galerie wählen. Im Profil zeigt Instagram nur die Mitte, deshalb steht der Titel dort.</p>
       <input class="eingabe" id="titelbild-text" placeholder="Titel, z. B. Wunsch-Blond" maxlength="60" aria-label="Titel fürs Titelbild">
-      <button class="btn" id="titelbild">🖼 Titelbild speichern</button>
+      <button class="btn" id="titelbild">🖼 Titelbild erstellen</button>
       <img id="titelbild-vorschau" alt="Titelbild" hidden style="width:50%;align-self:center;border-radius:10px;">
+      <div class="knoepfe" id="titelbild-knoepfe" hidden>
+        <button class="btn haupt" id="titelbild-teilen">📲 Teilen</button>
+        <button class="btn" id="titelbild-speichern">⬇ Aufs Handy speichern</button>
+      </div>
     </div>
 
     <button class="btn neu" id="erstellen">Video erstellen</button>
@@ -218,8 +222,9 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     <div id="ergebnis" class="card ergebnis" hidden>
       <div class="label">Fertig</div>
       <video id="fertig" controls playsinline></video>
-      <button class="btn haupt" id="teilen">📲 Video speichern / teilen</button>
-      <p class="klein" id="teilen-hinweis">Am iPhone im Teilen-Menü „Video sichern“ wählen, danach in Instagram aus der Galerie posten.</p>
+      <button class="btn haupt" id="teilen">📲 Video teilen</button>
+      <button class="btn" id="speichern">⬇ Video aufs Handy speichern</button>
+      <p class="klein" id="teilen-hinweis">iPhone: „Video teilen“ und dann „Video sichern“. Android: „Video aufs Handy speichern“, das Video liegt dann im Ordner „Downloads“ und erscheint in Instagram in der Galerie.</p>
       <div class="hinweis warnung" id="format-hinweis" hidden></div>
     </div>
 
@@ -1085,6 +1090,14 @@ $('erstellen').addEventListener('click', async () => {
 
 // Teilen öffnet am Handy das Teilen-Menü („Video sichern“ / Instagram).
 // Geht das nicht, wird die Datei heruntergeladen.
+function herunterladen(datei) {
+  const url = URL.createObjectURL(datei);
+  const a = document.createElement('a');
+  a.href = url; a.download = datei.name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(url), 1500);
+}
+
 async function teilen(datei) {
   try {
     if (navigator.canShare && navigator.canShare({ files: [datei] })) {
@@ -1094,20 +1107,20 @@ async function teilen(datei) {
   } catch (e) {
     if (e && e.name === 'AbortError') return;
   }
-  const url = URL.createObjectURL(datei);
-  const a = document.createElement('a');
-  a.href = url; a.download = datei.name;
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  herunterladen(datei);
 }
 $('teilen').addEventListener('click', () => { if (ergebnisDatei) teilen(ergebnisDatei); });
+// Android hat im Teilen-Menü oft kein „Speichern“, deshalb direkt aufs Gerät laden
+$('speichern').addEventListener('click', () => { if (ergebnisDatei) herunterladen(ergebnisDatei); });
 
 const stempel = () => new Date().toISOString().slice(0, 16).replace(/[-:]/g, '').replace('T', '-');
 
 // ── Titelbild ───────────────────────────────
 // Bild an der aktuellen Stelle + Titel in der Mitte (Instagram zeigt im
 // Profil nur den mittleren 3:4-Ausschnitt). Stil wie der erste Text.
-let titelbildUrl = null;
+let titelbildUrl = null, titelbildDatei = null;
+$('titelbild-teilen').addEventListener('click', () => { if (titelbildDatei) teilen(titelbildDatei); });
+$('titelbild-speichern').addEventListener('click', () => { if (titelbildDatei) herunterladen(titelbildDatei); });
 $('titelbild').addEventListener('click', async () => {
   stoppen();
   medienZeichnen(video, video.videoWidth, video.videoHeight, zustand.modus, zustand.versatz);
@@ -1122,7 +1135,8 @@ $('titelbild').addEventListener('click', async () => {
   titelbildUrl = URL.createObjectURL(blob);
   $('titelbild-vorschau').src = titelbildUrl;
   $('titelbild-vorschau').hidden = false;
-  teilen(new File([blob], `moment-titelbild-${stempel()}.jpg`, { type: 'image/jpeg' }));
+  $('titelbild-knoepfe').hidden = false;
+  titelbildDatei = new File([blob], `moment-titelbild-${stempel()}.jpg`, { type: 'image/jpeg' });
 });
 </script>
 </body>

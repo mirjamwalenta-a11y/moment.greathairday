@@ -860,6 +860,10 @@ function tabnavScrollBy(direction) {
       <button class="btn-copy" id="kar-teilen" onclick="karussellTeilen(this)">📲 Alle Bilder teilen</button>
       <button class="btn-edit" id="kar-speichern" onclick="karussellSpeichern()">💾 In Mappe</button>
     </div>
+    <div class="cta-row">
+      <button class="btn-edit" id="kar-herunterladen" onclick="karussellTeilen(this, true)">⬇ Bilder aufs Handy speichern</button>
+    </div>
+    <div class="kar-tipp">Android: „Bilder aufs Handy speichern“ legt die Folien in den Ordner „Downloads“. In Instagram findest du sie dann in der Galerie. Beim ersten Mal fragt Chrome, ob mehrere Dateien geladen werden dürfen, bitte „Zulassen“.</div>
     <div id="kar-status" class="kar-tipp"></div>
   </div>
 </section>
@@ -6507,7 +6511,8 @@ function karussellSpeichern() {
     : 'Speichern ging nicht (privates Fenster?). Bilder und Caption kannst du trotzdem teilen und kopieren.';
 }
 
-async function karussellTeilen(btn) {
+// direkt = true: ohne Teilen-Menü aufs Gerät laden (Android hat dort oft kein „Speichern“)
+async function karussellTeilen(btn, direkt = false) {
   const alt = btn.textContent;
   btn.disabled = true; btn.textContent = 'Bilder werden erstellt …';
   try {
@@ -6515,18 +6520,11 @@ async function karussellTeilen(btn) {
       .replace(/ä/g, 'ae').replace(/ö/g, 'oe').replace(/ü/g, 'ue').replace(/ß/g, 'ss')   // Umlaute im Dateinamen: Chrome nennt die Datei sonst nur „download“
       .replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 40) || 'karussell';
     const dateien = await KarussellCanvas.alsDateien(karAktuell.daten, name);
-    if (navigator.canShare && navigator.canShare({ files: dateien })) {
+    if (!direkt && navigator.canShare && navigator.canShare({ files: dateien })) {
       await navigator.share({ files: dateien, title: karAktuell.titel });
     } else {
-      for (const d of dateien) {
-        const a = document.createElement('a');
-        const url = URL.createObjectURL(d);
-        a.href = url; a.download = d.name;
-        document.body.appendChild(a); a.click();
-        setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
-        await new Promise(r => setTimeout(r, 300));
-      }
-      document.getElementById('kar-status').textContent = `${dateien.length} Bilder heruntergeladen (Ordner „Downloads“).`;
+      await KarussellCanvas.herunterladen(dateien);
+      document.getElementById('kar-status').textContent = `${dateien.length} Bilder gespeichert (Ordner „Downloads“).`;
     }
   } catch (e) {
     if (!(e && e.name === 'AbortError')) document.getElementById('kar-status').textContent = 'Das Teilen hat nicht geklappt. Nochmal versuchen.';

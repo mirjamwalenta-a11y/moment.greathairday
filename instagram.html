@@ -84,6 +84,7 @@ details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-i
   </section>
   <section id="profile" class="liste" hidden></section>
 
+  <p class="fuss">Android: „Bilder speichern“ legt die Folien in den Ordner „Downloads“, Instagram findet sie dort in der Galerie.</p>
   <p class="fuss">Neue Karussells und Profil-Checks macht Claude mit den Instagram-Helfern im Repo und legt sie hier ab.</p>
 </div>
 
@@ -110,8 +111,9 @@ function kopieren(text, btn) {
 }
 
 // Teilen öffnet am Handy das Teilen-Menü (dort „Instagram“ oder „Bilder speichern“).
-// Geht das nicht, werden die Bilder einzeln heruntergeladen.
-async function alleTeilen(id, btn) {
+// Geht das nicht, oder direkt = true („Bilder speichern“, wichtig für Android, wo im
+// Teilen-Menü oft kein Speichern steht), werden die Bilder einzeln heruntergeladen.
+async function alleTeilen(id, btn, direkt = false) {
   const k = KARUSSELLS.find(x => x.id === id);
   const pfade = folienPfade(k);
   btn.disabled = true;
@@ -122,17 +124,10 @@ async function alleTeilen(id, btn) {
       const blob = await (await fetch(p)).blob();
       return new File([blob], `${k.id}-${p.split('/').pop()}`, { type: 'image/png' });
     }));
-    if (navigator.canShare && navigator.canShare({ files: dateien })) {
+    if (!direkt && navigator.canShare && navigator.canShare({ files: dateien })) {
       await navigator.share({ files: dateien, title: k.titel });
     } else {
-      for (const d of dateien) {
-        const a = document.createElement('a');
-        const url = URL.createObjectURL(d);
-        a.href = url; a.download = d.name;
-        document.body.appendChild(a); a.click();
-        setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1000);
-        await new Promise(r => setTimeout(r, 300));
-      }
+      await KarussellCanvas.herunterladen(dateien);
     }
   } catch (e) {
     if (!(e && e.name === 'AbortError')) alert('Das hat nicht geklappt. Tipp auf ein Bild, dann kannst du es einzeln speichern.');
@@ -149,6 +144,7 @@ function renderKarussells() {
       <div class="folien">${folienPfade(k).map((p, i) => `<a href="${p}" target="_blank" rel="noopener"><img src="${p}" loading="lazy" alt="Folie ${i + 1}"></a>`).join('')}</div>
       <div class="knoepfe">
         <button class="btn haupt" onclick="alleTeilen('${k.id}', this)">📲 Alle Bilder teilen</button>
+        <button class="btn" onclick="alleTeilen('${k.id}', this, true)">⬇ Bilder speichern</button>
         <button class="btn" onclick="kopieren(KARUSSELLS.find(x => x.id === '${k.id}').caption, this)">📋 Caption</button>
         <button class="btn" onclick="kopieren(KARUSSELLS.find(x => x.id === '${k.id}').alt, this)">📋 Alternativtext</button>
         ${k.daten ? `<button class="btn" onclick="location.href='index.html?zeige=karussell&k=${k.id}'">✏️ Bearbeiten</button>` : ''}

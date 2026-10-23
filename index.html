@@ -18,7 +18,7 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="css/app.css?v=20261023a">
+<link rel="stylesheet" href="css/app.css?v=20261023b">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icons/icon-180.png">
 <meta name="theme-color" content="#F5F0EA">
@@ -205,15 +205,37 @@ function tabnavScrollBy(direction) {
 </section>
 
 <!-- ══ BEREICH: SCHREIBEN ══ -->
+<!-- Ein Eingabefeld für alle Text-Werkzeuge: Format wählen, Wörni schreibt im
+     passenden Werkzeug. Die einzelnen Werkzeuge bleiben darunter erreichbar. -->
 <section class="screen" id="screen-b-schreiben">
   <p class="screen-eyebrow">Schreiben</p>
-  <h2 class="screen-headline">Text für<br>heute</h2>
-  <p class="bereich-intro">Alles, was Wörni für dich schreibt.</p>
+  <h2 class="screen-headline">Was willst du<br>erzählen?</h2>
+  <div class="start-schreiben">
+    <div class="start-schreiben-label">✍️ Dein Moment</div>
+    <div class="start-schreiben-hint">Stichworte reichen, Wörni schreibt den Text.</div>
+    <div class="input-with-mic">
+      <textarea id="schreiben-moment" rows="4" placeholder="z. B. Kundin, 2 Jahre Wunsch-Blond, heute endlich, sie hat geweint vor Freude"></textarea>
+      <button class="btn-mic" id="mic-schreiben" onclick="toggleMic('schreiben-moment','mic-schreiben')" aria-label="Spracheingabe starten" title="Sprachsteuerung">🎙</button>
+    </div>
+    <div class="input-label" style="margin-top:12px;">Als</div>
+    <div class="chip-row" id="schreiben-format-row">
+      <button class="chip-select on" data-val="post" onclick="pickSel(this,'schreibformat')">✍ Post</button>
+      <button class="chip-select" data-val="story" onclick="pickSel(this,'schreibformat')">📱 Story</button>
+      <button class="chip-select" data-val="reel" onclick="pickSel(this,'schreibformat')">🎬 Reel-Skript</button>
+      <button class="chip-select" data-val="google" onclick="pickSel(this,'schreibformat')">📍 Google-Beitrag</button>
+    </div>
+    <button class="btn-main" style="margin-top:14px;" onclick="schreibenStart()">✦ Wörni schreiben lassen</button>
+    <div class="start-schreiben-fehler" id="schreiben-fehler">Schreib zuerst ein paar Stichworte.</div>
+    <button class="start-foto" onclick="schreibenMitFoto()">📸 Mit Foto starten (Post)</button>
+  </div>
+  <p class="bereich-intro" style="margin-top:18px;">Unter jedem fertigen Text findest du „3 andere Einstiege“, einen Schluss-Satz (CTA) und „Anderes Format“.</p>
+
+  <p class="start-eyebrow" style="margin-top:8px;">Einzelne Werkzeuge</p>
   <div class="start-kacheln">
     <button class="start-kachel" onclick="oeffneTab('post')">
       <span class="start-kachel-icon">✍</span>
       <span class="start-kachel-titel">Post</span>
-      <span class="start-kachel-desc">Aus einem Moment ein ganzer Post</span>
+      <span class="start-kachel-desc">Mit Ton, Zielgruppe, Kanal, Foto-Analyse</span>
     </button>
     <button class="start-kachel" onclick="oeffneTab('story')">
       <span class="start-kachel-icon">📱</span>
@@ -228,12 +250,12 @@ function tabnavScrollBy(direction) {
     <button class="start-kachel" onclick="oeffneTab('google')">
       <span class="start-kachel-icon">📍</span>
       <span class="start-kachel-titel">Google-Beitrag</span>
-      <span class="start-kachel-desc">Für die lokale Suche</span>
+      <span class="start-kachel-desc">Auch Antworten auf Bewertungen</span>
     </button>
     <button class="start-kachel" onclick="oeffneTab('hook')">
       <span class="start-kachel-icon">🎯</span>
       <span class="start-kachel-titel">Hook</span>
-      <span class="start-kachel-desc">Drei Einstiege für den ersten Satz</span>
+      <span class="start-kachel-desc">Einstiege nach Bereich und Moment</span>
     </button>
     <button class="start-kachel" onclick="oeffneTab('cta')">
       <span class="start-kachel-icon">📣</span>
@@ -1938,7 +1960,11 @@ function goBack() {
     const isStart = prev === 'screen-start';
     if (isStart) renderHeute();
     document.getElementById('backBtn').classList.toggle('visible', !isStart);
-    if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
+    // Aus einem Bereich (untere Leiste) heraus geöffnet: ohne Tab-Leiste
+    // zurück ins Werkzeug, statt die Werkbank zu öffnen
+    const ausBereich = screenHistory.some(id => id.startsWith('screen-b-'));
+    if (ausBereich && !isStart) document.getElementById('backBtn').classList.add('visible');
+    else if (!isStart && prev.startsWith('screen-') && ['screen-hook','screen-post','screen-story','screen-ideen','screen-rahmen'].includes(prev)) {
       showTabNav();
     }
     window.scrollTo(0, 0);
@@ -2018,6 +2044,144 @@ function oeffneTab(id) {
   document.getElementById('tabnav').style.display = 'none';
   tabNavVisible = false;
   document.getElementById('backBtn').classList.add('visible');
+}
+
+// ════════════════════════════════════════════
+// SCHREIBEN: ein Eingabefeld für Post, Story, Reel und Google
+// ════════════════════════════════════════════
+// Nutzt die bestehenden Werkzeuge: Moment eintragen, dort schreiben lassen.
+// Danach bietet die „Weiter“-Leiste unter dem Ergebnis Einstiege, CTA und
+// ein anderes Format für denselben Moment an.
+const SCHREIB_GENERATOR = { post: () => generatePost(), story: () => generateStory(), reel: () => generateReel(), google: () => generateGooglePost() };
+const SCHREIB_ERGEBNIS = { post: ['post-result', 'post-result-multi', 'post-result-text'], story: ['story-result'], reel: ['reel-result'], google: ['google-result'] };
+const SCHREIB_FORMAT_NAME = { post: 'Post', story: 'Story', reel: 'Reel', google: 'Google-Beitrag' };
+
+// Werkzeug aus „Schreiben“ heraus öffnen: ohne Tab-Leiste, mit Zurück-Knopf
+function inWerkzeugWechseln(format, moment) {
+  oeffneGenerator(format, moment, SEL.postkontext || 'salon');
+  screenHistory.push(GENERATOR_ZIEL[format].screen);
+  bereichMarkieren(GENERATOR_ZIEL[format].screen);
+  document.getElementById('tabnav').style.display = 'none';
+  tabNavVisible = false;
+  document.getElementById('backBtn').classList.add('visible');
+}
+
+function schreibenStart() {
+  const feld = document.getElementById('schreiben-moment');
+  const m = feld.value.trim();
+  const fehler = document.getElementById('schreiben-fehler');
+  if (m.length < 5) { fehler.style.display = 'block'; feld.focus(); return; }
+  fehler.style.display = 'none';
+  const format = SEL.schreibformat || 'post';
+  inWerkzeugWechseln(format, m);
+  setTimeout(() => SCHREIB_GENERATOR[format](), 250);
+}
+
+function schreibenMitFoto() {
+  const m = document.getElementById('schreiben-moment').value.trim();
+  inWerkzeugWechseln('post', m);
+  document.getElementById('foto-analyse-input').click();
+}
+
+// „Weiter“-Leiste unter jedem Ergebnis einbauen
+function weiterLeistenEinbauen() {
+  for (const format of Object.keys(SCHREIB_ERGEBNIS)) {
+    const letztes = document.getElementById(SCHREIB_ERGEBNIS[format].at(-1));
+    if (!letztes || document.getElementById('weiter-' + format)) continue;
+    letztes.insertAdjacentHTML('afterend', `
+      <div class="weiter-leiste" id="weiter-${format}" hidden>
+        <div class="weiter-titel">Weiter mit diesem Moment</div>
+        <div class="weiter-knoepfe">
+          <button onclick="andereEinstiege('${format}', this)">🎯 3 andere Einstiege</button>
+          <button onclick="schlussSatz('${format}')">📣 Schluss-Satz (CTA)</button>
+          <button onclick="anderesFormat('${format}')">🔁 Anderes Format</button>
+        </div>
+        <div class="weiter-ergebnis" id="weiter-${format}-ergebnis"></div>
+      </div>`);
+  }
+}
+weiterLeistenEinbauen();
+
+// Nach jedem Schreiben die Leiste zeigen, wenn ein Ergebnis sichtbar ist
+for (const format of Object.keys(SCHREIB_ERGEBNIS)) {
+  const name = { post: 'generatePost', story: 'generateStory', reel: 'generateReel', google: 'generateGooglePost' }[format];
+  const original = window[name];
+  window[name] = async function (...args) {
+    const ergebnis = await original.apply(this, args);
+    const sichtbar = SCHREIB_ERGEBNIS[format].some(id => { const el = document.getElementById(id); return el && el.style.display !== 'none'; });
+    const leiste = document.getElementById('weiter-' + format);
+    if (leiste) {
+      leiste.hidden = !sichtbar;
+      document.getElementById('weiter-' + format + '-ergebnis').innerHTML = '';
+    }
+    return ergebnis;
+  };
+}
+
+const schreibMoment = format => (document.getElementById(GENERATOR_ZIEL[format].feld)?.value || '').trim();
+const schreibKontext = format => format === 'google' ? 'salon' : (SEL[format + 'kontext'] || SEL.postkontext || 'salon');
+
+async function andereEinstiege(format, btn) {
+  const m = schreibMoment(format);
+  const ziel = document.getElementById('weiter-' + format + '-ergebnis');
+  if (m.length < 5) return;
+  const kontext = schreibKontext(format);
+  const alt = btn.textContent;
+  btn.disabled = true;
+  btn.textContent = '✦ Wörni überlegt …';
+  const system = `Du bist Wörni, der Schreibassistent von Mirjam Walenta.
+
+${kontextTeil(kontext)}
+
+${stimmeLabel(kontext)}: warm, herzlich und echt, in klaren vollständigen Sätzen, keine Marketing-Floskeln.
+
+Schreibe 3 verschiedene erste Sätze (Einstiege) für ${format === 'reel' ? 'ein Reel (gesprochen oder als Text im Bild)' : format === 'story' ? 'die erste Story' : format === 'google' ? 'einen Google-Beitrag' : 'einen Instagram-Post'} über den Moment, den Mirjam beschreibt.
+Regeln:
+- Jeder Einstieg höchstens 120 Zeichen, ein konkretes Detail aus der Eingabe.
+- Drei unterschiedliche Arten: eine Beobachtung, eine Frage, ein kurzer starker Satz.
+- Nichts erfinden, was nicht in der Eingabe steht (keine Namen, Zahlen, Orte, Zitate).
+- Kein Clickbait, keine Floskeln wie „Kennst du das?“ oder „Spannend!“, keine Gedankenstrich-Ketten, höchstens ein Emoji pro Einstieg.
+Antworte nur mit einem JSON-Array aus 3 Strings.`;
+  const roh = await claudeAnfrage(system, m, 400);
+  btn.disabled = false;
+  btn.textContent = alt;
+  let einstiege = [];
+  if (roh) {
+    const von = roh.indexOf('['), bis = roh.lastIndexOf(']');
+    try { einstiege = JSON.parse(roh.slice(von, bis + 1)).filter(x => typeof x === 'string' && x.trim()).slice(0, 3); } catch (_) {}
+  }
+  if (!einstiege.length) {
+    ziel.innerHTML = `<div class="weiter-hinweis">Wörni hat gerade nicht geantwortet${letzterKIFehler ? ' (' + escHtml(letzterKIFehler) + ')' : ''}. Feste Einstiege findest du im <button class="weiter-link" onclick="oeffneTab('hook')">Hook-Werkzeug</button>.</div>`;
+    return;
+  }
+  ziel.innerHTML = einstiege.map((e, i) => `
+    <div class="weiter-einstieg"><span>${escHtml(e)}</span><button onclick="einstiegKopieren(this, ${i})">Kopieren</button></div>`).join('');
+  ziel.dataset.einstiege = JSON.stringify(einstiege);
+}
+
+function einstiegKopieren(btn, i) {
+  const text = JSON.parse(btn.closest('.weiter-ergebnis').dataset.einstiege)[i];
+  const fertig = () => { btn.textContent = '✓ Kopiert'; setTimeout(() => { btn.textContent = 'Kopieren'; }, 1600); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(fertig, () => {}); else fertig();
+}
+
+// CTA-Werkzeug mit demselben Moment öffnen und gleich formulieren lassen
+function schlussSatz(format) {
+  const m = schreibMoment(format);
+  oeffneTab('cta');
+  const feld = document.getElementById('cta-kontext');
+  feld.value = m.slice(0, 160);
+  feld.dispatchEvent(new Event('input'));
+  generateCTA();
+}
+
+// Zurück zu „Schreiben“, derselbe Moment, anderes Format vorgewählt
+function anderesFormat(format) {
+  const m = schreibMoment(format);
+  zeigeBereich('schreiben');
+  document.getElementById('schreiben-moment').value = m;
+  const naechstes = { post: 'story', story: 'reel', reel: 'post', google: 'post' }[format];
+  setChipRow('schreiben-format-row', 'schreibformat', naechstes);
 }
 
 // ════════════════════════════════════════════

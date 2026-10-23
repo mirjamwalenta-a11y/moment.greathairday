@@ -175,5 +175,19 @@ const KarussellCanvas = (() => {
     return dateien;
   }
 
-  return { zeichne, alsDateien };
+  // Bilder direkt aufs Gerät laden, ohne Teilen-Menü. Wichtig für Android:
+  // Dort fehlt im Teilen-Menü meist „Bilder speichern“. Die Dateien landen im
+  // Ordner „Downloads“; Galerie und Instagram finden sie dort.
+  async function herunterladen(dateien) {
+    for (const d of dateien) {
+      const a = document.createElement('a');
+      const url = URL.createObjectURL(d);
+      a.href = url; a.download = d.name;
+      document.body.appendChild(a); a.click();
+      setTimeout(() => { a.remove(); URL.revokeObjectURL(url); }, 1500);
+      await new Promise(r => setTimeout(r, 400));
+    }
+  }
+
+  return { zeichne, alsDateien, herunterladen };
 })();

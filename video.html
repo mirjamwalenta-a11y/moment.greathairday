@@ -57,6 +57,14 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .balken{height:8px;background:var(--gold-light);border-radius:4px;overflow:hidden;}
 .balken div{height:100%;width:0;background:var(--gold);transition:width .2s;}
 .ergebnis video{width:min(100%, calc(55vh * 9 / 16));align-self:center;border-radius:12px;background:var(--ink);}
+.zeitleiste{position:relative;}
+.schnitt-leiste{position:relative;height:6px;border-radius:3px;background:var(--gold-light);margin-top:2px;overflow:hidden;}
+.schnitt-leiste span{position:absolute;top:0;bottom:0;background:var(--warn);}
+.feld{display:flex;flex-direction:column;gap:4px;}
+.feld-name{font-size:11px;font-weight:600;color:var(--sub);}
+.schnitt-zeile{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;font-size:13px;font-variant-numeric:tabular-nums;}
+.schnitt-zeile .btn{padding:6px 10px;font-size:12px;}
+.btn.aktiv{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
 .quelle{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 [hidden]{display:none!important;}
@@ -83,7 +91,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <canvas id="leinwand" width="1080" height="1920"></canvas>
       <button class="play" id="play" aria-label="Abspielen">▶</button>
     </div>
-    <input type="range" id="zeit" min="0" max="1" step="0.05" value="0" aria-label="Stelle im Video">
+    <div class="zeitleiste">
+      <input type="range" id="zeit" min="0" max="1" step="0.05" value="0" aria-label="Stelle im Video">
+      <div class="schnitt-leiste" id="schnitt-leiste" aria-hidden="true"></div>
+    </div>
 
     <div class="card">
       <div class="label">Kürzen</div>
@@ -93,6 +104,13 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <input type="range" id="ende" min="0" step="0.1" value="0" aria-label="Ende">
       <div class="klein" id="laenge"></div>
       <div class="hinweis" id="zu-lang" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Stellen herausschneiden</div>
+      <p class="klein">Video bis zur Stelle abspielen oder den Regler unter dem Video schieben, dann „Schnitt ab hier“. Danach bis zum Ende der Stelle weiter und „bis hier“ tippen.</p>
+      <button class="btn" id="schnitt">✂ Schnitt ab hier</button>
+      <div id="schnitte" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
     <div class="card">
@@ -156,12 +174,20 @@ const SERIF = "'Playfair Display', Georgia, serif";
 const SANS = "Inter, system-ui, sans-serif";
 const MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
 
-// Textstile: Hook (Playfair auf dunklem Band), Untertitel (weiß mit Kontur), Beige (Moment-Farben)
-const STILE = {
-  hook:       { name: 'Hook',       groesse: 84, font: g => `700 ${g}px ${SERIF}`, farbe: '#fff',    box: 'rgba(28,27,25,.72)' },
-  untertitel: { name: 'Untertitel', groesse: 62, font: g => `700 ${g}px ${SANS}`,  farbe: '#fff',    kontur: '#1C1B19' },
-  beige:      { name: 'Beige',      groesse: 64, font: g => `600 ${g}px ${SANS}`,  farbe: '#1C1B19', box: '#F5F0EA' }
+// Text-Gestaltung: Schrift, Hintergrund und Farbe sind frei kombinierbar;
+// die Vorlagen setzen alle drei auf einmal.
+const SCHRIFTEN = {
+  serif: { name: 'Elegant', groesse: 84, font: g => `700 ${g}px ${SERIF}` },
+  sans:  { name: 'Klar',    groesse: 64, font: g => `700 ${g}px ${SANS}` }
 };
+const HINTERGRUENDE = { ohne: ['Ohne', null], dunkel: ['Dunkel', 'rgba(28,27,25,.72)'], hell: ['Hell', '#F5F0EA'], gold: ['Gold', '#8A7346'] };
+const FARBEN = { weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
+const VORLAGEN = {
+  hook:       { name: 'Hook',       schrift: 'serif', hg: 'dunkel', farbe: 'weiss' },
+  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'weiss' },
+  beige:      { name: 'Beige',      schrift: 'sans',  hg: 'hell',   farbe: 'schwarz' }
+};
+const textFarbe = t => t.farbe === 'weiss' ? '#fff' : t.farbe === 'schwarz' ? '#1C1B19' : t.hg === 'hell' ? '#8A7346' : '#D4BC8A';
 const GROESSEN = { s: 0.75, m: 1, l: 1.3 };
 // Mitte des Textblocks; oben/unten mit Abstand zu den Instagram-Bedienelementen
 const POSITIONEN = { oben: 420, mitte: H / 2, unten: 1380 };
@@ -170,12 +196,34 @@ const $ = id => document.getElementById(id);
 const video = $('quelle'), leinwand = $('leinwand'), ctx = leinwand.getContext('2d');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 
-const zustand = { start: 0, ende: 0, modus: 'fuellen', versatz: 0, texte: [], exportiert: false };
+// start/ende/schnitte sind Zeiten im Originalvideo; Text-Zeiten (von/bis)
+// zählen im fertigen Video, also ohne die herausgeschnittenen Stellen.
+const zustand = { start: 0, ende: 0, schnitte: [], schnittAb: null, modus: 'fuellen', versatz: 0, texte: [], exportiert: false };
 let videoUrl = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
 let audio = null; // { ctx, lautsprecher, ziel }
 
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
-const clipLaenge = () => zustand.ende - zustand.start;
+
+// Schnitte im Bereich start–ende, sortiert und zusammengelegt
+function aktiveSchnitte(s = zustand.start, e = zustand.ende) {
+  const out = [];
+  for (const c of [...zustand.schnitte].sort((a, b) => a.von - b.von)) {
+    const von = Math.max(c.von, s), bis = Math.min(c.bis, e);
+    if (bis <= von) continue;
+    const letzter = out[out.length - 1];
+    if (letzter && von <= letzter.bis) letzter.bis = Math.max(letzter.bis, bis);
+    else out.push({ von, bis });
+  }
+  return out;
+}
+const schnittBei = x => aktiveSchnitte().find(c => x >= c.von && x < c.bis);
+// Originalzeit → Zeit im fertigen Video
+function ausgabeZeit(x, s = zustand.start, e = zustand.ende) {
+  let t = x - s;
+  for (const c of aktiveSchnitte(s, e)) if (c.von < x) t -= Math.min(c.bis, x) - c.von;
+  return Math.max(0, t);
+}
+const clipLaenge = () => ausgabeZeit(zustand.ende);
 
 // ── Video laden ─────────────────────────────
 $('datei').addEventListener('change', e => {
@@ -193,6 +241,9 @@ video.addEventListener('loadedmetadata', () => {
   for (const id of ['start', 'ende']) $(id).max = d.toFixed(1);
   zustand.start = 0;
   zustand.ende = Math.min(d, MAX_LAENGE);
+  zustand.schnitte = [];
+  zustand.schnittAb = null;
+  schnitteAnzeigen();
   $('start').value = 0; $('ende').value = zustand.ende;
   $('zu-lang').hidden = d <= MAX_LAENGE;
   $('zu-lang').textContent = `Dein Video ist ${fmt(d)} lang. Verwendet wird höchstens 1 Minute – mit Start und Ende wählst du den Teil aus.`;
@@ -243,12 +294,14 @@ video.addEventListener('play', () => { $('play').textContent = '❚❚'; $('play
 video.addEventListener('pause', () => { $('play').textContent = '▶'; $('play').classList.remove('laeuft'); });
 
 function schleife() {
-  if (video.paused) return;
-  if (!zustand.exportiert && video.currentTime >= zustand.ende) {
+  if (video.paused || zustand.exportiert) return; // beim Erstellen zeichnet die eigene Schleife
+  const c = schnittBei(video.currentTime);
+  if (video.currentTime >= zustand.ende || (c && c.bis >= zustand.ende)) {
     video.pause();
     video.currentTime = zustand.start;
     return;
   }
+  if (c) video.currentTime = c.bis;
   zeichnen();
   requestAnimationFrame(schleife);
 }
@@ -261,20 +314,24 @@ $('zeit').addEventListener('input', e => {
 function kuerzenAnzeigen() {
   $('start-wert').textContent = fmt(zustand.start);
   $('ende-wert').textContent = fmt(zustand.ende);
-  $('laenge').textContent = `Länge: ${clipLaenge().toFixed(1)} Sekunden`;
-  $('zeit').max = clipLaenge().toFixed(2);
+  const weg = zustand.ende - zustand.start - clipLaenge();
+  $('laenge').textContent = `Länge: ${clipLaenge().toFixed(1)} Sekunden` + (weg > 0.05 ? ` (${weg.toFixed(1)} Sek. herausgeschnitten)` : '');
+  $('zeit').max = (zustand.ende - zustand.start).toFixed(2);
+  schnittLeiste();
 }
 
 function kuerzen(welches) {
   const max = Number($('start').max);
   let s = Number($('start').value), e = Number($('ende').value);
+  // herausgeschnittene Stellen zählen nicht zur Höchstlänge
+  const weg = (a, b) => b - a - ausgabeZeit(b, a, b);
   if (welches === 'start') {
     if (e < s + 0.5) e = Math.min(max, s + 0.5);
-    if (e - s > MAX_LAENGE) e = s + MAX_LAENGE;
+    for (let i = 0; i < 3 && ausgabeZeit(e, s, e) > MAX_LAENGE; i++) e = Math.min(max, s + MAX_LAENGE + weg(s, e));
     if (e < s + 0.5) s = e - 0.5;
   } else {
     if (s > e - 0.5) s = Math.max(0, e - 0.5);
-    if (e - s > MAX_LAENGE) s = e - MAX_LAENGE;
+    for (let i = 0; i < 3 && ausgabeZeit(e, s, e) > MAX_LAENGE; i++) s = Math.max(0, e - MAX_LAENGE - weg(s, e));
     if (s > e - 0.5) e = s + 0.5;
   }
   zustand.start = s; zustand.ende = e;
@@ -285,6 +342,47 @@ function kuerzen(welches) {
 }
 $('start').addEventListener('input', () => kuerzen('start'));
 $('ende').addEventListener('input', () => kuerzen('ende'));
+
+// ── Stellen herausschneiden ─────────────────
+$('schnitt').addEventListener('click', () => {
+  const x = Math.round(video.currentTime * 10) / 10;
+  if (zustand.schnittAb == null) {
+    zustand.schnittAb = x;
+  } else {
+    const von = Math.min(zustand.schnittAb, x), bis = Math.max(zustand.schnittAb, x);
+    zustand.schnittAb = null;
+    if (bis - von >= 0.1) zustand.schnitte.push({ von, bis });
+  }
+  schnitteAnzeigen();
+});
+
+$('schnitte').addEventListener('click', e => {
+  const b = e.target.closest('[data-weg]');
+  if (!b) return;
+  zustand.schnitte.splice(Number(b.dataset.weg), 1);
+  schnitteAnzeigen();
+});
+
+function schnitteAnzeigen() {
+  const b = $('schnitt');
+  b.textContent = zustand.schnittAb == null ? '✂ Schnitt ab hier' : `✂ … bis hier (ab ${fmt(zustand.schnittAb)})`;
+  b.classList.toggle('aktiv', zustand.schnittAb != null);
+  $('schnitte').innerHTML = zustand.schnitte.map((c, i) => `
+    <div class="schnitt-zeile">
+      <span>✂ ${fmt(c.von)} – ${fmt(c.bis)} · ${(c.bis - c.von).toFixed(1)} Sek.</span>
+      <button class="btn" data-weg="${i}">Zurückholen</button>
+    </div>`).join('');
+  kuerzenAnzeigen();
+  zeichnen();
+}
+
+function schnittLeiste() {
+  const s = zustand.start, len = zustand.ende - s;
+  const teile = aktiveSchnitte().map(c => [c.von, c.bis]);
+  if (zustand.schnittAb != null) teile.push([zustand.schnittAb, Math.max(zustand.schnittAb, video.currentTime)]);
+  $('schnitt-leiste').innerHTML = len > 0 ? teile.map(([a, b]) =>
+    `<span style="left:${(a - s) / len * 100}%;width:${Math.max(0.5, (b - a) / len * 100)}%"></span>`).join('') : '';
+}
 
 // ── Bildausschnitt ──────────────────────────
 $('modus').addEventListener('click', e => {
@@ -300,23 +398,29 @@ $('versatz').addEventListener('input', e => { zustand.versatz = Number(e.target.
 // ── Texte ───────────────────────────────────
 function textNeu() {
   const erster = !zustand.texte.length;
-  zustand.texte.push({ id: naechsteId++, text: '', stil: erster ? 'hook' : 'untertitel', pos: erster ? 'oben' : 'unten', groesse: 'm', von: 0, bis: erster ? 3 : null });
+  const v = VORLAGEN[erster ? 'hook' : 'untertitel'];
+  zustand.texte.push({ id: naechsteId++, text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, pos: erster ? 'oben' : 'unten', groesse: 'm', von: 0, bis: erster ? 3 : null });
   texteRendern();
 }
+const passendeVorlage = t => Object.keys(VORLAGEN).find(k => ['schrift', 'hg', 'farbe'].every(f => VORLAGEN[k][f] === t[f]));
 $('text-neu').addEventListener('click', textNeu);
 
-function chips(feld, auswahl, aktuell) {
-  return `<div class="chips" data-feld="${feld}">${Object.entries(auswahl).map(([k, n]) =>
-    `<button data-wert="${k}" aria-pressed="${k === aktuell}">${n}</button>`).join('')}</div>`;
+function chips(feld, name, auswahl, aktuell) {
+  return `<div class="feld"><span class="feld-name">${name}</span><div class="chips" data-feld="${feld}">${Object.entries(auswahl).map(([k, n]) =>
+    `<button data-wert="${k}" aria-pressed="${k === aktuell}">${n}</button>`).join('')}</div></div>`;
 }
+const namen = obj => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v.name || v]));
 
 function texteRendern() {
   $('texte').innerHTML = zustand.texte.map((t, i) => `
     <div class="text-karte" data-id="${t.id}">
       <textarea rows="2" placeholder="${i === 0 ? 'z. B. 2 Jahre Wunsch-Blond – heute endlich' : 'Text eingeben'}" aria-label="Text ${i + 1}">${esc(t.text)}</textarea>
-      ${chips('stil', Object.fromEntries(Object.entries(STILE).map(([k, s]) => [k, s.name])), t.stil)}
-      ${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.pos)}
-      ${chips('groesse', { s: 'Klein', m: 'Mittel', l: 'Groß' }, t.groesse)}
+      ${chips('vorlage', 'Schnellwahl', namen(VORLAGEN), passendeVorlage(t))}
+      ${chips('schrift', 'Schrift', namen(SCHRIFTEN), t.schrift)}
+      ${chips('hg', 'Hintergrund', namen(HINTERGRUENDE), t.hg)}
+      ${chips('farbe', 'Textfarbe', FARBEN, t.farbe)}
+      ${chips('pos', 'Position', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.pos)}
+      ${chips('groesse', 'Größe', { s: 'Klein', m: 'Mittel', l: 'Groß' }, t.groesse)}
       <div class="zeiten">
         <span class="zeit-label">Zeigen ab</span><input type="number" data-feld="von" min="0" step="0.5" inputmode="decimal" value="${t.von}"> Sek.
         <button class="btn" data-jetzt="von">Jetzt</button>
@@ -350,7 +454,7 @@ $('texte').addEventListener('click', e => {
     return;
   }
   if (b.dataset.jetzt) {
-    const jetzt = Math.round(Math.max(0, video.currentTime - zustand.start) * 10) / 10;
+    const jetzt = Math.round(ausgabeZeit(video.currentTime) * 10) / 10;
     t[b.dataset.jetzt] = jetzt;
     b.closest('.text-karte').querySelector(`[data-feld="${b.dataset.jetzt}"]`).value = jetzt;
     zeichnen();
@@ -358,8 +462,15 @@ $('texte').addEventListener('click', e => {
   }
   const gruppe = b.closest('.chips');
   if (gruppe) {
-    t[gruppe.dataset.feld] = b.dataset.wert;
-    for (const x of gruppe.children) x.setAttribute('aria-pressed', x === b);
+    const feld = gruppe.dataset.feld;
+    if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
+    else t[feld] = b.dataset.wert;
+    // Schnellwahl und Einzelwerte gegenseitig aktuell halten
+    const karte = b.closest('.text-karte');
+    for (const g of karte.querySelectorAll('.chips')) {
+      const aktuell = g.dataset.feld === 'vorlage' ? passendeVorlage(t) : t[g.dataset.feld];
+      for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === aktuell);
+    }
     zeichnen();
   }
 });
@@ -390,10 +501,13 @@ function rundesRechteck(x, y, w, h, r) {
 }
 
 function textZeichnen(t, alpha) {
-  const st = STILE[t.stil];
-  const g = Math.round(st.groesse * GROESSEN[t.groesse]);
+  const schrift = SCHRIFTEN[t.schrift];
+  const farbe = textFarbe(t);
+  // ohne Hintergrund: Kontur in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
+  const st = { farbe, box: HINTERGRUENDE[t.hg][1], kontur: t.hg === 'ohne' ? (t.farbe === 'schwarz' ? '#fff' : '#1C1B19') : null };
+  const g = Math.round(schrift.groesse * GROESSEN[t.groesse]);
   const pad = st.box ? g * 0.45 : 0;
-  ctx.font = st.font(g);
+  ctx.font = schrift.font(g);
   const zs = zeilen(t.text, B - 2 * RAND - 2 * pad);
   if (!zs.length) return;
   const zh = g * 1.2;
@@ -431,7 +545,7 @@ function zeichnen() {
     const y = h > H ? -(h - H) * (zustand.versatz + 1) / 2 : (H - h) / 2;
     ctx.drawImage(video, x, y, w, h);
   }
-  const t = video.currentTime - zustand.start;
+  const t = ausgabeZeit(video.currentTime);
   for (const tx of zustand.texte) {
     const bis = tx.bis ?? clipLaenge();
     if (!tx.text.trim() || t < tx.von || t > bis) continue;
@@ -440,11 +554,23 @@ function zeichnen() {
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
     textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)));
   }
-  if (!zustand.exportiert) $('zeit').value = Math.max(0, t);
+  if (zustand.exportiert) return;
+  // nur in der Vorschau: zeigen, dass diese Stelle nicht ins fertige Video kommt
+  if (schnittBei(video.currentTime) || (zustand.schnittAb != null && video.currentTime >= zustand.schnittAb)) {
+    ctx.fillStyle = 'rgba(138,59,34,.85)';
+    ctx.fillRect(0, 0, B, 120);
+    ctx.font = `700 52px ${SANS}`;
+    ctx.fillStyle = '#fff';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(zustand.schnittAb != null && !schnittBei(video.currentTime) ? '✂ Schnitt läuft …' : '✂ wird herausgeschnitten', B / 2, 62);
+  }
+  $('zeit').value = Math.max(0, video.currentTime - zustand.start);
+  schnittLeiste();
 }
 
 if (document.fonts) document.fonts.ready.then(zeichnen);
-Promise.all([STILE.hook.font(80), STILE.untertitel.font(60), STILE.beige.font(60)]
+Promise.all([SCHRIFTEN.serif.font(80), SCHRIFTEN.sans.font(60), `700 52px ${SANS}`]
   .map(f => document.fonts ? document.fonts.load(f).catch(() => null) : null)).then(zeichnen);
 
 // ── Erstellen ───────────────────────────────
@@ -491,15 +617,28 @@ $('erstellen').addEventListener('click', async () => {
   const fertig = new Promise(ok => { rec.onstop = ok; });
   rec.start(1000);
   await video.play().catch(() => null);
-  await new Promise(ok => {
-    (function bild() {
-      const t = video.currentTime;
-      $('balken').style.width = Math.min(100, (t - zustand.start) / clipLaenge() * 100) + '%';
-      if (t >= zustand.ende || video.ended) return ok();
+  const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
+  const gesamt = clipLaenge();
+  for (;;) {
+    const t = video.currentTime;
+    if (t >= zustand.ende || video.ended) break;
+    const c = schnittBei(t);
+    if (c) {
+      // Aufnahme anhalten, über die Stelle springen, weiter aufnehmen
+      if (c.bis >= zustand.ende) break;
+      if (rec.state === 'recording' && rec.pause) rec.pause();
+      video.pause();
+      video.currentTime = c.bis;
+      await warten(video, 'seeked');
       zeichnen();
-      requestAnimationFrame(bild);
-    })();
-  });
+      if (rec.state === 'paused') rec.resume();
+      await video.play().catch(() => null);
+      continue;
+    }
+    $('balken').style.width = Math.min(100, ausgabeZeit(t) / gesamt * 100) + '%';
+    zeichnen();
+    await naechstesBild();
+  }
   video.pause();
   rec.stop();
   await fertig;

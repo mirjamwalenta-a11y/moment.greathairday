@@ -6,7 +6,7 @@
 // Neue Seiten/Dateien dieser App hier bei `vorab` ergänzen.
 self.GHD_OFFLINE = {
   app: 'moment',
-  version: '2026-10-24b',
+  version: '2026-10-24c',
   start: './index.html',
   vorab: [
     './',

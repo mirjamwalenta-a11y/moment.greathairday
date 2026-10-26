@@ -191,7 +191,10 @@ const logoM = new Image(); logoM.src = 'bilder/logo-m-export.png';
 const UNTERSCHRIFT_AB = 0.58; // nur Name + „A Great Hair Day“ (wie im Foto-Rahmen)
 
 // ── Zeitachse ───────────────────────────────
-const teilLaenge = t => t.art === 'video' ? t.ende - t.start : t.dauer;
+// Clips: gekürzte Länge geteilt durch das Tempo (Zeitlupe ½ macht doppelt so lang)
+const teilLaenge = t => t.art === 'video' ? (t.ende - t.start) / t.tempo : t.dauer;
+const TEMPI = { 1: 'Normal', 0.5: 'Zeitlupe ½', 0.25: 'Zeitlupe ¼', 2: '2× schneller', 4: '4× schneller' };
+const clipInfo = t => `${fmt(t.start)} – ${fmt(t.ende)}` + (t.tempo !== 1 ? ` · ${TEMPI[t.tempo]} · ${teilLaenge(t).toFixed(1)} Sek.` : '');
 const ueberlapp = () => zustand.uebergang === 'weich' ? UEBERGANG : 0;
 
 // Alle Abschnitte (Teile + Endkarte) mit Startzeit im fertigen Video
@@ -241,7 +244,7 @@ async function dateienLaden(e) {
         const d = isFinite(v.duration) ? v.duration : 10;
         v.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
         v.addEventListener('seeked', () => { vorschauBild(t => t.el === v); if (!spielt) zeichnen(jetzt); });
-        zustand.teile.push({ id: naechsteId++, art: 'video', url, el: v, w: v.videoWidth, h: v.videoHeight, dauer: d, start: 0, ende: Math.min(d, 10), ...textStart() });
+        zustand.teile.push({ id: naechsteId++, art: 'video', url, el: v, w: v.videoWidth, h: v.videoHeight, dauer: d, start: 0, ende: Math.min(d, 10), tempo: 1, ...textStart() });
       }
     } catch (_) {
       URL.revokeObjectURL(url);
@@ -267,7 +270,7 @@ function teileAnzeigen() {
     <div class="teil" data-id="${t.id}">
       <div class="teil-kopf">
         <canvas width="80" height="142"></canvas>
-        <div class="name">${i + 1}. ${t.art === 'video' ? 'Clip' : 'Foto'}<small>${t.art === 'video' ? `${fmt(t.start)} – ${fmt(t.ende)}` : `${t.dauer} Sek.`}</small></div>
+        <div class="name">${i + 1}. ${t.art === 'video' ? 'Clip' : 'Foto'}<small>${t.art === 'video' ? clipInfo(t) : `${t.dauer} Sek.`}</small></div>
         <div class="knoepfe">
           <button class="btn" data-aktion="hoch" aria-label="Nach oben" ${i ? '' : 'disabled'}>↑</button>
           <button class="btn" data-aktion="runter" aria-label="Nach unten" ${i < zustand.teile.length - 1 ? '' : 'disabled'}>↓</button>
@@ -278,7 +281,8 @@ function teileAnzeigen() {
         <div class="reihe"><span>Start</span><span class="wert" data-wert-von="start">${fmt(t.start)}</span></div>
         <input type="range" data-feld="start" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.start}" aria-label="Start">
         <div class="reihe"><span>Ende</span><span class="wert" data-wert-von="ende">${fmt(t.ende)}</span></div>
-        <input type="range" data-feld="ende" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.ende}" aria-label="Ende">`
+        <input type="range" data-feld="ende" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.ende}" aria-label="Ende">
+        <div class="feld"><span class="feld-name">Tempo (in Zeitlupe und Zeitraffer ohne Originalton)</span>${chips('tempo', TEMPI, t.tempo)}</div>`
       : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
       <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
       <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'}"></div>
@@ -330,9 +334,12 @@ $('teile').addEventListener('click', e => {
   const gruppe = b.closest('.chips');
   if (!gruppe) return;
   const feld = gruppe.dataset.feld;
-  t[feld] = feld === 'dauer' ? Number(b.dataset.wert) : b.dataset.wert;
+  t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
   for (const x of gruppe.children) x.setAttribute('aria-pressed', x === b);
-  if (feld === 'dauer') { b.closest('.teil').querySelector('.name small').textContent = `${t.dauer} Sek.`; laengeAnzeigen(); }
+  if (feld === 'dauer' || feld === 'tempo') {
+    b.closest('.teil').querySelector('.name small').textContent = t.art === 'video' ? clipInfo(t) : `${t.dauer} Sek.`;
+    laengeAnzeigen();
+  }
   zeigeTeil(t);
 });
 
@@ -349,11 +356,11 @@ $('teile').addEventListener('input', e => {
   karte.querySelector('[data-feld="ende"]').value = en;
   karte.querySelector('[data-wert-von="start"]').textContent = fmt(s);
   karte.querySelector('[data-wert-von="ende"]').textContent = fmt(en);
-  karte.querySelector('.name small').textContent = `${fmt(s)} – ${fmt(en)}`;
+  karte.querySelector('.name small').textContent = clipInfo(t);
   laengeAnzeigen();
   stoppen();
   t.el.currentTime = feld === 'start' ? s : Math.max(s, en - 0.05);
-  jetzt = zeitachse().find(a => a.teil === t).von + (t.el.currentTime - s);
+  jetzt = zeitachse().find(a => a.teil === t).von + (t.el.currentTime - s) / t.tempo;
 });
 
 // In der Vorschau zu einem Teil springen, wenn daran etwas geändert wird
@@ -532,9 +539,11 @@ function synchron(t, laeuft) {
     if (a.teil.art !== 'video') continue;
     const v = a.teil.el;
     const aktiv = t >= a.von - 0.05 && t < a.bis;
-    v.muted = zustand.ton === 'aus' || aufnahmeLaeuft || zustand.exportiert && !audio;
+    // in Zeitlupe/Zeitraffer stumm, weil der Ton sonst verzerrt klingt
+    v.muted = zustand.ton === 'aus' || aufnahmeLaeuft || a.teil.tempo !== 1 || zustand.exportiert && !audio;
+    if (v.playbackRate !== a.teil.tempo) v.playbackRate = a.teil.tempo;
     if (aktiv) {
-      const soll = a.teil.start + Math.max(0, t - a.von);
+      const soll = a.teil.start + Math.max(0, t - a.von) * a.teil.tempo;
       if (laeuft) {
         if (v.paused) { v.currentTime = soll; v.play().catch(() => {}); }
         else if (Math.abs(v.currentTime - soll) > 0.35) v.currentTime = soll;

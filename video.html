@@ -70,8 +70,9 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .effekt-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-variant-numeric:tabular-nums;}
 .feld{display:flex;flex-direction:column;gap:4px;}
 .feld-name{font-size:11px;font-weight:600;color:var(--sub);}
-.schnitt-zeile{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg);border-radius:10px;padding:6px 6px 6px 12px;font-size:13px;font-variant-numeric:tabular-nums;}
-.schnitt-zeile .btn{padding:6px 10px;font-size:12px;}
+.schieber{display:grid;grid-template-columns:30px 1fr 54px;align-items:center;gap:8px;font-variant-numeric:tabular-nums;}
+.schieber b{font-weight:600;text-align:right;}
+.effekt .probe{align-self:flex-start;padding:6px 12px;font-size:12px;}
 .btn.aktiv{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
 .quelle{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
@@ -117,23 +118,20 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 
     <div class="card">
       <div class="label">Stellen herausschneiden</div>
-      <p class="klein">Video bis zur Stelle abspielen oder den Regler unter dem Video schieben, dann „Schnitt ab hier“. Danach bis zum Ende der Stelle weiter und „bis hier“ tippen.</p>
-      <button class="btn" id="schnitt">✂ Schnitt ab hier</button>
-      <p class="hinweis warnung" id="schnitt-hinweis" hidden></p>
-      <div id="schnitte" style="display:flex;flex-direction:column;gap:6px;"></div>
+      <p class="klein">Tippe auf den Knopf und stell mit den Schiebern ein, von wo bis wo. Die Vorschau zeigt dabei genau diese Stelle.</p>
+      <div id="schnitte" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <button class="btn" id="schnitt">✂ Stelle herausschneiden</button>
     </div>
 
     <div class="card">
       <div class="label">Tempo &amp; Standbild</div>
-      <p class="klein">Stelle wählen wie beim Schneiden. Zeitlupe und Zeitraffer: „ab hier“, dann weiter bis zum Ende der Stelle und „bis hier“. Ein Standbild hält das Bild an dieser Stelle kurz an.</p>
-      <div class="knoepfe" id="effekt-knoepfe">
-        <button class="btn" id="zeitlupe">🐢 Zeitlupe ab hier</button>
-        <button class="btn" id="zeitraffer">🐇 Zeitraffer ab hier</button>
-        <button class="btn" id="standbild">⏸ Standbild hier</button>
+      <p class="klein">Tippe auf einen Knopf und stell mit den Schiebern ein, wo es sein soll. „▶ Probe“ spielt nur diese Stelle ab.</p>
+      <div id="effekte" style="display:flex;flex-direction:column;gap:8px;"></div>
+      <div class="knoepfe">
+        <button class="btn" id="zeitlupe">🐢 Zeitlupe dazu</button>
+        <button class="btn" id="zeitraffer">🐇 Zeitraffer dazu</button>
+        <button class="btn" id="standbild">⏸ Standbild dazu</button>
       </div>
-      <button class="btn aktiv" id="tempo-bis" hidden></button>
-      <p class="hinweis warnung" id="effekt-hinweis" hidden></p>
-      <div id="effekte" style="display:flex;flex-direction:column;gap:6px;"></div>
       <p class="klein">In Zeitlupe und Zeitraffer ist der Originalton stumm, weil er sonst verzerrt klingt.</p>
     </div>
 
@@ -279,8 +277,8 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', 
 // Text-Zeiten (von/bis) zählen im fertigen Video, also nach Schnitten,
 // Tempo-Änderungen und Standbildern.
 const zustand = {
-  start: 0, ende: 0, schnitte: [], schnittAb: null,
-  tempi: [], tempoAb: null, standbilder: [],
+  start: 0, ende: 0, schnitte: [],
+  tempi: [], standbilder: [],
   modus: 'fuellen', versatz: 0, texte: [], exportiert: false, tonAn: true
 };
 const TEMPO_WAHL = { lupe: { 0.5: '½ Tempo', 0.25: '¼ Tempo' }, raffer: { 2: '2× schneller', 4: '4× schneller' } };
@@ -362,9 +360,7 @@ video.addEventListener('loadedmetadata', () => {
   zustand.start = 0;
   zustand.ende = Math.min(d, MAX_LAENGE);
   zustand.schnitte = [];
-  zustand.schnittAb = null;
   zustand.tempi = [];
-  zustand.tempoAb = null;
   zustand.standbilder = [];
   schnitteAnzeigen();
   effekteAnzeigen();
@@ -413,6 +409,7 @@ $('play').addEventListener('click', () => {
   if (zustand.exportiert) return;
   audioVorbereiten();
   if (spielt) return stoppen();
+  probe = null;
   if (video.currentTime < zustand.start || video.currentTime >= zustand.ende - 0.05) video.currentTime = zustand.start;
   abspielen();
 });
@@ -421,6 +418,7 @@ $('play').addEventListener('click', () => {
 // Standbildern an und stellt das Tempo um. Jeder Start/Stopp erhöht `lauf`,
 // damit eine alte Schleife sich selbst beendet.
 let lauf = 0, spielt = false;
+let probe = null; // { bis, zurueck }: „▶ Probe“ spielt nur eine Stelle
 const naechstesBild = () => new Promise(ok => requestAnimationFrame(ok));
 const warten = (el, ev) => new Promise(ok => el.addEventListener(ev, ok, { once: true }));
 
@@ -436,6 +434,7 @@ function stoppen() {
   video.playbackRate = 1;
   video.muted = false;
   haltZeit = null;
+  probe = null;
   phase = 'video';
   playAnzeige(false);
   zeichnen();
@@ -476,7 +475,7 @@ async function abspielen(rec = null) {
   };
   const erledigt = new Set();
   for (const f of zustand.standbilder) if (f.bei < video.currentTime - 0.05) erledigt.add(f);
-  const vonAnfang = Math.abs(video.currentTime - zustand.start) < 0.05;
+  const vonAnfang = !probe && Math.abs(video.currentTime - zustand.start) < 0.05;
   if (!rec) playAnzeige(true);
 
   if (vonAnfang && introDauer()) {
@@ -488,7 +487,7 @@ async function abspielen(rec = null) {
 
   while (aktiv()) {
     const x = video.currentTime;
-    if (x >= zustand.ende - 0.02 || video.ended) break;
+    if (x >= zustand.ende - 0.02 || video.ended || (probe && x >= probe.bis)) break;
     const c = schnittBei(x);
     if (c) {
       if (c.bis >= zustand.ende) break;
@@ -513,6 +512,12 @@ async function abspielen(rec = null) {
   if (!aktiv()) return; // gestoppt oder neu gestartet
   video.pause();
   video.playbackRate = 1;
+  if (probe && !rec) {
+    const zurueck = probe.zurueck;
+    stoppen();
+    video.currentTime = zurueck;
+    return;
+  }
   if (endDauer()) {
     phase = 'ende';
     await halten(endDauer(), videoEnde());
@@ -567,66 +572,94 @@ function kuerzen(welches) {
 $('start').addEventListener('input', () => kuerzen('start'));
 $('ende').addEventListener('input', () => kuerzen('ende'));
 
-// ── Stellen herausschneiden ─────────────────
-// Schnitte und Effekte nur innerhalb des gekürzten Stücks setzen. Steht der
-// Regler daneben (z. B. nach dem Verschieben von „Ende“ ganz am Schluss),
-// sagt ein Hinweis, was zu tun ist, statt still nichts zu bewirken.
-function stelleOk(x, hinweisId, bisHier) {
-  const ok = x >= zustand.start - 0.05 && x <= zustand.ende - (bisHier ? 0 : 0.15);
-  $(hinweisId).hidden = ok;
-  if (!ok) $(hinweisId).textContent = `Der Regler unter dem Video steht bei ${fmt(x)}, ${x >= zustand.ende - 0.15 ? 'ganz am Ende' : 'außerhalb'} deines Stücks (${fmt(zustand.start)} – ${fmt(zustand.ende)}). Schieb ihn zuerst an die Stelle, wo es anfangen soll.`;
-  return ok;
-}
-function zuKurz(von, bis, hinweisId) {
-  if (bis - von >= 0.1) return false;
-  $(hinweisId).hidden = false;
-  $(hinweisId).textContent = 'Zwischen „ab hier“ und „bis hier“ den Regler unter dem Video bis zum Ende der Stelle weiterschieben (oder abspielen lassen).';
-  return true;
+// ── Stellen herausschneiden, Tempo & Standbild ──
+// Jede Stelle ist eine Zeile mit Schiebern „von“/„bis“ (Standbild: „bei“).
+// Beim Schieben zeigt die Vorschau genau diese Stelle, „▶ Probe“ spielt sie ab.
+const runden = x => Math.round(x * 10) / 10;
+
+// neue Stelle ab der aktuellen Position, 2 Sekunden lang; steht der Regler
+// am Ende oder außerhalb des Stücks, ab dem Start
+function neueStelle() {
+  const s = zustand.start, e = zustand.ende;
+  let von = runden(video.currentTime);
+  if (von < s || von > e - 0.5) von = runden(s);
+  return { von, bis: runden(Math.min(e, von + 2)) };
 }
 
 $('schnitt').addEventListener('click', () => {
-  const x = Math.round(video.currentTime * 10) / 10;
-  if (!stelleOk(x, 'schnitt-hinweis', zustand.schnittAb != null)) return;
-  if (zustand.schnittAb == null) {
-    zustand.schnittAb = x;
-  } else {
-    const von = Math.min(zustand.schnittAb, x), bis = Math.max(zustand.schnittAb, x);
-    if (zuKurz(von, bis, 'schnitt-hinweis')) return;
-    zustand.schnittAb = null;
-    zustand.schnitte.push({ von, bis });
-  }
+  zustand.schnitte.push(neueStelle());
   schnitteAnzeigen();
 });
 
-$('schnitte').addEventListener('click', e => {
-  const b = e.target.closest('[data-weg]');
-  if (!b) return;
-  zustand.schnitte.splice(Number(b.dataset.weg), 1);
-  schnitteAnzeigen();
-});
+const schieber = (feld, wert, name) => `
+  <label class="schieber"><span>${name}</span>
+    <input type="range" data-feld="${feld}" min="${zustand.start}" max="${zustand.ende}" step="0.1" value="${wert}" aria-label="${name}">
+    <b>${fmt(wert)}</b></label>`;
+
+function probeAbspielen(eintrag) {
+  audioVorbereiten();
+  stoppen();
+  const von = eintrag.bei ?? eintrag.von, bis = eintrag.bei ?? eintrag.bis;
+  video.currentTime = Math.max(zustand.start, von - 1);
+  probe = { bis: Math.min(zustand.ende, bis + 1), zurueck: von };
+  abspielen();
+}
+
+for (const box of ['schnitte', 'effekte']) {
+  const anzeigen = () => box === 'schnitte' ? schnitteAnzeigen() : effekteAnzeigen();
+  const stelle = el => {
+    const zeile = el.closest('[data-liste]');
+    if (!zeile) return null;
+    const liste = zustand[zeile.dataset.liste];
+    return { zeile, liste, eintrag: liste[Number(zeile.dataset.i)] };
+  };
+  $(box).addEventListener('input', e => {
+    const feld = e.target.dataset.feld, st = stelle(e.target);
+    if (!feld || !st) return;
+    if (spielt) stoppen();
+    const ein = st.eintrag;
+    let x = Number(e.target.value);
+    if (feld === 'von') x = Math.min(x, ein.bis - 0.1);
+    if (feld === 'bis') x = Math.max(x, ein.von + 0.1);
+    ein[feld] = x = runden(x);
+    e.target.value = x;
+    e.target.nextElementSibling.textContent = fmt(x);
+    const dauer = st.zeile.querySelector('.dauer');
+    if (dauer) dauer.textContent = `${(ein.bis - ein.von).toFixed(1)} Sek.`;
+    video.currentTime = x;
+    kuerzenAnzeigen();
+  });
+  $(box).addEventListener('click', e => {
+    const b = e.target.closest('button'), st = b && stelle(b);
+    if (!st) return;
+    if (b.hasAttribute('data-probe')) return probeAbspielen(st.eintrag);
+    if (b.hasAttribute('data-weg')) st.liste.splice(st.liste.indexOf(st.eintrag), 1);
+    else if ('faktor' in st.eintrag) st.eintrag.faktor = Number(b.dataset.wert);
+    else st.eintrag.dauer = Number(b.dataset.wert);
+    anzeigen();
+  });
+}
 
 function schnitteAnzeigen() {
-  const b = $('schnitt');
-  b.textContent = zustand.schnittAb == null ? '✂ Schnitt ab hier' : `✂ … bis hier (ab ${fmt(zustand.schnittAb)})`;
-  b.classList.toggle('aktiv', zustand.schnittAb != null);
   $('schnitte').innerHTML = zustand.schnitte.map((c, i) => `
-    <div class="schnitt-zeile">
-      <span>✂ ${fmt(c.von)} – ${fmt(c.bis)} · ${(c.bis - c.von).toFixed(1)} Sek.</span>
-      <button class="btn" data-weg="${i}">Zurückholen</button>
+    <div class="effekt" data-liste="schnitte" data-i="${i}">
+      <div class="effekt-kopf"><span>✂ wird herausgeschnitten · <span class="dauer">${(c.bis - c.von).toFixed(1)} Sek.</span></span><button class="entfernen" data-weg>Zurückholen</button></div>
+      ${schieber('von', c.von, 'von')}${schieber('bis', c.bis, 'bis')}
+      <button class="btn probe" data-probe>▶ Probe</button>
     </div>`).join('');
   kuerzenAnzeigen();
   zeichnen();
 }
 
+$('start').addEventListener('change', () => { schnitteAnzeigen(); effekteAnzeigen(); });
+$('ende').addEventListener('change', () => { schnitteAnzeigen(); effekteAnzeigen(); });
+
 // Leiste unter dem Regler: rot = Schnitt, gold = Zeitlupe, grau = Zeitraffer, schwarz = Standbild
 function schnittLeiste() {
   const s = zustand.start, len = zustand.ende - s;
-  const offen = ab => [ab, Math.max(ab, video.currentTime)];
   const teile = [
     ...zustand.tempi.map(z => [z.von, z.bis, z.faktor < 1 ? 'lupe' : 'raffer']),
-    ...(zustand.tempoAb ? [[...offen(zustand.tempoAb.von), zustand.tempoAb.art]] : []),
     ...aktiveSchnitte().map(c => [c.von, c.bis, '']),
-    ...(zustand.schnittAb != null ? [[...offen(zustand.schnittAb), '']] : []),
     ...zustand.standbilder.map(f => [f.bei, f.bei, 'stand'])
   ];
   $('schnitt-leiste').innerHTML = len > 0 ? teile.map(([a, b, k]) =>
@@ -634,63 +667,36 @@ function schnittLeiste() {
 }
 
 // ── Tempo & Standbild ───────────────────────
-const jetztGerundet = () => Math.round(video.currentTime * 10) / 10;
-
-for (const [id, art] of [['zeitlupe', 'lupe'], ['zeitraffer', 'raffer']]) {
+for (const [id, faktor] of [['zeitlupe', 0.5], ['zeitraffer', 2]]) {
   $(id).addEventListener('click', () => {
-    if (!stelleOk(jetztGerundet(), 'effekt-hinweis')) return;
-    zustand.tempoAb = { art, von: jetztGerundet() };
+    zustand.tempi.push({ ...neueStelle(), faktor });
     effekteAnzeigen();
   });
 }
 
-$('tempo-bis').addEventListener('click', () => {
-  const { art, von: ab } = zustand.tempoAb;
-  const x = jetztGerundet();
-  if (!stelleOk(x, 'effekt-hinweis', true)) return;
-  const von = Math.min(ab, x), bis = Math.max(ab, x);
-  if (zuKurz(von, bis, 'effekt-hinweis')) return;
-  zustand.tempoAb = null;
-  zustand.tempi.push({ von, bis, faktor: art === 'lupe' ? 0.5 : 2 });
-  effekteAnzeigen();
-});
-
 $('standbild').addEventListener('click', () => {
-  const bei = jetztGerundet();
-  if (!stelleOk(bei, 'effekt-hinweis')) return;
+  const bei = neueStelle().von;
   if (!zustand.standbilder.some(f => Math.abs(f.bei - bei) < 0.05)) zustand.standbilder.push({ bei, dauer: 2 });
   effekteAnzeigen();
 });
 
-$('effekte').addEventListener('click', e => {
-  const b = e.target.closest('button');
-  const zeile = b && b.closest('.effekt');
-  if (!zeile) return;
-  const liste = zustand[zeile.dataset.liste];
-  const eintrag = liste[Number(zeile.dataset.i)];
-  if (b.hasAttribute('data-weg')) liste.splice(liste.indexOf(eintrag), 1);
-  else if (zeile.dataset.liste === 'tempi') eintrag.faktor = Number(b.dataset.wert);
-  else eintrag.dauer = Number(b.dataset.wert);
-  effekteAnzeigen();
-});
-
 function effekteAnzeigen() {
-  const ab = zustand.tempoAb;
-  $('effekt-knoepfe').hidden = !!ab;
-  $('tempo-bis').hidden = !ab;
-  if (ab) $('tempo-bis').textContent = `${ab.art === 'lupe' ? '🐢 Zeitlupe' : '🐇 Zeitraffer'} … bis hier (ab ${fmt(ab.von)})`;
   const wahl = (auswahl, aktuell) => `<div class="chips">${Object.entries(auswahl).map(([k, n]) =>
     `<button data-wert="${k}" aria-pressed="${Number(k) === aktuell}">${n}</button>`).join('')}</div>`;
   $('effekte').innerHTML = [
     ...zustand.tempi.map((z, i) => ({ zeit: z.von, html: `
       <div class="effekt" data-liste="tempi" data-i="${i}">
-        <div class="effekt-kopf"><span>${z.faktor < 1 ? '🐢 Zeitlupe' : '🐇 Zeitraffer'} ${fmt(z.von)} – ${fmt(z.bis)}</span><button class="entfernen" data-weg>Entfernen</button></div>
+        <div class="effekt-kopf"><span>${z.faktor < 1 ? '🐢 Zeitlupe' : '🐇 Zeitraffer'} · <span class="dauer">${(z.bis - z.von).toFixed(1)} Sek.</span></span><button class="entfernen" data-weg>Entfernen</button></div>
+        ${schieber('von', z.von, 'von')}${schieber('bis', z.bis, 'bis')}
         ${wahl(TEMPO_WAHL[z.faktor < 1 ? 'lupe' : 'raffer'], z.faktor)}
+        <button class="btn probe" data-probe>▶ Probe</button>
       </div>` })),
     ...zustand.standbilder.map((f, i) => ({ zeit: f.bei, html: `
       <div class="effekt" data-liste="standbilder" data-i="${i}">
-        <div class="effekt-kopf"><span>⏸ Standbild bei ${fmt(f.bei)}</span><button class="entfernen" data-weg>Entfernen</button></div>
+        <div class="effekt-kopf"><span>⏸ Standbild</span><button class="entfernen" data-weg>Entfernen</button></div>
+        ${schieber('bei', f.bei, 'bei')}
         ${wahl(DAUER_WAHL, f.dauer)}
+        <button class="btn probe" data-probe>▶ Probe</button>
       </div>` }))
   ].sort((a, b) => a.zeit - b.zeit).map(x => x.html).join('');
   kuerzenAnzeigen();
@@ -1028,14 +1034,14 @@ function zeichnen() {
   if (ziehen) hilfslinien();
   if (zustand.exportiert || phase !== 'video') return;
   // nur in der Vorschau: zeigen, dass diese Stelle nicht ins fertige Video kommt
-  if (schnittBei(video.currentTime) || (zustand.schnittAb != null && video.currentTime >= zustand.schnittAb)) {
+  if (schnittBei(video.currentTime)) {
     ctx.fillStyle = 'rgba(138,59,34,.85)';
     ctx.fillRect(0, 0, B, 120);
     ctx.font = `700 52px ${SANS}`;
     ctx.fillStyle = '#fff';
     ctx.textAlign = 'center';
     ctx.textBaseline = 'middle';
-    ctx.fillText(zustand.schnittAb != null && !schnittBei(video.currentTime) ? '✂ Schnitt läuft …' : '✂ wird herausgeschnitten', B / 2, 62);
+    ctx.fillText('✂ wird herausgeschnitten', B / 2, 62);
   } else {
     // nur in der Vorschau: kleines Schild für Tempo und Standbild
     const faktor = tempoBei(video.currentTime);

@@ -37,7 +37,9 @@ header{text-align:center;padding:6px 0 2px;}
 .fuss{font-size:12px;color:var(--sub);line-height:1.5;text-align:center;}
 .fuss a{color:var(--gold-ink);}
 .buehne{position:relative;align-self:center;width:min(100%, calc(62vh * 9 / 16));}
-.buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);}
+.buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);touch-action:none;}
+details.gestalten summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-ink);}
+details.gestalten[open] summary{margin-bottom:8px;}
 .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:none;background:rgba(28,27,25,.55);color:#fff;font-size:26px;cursor:pointer;}
 .play.laeuft{opacity:0;}
 .buehne:hover .play.laeuft{opacity:.8;}
@@ -162,13 +164,24 @@ const B = 1080, H = 1920, RAND = 90, UEBERGANG = 0.4, EMPFOHLEN = 60;
 const SERIF = "'Playfair Display', Georgia, serif";
 const SANS = "Inter, system-ui, sans-serif";
 const MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'];
-// Text-Stile wie im Backstage-Reel: Einstieg auf Beige, Info auf dunklem Band
-const STILE = {
-  einstieg: { name: 'Einstieg', font: `700 84px ${SERIF}`, g: 84, farbe: '#1C1B19', box: '#F5F0EA' },
-  info:     { name: 'Info',     font: `700 60px ${SANS}`,  g: 60, farbe: '#fff',    box: 'rgba(28,27,25,.75)' }
+// Text-Gestaltung wie in „Video + Text“: Schrift, Hintergrund, Farbe und Größe
+// frei kombinierbar; die Vorlagen setzen Schrift, Hintergrund und Farbe auf einmal.
+const SCHRIFTEN = { serif: ['Elegant', g => `700 ${g}px ${SERIF}`, 84], sans: ['Klar', g => `700 ${g}px ${SANS}`, 62] };
+const HINTERGRUENDE = { ohne: ['Ohne', null], dunkel: ['Dunkel', 'rgba(28,27,25,.75)'], hell: ['Hell', '#F5F0EA'], gold: ['Gold', '#8A7346'] };
+const FARBEN = { weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
+const GROESSEN = { s: ['Klein', 0.75], m: ['Mittel', 1], l: ['Groß', 1.3] };
+const VORLAGEN = {
+  einstieg:   { name: 'Einstieg',   schrift: 'serif', hg: 'hell',   farbe: 'schwarz' },
+  info:       { name: 'Info',       schrift: 'sans',  hg: 'dunkel', farbe: 'weiss' },
+  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'weiss' }
 };
-// Mitte des Textblocks; oben/unten mit Abstand zu den Instagram-Bedienelementen
+const GELTUNG = { teil: 'Nur hier', ende: 'Bis zum Ende', ganz: 'Ganzes Video' };
+const textFarbe = t => t.farbe === 'weiss' ? '#fff' : t.farbe === 'schwarz' ? '#1C1B19' : t.hg === 'hell' ? '#8A7346' : '#D4BC8A';
+const passendeVorlage = t => Object.keys(VORLAGEN).find(k => ['schrift', 'hg', 'farbe'].every(f => VORLAGEN[k][f] === t[f]));
+// Mitte des Textblocks (y); Instagram verdeckt oben und unten Bereiche, dazwischen bleibt der Text
 const POSITIONEN = { oben: 420, mitte: H / 2, unten: 1330 };
+const SICHER_OBEN = 250, SICHER_UNTEN = 1560;
+const positionVon = t => Object.keys(POSITIONEN).find(k => POSITIONEN[k] === t.y && t.x === B / 2);
 
 const $ = id => document.getElementById(id);
 const leinwand = $('leinwand');
@@ -256,7 +269,10 @@ async function dateienLaden(e) {
 }
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
-function textStart() { return { text: '', stil: zustand.teile.length ? 'info' : 'einstieg', pos: 'unten', fit: null }; }
+function textStart() {
+  const v = VORLAGEN[zustand.teile.length ? 'info' : 'einstieg'];
+  return { text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, groesse: 'm', x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null };
+}
 const fitVon = t => t.fit || (t.w / t.h > 0.75 ? 'ganz' : 'fuellen');
 
 // ── Liste der Teile ─────────────────────────
@@ -286,7 +302,18 @@ function teileAnzeigen() {
       : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
       <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
       <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'}"></div>
-      <div class="feld"><span class="feld-name">Stil und Position</span>${chips('stil', { einstieg: 'Einstieg', info: 'Info' }, t.stil)}${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.pos)}</div>
+      <details class="gestalten"${t.offen ? ' open' : ''}>
+        <summary>✏️ Text gestalten: Stil, Position, wie lange</summary>
+        <div class="gruppe">
+          <div class="feld"><span class="feld-name">Schnellwahl</span>${chips('vorlage', Object.fromEntries(Object.entries(VORLAGEN).map(([k, v]) => [k, v.name])), passendeVorlage(t))}</div>
+          <div class="feld"><span class="feld-name">Schrift</span>${chips('schrift', Object.fromEntries(Object.entries(SCHRIFTEN).map(([k, v]) => [k, v[0]])), t.schrift)}</div>
+          <div class="feld"><span class="feld-name">Hintergrund</span>${chips('hg', Object.fromEntries(Object.entries(HINTERGRUENDE).map(([k, v]) => [k, v[0]])), t.hg)}</div>
+          <div class="feld"><span class="feld-name">Textfarbe</span>${chips('farbe', FARBEN, t.farbe)}</div>
+          <div class="feld"><span class="feld-name">Größe</span>${chips('groesse', Object.fromEntries(Object.entries(GROESSEN).map(([k, v]) => [k, v[0]])), t.groesse)}</div>
+          <div class="feld"><span class="feld-name">Position (oder in der Vorschau mit dem Finger verschieben)</span>${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t))}</div>
+          <div class="feld"><span class="feld-name">Text zeigen</span>${chips('geltung', GELTUNG, t.geltung)}</div>
+        </div>
+      </details>
     </div>`).join('');
   vorschauBild(() => true);
   laengeAnzeigen();
@@ -334,14 +361,29 @@ $('teile').addEventListener('click', e => {
   const gruppe = b.closest('.chips');
   if (!gruppe) return;
   const feld = gruppe.dataset.feld;
-  t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
-  for (const x of gruppe.children) x.setAttribute('aria-pressed', x === b);
+  if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
+  else if (feld === 'pos') Object.assign(t, { x: B / 2, y: POSITIONEN[b.dataset.wert] });
+  else t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
+  chipsAktualisieren(b.closest('.teil'), t);
   if (feld === 'dauer' || feld === 'tempo') {
     b.closest('.teil').querySelector('.name small').textContent = t.art === 'video' ? clipInfo(t) : `${t.dauer} Sek.`;
     laengeAnzeigen();
   }
   zeigeTeil(t);
 });
+
+// Schnellwahl, Einzelwerte und Position in einer Karte gegenseitig aktuell halten
+function chipsAktualisieren(karte, t) {
+  for (const g of karte.querySelectorAll('.chips')) {
+    const f = g.dataset.feld;
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t) : t[f];
+    for (const x of g.children) x.setAttribute('aria-pressed', String(x.dataset.wert) === String(aktuell));
+  }
+}
+
+$('teile').addEventListener('toggle', e => {
+  if (e.target.matches('details.gestalten')) teilVon(e.target).offen = e.target.open;
+}, true);
 
 $('teile').addEventListener('input', e => {
   const t = teilVon(e.target), feld = e.target.dataset.feld;
@@ -431,24 +473,47 @@ function medienZeichnen(t, zoom) {
   } else mitte(cover);
 }
 
+// Zuletzt gezeichnete Textflächen (für das Verschieben mit dem Finger)
+let textFlaechen = [];
+
 function textZeichnen(t, alpha) {
-  const st = STILE[t.stil];
-  ctx.font = st.font;
-  const pad = st.g * 0.45;
+  const [, font, basis] = SCHRIFTEN[t.schrift];
+  const g = Math.round(basis * GROESSEN[t.groesse][1]);
+  const box = HINTERGRUENDE[t.hg][1];
+  ctx.font = font(g);
+  const pad = box ? g * 0.45 : g * 0.15;
   const zs = zeilen(t.text, B - 2 * RAND - 2 * pad);
   if (!zs.length) return;
-  const zh = st.g * 1.2, hoehe = zs.length * zh;
-  const oben = Math.min(Math.max(POSITIONEN[t.pos] - hoehe / 2, zustand.rahmen ? 380 : 260), 1560 - hoehe);
+  const zh = g * 1.2, hoehe = zs.length * zh;
   const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * pad;
+  // im sicheren Bereich halten: links/rechts im Bild, oben/unten nicht unter Instagrams Knöpfen
+  const mx = Math.min(Math.max(t.x, breite / 2 + 30), B - breite / 2 - 30);
+  const oben = Math.min(Math.max(t.y - hoehe / 2, zustand.rahmen ? 380 : SICHER_OBEN), SICHER_UNTEN - hoehe);
   ctx.globalAlpha = alpha;
-  ctx.fillStyle = st.box;
-  rundesRechteck((B - breite) / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
-  ctx.fill();
-  ctx.fillStyle = st.farbe;
+  if (box) {
+    ctx.fillStyle = box;
+    rundesRechteck(mx - breite / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
+    ctx.fill();
+  }
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  zs.forEach((z, i) => ctx.fillText(z, B / 2, oben + i * zh + zh / 2));
+  ctx.lineJoin = 'round';
+  zs.forEach((z, i) => {
+    const y = oben + i * zh + zh / 2;
+    // ohne Hintergrund: Rand in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
+    if (!box) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = t.farbe === 'schwarz' ? '#fff' : '#1C1B19'; ctx.strokeText(z, mx, y); }
+    ctx.fillStyle = textFarbe(t);
+    ctx.fillText(z, mx, y);
+  });
   ctx.globalAlpha = 1;
+  textFlaechen.push({ teil: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - pad, y1: oben + hoehe + pad });
+}
+
+// Zeitraum eines Textes im fertigen Video: nur sein Teil, ab ihm bis zum Ende, oder das ganze Video
+function textZeit(a, videoEnde) {
+  if (a.teil.geltung === 'ganz') return [0, videoEnde];
+  if (a.teil.geltung === 'ende') return [a.von, videoEnde];
+  return [a.von, a.bis];
 }
 
 function endkarteZeichnen() {
@@ -496,12 +561,6 @@ function abschnittZeichnen(a, t) {
   ctx.fillStyle = '#1C1B19';
   ctx.fillRect(0, 0, B, H);
   medienZeichnen(a.teil, zoom);
-  if (zustand.rahmen) rahmenZeichnen();
-  if (a.teil.text.trim()) {
-    // weich einblenden, am Ende vor dem nächsten Teil wieder ausblenden
-    const ein = (lokal - 0.15) / 0.3, aus = (len - lokal) / 0.25;
-    textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)));
-  }
 }
 
 function zeichnen(t) {
@@ -520,8 +579,68 @@ function zeichnen(t) {
     ctx.drawImage(zwischen, 0, 0);
     ctx.globalAlpha = 1;
   });
+  // Rahmen und Texte über die fertig überblendeten Bilder, nicht auf die Endkarte
+  const inhalt = achse.filter(a => a.teil.art !== 'ende');
+  const videoEnde = inhalt.length ? inhalt[inhalt.length - 1].bis : 0;
+  if (zustand.rahmen && t < videoEnde) rahmenZeichnen();
+  textFlaechen = [];
+  for (const a of inhalt) {
+    if (!a.teil.text.trim()) continue;
+    const [von, bis] = textZeit(a, videoEnde);
+    if (t < von || t >= bis) continue;
+    // weich ein- und ausblenden; ganz am Anfang sofort da (erstes Bild zählt bei Instagram)
+    const ein = von === 0 ? 1 : (t - von - 0.15) / 0.3, aus = (bis - t) / 0.25;
+    textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)));
+  }
+  if (ziehen) hilfslinien();
   if (!zustand.exportiert) $('zeit').value = t;
 }
+
+// ── Text mit dem Finger verschieben ─────────
+let ziehen = null;
+function hilfslinien() {
+  ctx.save();
+  ctx.setLineDash([18, 14]);
+  ctx.strokeStyle = 'rgba(255,255,255,.8)';
+  ctx.lineWidth = 3;
+  for (const y of [SICHER_OBEN, SICHER_UNTEN]) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(B, y); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.font = `600 34px ${SANS}`;
+  ctx.textAlign = 'center';
+  ctx.fillText('Instagram-Profilzeile', B / 2, SICHER_OBEN - 30);
+  ctx.fillText('Instagram-Beschriftung', B / 2, SICHER_UNTEN + 50);
+  ctx.restore();
+}
+function punktImBild(e) {
+  const r = leinwand.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * B, y: (e.clientY - r.top) / r.height * H };
+}
+leinwand.addEventListener('pointerdown', e => {
+  if (zustand.exportiert || aufnahmeLaeuft) return;
+  const p = punktImBild(e);
+  const f = [...textFlaechen].reverse().find(f => p.x >= f.x0 && p.x <= f.x1 && p.y >= f.y0 && p.y <= f.y1);
+  if (!f) return;
+  stoppen();
+  ziehen = { teil: f.teil, dx: f.teil.x - p.x, dy: f.teil.y - p.y };
+  leinwand.setPointerCapture(e.pointerId);
+  zeichnen(jetzt);
+});
+leinwand.addEventListener('pointermove', e => {
+  if (!ziehen) return;
+  const p = punktImBild(e);
+  ziehen.teil.x = Math.round(Math.min(Math.max(p.x + ziehen.dx, 0), B));
+  ziehen.teil.y = Math.round(Math.min(Math.max(p.y + ziehen.dy, SICHER_OBEN), SICHER_UNTEN));
+  zeichnen(jetzt);
+});
+const ziehenEnde = () => {
+  if (!ziehen) return;
+  const karte = document.querySelector(`.teil[data-id="${ziehen.teil.id}"]`);
+  if (karte) chipsAktualisieren(karte, ziehen.teil);
+  ziehen = null;
+  zeichnen(jetzt);
+};
+leinwand.addEventListener('pointerup', ziehenEnde);
+leinwand.addEventListener('pointercancel', ziehenEnde);
 
 let ebene = null;
 function zwischenEbene() {

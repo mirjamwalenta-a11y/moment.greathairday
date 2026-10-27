@@ -36,7 +36,7 @@ header{text-align:center;padding:6px 0 2px;}
 .hinweis.warnung{color:var(--warn);background:var(--warn-bg);}
 .fuss{font-size:12px;color:var(--sub);line-height:1.5;text-align:center;}
 .buehne{position:relative;align-self:center;width:min(100%, calc(62vh * 9 / 16));}
-.buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);}
+.buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);touch-action:none;}
 .play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:none;background:rgba(28,27,25,.55);color:#fff;font-size:26px;cursor:pointer;}
 .play.laeuft{opacity:0;}
 .buehne:hover .play.laeuft{opacity:.8;}
@@ -789,7 +789,7 @@ function texteRendern() {
       ${chips('schrift', 'Schrift', namen(SCHRIFTEN), t.schrift)}
       ${chips('hg', 'Hintergrund', namen(HINTERGRUENDE), t.hg)}
       ${chips('farbe', 'Textfarbe', FARBEN, t.farbe)}
-      ${chips('pos', 'Position', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.pos)}
+      ${chips('pos', 'Position', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.y != null ? null : t.pos)}
       ${chips('groesse', 'Größe', { s: 'Klein', m: 'Mittel', l: 'Groß' }, t.groesse)}
       <div class="zeiten">
         <span class="zeit-label">Zeigen ab</span><input type="number" data-feld="von" min="0" step="0.5" inputmode="decimal" value="${t.von}"> Sek.
@@ -835,12 +835,8 @@ $('texte').addEventListener('click', e => {
     const feld = gruppe.dataset.feld;
     if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
     else t[feld] = b.dataset.wert;
-    // Schnellwahl und Einzelwerte gegenseitig aktuell halten
-    const karte = b.closest('.text-karte');
-    for (const g of karte.querySelectorAll('.chips')) {
-      const aktuell = g.dataset.feld === 'vorlage' ? passendeVorlage(t) : t[g.dataset.feld];
-      for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === aktuell);
-    }
+    if (feld === 'pos') t.x = t.y = null; // feste Position statt verschoben
+    textChipsAktualisieren(b.closest('.text-karte'), t);
     zeichnen();
   }
 });
@@ -870,6 +866,18 @@ function rundesRechteck(x, y, w, h, r) {
   ctx.closePath();
 }
 
+// Schnellwahl, Einzelwerte und Position gegenseitig aktuell halten
+function textChipsAktualisieren(karte, t) {
+  for (const g of karte.querySelectorAll('.chips')) {
+    const f = g.dataset.feld;
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? (t.y != null ? null : t.pos) : t[f];
+    for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === aktuell);
+  }
+}
+
+// Zuletzt gezeichnete Textflächen (für das Verschieben mit dem Finger)
+let textFlaechen = [];
+
 function textZeichnen(t, alpha) {
   const schrift = SCHRIFTEN[t.schrift];
   const farbe = textFarbe(t);
@@ -883,13 +891,15 @@ function textZeichnen(t, alpha) {
   const zh = g * 1.2;
   const hoehe = zs.length * zh;
   // im sicheren Bereich halten (oben Profilzeile, unten Beschriftung von Instagram)
-  // mit Goldrahmen etwas tiefer, damit der Text nicht über dem M liegt
-  const oben = Math.min(Math.max(POSITIONEN[t.pos] - hoehe / 2, rahmenAn ? 380 : 260), 1560 - hoehe);
+  // mit Goldrahmen etwas tiefer, damit der Text nicht über dem M liegt;
+  // t.x/t.y gesetzt = mit dem Finger verschoben
+  const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * (pad || g * 0.15);
+  const mx = Math.min(Math.max(t.x ?? B / 2, breite / 2 + 30), B - breite / 2 - 30);
+  const oben = Math.min(Math.max((t.y ?? POSITIONEN[t.pos]) - hoehe / 2, rahmenAn ? 380 : 260), 1560 - hoehe);
   ctx.globalAlpha = alpha;
   if (st.box) {
-    const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * pad;
     ctx.fillStyle = st.box;
-    rundesRechteck((B - breite) / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
+    rundesRechteck(mx - breite / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
     ctx.fill();
   }
   ctx.textAlign = 'center';
@@ -897,11 +907,12 @@ function textZeichnen(t, alpha) {
   ctx.lineJoin = 'round';
   zs.forEach((z, i) => {
     const y = oben + i * zh + zh / 2;
-    if (st.kontur) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = st.kontur; ctx.strokeText(z, B / 2, y); }
+    if (st.kontur) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = st.kontur; ctx.strokeText(z, mx, y); }
     ctx.fillStyle = st.farbe;
-    ctx.fillText(z, B / 2, y);
+    ctx.fillText(z, mx, y);
   });
   ctx.globalAlpha = 1;
+  textFlaechen.push({ text: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - (pad || g * 0.15), y1: oben + hoehe + (pad || g * 0.15) });
 }
 
 function medienZeichnen(quelle, qw, qh, modus, versatz) {
@@ -977,6 +988,7 @@ function zeichnen() {
   const t = jetztImVideo();
   if (phase === 'vorher') vorherSchild(vorher.text);
   else if (vorher.bild && t - introDauer() < NACHHER_SCHILD) vorherSchild(vorher.nachText);
+  textFlaechen = [];
   for (const tx of zustand.texte) {
     const bis = tx.bis ?? videoEnde();
     if (!tx.text.trim() || t < tx.von || t > bis) continue;
@@ -985,6 +997,7 @@ function zeichnen() {
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
     textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)));
   }
+  if (ziehen) hilfslinien();
   if (zustand.exportiert || phase !== 'video') return;
   // nur in der Vorschau: zeigen, dass diese Stelle nicht ins fertige Video kommt
   if (schnittBei(video.currentTime) || (zustand.schnittAb != null && video.currentTime >= zustand.schnittAb)) {
@@ -1016,6 +1029,54 @@ function zeichnen() {
   $('zeit').value = Math.max(0, video.currentTime - zustand.start);
   schnittLeiste();
 }
+
+// ── Text mit dem Finger verschieben ─────────
+let ziehen = null;
+function hilfslinien() {
+  ctx.save();
+  ctx.setLineDash([18, 14]);
+  ctx.strokeStyle = 'rgba(255,255,255,.8)';
+  ctx.lineWidth = 3;
+  for (const y of [260, 1560]) { ctx.beginPath(); ctx.moveTo(0, y); ctx.lineTo(B, y); ctx.stroke(); }
+  ctx.fillStyle = 'rgba(255,255,255,.9)';
+  ctx.font = `600 34px ${SANS}`;
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'alphabetic';
+  ctx.fillText('Instagram-Profilzeile', B / 2, 230);
+  ctx.fillText('Instagram-Beschriftung', B / 2, 1610);
+  ctx.restore();
+}
+function punktImBild(e) {
+  const r = leinwand.getBoundingClientRect();
+  return { x: (e.clientX - r.left) / r.width * B, y: (e.clientY - r.top) / r.height * H };
+}
+leinwand.addEventListener('pointerdown', e => {
+  if (zustand.exportiert) return;
+  const p = punktImBild(e);
+  const f = [...textFlaechen].reverse().find(f => p.x >= f.x0 && p.x <= f.x1 && p.y >= f.y0 && p.y <= f.y1);
+  if (!f) return;
+  if (spielt) stoppen();
+  const t = f.text;
+  ziehen = { t, dx: (f.x0 + f.x1) / 2 - p.x, dy: (f.y0 + f.y1) / 2 - p.y };
+  leinwand.setPointerCapture(e.pointerId);
+  zeichnen();
+});
+leinwand.addEventListener('pointermove', e => {
+  if (!ziehen) return;
+  const p = punktImBild(e);
+  ziehen.t.x = Math.round(Math.min(Math.max(p.x + ziehen.dx, 0), B));
+  ziehen.t.y = Math.round(Math.min(Math.max(p.y + ziehen.dy, 260), 1560));
+  zeichnen();
+});
+const ziehenEnde = () => {
+  if (!ziehen) return;
+  const karte = document.querySelector(`.text-karte[data-id="${ziehen.t.id}"]`);
+  if (karte) textChipsAktualisieren(karte, ziehen.t);
+  ziehen = null;
+  zeichnen();
+};
+leinwand.addEventListener('pointerup', ziehenEnde);
+leinwand.addEventListener('pointercancel', ziehenEnde);
 
 if (document.fonts) document.fonts.ready.then(zeichnen);
 Promise.all([SCHRIFTEN.serif.font(80), SCHRIFTEN.sans.font(60), `700 52px ${SANS}`]

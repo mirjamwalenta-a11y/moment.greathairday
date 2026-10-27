@@ -119,6 +119,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <div class="label">Stellen herausschneiden</div>
       <p class="klein">Video bis zur Stelle abspielen oder den Regler unter dem Video schieben, dann „Schnitt ab hier“. Danach bis zum Ende der Stelle weiter und „bis hier“ tippen.</p>
       <button class="btn" id="schnitt">✂ Schnitt ab hier</button>
+      <p class="hinweis warnung" id="schnitt-hinweis" hidden></p>
       <div id="schnitte" style="display:flex;flex-direction:column;gap:6px;"></div>
     </div>
 
@@ -131,6 +132,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
         <button class="btn" id="standbild">⏸ Standbild hier</button>
       </div>
       <button class="btn aktiv" id="tempo-bis" hidden></button>
+      <p class="hinweis warnung" id="effekt-hinweis" hidden></p>
       <div id="effekte" style="display:flex;flex-direction:column;gap:6px;"></div>
       <p class="klein">In Zeitlupe und Zeitraffer ist der Originalton stumm, weil er sonst verzerrt klingt.</p>
     </div>
@@ -566,14 +568,32 @@ $('start').addEventListener('input', () => kuerzen('start'));
 $('ende').addEventListener('input', () => kuerzen('ende'));
 
 // ── Stellen herausschneiden ─────────────────
+// Schnitte und Effekte nur innerhalb des gekürzten Stücks setzen. Steht der
+// Regler daneben (z. B. nach dem Verschieben von „Ende“ ganz am Schluss),
+// sagt ein Hinweis, was zu tun ist, statt still nichts zu bewirken.
+function stelleOk(x, hinweisId, bisHier) {
+  const ok = x >= zustand.start - 0.05 && x <= zustand.ende - (bisHier ? 0 : 0.15);
+  $(hinweisId).hidden = ok;
+  if (!ok) $(hinweisId).textContent = `Der Regler unter dem Video steht bei ${fmt(x)}, ${x >= zustand.ende - 0.15 ? 'ganz am Ende' : 'außerhalb'} deines Stücks (${fmt(zustand.start)} – ${fmt(zustand.ende)}). Schieb ihn zuerst an die Stelle, wo es anfangen soll.`;
+  return ok;
+}
+function zuKurz(von, bis, hinweisId) {
+  if (bis - von >= 0.1) return false;
+  $(hinweisId).hidden = false;
+  $(hinweisId).textContent = 'Zwischen „ab hier“ und „bis hier“ den Regler unter dem Video bis zum Ende der Stelle weiterschieben (oder abspielen lassen).';
+  return true;
+}
+
 $('schnitt').addEventListener('click', () => {
   const x = Math.round(video.currentTime * 10) / 10;
+  if (!stelleOk(x, 'schnitt-hinweis', zustand.schnittAb != null)) return;
   if (zustand.schnittAb == null) {
     zustand.schnittAb = x;
   } else {
     const von = Math.min(zustand.schnittAb, x), bis = Math.max(zustand.schnittAb, x);
+    if (zuKurz(von, bis, 'schnitt-hinweis')) return;
     zustand.schnittAb = null;
-    if (bis - von >= 0.1) zustand.schnitte.push({ von, bis });
+    zustand.schnitte.push({ von, bis });
   }
   schnitteAnzeigen();
 });
@@ -618,6 +638,7 @@ const jetztGerundet = () => Math.round(video.currentTime * 10) / 10;
 
 for (const [id, art] of [['zeitlupe', 'lupe'], ['zeitraffer', 'raffer']]) {
   $(id).addEventListener('click', () => {
+    if (!stelleOk(jetztGerundet(), 'effekt-hinweis')) return;
     zustand.tempoAb = { art, von: jetztGerundet() };
     effekteAnzeigen();
   });
@@ -626,14 +647,17 @@ for (const [id, art] of [['zeitlupe', 'lupe'], ['zeitraffer', 'raffer']]) {
 $('tempo-bis').addEventListener('click', () => {
   const { art, von: ab } = zustand.tempoAb;
   const x = jetztGerundet();
+  if (!stelleOk(x, 'effekt-hinweis', true)) return;
   const von = Math.min(ab, x), bis = Math.max(ab, x);
+  if (zuKurz(von, bis, 'effekt-hinweis')) return;
   zustand.tempoAb = null;
-  if (bis - von >= 0.1) zustand.tempi.push({ von, bis, faktor: art === 'lupe' ? 0.5 : 2 });
+  zustand.tempi.push({ von, bis, faktor: art === 'lupe' ? 0.5 : 2 });
   effekteAnzeigen();
 });
 
 $('standbild').addEventListener('click', () => {
   const bei = jetztGerundet();
+  if (!stelleOk(bei, 'effekt-hinweis')) return;
   if (!zustand.standbilder.some(f => Math.abs(f.bei - bei) < 0.05)) zustand.standbilder.push({ bei, dauer: 2 });
   effekteAnzeigen();
 });
@@ -989,9 +1013,13 @@ function zeichnen() {
   if (phase === 'vorher') vorherSchild(vorher.text);
   else if (vorher.bild && t - introDauer() < NACHHER_SCHILD) vorherSchild(vorher.nachText);
   textFlaechen = [];
+  // In der angehaltenen Vorschau stehen Texte außerhalb ihrer Zeit blass da,
+  // damit man sie trotzdem sieht und mit dem Finger verschieben kann.
+  const blass = !zustand.exportiert && !spielt && phase === 'video';
   for (const tx of zustand.texte) {
     const bis = tx.bis ?? videoEnde();
-    if (!tx.text.trim() || t < tx.von || t > bis) continue;
+    if (!tx.text.trim()) continue;
+    if (t < tx.von || t > bis) { if (blass) textZeichnen(tx, 0.4); continue; }
     // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende
     const ein = tx.von > 0 ? (t - tx.von) / BLENDE : 1;
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;

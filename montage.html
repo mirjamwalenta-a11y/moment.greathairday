@@ -38,10 +38,10 @@ header{text-align:center;padding:6px 0 2px;}
 .fuss a{color:var(--gold-ink);}
 .buehne{position:relative;align-self:center;width:min(100%, calc(62vh * 9 / 16));}
 .buehne canvas{width:100%;aspect-ratio:9/16;display:block;border-radius:12px;background:var(--ink);touch-action:none;}
-details.gestalten summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-ink);}
-details.gestalten[open] summary{margin-bottom:8px;}
-.play{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:64px;height:64px;border-radius:50%;border:none;background:rgba(28,27,25,.55);color:#fff;font-size:26px;cursor:pointer;}
-.play.laeuft{opacity:0;}
+details.gestalten summary,details.einblendung summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-ink);}
+details.gestalten[open] summary,details.einblendung[open] summary{margin-bottom:8px;}
+.play{position:absolute;left:12px;bottom:12px;width:52px;height:52px;border-radius:50%;border:none;background:rgba(28,27,25,.6);color:#fff;font-size:22px;cursor:pointer;}
+.play.laeuft{opacity:.35;}
 .buehne:hover .play.laeuft{opacity:.8;}
 input[type=range]{width:100%;accent-color:var(--gold);}
 .reihe{display:flex;align-items:center;gap:8px;font-size:13px;}
@@ -271,7 +271,18 @@ async function dateienLaden(e) {
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
 function textStart() {
   const v = VORLAGEN[zustand.teile.length ? 'info' : 'einstieg'];
-  return { text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, groesse: 'm', x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null };
+  return { text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, groesse: 'm', x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null,
+    karte: { typ: 'keine', wert: '', zusatz: '', label: '', zitat: '', von: '', titel: '', punkte: ['', '', '', ''], x: B / 2, y: POSITIONEN.mitte } };
+}
+
+// Felder der Einblendung je nach Art
+function kartenFelder(t) {
+  const k = t.karte;
+  const feld = (name, f, wert, platz) => `<div class="feld"><span class="feld-name">${name}</span><input class="eingabe" data-karte="${f}" maxlength="70" value="${esc(wert)}" placeholder="${platz}"></div>`;
+  if (k.typ === 'zahl') return feld('Zahl', 'wert', k.wert, 'z. B. 30') + feld('Zusatz (klein, neben der Zahl)', 'zusatz', k.zusatz, 'z. B. Jahre oder %') + feld('Beschriftung darunter', 'label', k.label, 'z. B. im Salon in Wien');
+  if (k.typ === 'zitat') return feld('Zitat', 'zitat', k.zitat, 'z. B. Bei euch fühle ich mich wohl') + feld('Von (nur Vorname, nur mit Einverständnis)', 'von', k.von, 'z. B. Anna');
+  if (k.typ === 'liste') return feld('Überschrift', 'titel', k.titel, 'z. B. 3 Tipps für Blond') + k.punkte.map((x, i) => feld(`Punkt ${i + 1}${i > 1 ? ' (optional)' : ''}`, 'punkt' + i, x, i ? '' : 'z. B. Lauwarm waschen')).join('');
+  return '';
 }
 const fitVon = t => t.fit || (t.w / t.h > 0.75 ? 'ganz' : 'fuellen');
 
@@ -312,6 +323,14 @@ function teileAnzeigen() {
           <div class="feld"><span class="feld-name">Größe</span>${chips('groesse', Object.fromEntries(Object.entries(GROESSEN).map(([k, v]) => [k, v[0]])), t.groesse)}</div>
           <div class="feld"><span class="feld-name">Position (oder in der Vorschau mit dem Finger verschieben)</span>${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t))}</div>
           <div class="feld"><span class="feld-name">Text zeigen</span>${chips('geltung', GELTUNG, t.geltung)}</div>
+        </div>
+      </details>
+      <details class="einblendung"${t.karteOffen ? ' open' : ''}>
+        <summary>✨ Einblendung: Zahl, Zitat oder Liste${t.karte.typ !== 'keine' ? ' ✓' : ''}</summary>
+        <div class="gruppe">
+          <div class="feld"><span class="feld-name">Art (fährt ins Bild und wieder hinaus)</span>${chips('karte-typ', { keine: 'Keine', zahl: 'Zahl', zitat: 'Zitat', liste: 'Liste' }, t.karte.typ)}</div>
+          ${kartenFelder(t)}
+          ${t.karte.typ !== 'keine' ? `<div class="feld"><span class="feld-name">Position (oder in der Vorschau verschieben)</span>${chips('karte-pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t.karte))}</div>` : ''}
         </div>
       </details>
     </div>`).join('');
@@ -361,6 +380,8 @@ $('teile').addEventListener('click', e => {
   const gruppe = b.closest('.chips');
   if (!gruppe) return;
   const feld = gruppe.dataset.feld;
+  if (feld === 'karte-typ') { t.karte.typ = b.dataset.wert; t.karteOffen = true; teileAnzeigen(); zeigeKarte(t); return; }
+  if (feld === 'karte-pos') { Object.assign(t.karte, { x: B / 2, y: POSITIONEN[b.dataset.wert] }); chipsAktualisieren(b.closest('.teil'), t); zeigeKarte(t); return; }
   if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
   else if (feld === 'pos') Object.assign(t, { x: B / 2, y: POSITIONEN[b.dataset.wert] });
   else t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
@@ -376,18 +397,27 @@ $('teile').addEventListener('click', e => {
 function chipsAktualisieren(karte, t) {
   for (const g of karte.querySelectorAll('.chips')) {
     const f = g.dataset.feld;
-    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t) : t[f];
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t)
+      : f === 'karte-typ' ? t.karte.typ : f === 'karte-pos' ? positionVon(t.karte) : t[f];
     for (const x of g.children) x.setAttribute('aria-pressed', String(x.dataset.wert) === String(aktuell));
   }
 }
 
 $('teile').addEventListener('toggle', e => {
   if (e.target.matches('details.gestalten')) teilVon(e.target).offen = e.target.open;
+  if (e.target.matches('details.einblendung')) teilVon(e.target).karteOffen = e.target.open;
 }, true);
 
 $('teile').addEventListener('input', e => {
   const t = teilVon(e.target), feld = e.target.dataset.feld;
   if (feld === 'text') { t.text = e.target.value; zeigeTeil(t); return; }
+  const kf = e.target.dataset.karte;
+  if (kf) {
+    if (kf.startsWith('punkt')) t.karte.punkte[Number(kf.slice(5))] = e.target.value;
+    else t.karte[kf] = e.target.value;
+    zeigeKarte(t);
+    return;
+  }
   if (feld !== 'start' && feld !== 'ende') return;
   let s = feld === 'start' ? Number(e.target.value) : t.start;
   let en = feld === 'ende' ? Number(e.target.value) : t.ende;
@@ -404,6 +434,16 @@ $('teile').addEventListener('input', e => {
   t.el.currentTime = feld === 'start' ? s : Math.max(s, en - 0.05);
   jetzt = zeitachse().find(a => a.teil === t).von + (t.el.currentTime - s) / t.tempo;
 });
+
+// In der Vorschau dorthin springen, wo die Einblendung ganz im Bild steht
+function zeigeKarte(t) {
+  if (spielt) return;
+  const a = zeitachse().find(x => x.teil === t);
+  if (!a) return;
+  jetzt = a.von + Math.min(1.6, (a.bis - a.von) * 0.6);
+  synchron(jetzt, false);
+  zeichnen(jetzt);
+}
 
 // In der Vorschau zu einem Teil springen, wenn daran etwas geändert wird
 function zeigeTeil(t) {
@@ -506,7 +546,82 @@ function textZeichnen(t, alpha) {
     ctx.fillText(z, mx, y);
   });
   ctx.globalAlpha = 1;
-  textFlaechen.push({ teil: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - pad, y1: oben + hoehe + pad });
+  textFlaechen.push({ teil: t, ziel: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - pad, y1: oben + hoehe + pad });
+}
+
+// ── Einblendungen: Zahl, Zitat, Liste ───────
+// Beige Karte mit Goldkante; fährt nach 0,3 s von rechts herein und am
+// Ende des Teils nach links hinaus. Listenpunkte kommen nacheinander.
+const KARTE_B = 840, KARTE_PAD = 60;
+const einfahren = x => 1 - Math.pow(1 - Math.min(1, Math.max(0, x)), 3);
+
+function karteZeichnen(teil, lokal, len) {
+  const k = teil.karte;
+  const rein = (lokal - 0.3) / 0.45, raus = (len - 0.1 - lokal) / 0.35;
+  if (rein <= 0 || raus <= 0) return;
+  const innen = KARTE_B - 2 * KARTE_PAD;
+  // Inhalt als Zeilen mit Schrift, Farbe und Höhe vorbereiten
+  const z = [];
+  const zeile = (text, font, farbe, lh, extra = {}) => { ctx.font = font; for (const x of zeilen(text, innen)) z.push({ text: x, font, farbe, lh, ...extra }); };
+  if (k.typ === 'zahl') {
+    if (!k.wert.trim()) return;
+    z.push({ zahl: true, lh: 230 });
+    if (k.label.trim()) zeile(k.label, `600 46px ${SANS}`, '#1C1B19', 60);
+  } else if (k.typ === 'zitat') {
+    if (!k.zitat.trim()) return;
+    z.push({ anfz: true, lh: 90 });
+    zeile(k.zitat, `italic 500 58px ${SERIF}`, '#1C1B19', 76);
+    if (k.von.trim()) zeile('– ' + k.von, `600 40px ${SANS}`, '#8A7346', 70, { abstand: 16 });
+  } else {
+    const punkte = k.punkte.filter(x => x.trim());
+    if (!k.titel.trim() && !punkte.length) return;
+    if (k.titel.trim()) zeile(k.titel, `700 62px ${SERIF}`, '#1C1B19', 78);
+    punkte.forEach((x, i) => { ctx.font = `500 46px ${SANS}`; zeilen(x, innen - 50).forEach((y, j) => z.push({ text: y, font: `500 46px ${SANS}`, farbe: '#1C1B19', lh: 62, punkt: j === 0, einzug: 50, nr: i, abstand: j === 0 ? 14 : 0 })); });
+  }
+  const hoehe = z.reduce((h, x) => h + x.lh + (x.abstand || 0), 0) + 2 * KARTE_PAD;
+  const cx = Math.min(Math.max(k.x, KARTE_B / 2 + 30), B - KARTE_B / 2 - 30);
+  const oben = Math.min(Math.max(k.y - hoehe / 2, zustand.rahmen ? 380 : SICHER_OBEN), Math.max(SICHER_OBEN, SICHER_UNTEN - hoehe));
+  const versatz = (1 - einfahren(rein)) * B - (1 - einfahren(raus)) * B;
+  const links = cx - KARTE_B / 2 + versatz;
+  ctx.save();
+  ctx.globalAlpha = Math.min(1, rein * 2, raus * 2);
+  ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
+  ctx.fillStyle = '#F5F0EA';
+  rundesRechteck(links, oben, KARTE_B, hoehe, 28);
+  ctx.fill();
+  ctx.shadowColor = 'transparent';
+  ctx.fillStyle = '#8A7346';
+  ctx.fillRect(links + 28, oben, KARTE_B - 56, 8);
+  let y = oben + KARTE_PAD;
+  ctx.textBaseline = 'middle';
+  for (const x of z) {
+    y += x.abstand || 0;
+    // Listenpunkte nacheinander einblenden
+    const a = x.nr != null ? Math.min(1, Math.max(0, (lokal - 0.75 - x.nr * 0.35) / 0.3)) : 1;
+    ctx.globalAlpha = Math.min(1, rein * 2, raus * 2) * a;
+    if (x.zahl) {
+      ctx.textAlign = 'left';
+      ctx.font = `700 200px ${SERIF}`; const w1 = ctx.measureText(k.wert).width;
+      ctx.font = `700 84px ${SERIF}`; const w2 = k.zusatz.trim() ? ctx.measureText(' ' + k.zusatz).width : 0;
+      const x0 = links + (KARTE_B - w1 - w2) / 2;
+      ctx.fillStyle = '#8A7346';
+      ctx.font = `700 200px ${SERIF}`; ctx.fillText(k.wert, x0, y + x.lh / 2);
+      if (w2) { ctx.font = `700 84px ${SERIF}`; ctx.fillText(' ' + k.zusatz, x0 + w1, y + x.lh / 2 + 40); }
+    } else if (x.anfz) {
+      ctx.textAlign = 'left';
+      ctx.font = `700 150px ${SERIF}`; ctx.fillStyle = '#8A7346';
+      ctx.fillText('„', links + KARTE_PAD - 10, y + 20);
+    } else {
+      ctx.textAlign = k.typ === 'zahl' ? 'center' : 'left';
+      ctx.font = x.font; ctx.fillStyle = x.farbe;
+      const tx = k.typ === 'zahl' ? links + KARTE_B / 2 : links + KARTE_PAD + (x.einzug || 0);
+      ctx.fillText(x.text, tx, y + x.lh / 2);
+      if (x.punkt) { ctx.fillStyle = '#8A7346'; ctx.beginPath(); ctx.arc(links + KARTE_PAD + 14, y + x.lh / 2, 9, 0, Math.PI * 2); ctx.fill(); }
+    }
+    y += x.lh;
+  }
+  ctx.restore();
+  if (rein >= 1 && raus >= 1) textFlaechen.push({ teil, ziel: k, x0: links, x1: links + KARTE_B, y0: oben, y1: oben + hoehe });
 }
 
 // Zeitraum eines Textes im fertigen Video: nur sein Teil, ab ihm bis zum Ende, oder das ganze Video
@@ -585,6 +700,9 @@ function zeichnen(t) {
   if (zustand.rahmen && t < videoEnde) rahmenZeichnen();
   textFlaechen = [];
   for (const a of inhalt) {
+    if (a.teil.karte.typ !== 'keine' && t >= a.von && t < a.bis) karteZeichnen(a.teil, t - a.von, a.bis - a.von);
+  }
+  for (const a of inhalt) {
     if (!a.teil.text.trim()) continue;
     const [von, bis] = textZeit(a, videoEnde);
     if (t < von || t >= bis) continue;
@@ -621,15 +739,15 @@ leinwand.addEventListener('pointerdown', e => {
   const f = [...textFlaechen].reverse().find(f => p.x >= f.x0 && p.x <= f.x1 && p.y >= f.y0 && p.y <= f.y1);
   if (!f) return;
   stoppen();
-  ziehen = { teil: f.teil, dx: f.teil.x - p.x, dy: f.teil.y - p.y };
+  ziehen = { teil: f.teil, ziel: f.ziel, dx: f.ziel.x - p.x, dy: f.ziel.y - p.y };
   leinwand.setPointerCapture(e.pointerId);
   zeichnen(jetzt);
 });
 leinwand.addEventListener('pointermove', e => {
   if (!ziehen) return;
   const p = punktImBild(e);
-  ziehen.teil.x = Math.round(Math.min(Math.max(p.x + ziehen.dx, 0), B));
-  ziehen.teil.y = Math.round(Math.min(Math.max(p.y + ziehen.dy, SICHER_OBEN), SICHER_UNTEN));
+  ziehen.ziel.x = Math.round(Math.min(Math.max(p.x + ziehen.dx, 0), B));
+  ziehen.ziel.y = Math.round(Math.min(Math.max(p.y + ziehen.dy, SICHER_OBEN), SICHER_UNTEN));
   zeichnen(jetzt);
 });
 const ziehenEnde = () => {

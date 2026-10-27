@@ -272,7 +272,7 @@ async function dateienLaden(e) {
 function textStart() {
   const v = VORLAGEN[zustand.teile.length ? 'info' : 'einstieg'];
   return { text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, groesse: 'm', x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null,
-    karte: { typ: 'keine', wert: '', zusatz: '', label: '', zitat: '', von: '', titel: '', punkte: ['', '', '', ''], x: B / 2, y: POSITIONEN.mitte } };
+    karte: { typ: 'keine', wert: '', zusatz: '', label: '', zitat: '', von: '', titel: '', punkte: ['', '', '', ''], hg: 'beige', farbe: 'passend', x: B / 2, y: POSITIONEN.mitte } };
 }
 
 // Felder der Einblendung je nach Art
@@ -330,7 +330,10 @@ function teileAnzeigen() {
         <div class="gruppe">
           <div class="feld"><span class="feld-name">Art (fährt ins Bild und wieder hinaus)</span>${chips('karte-typ', { keine: 'Keine', zahl: 'Zahl', zitat: 'Zitat', liste: 'Liste' }, t.karte.typ)}</div>
           ${kartenFelder(t)}
-          ${t.karte.typ !== 'keine' ? `<div class="feld"><span class="feld-name">Position (oder in der Vorschau verschieben)</span>${chips('karte-pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t.karte))}</div>` : ''}
+          ${t.karte.typ !== 'keine' ? `
+          <div class="feld"><span class="feld-name">Hintergrund</span>${chips('karte-hg', { beige: 'Beige', dunkel: 'Dunkel', ohne: 'Ohne' }, t.karte.hg)}</div>
+          <div class="feld"><span class="feld-name">Textfarbe</span>${chips('karte-farbe', { passend: 'Passend', weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' }, t.karte.farbe)}</div>
+          <div class="feld"><span class="feld-name">Position (oder in der Vorschau verschieben)</span>${chips('karte-pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t.karte))}</div>` : ''}
         </div>
       </details>
     </div>`).join('');
@@ -382,6 +385,7 @@ $('teile').addEventListener('click', e => {
   const feld = gruppe.dataset.feld;
   if (feld === 'karte-typ') { t.karte.typ = b.dataset.wert; t.karteOffen = true; teileAnzeigen(); zeigeKarte(t); return; }
   if (feld === 'karte-pos') { Object.assign(t.karte, { x: B / 2, y: POSITIONEN[b.dataset.wert] }); chipsAktualisieren(b.closest('.teil'), t); zeigeKarte(t); return; }
+  if (feld === 'karte-hg' || feld === 'karte-farbe') { t.karte[feld.slice(6)] = b.dataset.wert; chipsAktualisieren(b.closest('.teil'), t); zeigeKarte(t); return; }
   if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
   else if (feld === 'pos') Object.assign(t, { x: B / 2, y: POSITIONEN[b.dataset.wert] });
   else t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
@@ -398,7 +402,8 @@ function chipsAktualisieren(karte, t) {
   for (const g of karte.querySelectorAll('.chips')) {
     const f = g.dataset.feld;
     const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t)
-      : f === 'karte-typ' ? t.karte.typ : f === 'karte-pos' ? positionVon(t.karte) : t[f];
+      : f === 'karte-typ' ? t.karte.typ : f === 'karte-pos' ? positionVon(t.karte)
+      : f === 'karte-hg' ? t.karte.hg : f === 'karte-farbe' ? t.karte.farbe : t[f];
     for (const x of g.children) x.setAttribute('aria-pressed', String(x.dataset.wert) === String(aktuell));
   }
 }
@@ -560,23 +565,34 @@ function karteZeichnen(teil, lokal, len) {
   const rein = (lokal - 0.3) / 0.45, raus = (len - 0.1 - lokal) / 0.35;
   if (rein <= 0 || raus <= 0) return;
   const innen = KARTE_B - 2 * KARTE_PAD;
+  // Farben: „Passend“ = dunkle Schrift auf Beige, helle auf Dunkel/ohne Hintergrund, Akzente in Gold;
+  // eine gewählte Textfarbe gilt für alles. Ohne Hintergrund: Rand in Gegenfarbe zum Lesen.
+  const goldAuf = k.hg === 'beige' ? '#8A7346' : '#D4BC8A';
+  const haupt = k.farbe === 'passend' ? (k.hg === 'beige' ? '#1C1B19' : '#fff')
+    : { weiss: '#fff', schwarz: '#1C1B19', gold: goldAuf }[k.farbe];
+  const akzent = k.farbe === 'passend' ? goldAuf : haupt;
+  const kontur = k.hg === 'ohne' ? (haupt === '#1C1B19' ? '#fff' : '#1C1B19') : null;
+  const schreib = (text, x, y, groesse) => {
+    if (kontur) { ctx.lineWidth = Math.max(6, groesse * 0.13); ctx.strokeStyle = kontur; ctx.lineJoin = 'round'; ctx.strokeText(text, x, y); }
+    ctx.fillText(text, x, y);
+  };
   // Inhalt als Zeilen mit Schrift, Farbe und Höhe vorbereiten
   const z = [];
   const zeile = (text, font, farbe, lh, extra = {}) => { ctx.font = font; for (const x of zeilen(text, innen)) z.push({ text: x, font, farbe, lh, ...extra }); };
   if (k.typ === 'zahl') {
     if (!k.wert.trim()) return;
     z.push({ zahl: true, lh: 230 });
-    if (k.label.trim()) zeile(k.label, `600 46px ${SANS}`, '#1C1B19', 60);
+    if (k.label.trim()) zeile(k.label, `600 46px ${SANS}`, haupt, 60, { g: 46 });
   } else if (k.typ === 'zitat') {
     if (!k.zitat.trim()) return;
     z.push({ anfz: true, lh: 90 });
-    zeile(k.zitat, `italic 500 58px ${SERIF}`, '#1C1B19', 76);
-    if (k.von.trim()) zeile('– ' + k.von, `600 40px ${SANS}`, '#8A7346', 70, { abstand: 16 });
+    zeile(k.zitat, `italic 500 58px ${SERIF}`, haupt, 76, { g: 58 });
+    if (k.von.trim()) zeile('– ' + k.von, `600 40px ${SANS}`, akzent, 70, { abstand: 16, g: 40 });
   } else {
     const punkte = k.punkte.filter(x => x.trim());
     if (!k.titel.trim() && !punkte.length) return;
-    if (k.titel.trim()) zeile(k.titel, `700 62px ${SERIF}`, '#1C1B19', 78);
-    punkte.forEach((x, i) => { ctx.font = `500 46px ${SANS}`; zeilen(x, innen - 50).forEach((y, j) => z.push({ text: y, font: `500 46px ${SANS}`, farbe: '#1C1B19', lh: 62, punkt: j === 0, einzug: 50, nr: i, abstand: j === 0 ? 14 : 0 })); });
+    if (k.titel.trim()) zeile(k.titel, `700 62px ${SERIF}`, haupt, 78, { g: 62 });
+    punkte.forEach((x, i) => { ctx.font = `500 46px ${SANS}`; zeilen(x, innen - 50).forEach((y, j) => z.push({ text: y, font: `500 46px ${SANS}`, farbe: haupt, g: 46, lh: 62, punkt: j === 0, einzug: 50, nr: i, abstand: j === 0 ? 14 : 0 })); });
   }
   const hoehe = z.reduce((h, x) => h + x.lh + (x.abstand || 0), 0) + 2 * KARTE_PAD;
   const cx = Math.min(Math.max(k.x, KARTE_B / 2 + 30), B - KARTE_B / 2 - 30);
@@ -585,13 +601,15 @@ function karteZeichnen(teil, lokal, len) {
   const links = cx - KARTE_B / 2 + versatz;
   ctx.save();
   ctx.globalAlpha = Math.min(1, rein * 2, raus * 2);
-  ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
-  ctx.fillStyle = '#F5F0EA';
-  rundesRechteck(links, oben, KARTE_B, hoehe, 28);
-  ctx.fill();
-  ctx.shadowColor = 'transparent';
-  ctx.fillStyle = '#8A7346';
-  ctx.fillRect(links + 28, oben, KARTE_B - 56, 8);
+  if (k.hg !== 'ohne') {
+    ctx.shadowColor = 'rgba(0,0,0,.35)'; ctx.shadowBlur = 50; ctx.shadowOffsetY = 18;
+    ctx.fillStyle = k.hg === 'dunkel' ? 'rgba(28,27,25,.82)' : '#F5F0EA';
+    rundesRechteck(links, oben, KARTE_B, hoehe, 28);
+    ctx.fill();
+    ctx.shadowColor = 'transparent';
+    ctx.fillStyle = '#8A7346';
+    ctx.fillRect(links + 28, oben, KARTE_B - 56, 8);
+  }
   let y = oben + KARTE_PAD;
   ctx.textBaseline = 'middle';
   for (const x of z) {
@@ -604,19 +622,23 @@ function karteZeichnen(teil, lokal, len) {
       ctx.font = `700 200px ${SERIF}`; const w1 = ctx.measureText(k.wert).width;
       ctx.font = `700 84px ${SERIF}`; const w2 = k.zusatz.trim() ? ctx.measureText(' ' + k.zusatz).width : 0;
       const x0 = links + (KARTE_B - w1 - w2) / 2;
-      ctx.fillStyle = '#8A7346';
-      ctx.font = `700 200px ${SERIF}`; ctx.fillText(k.wert, x0, y + x.lh / 2);
-      if (w2) { ctx.font = `700 84px ${SERIF}`; ctx.fillText(' ' + k.zusatz, x0 + w1, y + x.lh / 2 + 40); }
+      ctx.fillStyle = akzent;
+      ctx.font = `700 200px ${SERIF}`; schreib(k.wert, x0, y + x.lh / 2, 200);
+      if (w2) { ctx.font = `700 84px ${SERIF}`; schreib(' ' + k.zusatz, x0 + w1, y + x.lh / 2 + 40, 84); }
     } else if (x.anfz) {
       ctx.textAlign = 'left';
-      ctx.font = `700 150px ${SERIF}`; ctx.fillStyle = '#8A7346';
-      ctx.fillText('„', links + KARTE_PAD - 10, y + 20);
+      ctx.font = `700 150px ${SERIF}`; ctx.fillStyle = akzent;
+      schreib('„', links + KARTE_PAD - 10, y + 20, 150);
     } else {
       ctx.textAlign = k.typ === 'zahl' ? 'center' : 'left';
       ctx.font = x.font; ctx.fillStyle = x.farbe;
       const tx = k.typ === 'zahl' ? links + KARTE_B / 2 : links + KARTE_PAD + (x.einzug || 0);
-      ctx.fillText(x.text, tx, y + x.lh / 2);
-      if (x.punkt) { ctx.fillStyle = '#8A7346'; ctx.beginPath(); ctx.arc(links + KARTE_PAD + 14, y + x.lh / 2, 9, 0, Math.PI * 2); ctx.fill(); }
+      schreib(x.text, tx, y + x.lh / 2, x.g);
+      if (x.punkt) {
+        ctx.beginPath(); ctx.arc(links + KARTE_PAD + 14, y + x.lh / 2, 9, 0, Math.PI * 2);
+        if (kontur) { ctx.lineWidth = 6; ctx.strokeStyle = kontur; ctx.stroke(); }
+        ctx.fillStyle = akzent; ctx.fill();
+      }
     }
     y += x.lh;
   }

@@ -65,6 +65,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .balken{height:8px;background:var(--gold-light);border-radius:4px;overflow:hidden;}
 .balken div{height:100%;width:0;background:var(--gold);transition:width .2s;}
 .ergebnis video{width:min(100%, calc(55vh * 9 / 16));align-self:center;border-radius:12px;background:var(--ink);}
+.rueckgaengig{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:20;border-radius:24px;padding:11px 16px;box-shadow:0 4px 14px rgba(28,27,25,.18);}
+.entwurf{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
 .medien{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 [hidden]{display:none!important;}
@@ -77,10 +79,17 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   <header>
     <div class="wordmark">Clips <span>&amp; Fotos</span></div>
     <div class="rule"></div>
-    <p class="intro">Mehrere kurze Clips und Fotos zu einem Hochkant-Video verbinden, mit Text im Bild. Alles bleibt auf deinem Gerät, nichts wird hochgeladen oder gepostet.</p>
+    <p class="intro">Mehrere kurze Clips und Fotos zu einem Hochkant-Video verbinden, mit Text im Bild. Alles bleibt auf deinem Gerät, nichts wird hochgeladen oder gepostet. Dein Stand wird dort gemerkt, falls die App zugeht.</p>
   </header>
 
   <section class="card">
+    <div id="entwurf" class="hinweis entwurf" hidden>
+      <span>📝 Du hast noch ein angefangenes Video (<span id="entwurf-info"></span>). Fügst du neue Clips oder Fotos hinzu, wird es ersetzt.</span>
+      <div class="knoepfe">
+        <button class="btn haupt" id="entwurf-weiter">Weitermachen</button>
+        <button class="btn" id="entwurf-weg">Verwerfen</button>
+      </div>
+    </div>
     <label class="btn neu" for="datei">＋ Clips oder Fotos hinzufügen</label>
     <input type="file" id="datei" accept="video/*,image/*" multiple hidden>
     <label class="btn" for="datei-alle" style="display:block;margin-top:8px">📁 Aus Galerie oder Dateien wählen</label>
@@ -90,6 +99,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   </section>
 
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
+    <p class="hinweis warnung" id="entwurf-fehler" hidden>Dein Stand kann auf diesem Gerät nicht gemerkt werden (zu wenig Speicher oder privates Fenster). Bearbeiten und Erstellen geht trotzdem, nur ist der Stand weg, wenn die App zugeht.</p>
     <div class="buehne">
       <canvas id="leinwand" width="1080" height="1920"></canvas>
       <button class="play" id="play" aria-label="Abspielen">▶</button>
@@ -150,8 +160,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   <p class="fuss">Ein einzelnes Video kürzen, mit Zeitlupe oder Vorher-Foto: <a href="video.html">Video + Text</a>.</p>
 </div>
 
+<button class="btn rueckgaengig" id="rueckgaengig" hidden>↶ Rückgängig</button>
 <div class="medien" id="medien"></div>
 
+<script src="entwurf.js"></script>
 <script>
 // ════════════════════════════════════════════
 // CLIPS & FOTOS: mehrere Clips und Fotos zu einem Hochkant-Video
@@ -238,34 +250,52 @@ const artVon = f => {
 };
 $('datei').addEventListener('change', dateienLaden);
 $('datei-alle').addEventListener('change', dateienLaden);
+// Geladene Dateien je Teil-id: { art, url, el, w, h, datei, dauer (nur Clips) }.
+// Bleiben auch nach „✕“ hier, damit „Rückgängig“ den Teil zurückholen kann.
+const medien = new Map();
+async function mediumLaden(datei, art) {
+  const url = URL.createObjectURL(datei);
+  let v = null;
+  try {
+    if (art === 'foto') {
+      const img = new Image(); img.src = url; await img.decode();
+      return { art, url, el: img, w: img.naturalWidth, h: img.naturalHeight, datei };
+    }
+    v = document.createElement('video');
+    v.playsInline = true; v.preload = 'auto'; v.muted = true; v.src = url;
+    $('medien').appendChild(v);
+    await new Promise((ok, nein) => { v.onloadedmetadata = ok; v.onerror = nein; });
+    const d = isFinite(v.duration) ? v.duration : 10;
+    v.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
+    v.addEventListener('seeked', () => { vorschauBild(t => t.el === v); if (!spielt) zeichnen(jetzt); });
+    return { art, url, el: v, w: v.videoWidth, h: v.videoHeight, dauer: d, datei };
+  } catch (e) {
+    URL.revokeObjectURL(url);
+    v?.remove();
+    throw e;
+  }
+}
+
 async function dateienLaden(e) {
   const dateien = [...e.target.files];
   e.target.value = '';
   for (const f of dateien) {
     const art = artVon(f);
     if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); continue; }
-    const url = URL.createObjectURL(f);
     try {
-      if (art === 'foto') {
-        const img = new Image(); img.src = url; await img.decode();
-        zustand.teile.push({ id: naechsteId++, art: 'foto', url, el: img, w: img.naturalWidth, h: img.naturalHeight, dauer: 3, ...textStart() });
-      } else {
-        const v = document.createElement('video');
-        v.playsInline = true; v.preload = 'auto'; v.muted = true; v.src = url;
-        $('medien').appendChild(v);
-        await new Promise((ok, nein) => { v.onloadedmetadata = ok; v.onerror = nein; });
-        const d = isFinite(v.duration) ? v.duration : 10;
-        v.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
-        v.addEventListener('seeked', () => { vorschauBild(t => t.el === v); if (!spielt) zeichnen(jetzt); });
-        zustand.teile.push({ id: naechsteId++, art: 'video', url, el: v, w: v.videoWidth, h: v.videoHeight, dauer: d, start: 0, ende: Math.min(d, 10), tempo: 1, ...textStart() });
-      }
+      const m = await mediumLaden(f, art), id = naechsteId++;
+      medien.set(id, m);
+      zustand.teile.push(art === 'foto'
+        ? { id, ...m, dauer: 3, ...textStart() }
+        : { id, ...m, start: 0, ende: Math.min(m.dauer, 10), tempo: 1, ...textStart() });
+      $('entwurf').hidden = true;
     } catch (_) {
-      URL.revokeObjectURL(url);
       alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
     }
   }
   $('editor').hidden = !zustand.teile.length;
   teileAnzeigen();
+  verlauf.pruefen();
 }
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
@@ -370,8 +400,7 @@ $('teile').addEventListener('click', e => {
     stoppen();
     if (b.dataset.aktion === 'weg') {
       zustand.teile.splice(i, 1);
-      if (t.art === 'video') t.el.remove();
-      URL.revokeObjectURL(t.url);
+      if (t.art === 'video') t.el.remove(); // Datei bleibt in `medien` für „Rückgängig“
       $('editor').hidden = !zustand.teile.length;
     } else {
       const j = b.dataset.aktion === 'hoch' ? i - 1 : i + 1;
@@ -924,11 +953,13 @@ function stimmeAnzeigen() {
   if (audio) audio.original.gain.value = st ? ORIGINALTON_UNTER_STIMME : 1;
 }
 
-async function stimmeUebernehmen(daten, name) {
+// datei: die Aufnahme als Blob (wird für den Entwurf gemerkt)
+async function stimmeUebernehmen(datei, name) {
   const a = audioVorbereiten();
   if (!a) throw new Error('Kein Ton im Browser');
+  const daten = await datei.arrayBuffer();
   const buffer = await new Promise((ok, nein) => a.ctx.decodeAudioData(daten, ok, nein));
-  zustand.stimme = { buffer, dauer: buffer.duration, name };
+  zustand.stimme = { buffer, dauer: buffer.duration, name, datei };
   stimmeAnzeigen();
 }
 
@@ -937,8 +968,9 @@ $('stimme-datei').addEventListener('change', async e => {
   e.target.value = '';
   if (!f) return;
   stoppen();
-  try { await stimmeUebernehmen(await f.arrayBuffer(), 'Sprachaufnahme'); }
+  try { await stimmeUebernehmen(f, 'Sprachaufnahme'); }
   catch (_) { alert('Diese Aufnahme kann der Browser leider nicht abspielen. Probier eine Datei als MP3 oder M4A.'); }
+  verlauf.pruefen();
 });
 
 $('stimme-weg').addEventListener('click', () => {
@@ -972,6 +1004,7 @@ $('aufnahme').addEventListener('click', async () => {
   const fertig = new Promise(ok => { aufnahme.onstop = ok; });
   zustand.stimme = null;
   aufnahmeLaeuft = true;
+  verlauf.anzeigen();
   $('aufnahme').textContent = '■ Aufnahme beenden';
   $('aufnahme').classList.add('aktiv');
   for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = true;
@@ -989,8 +1022,9 @@ $('aufnahme').addEventListener('click', async () => {
   const blob = new Blob(stuecke, { type: aufnahme.mimeType || typ || 'audio/webm' });
   aufnahme = null;
   jetzt = 0; synchron(0, false); zeichnen(0);
-  try { await stimmeUebernehmen(await blob.arrayBuffer(), 'Deine Aufnahme'); }
+  try { await stimmeUebernehmen(blob, 'Deine Aufnahme'); }
   catch (_) { alert('Die Aufnahme konnte nicht gespeichert werden. Bitte nochmal versuchen.'); stimmeAnzeigen(); }
+  verlauf.pruefen();
 });
 
 // ── Erstellen ───────────────────────────────
@@ -1020,6 +1054,7 @@ $('erstellen').addEventListener('click', async () => {
   let sperre = null;
   try { sperre = await navigator.wakeLock?.request('screen'); } catch (_) {}
   zustand.exportiert = true;
+  verlauf.anzeigen();
   for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = true;
   $('ergebnis').hidden = true;
   $('fortschritt').hidden = false;
@@ -1045,6 +1080,7 @@ $('erstellen').addEventListener('click', async () => {
   stream.getVideoTracks().forEach(tr => tr.stop());
   if (audio) audio.lautsprecher.gain.value = 1;
   zustand.exportiert = false;
+  verlauf.anzeigen();
   try { await sperre?.release(); } catch (_) {}
   for (const id of ['erstellen', 'play', 'datei']) $(id).disabled = false;
   $('fortschritt').hidden = true;
@@ -1062,6 +1098,85 @@ $('erstellen').addEventListener('click', async () => {
   $('ergebnis').hidden = false;
   $('ergebnis').scrollIntoView({ behavior: 'smooth' });
   jetzt = 0; synchron(0, false); zeichnen(0);
+});
+
+// ── Entwurf & Rückgängig ────────────────────
+// Stand ohne Dateien und ohne auf-/zugeklappte Bereiche; Dateien je Teil extra
+function standHolen() {
+  const { uebergang, ton, zoom, rahmen, endkarte } = zustand;
+  const teile = zustand.teile.map(({ url, el, w, h, datei, offen, karteOffen, ...felder }) => felder);
+  const dateien = Object.fromEntries(zustand.teile.map(t => ['medium' + t.id, t.datei]));
+  if (zustand.stimme) dateien.stimme = zustand.stimme.datei;
+  return { stand: { teile, uebergang, ton, zoom, rahmen, endkarte, naechsteId, stimme: zustand.stimme?.name ?? null }, dateien };
+}
+
+async function standSetzen(s, dateien = {}) {
+  stoppen();
+  const bisher = new Map(zustand.teile.map(t => [t.id, t]));
+  zustand.teile = s.teile.filter(f => medien.has(f.id)).map(f => {
+    const m = medien.get(f.id), alt = bisher.get(f.id);
+    if (m.art === 'video' && !m.el.isConnected) $('medien').appendChild(m.el);
+    return { ...m, ...f, offen: alt?.offen, karteOffen: alt?.karteOffen };
+  });
+  Object.assign(zustand, { uebergang: s.uebergang, ton: s.ton, zoom: s.zoom, rahmen: s.rahmen, endkarte: { ...s.endkarte } });
+  naechsteId = Math.max(naechsteId, s.naechsteId);
+  const stimme = dateien.stimme || null;
+  if (stimme !== (zustand.stimme?.datei || null)) {
+    zustand.stimme = null;
+    if (stimme) try { await stimmeUebernehmen(stimme, s.stimme || 'Sprachaufnahme'); } catch (_) {}
+  }
+  document.querySelectorAll('[data-global]').forEach(g => {
+    for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === zustand[g.dataset.global]);
+  });
+  $('rahmen-an').checked = zustand.rahmen;
+  $('endkarte-an').checked = zustand.endkarte.an;
+  $('endkarte-optionen').hidden = !zustand.endkarte.an;
+  $('endkarte-titel').value = zustand.endkarte.titel;
+  $('endkarte-unter').value = zustand.endkarte.unter;
+  $('editor').hidden = !zustand.teile.length;
+  jetzt = Math.min(jetzt, Math.max(0, gesamtLaenge() - 0.05));
+  synchron(jetzt, false);
+  teileAnzeigen();
+}
+
+const ablage = Entwurf.ablage('montage', { beiFehler: () => { $('entwurf-fehler').hidden = false; } });
+const verlauf = Entwurf.verlauf({
+  holen: standHolen,
+  setzen: standSetzen,
+  knopf: $('rueckgaengig'),
+  darf: () => !zustand.exportiert && !aufnahmeLaeuft,
+  // ohne Teile wäre nichts mehr zu merken
+  beiAenderung: (stand, dateien) => stand.teile.length ? ablage.merken(stand, dateien) : ablage.verwerfen()
+});
+verlauf.neu(false);
+
+let entwurf = null;
+(async () => {
+  try { entwurf = await ablage.laden(); } catch (_) { entwurf = null; }
+  if (!entwurf?.stand.teile.length || zustand.teile.length) return;
+  const n = entwurf.stand.teile.length;
+  $('entwurf-info').textContent = `${n} ${n === 1 ? 'Clip oder Foto' : 'Clips und Fotos'}, zuletzt geändert ${Entwurf.zeitText(entwurf.zeit)}`;
+  $('entwurf').hidden = false;
+})();
+$('entwurf-weiter').addEventListener('click', async () => {
+  if (!entwurf) return;
+  $('entwurf-weiter').disabled = true;
+  $('entwurf-weiter').textContent = 'Wird geladen …';
+  let fehlt = 0;
+  for (const f of entwurf.stand.teile) {
+    const datei = entwurf.dateien['medium' + f.id];
+    try { medien.set(f.id, await mediumLaden(datei, f.art)); } catch (_) { fehlt++; }
+  }
+  $('entwurf').hidden = true;
+  await standSetzen(entwurf.stand, entwurf.dateien);
+  verlauf.neu(fehlt > 0); // fehlende Teile auch aus dem Entwurf nehmen
+  if (fehlt) alert(fehlt === 1 ? 'Ein Clip oder Foto konnte nicht wiederhergestellt werden.' : `${fehlt} Clips oder Fotos konnten nicht wiederhergestellt werden.`);
+});
+$('entwurf-weg').addEventListener('click', async () => {
+  if (!confirm('Das angefangene Video wirklich verwerfen? Das geht nicht rückgängig.')) return;
+  await ablage.verwerfen();
+  entwurf = null;
+  $('entwurf').hidden = true;
 });
 
 function herunterladen(datei) {

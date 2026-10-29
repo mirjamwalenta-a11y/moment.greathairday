@@ -74,6 +74,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .schieber b{font-weight:600;text-align:right;}
 .effekt .probe{align-self:flex-start;padding:6px 12px;font-size:12px;}
 .btn.aktiv{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
+.rueckgaengig{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:20;border-radius:24px;padding:11px 16px;box-shadow:0 4px 14px rgba(28,27,25,.18);}
+.entwurf{display:flex;flex-direction:column;gap:8px;}
 .quelle{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 [hidden]{display:none!important;}
@@ -86,10 +88,17 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   <header>
     <div class="wordmark">Video <span>+ Text</span></div>
     <div class="rule"></div>
-    <p class="intro">Kurzes Video bis 1 Minute: kürzen, Text drauf, als Hochkant-Video speichern. Das Video bleibt auf deinem Gerät, nichts wird hochgeladen oder gepostet.</p>
+    <p class="intro">Kurzes Video bis 1 Minute: kürzen, Text drauf, als Hochkant-Video speichern. Das Video bleibt auf deinem Gerät, nichts wird hochgeladen oder gepostet. Dein Stand wird dort gemerkt, falls die App zugeht.</p>
   </header>
 
   <section id="wahl" class="card">
+    <div id="entwurf" class="hinweis entwurf" hidden>
+      <span>📝 Du hast noch ein angefangenes Video (zuletzt geändert <span id="entwurf-zeit"></span>). Wählst du ein neues Video, wird es ersetzt.</span>
+      <div class="knoepfe">
+        <button class="btn haupt" id="entwurf-weiter">Weitermachen</button>
+        <button class="btn" id="entwurf-weg">Verwerfen</button>
+      </div>
+    </div>
     <label class="btn neu" for="datei">🎬 Video auswählen</label>
     <input type="file" id="datei" accept="video/*" hidden>
     <p class="meta">Aus der Galerie oder direkt aufnehmen. Wer im Video zu sehen ist, muss mit dem Posten einverstanden sein.</p>
@@ -97,6 +106,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   </section>
 
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
+    <p class="hinweis warnung" id="entwurf-fehler" hidden>Dein Stand kann auf diesem Gerät nicht gemerkt werden (zu wenig Speicher oder privates Fenster). Bearbeiten und Erstellen geht trotzdem, nur ist der Stand weg, wenn die App zugeht.</p>
     <div class="buehne">
       <canvas id="leinwand" width="1080" height="1920"></canvas>
       <button class="play" id="play" aria-label="Abspielen">▶</button>
@@ -236,8 +246,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
   <p class="fuss">Für lange Aufnahmen (Webinar, Vortrag) mit automatischen Untertiteln ist der Videomaker am Computer das bessere Werkzeug.</p>
 </div>
 
+<button class="btn rueckgaengig" id="rueckgaengig" hidden>↶ Rückgängig</button>
 <video id="quelle" class="quelle" playsinline preload="auto"></video>
 
+<script src="entwurf.js"></script>
 <script>
 // ════════════════════════════════════════════
 // VIDEO + TEXT: kurzes Video kürzen, Text drauf, als 1080x1920 speichern
@@ -283,12 +295,12 @@ const zustand = {
 };
 const TEMPO_WAHL = { lupe: { 0.5: '½ Tempo', 0.25: '¼ Tempo' }, raffer: { 2: '2× schneller', 4: '4× schneller' } };
 const DAUER_WAHL = { 1: '1 Sek.', 2: '2 Sek.', 3: '3 Sek.' };
-let videoUrl = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
+let videoUrl = null, quelleDatei = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
 let audio = null; // { ctx, lautsprecher, ziel }
 let haltZeit = null; // Zeit im fertigen Video, während ein Standbild/Vorher-Foto/Endkarte steht
 // Was gerade gezeigt wird: 'vorher' (Foto am Anfang), 'video' oder 'ende' (Endkarte)
 let phase = 'video';
-const vorher = { bild: null, url: null, dauer: 3, text: 'Vorher', nachText: 'Nachher', versatz: 0 };
+const vorher = { bild: null, url: null, datei: null, dauer: 3, text: 'Vorher', nachText: 'Nachher', versatz: 0 };
 const endkarte = { an: false, dauer: 3, titel: 'Termin buchen', unter: 'Link in der Bio' };
 const ZEIGE_DAUER = { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.' };
 const NACHHER_SCHILD = 2; // so lange steht „Nachher“ am Anfang vom Video
@@ -344,17 +356,27 @@ const clipLaenge = () => videoEnde() + endDauer();
 const jetztImVideo = () => haltZeit ?? introDauer() + ausgabeZeit(video.currentTime);
 
 // ── Video laden ─────────────────────────────
-$('datei').addEventListener('change', e => {
-  const f = e.target.files[0];
-  if (!f) return;
+// Beim Weitermachen an einem Entwurf: dessen Stand nach dem Laden einsetzen
+let wiederherstellen = null;
+function videoOeffnen(datei) {
+  quelleDatei = datei;
   if (videoUrl) URL.revokeObjectURL(videoUrl);
-  videoUrl = URL.createObjectURL(f);
+  videoUrl = URL.createObjectURL(datei);
   video.src = videoUrl;
   video.load();
+}
+$('datei').addEventListener('change', e => {
+  const f = e.target.files[0];
   e.target.value = '';
+  if (!f) return;
+  wiederherstellen = null;
+  $('entwurf').hidden = true;
+  videoOeffnen(f);
 });
 
-video.addEventListener('loadedmetadata', () => {
+video.addEventListener('loadedmetadata', async () => {
+  const alt = wiederherstellen;
+  wiederherstellen = null;
   const d = isFinite(video.duration) ? video.duration : MAX_LAENGE;
   for (const id of ['start', 'ende']) $(id).max = d.toFixed(1);
   zustand.start = 0;
@@ -372,7 +394,9 @@ video.addEventListener('loadedmetadata', () => {
   $('ergebnis').hidden = true;
   if (!zustand.texte.length) textNeu();
   kuerzenAnzeigen();
-  video.currentTime = 0.01; // iOS zeichnet erst nach einem Sprung ein Bild
+  if (alt) await standSetzen(alt.stand, alt.dateien);
+  verlauf.neu();
+  video.currentTime = Math.max(0.01, zustand.start); // iOS zeichnet erst nach einem Sprung ein Bild
 });
 video.addEventListener('error', () => alert('Dieses Video kann der Browser leider nicht öffnen. Probier es mit einem Video aus der Kamera-App.'));
 video.addEventListener('seeked', () => {
@@ -385,6 +409,8 @@ $('anderes').addEventListener('click', () => {
   stoppen();
   $('editor').hidden = true;
   $('wahl').hidden = false;
+  verlauf.anzeigen();
+  entwurfAnbieten(); // falls die Auswahl abgebrochen wird: zurück zum bisherigen Video
   $('datei').click();
 });
 
@@ -723,28 +749,37 @@ function vorherAnzeigen() {
   kuerzenAnzeigen();
 }
 
+// Vorher-Foto aus einer Datei laden (null = entfernen); false, wenn es nicht geht
+async function vorherLaden(datei) {
+  let neu = { bild: null, url: null, datei: null };
+  if (datei) {
+    const url = URL.createObjectURL(datei);
+    const bild = new Image();
+    bild.src = url;
+    try { await bild.decode(); } catch (_) {
+      URL.revokeObjectURL(url);
+      return false;
+    }
+    neu = { bild, url, datei };
+  }
+  if (vorher.url) URL.revokeObjectURL(vorher.url);
+  Object.assign(vorher, neu);
+  vorherAnzeigen();
+  return true;
+}
+
 $('vorher-datei').addEventListener('change', async e => {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
-  const url = URL.createObjectURL(f);
-  const bild = new Image();
-  bild.src = url;
-  try { await bild.decode(); } catch (_) {
-    URL.revokeObjectURL(url);
-    return alert('Dieses Foto kann der Browser leider nicht öffnen.');
-  }
-  if (vorher.url) URL.revokeObjectURL(vorher.url);
-  Object.assign(vorher, { bild, url });
-  vorherAnzeigen();
+  if (!await vorherLaden(f)) return alert('Dieses Foto kann der Browser leider nicht öffnen.');
   stoppen();
   zeigePhase('vorher');
+  verlauf.pruefen();
 });
 
 $('vorher-weg').addEventListener('click', () => {
-  if (vorher.url) URL.revokeObjectURL(vorher.url);
-  Object.assign(vorher, { bild: null, url: null });
-  vorherAnzeigen();
+  vorherLaden(null);
   stoppen();
 });
 
@@ -1142,6 +1177,7 @@ $('erstellen').addEventListener('click', async () => {
   try { sperre = await navigator.wakeLock?.request('screen'); } catch (_) {}
 
   zustand.exportiert = true;
+  verlauf.anzeigen();
   for (const id of ['erstellen', 'anderes', 'play']) $(id).disabled = true;
   $('ergebnis').hidden = true;
   $('fortschritt').hidden = false;
@@ -1167,6 +1203,7 @@ $('erstellen').addEventListener('click', async () => {
   zustand.tonAn = true;
   video.muted = false;
   zustand.exportiert = false;
+  verlauf.anzeigen();
   try { await sperre?.release(); } catch (_) {}
   for (const id of ['erstellen', 'anderes', 'play']) $(id).disabled = false;
   $('fortschritt').hidden = true;
@@ -1184,6 +1221,79 @@ $('erstellen').addEventListener('click', async () => {
   $('ergebnis').scrollIntoView({ behavior: 'smooth' });
   video.currentTime = zustand.start;
 });
+
+// ── Entwurf & Rückgängig ────────────────────
+// Alles, was man einstellt, ohne die Dateien selbst (die kommen extra)
+function standHolen() {
+  const { start, ende, schnitte, tempi, standbilder, modus, versatz, texte } = zustand;
+  return {
+    stand: { start, ende, schnitte, tempi, standbilder, modus, versatz, texte, naechsteId,
+      vorher: { dauer: vorher.dauer, text: vorher.text, nachText: vorher.nachText, versatz: vorher.versatz },
+      endkarte: { ...endkarte }, rahmen: rahmenAn, ton: $('ton').checked, titel: $('titelbild-text').value },
+    dateien: { quelle: quelleDatei, vorher: vorher.datei }
+  };
+}
+
+async function standSetzen(s, dateien = {}) {
+  stoppen();
+  if ((dateien.vorher || null) !== vorher.datei) await vorherLaden(dateien.vorher || null);
+  const { start, ende, schnitte, tempi, standbilder, modus, versatz, texte } = s;
+  Object.assign(zustand, { start, ende, schnitte, tempi, standbilder, modus, versatz, texte });
+  naechsteId = s.naechsteId;
+  Object.assign(vorher, s.vorher);
+  Object.assign(endkarte, s.endkarte);
+  rahmenAn = s.rahmen;
+  $('start').value = start; $('ende').value = ende;
+  for (const x of $('modus').children) x.setAttribute('aria-pressed', x.dataset.wert === modus);
+  $('versatz-wrap').hidden = modus !== 'fuellen';
+  $('versatz').value = versatz;
+  $('rahmen-an').checked = s.rahmen;
+  $('ton').checked = s.ton;
+  $('titelbild-text').value = s.titel;
+  $('vorher-text').value = vorher.text;
+  $('nachher-text').value = vorher.nachText;
+  $('vorher-versatz').value = vorher.versatz;
+  $('endkarte-an').checked = endkarte.an;
+  $('endkarte-titel').value = endkarte.titel;
+  $('endkarte-unter').value = endkarte.unter;
+  vorherAnzeigen();
+  endkarteAnzeigen();
+  schnitteAnzeigen();
+  effekteAnzeigen();
+  texteRendern();
+  if (video.currentTime < start || video.currentTime > ende) video.currentTime = start;
+}
+
+const ablage = Entwurf.ablage('video', { beiFehler: () => { $('entwurf-fehler').hidden = false; } });
+const verlauf = Entwurf.verlauf({
+  holen: standHolen,
+  setzen: standSetzen,
+  knopf: $('rueckgaengig'),
+  darf: () => !zustand.exportiert,
+  sichtbar: () => !$('editor').hidden,
+  beiAenderung: (stand, dateien) => ablage.merken(stand, dateien)
+});
+
+let entwurf = null;
+async function entwurfAnbieten() {
+  try { entwurf = await ablage.laden(); } catch (_) { entwurf = null; }
+  const da = !!entwurf?.dateien.quelle;
+  $('entwurf').hidden = !da || !$('editor').hidden;
+  if (da) $('entwurf-zeit').textContent = Entwurf.zeitText(entwurf.zeit);
+}
+$('entwurf-weiter').addEventListener('click', async () => {
+  if (!entwurf) return;
+  $('entwurf').hidden = true;
+  wiederherstellen = entwurf;
+  videoOeffnen(entwurf.dateien.quelle);
+});
+$('entwurf-weg').addEventListener('click', async () => {
+  if (!confirm('Das angefangene Video wirklich verwerfen? Das geht nicht rückgängig.')) return;
+  await ablage.verwerfen();
+  entwurf = null;
+  $('entwurf').hidden = true;
+});
+entwurfAnbieten();
 
 // Teilen öffnet am Handy das Teilen-Menü („Video sichern“ / Instagram).
 // Geht das nicht, wird die Datei heruntergeladen.

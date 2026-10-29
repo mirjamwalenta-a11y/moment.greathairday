@@ -190,6 +190,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 
 <script src="entwurf.js"></script>
 <script src="untertitel.js"></script>
+<script src="text-animation.js"></script>
 <script>
 // ════════════════════════════════════════════
 // CLIPS & FOTOS: mehrere Clips und Fotos zu einem Hochkant-Video
@@ -380,6 +381,7 @@ function teileAnzeigen() {
           <div class="feld"><span class="feld-name">Hintergrund</span>${chips('hg', Object.fromEntries(Object.entries(HINTERGRUENDE).map(([k, v]) => [k, v[0]])), t.hg)}</div>
           <div class="feld"><span class="feld-name">Textfarbe</span>${chips('farbe', FARBEN, t.farbe)}</div>
           <div class="feld"><span class="feld-name">Größe</span>${chips('groesse', Object.fromEntries(Object.entries(GROESSEN).map(([k, v]) => [k, v[0]])), t.groesse)}</div>
+          <div class="feld"><span class="feld-name">Erscheinen (tippen spielt es ab)</span>${chips('anim', TextAnimation.NAMEN, t.anim || 'blende')}</div>
           <div class="feld"><span class="feld-name">Position (oder in der Vorschau mit dem Finger verschieben)</span>${chips('pos', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t))}</div>
           <div class="feld"><span class="feld-name">Text zeigen</span>${chips('geltung', GELTUNG, t.geltung)}</div>
         </div>
@@ -448,6 +450,7 @@ $('teile').addEventListener('click', e => {
   else if (feld === 'pos') Object.assign(t, { x: B / 2, y: POSITIONEN[b.dataset.wert] });
   else t[feld] = feld === 'dauer' || feld === 'tempo' ? Number(b.dataset.wert) : b.dataset.wert;
   chipsAktualisieren(b.closest('.teil'), t);
+  if (feld === 'anim') return textProbe(t);
   if (feld === 'dauer' || feld === 'tempo') {
     b.closest('.teil').querySelector('.name small').textContent = t.art === 'video' ? clipInfo(t) : `${t.dauer} Sek.`;
     laengeAnzeigen();
@@ -459,7 +462,7 @@ $('teile').addEventListener('click', e => {
 function chipsAktualisieren(karte, t) {
   for (const g of karte.querySelectorAll('.chips')) {
     const f = g.dataset.feld;
-    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t)
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'fit' ? fitVon(t) : f === 'anim' ? t.anim || 'blende'
       : f === 'karte-typ' ? t.karte.typ : f === 'karte-pos' ? positionVon(t.karte)
       : f === 'karte-hg' ? t.karte.hg : f === 'karte-farbe' ? t.karte.farbe : t[f];
     for (const x of g.children) x.setAttribute('aria-pressed', String(x.dataset.wert) === String(aktuell));
@@ -497,6 +500,20 @@ $('teile').addEventListener('input', e => {
   t.el.currentTime = feld === 'start' ? s : Math.max(s, en - 0.05);
   jetzt = zeitachse().find(a => a.teil === t).von + (t.el.currentTime - s) / t.tempo;
 });
+
+// Animation ansehen: kurz vor dem Text bis 2 Sekunden danach abspielen
+function textProbe(t) {
+  const a = zeitachse().find(x => x.teil === t);
+  if (!a || zustand.exportiert || aufnahmeLaeuft) return;
+  stoppen();
+  if (zustand.ton === 'an' || zustand.stimme) audioVorbereiten();
+  jetzt = Math.max(0, textZeit(a, inhaltEnde())[0] - 0.3);
+  synchron(jetzt, false);
+  leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  abspielen();
+  const meiner = lauf;
+  setTimeout(() => { if (lauf === meiner) stoppen(); }, 2300);
+}
 
 // In der Vorschau dorthin springen, wo die Einblendung ganz im Bild steht
 function zeigeKarte(t) {
@@ -579,7 +596,8 @@ function medienZeichnen(t, zoom) {
 // Zuletzt gezeichnete Textflächen (für das Verschieben mit dem Finger)
 let textFlaechen = [];
 
-function textZeichnen(t, alpha) {
+// seit: Sekunden, seit der Text erscheint (für die Animation; Infinity = ganz da)
+function textZeichnen(t, alpha, seit = Infinity) {
   const [, font, basis] = SCHRIFTEN[t.schrift];
   const g = Math.round(basis * GROESSEN[t.groesse][1]);
   const box = HINTERGRUENDE[t.hg][1];
@@ -592,23 +610,24 @@ function textZeichnen(t, alpha) {
   // im sicheren Bereich halten: links/rechts im Bild, oben/unten nicht unter Instagrams Knöpfen
   const mx = Math.min(Math.max(t.x, breite / 2 + 30), B - breite / 2 - 30);
   const oben = Math.min(Math.max(t.y - hoehe / 2, zustand.rahmen ? 380 : SICHER_OBEN), SICHER_UNTEN - hoehe);
-  ctx.globalAlpha = alpha;
+  const an = TextAnimation.stand(t.anim, seit, TextAnimation.wortZahl(zs));
+  ctx.save();
+  TextAnimation.anwenden(ctx, an, mx, oben + hoehe / 2);
+  ctx.globalAlpha = alpha * an.alpha;
   if (box) {
     ctx.fillStyle = box;
     rundesRechteck(mx - breite / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
     ctx.fill();
   }
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
-  zs.forEach((z, i) => {
-    const y = oben + i * zh + zh / 2;
+  TextAnimation.zeilenZeichnen(ctx, zs, an, mx, i => oben + i * zh + zh / 2, (z, x, y) => {
     // ohne Hintergrund: Rand in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
-    if (!box) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = t.farbe === 'schwarz' ? '#fff' : '#1C1B19'; ctx.strokeText(z, mx, y); }
+    if (!box) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = t.farbe === 'schwarz' ? '#fff' : '#1C1B19'; ctx.strokeText(z, x, y); }
     ctx.fillStyle = textFarbe(t);
-    ctx.fillText(z, mx, y);
+    ctx.fillText(z, x, y);
   });
-  ctx.globalAlpha = 1;
+  ctx.restore();
   textFlaechen.push({ teil: t, ziel: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - pad, y1: oben + hoehe + pad });
 }
 
@@ -786,9 +805,11 @@ function zeichnen(t) {
     if (!a.teil.text.trim()) continue;
     const [von, bis] = textZeit(a, videoEnde);
     if (t < von || t >= bis) continue;
-    // weich ein- und ausblenden; ganz am Anfang sofort da (erstes Bild zählt bei Instagram)
-    const ein = von === 0 ? 1 : (t - von - 0.15) / 0.3, aus = (bis - t) / 0.25;
-    textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)));
+    // weich ein- und ausblenden; ganz am Anfang sofort da (erstes Bild zählt bei Instagram);
+    // andere Animationen laufen nur beim Abspielen und Erstellen
+    const start = von === 0 ? 0 : von + 0.15, eigene = a.teil.anim && a.teil.anim !== 'blende';
+    const ein = von === 0 || eigene ? 1 : (t - start) / 0.3, aus = (bis - t) / 0.25;
+    textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)), spielt || zustand.exportiert ? t - start : Infinity);
   }
   const ut = zustand.untertitel, utZeile = t < videoEnde ? utSteuerung?.zeileJetzt(t) : null;
   if (utZeile) { ut.text = utZeile; textZeichnen(ut, 1); }
@@ -1233,7 +1254,7 @@ function rezeptAnwenden(k) {
       else if (i === letzter) t.text = 'Nachher';
       t.y = POSITIONEN.unten;
     } else if (i === 0) t.hinweis = 'Hook: Worum geht es?';
-    if (k === 'tipps' && i >= 1 && i <= 3) Object.assign(t, { hinweis: `Tipp ${i}`, y: POSITIONEN.mitte });
+    if (k === 'tipps' && i >= 1 && i <= 3) Object.assign(t, { hinweis: `Tipp ${i}`, y: POSITIONEN.mitte, anim: 'hoch' });
     if (k === 'kulissen' && i > 0) t.hinweis = 'Was passiert gerade? (optional)';
     if (k === 'kulissen' && t.art === 'video') t.tempo = i > 0 && i < letzter ? 2 : 1;
     if (k === 'stimme' && i === letzter && n > 1) {
@@ -1261,8 +1282,8 @@ try { standards = JSON.parse(localStorage.getItem(STANDARDS)) || {}; } catch (_)
 
 // art 'einstieg' (erster Teil) oder 'weitere': aus den Standards, sonst aus den Vorlagen
 function textStil(art) {
-  const { schrift, hg, farbe, groesse = 'm' } = standards[art] || VORLAGEN[art === 'einstieg' ? 'einstieg' : 'info'];
-  return { schrift, hg, farbe, groesse };
+  const { schrift, hg, farbe, groesse = 'm', anim = 'blende' } = standards[art] || VORLAGEN[art === 'einstieg' ? 'einstieg' : 'info'];
+  return { schrift, hg, farbe, groesse, anim };
 }
 
 function standardsAnzeigen() {
@@ -1273,7 +1294,7 @@ function standardsAnzeigen() {
 }
 
 $('standards-merken').addEventListener('click', () => {
-  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
+  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse, anim: t.anim || 'blende' } : undefined;
   const { uebergang, ton, zoom, rahmen, endkarte } = zustand;
   const neu = { uebergang, ton, zoom, rahmen, endkarte: { ...endkarte }, einstieg: stil(zustand.teile[0]), weitere: stil(zustand.teile[1]),
     untertitel: (({ hg, farbe, x, y }) => ({ hg, farbe, x, y }))(zustand.untertitel) };

@@ -276,6 +276,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 
 <script src="entwurf.js"></script>
 <script src="untertitel.js"></script>
+<script src="text-animation.js"></script>
 <script>
 // ════════════════════════════════════════════
 // VIDEO + TEXT: kurzes Video kürzen, Text drauf, als 1080x1920 speichern
@@ -868,8 +869,8 @@ function textNeu() {
 }
 // art 'hook' oder 'text': Stil aus „Meine Standards“, sonst aus den Vorlagen
 function textObjekt(art, felder) {
-  const { schrift, hg, farbe, groesse = 'm' } = standards[art] || VORLAGEN[art === 'hook' ? 'hook' : 'untertitel'];
-  return { id: naechsteId++, text: '', schrift, hg, farbe, groesse, pos: 'unten', von: 0, bis: null, ...felder };
+  const { schrift, hg, farbe, groesse = 'm', anim = 'blende' } = standards[art] || VORLAGEN[art === 'hook' ? 'hook' : 'untertitel'];
+  return { id: naechsteId++, text: '', schrift, hg, farbe, groesse, anim, pos: 'unten', von: 0, bis: null, ...felder };
 }
 const passendeVorlage = t => Object.keys(VORLAGEN).find(k => ['schrift', 'hg', 'farbe'].every(f => VORLAGEN[k][f] === t[f]));
 $('text-neu').addEventListener('click', textNeu);
@@ -890,6 +891,7 @@ function texteRendern() {
       ${chips('farbe', 'Textfarbe', FARBEN, t.farbe)}
       ${chips('pos', 'Position', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, t.y != null ? null : t.pos)}
       ${chips('groesse', 'Größe', { s: 'Klein', m: 'Mittel', l: 'Groß' }, t.groesse)}
+      ${chips('anim', 'Erscheinen (tippen spielt es ab)', TextAnimation.NAMEN, t.anim || 'blende')}
       <div class="zeiten">
         <span class="zeit-label">Zeigen ab</span><input type="number" data-feld="von" min="0" step="0.5" inputmode="decimal" value="${t.von}"> Sek.
         <button class="btn" data-jetzt="von">Jetzt</button>
@@ -936,9 +938,21 @@ $('texte').addEventListener('click', e => {
     else t[feld] = b.dataset.wert;
     if (feld === 'pos') t.x = t.y = null; // feste Position statt verschoben
     textChipsAktualisieren(b.closest('.text-karte'), t);
+    if (feld === 'anim') return textProbe(t);
     zeichnen();
   }
 });
+
+// Animation ansehen: kurz vor dem Text bis 2 Sekunden danach abspielen
+function textProbe(t) {
+  audioVorbereiten();
+  stoppen();
+  const von = Math.max(0, t.von - introDauer() - 0.3);
+  video.currentTime = quelleZeit(von);
+  probe = { bis: quelleZeit(von + 2.3), zurueck: quelleZeit(von) };
+  leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  abspielen();
+}
 
 // ── Zeichnen ────────────────────────────────
 function zeilen(text, breite) {
@@ -969,7 +983,7 @@ function rundesRechteck(x, y, w, h, r) {
 function textChipsAktualisieren(karte, t) {
   for (const g of karte.querySelectorAll('.chips')) {
     const f = g.dataset.feld;
-    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? (t.y != null ? null : t.pos) : t[f];
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? (t.y != null ? null : t.pos) : f === 'anim' ? t.anim || 'blende' : t[f];
     for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === aktuell);
   }
 }
@@ -977,7 +991,8 @@ function textChipsAktualisieren(karte, t) {
 // Zuletzt gezeichnete Textflächen (für das Verschieben mit dem Finger)
 let textFlaechen = [];
 
-function textZeichnen(t, alpha) {
+// seit: Sekunden, seit der Text erscheint (für die Animation; Infinity = ganz da)
+function textZeichnen(t, alpha, seit = Infinity) {
   const schrift = SCHRIFTEN[t.schrift];
   const farbe = textFarbe(t);
   // ohne Hintergrund: Kontur in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
@@ -995,22 +1010,23 @@ function textZeichnen(t, alpha) {
   const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * (pad || g * 0.15);
   const mx = Math.min(Math.max(t.x ?? B / 2, breite / 2 + 30), B - breite / 2 - 30);
   const oben = Math.min(Math.max((t.y ?? POSITIONEN[t.pos]) - hoehe / 2, rahmenAn ? 380 : 260), 1560 - hoehe);
-  ctx.globalAlpha = alpha;
+  const an = TextAnimation.stand(t.anim, seit, TextAnimation.wortZahl(zs));
+  ctx.save();
+  TextAnimation.anwenden(ctx, an, mx, oben + hoehe / 2);
+  ctx.globalAlpha = alpha * an.alpha;
   if (st.box) {
     ctx.fillStyle = st.box;
     rundesRechteck(mx - breite / 2, oben - pad * 0.7, breite, hoehe + pad * 1.4, 22);
     ctx.fill();
   }
-  ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
   ctx.lineJoin = 'round';
-  zs.forEach((z, i) => {
-    const y = oben + i * zh + zh / 2;
-    if (st.kontur) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = st.kontur; ctx.strokeText(z, mx, y); }
+  TextAnimation.zeilenZeichnen(ctx, zs, an, mx, i => oben + i * zh + zh / 2, (z, x, y) => {
+    if (st.kontur) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = st.kontur; ctx.strokeText(z, x, y); }
     ctx.fillStyle = st.farbe;
-    ctx.fillText(z, mx, y);
+    ctx.fillText(z, x, y);
   });
-  ctx.globalAlpha = 1;
+  ctx.restore();
   textFlaechen.push({ text: t, x0: mx - breite / 2, x1: mx + breite / 2, y0: oben - (pad || g * 0.15), y1: oben + hoehe + (pad || g * 0.15) });
 }
 
@@ -1095,10 +1111,11 @@ function zeichnen() {
     const bis = tx.bis ?? videoEnde();
     if (!tx.text.trim()) continue;
     if (t < tx.von || t > bis) { if (blass) textZeichnen(tx, 0.4); continue; }
-    // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende
-    const ein = tx.von > 0 ? (t - tx.von) / BLENDE : 1;
+    // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende;
+    // andere Animationen laufen nur beim Abspielen und Erstellen
+    const ein = tx.anim && tx.anim !== 'blende' ? 1 : tx.von > 0 ? (t - tx.von) / BLENDE : 1;
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
-    textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)));
+    textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)), spielt || zustand.exportiert ? t - tx.von : Infinity);
   }
   const ut = zustand.untertitel, utZeile = phase === 'video' ? utSteuerung?.zeileJetzt(t) : null;
   if (utZeile) { ut.text = utZeile; textZeichnen(ut, 1); }
@@ -1369,7 +1386,7 @@ function rezeptAnwenden(k) {
     const d = (T - hookBis) / 3;
     for (let i = 0; i < 3; i++) {
       const von = Math.round((hookBis + i * d) * 10) / 10;
-      texte.push(textObjekt('text', { pos: 'mitte', von, bis: i < 2 ? Math.round((hookBis + (i + 1) * d) * 10) / 10 : null, hinweis: `Tipp ${i + 1}` }));
+      texte.push(textObjekt('text', { pos: 'mitte', von, bis: i < 2 ? Math.round((hookBis + (i + 1) * d) * 10) / 10 : null, hinweis: `Tipp ${i + 1}`, anim: 'hoch' }));
     }
   } else {
     const hinweis = { vorher: 'Was wurde gemacht? z. B. Farbe und Schnitt (optional)', kulissen: 'Was passiert gerade?', ergebnis: 'Was wurde gemacht? z. B. Farbe und Schnitt' }[k];
@@ -1403,7 +1420,7 @@ function standardsAnzeigen() {
 }
 
 $('standards-merken').addEventListener('click', () => {
-  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
+  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse, anim: t.anim || 'blende' } : undefined;
   const neu = { endkarte: { an: endkarte.an, titel: endkarte.titel, unter: endkarte.unter, dauer: endkarte.dauer },
     rahmen: rahmenAn, ton: $('ton').checked, modus: zustand.modus, hook: stil(zustand.texte[0]), text: stil(zustand.texte[1]),
     untertitel: (({ hg, farbe, x, y }) => ({ hg, farbe, x, y }))(zustand.untertitel) };

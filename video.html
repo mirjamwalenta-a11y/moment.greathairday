@@ -117,6 +117,13 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     </div>
 
     <div class="card">
+      <div class="label">Rezept als Startpunkt</div>
+      <p class="klein">Ein Tipp stellt Texte, Tempo und Endkarte passend ein. Die Textfelder bleiben leer und zeigen dir, was hinein soll. Herausgeschnittene Stellen bleiben.</p>
+      <div class="chips" id="rezepte"></div>
+      <p class="hinweis" id="rezept-tipp" hidden></p>
+    </div>
+
+    <div class="card">
       <div class="label">Kürzen</div>
       <div class="reihe"><span>Start</span><span class="wert" id="start-wert"></span></div>
       <input type="range" id="start" min="0" step="0.1" value="0" aria-label="Start">
@@ -221,6 +228,16 @@ input[type=range]{width:100%;accent-color:var(--gold);}
         <button class="btn haupt" id="titelbild-teilen">📲 Teilen</button>
         <button class="btn" id="titelbild-speichern">⬇ Aufs Handy speichern</button>
       </div>
+    </div>
+
+    <div class="card">
+      <div class="label">Meine Standards</div>
+      <p class="klein">Endkarte, Goldrahmen, Ton, Bildausschnitt und Textstil (erster Text = Hook, zweiter = weitere Texte) so wie jetzt für jedes neue Video übernehmen.</p>
+      <div class="knoepfe">
+        <button class="btn" id="standards-merken">⭐ Als Standard merken</button>
+        <button class="btn" id="standards-weg" hidden>Standards löschen</button>
+      </div>
+      <p class="klein" id="standards-info" hidden></p>
     </div>
 
     <button class="btn neu" id="erstellen">Video erstellen</button>
@@ -833,9 +850,13 @@ $('versatz').addEventListener('input', e => { zustand.versatz = Number(e.target.
 // ── Texte ───────────────────────────────────
 function textNeu() {
   const erster = !zustand.texte.length;
-  const v = VORLAGEN[erster ? 'hook' : 'untertitel'];
-  zustand.texte.push({ id: naechsteId++, text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, pos: erster ? 'oben' : 'unten', groesse: 'm', von: 0, bis: erster ? 3 : null });
+  zustand.texte.push(textObjekt(erster ? 'hook' : 'text', { pos: erster ? 'oben' : 'unten', bis: erster ? 3 : null }));
   texteRendern();
+}
+// art 'hook' oder 'text': Stil aus „Meine Standards“, sonst aus den Vorlagen
+function textObjekt(art, felder) {
+  const { schrift, hg, farbe, groesse = 'm' } = standards[art] || VORLAGEN[art === 'hook' ? 'hook' : 'untertitel'];
+  return { id: naechsteId++, text: '', schrift, hg, farbe, groesse, pos: 'unten', von: 0, bis: null, ...felder };
 }
 const passendeVorlage = t => Object.keys(VORLAGEN).find(k => ['schrift', 'hg', 'farbe'].every(f => VORLAGEN[k][f] === t[f]));
 $('text-neu').addEventListener('click', textNeu);
@@ -849,7 +870,7 @@ const namen = obj => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, 
 function texteRendern() {
   $('texte').innerHTML = zustand.texte.map((t, i) => `
     <div class="text-karte" data-id="${t.id}">
-      <textarea rows="2" placeholder="${i === 0 ? 'z. B. 2 Jahre Wunsch-Blond – heute endlich' : 'Text eingeben'}" aria-label="Text ${i + 1}">${esc(t.text)}</textarea>
+      <textarea rows="2" placeholder="${esc(t.hinweis || (i === 0 ? 'z. B. 2 Jahre Wunsch-Blond – heute endlich' : 'Text eingeben'))}" aria-label="Text ${i + 1}">${esc(t.text)}</textarea>
       ${chips('vorlage', 'Schnellwahl', namen(VORLAGEN), passendeVorlage(t))}
       ${chips('schrift', 'Schrift', namen(SCHRIFTEN), t.schrift)}
       ${chips('hg', 'Hintergrund', namen(HINTERGRUENDE), t.hg)}
@@ -1243,13 +1264,22 @@ async function standSetzen(s, dateien = {}) {
   Object.assign(vorher, s.vorher);
   Object.assign(endkarte, s.endkarte);
   rahmenAn = s.rahmen;
-  $('start').value = start; $('ende').value = ende;
-  for (const x of $('modus').children) x.setAttribute('aria-pressed', x.dataset.wert === modus);
-  $('versatz-wrap').hidden = modus !== 'fuellen';
-  $('versatz').value = versatz;
-  $('rahmen-an').checked = s.rahmen;
   $('ton').checked = s.ton;
   $('titelbild-text').value = s.titel;
+  felderAnzeigen();
+  schnitteAnzeigen();
+  effekteAnzeigen();
+  texteRendern();
+  if (video.currentTime < start || video.currentTime > ende) video.currentTime = start;
+}
+
+// Eingabefelder nach dem Zustand stellen (nach Rückgängig, Entwurf, Standards)
+function felderAnzeigen() {
+  $('start').value = zustand.start; $('ende').value = zustand.ende;
+  for (const x of $('modus').children) x.setAttribute('aria-pressed', x.dataset.wert === zustand.modus);
+  $('versatz-wrap').hidden = zustand.modus !== 'fuellen';
+  $('versatz').value = zustand.versatz;
+  $('rahmen-an').checked = rahmenAn;
   $('vorher-text').value = vorher.text;
   $('nachher-text').value = vorher.nachText;
   $('vorher-versatz').value = vorher.versatz;
@@ -1258,11 +1288,93 @@ async function standSetzen(s, dateien = {}) {
   $('endkarte-unter').value = endkarte.unter;
   vorherAnzeigen();
   endkarteAnzeigen();
-  schnitteAnzeigen();
+}
+
+// ── Rezepte ─────────────────────────────────
+// Ein Rezept setzt Texte (leer, mit Hinweis, was hinein soll), Tempo,
+// Standbild und Endkarte. Nichts wird erfunden: die Worte kommen von dir.
+// Herausgeschnittene Stellen bleiben, Tempo und Standbilder ersetzt es.
+const REZEPTE = {
+  vorher:   { name: 'Vorher / Nachher', tipp: 'Wähl unten bei „Vorher / Nachher“ das Vorher-Foto. Danach läuft dein Video als Nachher, am Schluss bleibt das Ergebnis 2 Sekunden stehen.' },
+  tipps:    { name: '3 Tipps', tipp: 'Oben der Hook, dann drei Texte nacheinander, je ein Tipp. Die Zeiten sind gleichmäßig verteilt, mit „Jetzt“ passt du sie an.' },
+  kulissen: { name: 'Hinter den Kulissen', tipp: 'Der Mittelteil läuft doppelt so schnell. Oben der Hook, unten in einem Satz, was gerade passiert.' },
+  ergebnis: { name: 'Ergebnis zeigen', tipp: 'Die letzten 3 Sekunden laufen in Zeitlupe, z. B. für den Haar-Schwung. Oben der Hook, unten, was gemacht wurde.' }
+};
+$('rezepte').innerHTML = Object.entries(REZEPTE).map(([k, r]) => `<button data-wert="${k}">${r.name}</button>`).join('');
+
+function rezeptAnwenden(k) {
+  stoppen();
+  const s = zustand.start, e = zustand.ende, len = e - s;
+  zustand.tempi = [];
+  zustand.standbilder = [];
+  if (k === 'vorher') zustand.standbilder.push({ bei: runden(Math.max(s, e - 0.3)), dauer: 2 });
+  if (k === 'kulissen' && len > 6) zustand.tempi.push({ von: runden(s + 2), bis: runden(e - 2), faktor: 2 });
+  if (k === 'ergebnis' && len > 4) zustand.tempi.push({ von: runden(e - 3), bis: runden(e), faktor: 0.5 });
+  endkarte.an = true;
+  // Text-Zeiten zählen im fertigen Video, also nach Tempo und Standbild
+  const T = videoEnde(), hookBis = Math.min(3, T);
+  const texte = [textObjekt('hook', { pos: 'oben', bis: hookBis, hinweis: 'Hook: Worum geht es? (in den ersten 3 Sekunden)' })];
+  if (k === 'tipps') {
+    const d = (T - hookBis) / 3;
+    for (let i = 0; i < 3; i++) {
+      const von = Math.round((hookBis + i * d) * 10) / 10;
+      texte.push(textObjekt('text', { pos: 'mitte', von, bis: i < 2 ? Math.round((hookBis + (i + 1) * d) * 10) / 10 : null, hinweis: `Tipp ${i + 1}` }));
+    }
+  } else {
+    const hinweis = { vorher: 'Was wurde gemacht? z. B. Farbe und Schnitt (optional)', kulissen: 'Was passiert gerade?', ergebnis: 'Was wurde gemacht? z. B. Farbe und Schnitt' }[k];
+    texte.push(textObjekt('text', { von: hookBis, hinweis }));
+  }
+  zustand.texte = texte;
+  felderAnzeigen();
   effekteAnzeigen();
   texteRendern();
-  if (video.currentTime < start || video.currentTime > ende) video.currentTime = start;
+  $('rezept-tipp').textContent = REZEPTE[k].tipp + ' Mit „↶ Rückgängig“ kommst du zum vorigen Stand zurück.';
+  $('rezept-tipp').hidden = false;
+  $('texte').querySelector('textarea')?.focus({ preventScroll: true });
 }
+$('rezepte').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b) rezeptAnwenden(b.dataset.wert);
+});
+
+// ── Meine Standards ─────────────────────────
+// Bleiben nur in diesem Browser (localStorage), gelten für jedes neue Video.
+const STANDARDS = 'moment-video-standards';
+let standards = {};
+try { standards = JSON.parse(localStorage.getItem(STANDARDS)) || {}; } catch (_) {}
+
+function standardsAnzeigen() {
+  const da = Object.keys(standards).length > 0;
+  $('standards-weg').hidden = !da;
+  $('standards-info').hidden = !da;
+  if (da) $('standards-info').textContent = `✓ Gemerkt: Endkarte ${standards.endkarte.an ? `„${standards.endkarte.titel}“` : 'aus'}, Goldrahmen ${standards.rahmen ? 'an' : 'aus'}, Originalton ${standards.ton ? 'an' : 'aus'}`
+    + (standards.hook ? `, Hook ${SCHRIFTEN[standards.hook.schrift].name} auf ${HINTERGRUENDE[standards.hook.hg][0]}` : '') + '.';
+}
+
+$('standards-merken').addEventListener('click', () => {
+  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
+  const neu = { endkarte: { an: endkarte.an, titel: endkarte.titel, unter: endkarte.unter, dauer: endkarte.dauer },
+    rahmen: rahmenAn, ton: $('ton').checked, modus: zustand.modus, hook: stil(zustand.texte[0]), text: stil(zustand.texte[1]) };
+  try { localStorage.setItem(STANDARDS, JSON.stringify(neu)); } catch (_) {
+    return alert('Die Standards konnten in diesem Browser nicht gemerkt werden (z. B. im privaten Fenster).');
+  }
+  standards = JSON.parse(JSON.stringify(neu));
+  standardsAnzeigen();
+});
+$('standards-weg').addEventListener('click', () => {
+  if (!confirm('Deine Standards löschen? Neue Videos starten dann wieder mit den Grundeinstellungen.')) return;
+  try { localStorage.removeItem(STANDARDS); } catch (_) {}
+  standards = {};
+  standardsAnzeigen();
+});
+
+// beim Öffnen: Standards als Grundeinstellung (ein Entwurf überschreibt sie danach)
+if (standards.endkarte) Object.assign(endkarte, standards.endkarte);
+if ('rahmen' in standards) rahmenAn = standards.rahmen;
+if ('ton' in standards) $('ton').checked = standards.ton;
+if (standards.modus) zustand.modus = standards.modus;
+felderAnzeigen();
+standardsAnzeigen();
 
 const ablage = Entwurf.ablage('video', { beiFehler: () => { $('entwurf-fehler').hidden = false; } });
 const verlauf = Entwurf.verlauf({

@@ -108,6 +108,13 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     <div class="klein" id="laenge" style="text-align:center;"></div>
 
     <div class="card">
+      <div class="label">Rezept als Startpunkt</div>
+      <p class="klein">Ein Tipp stellt Texte, Tempo, Übergang und Endkarte passend zu deinen Clips und Fotos ein. Die Textfelder bleiben leer und zeigen dir, was hinein soll.</p>
+      <div class="chips" id="rezepte"></div>
+      <p class="hinweis" id="rezept-tipp" hidden></p>
+    </div>
+
+    <div class="card">
       <div class="label">Reihenfolge</div>
       <div id="teile" style="display:flex;flex-direction:column;gap:10px;"></div>
     </div>
@@ -138,6 +145,16 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       </div>
       <div class="reihe" id="stimme-info" hidden><span id="stimme-text"></span><button class="btn" id="stimme-weg" style="margin-left:auto;">Entfernen</button></div>
       <p class="klein" id="stimme-hinweis"></p>
+    </div>
+
+    <div class="card">
+      <div class="label">Meine Standards</div>
+      <p class="klein">Übergang, Ton, Ranzoom, Goldrahmen, Endkarte und Textstil (erster Teil = Einstieg, zweiter = weitere Teile) so wie jetzt für jedes neue Video übernehmen.</p>
+      <div class="knoepfe">
+        <button class="btn" id="standards-merken">⭐ Als Standard merken</button>
+        <button class="btn" id="standards-weg" hidden>Standards löschen</button>
+      </div>
+      <p class="klein" id="standards-info" hidden></p>
     </div>
 
     <button class="btn neu" id="erstellen">Video erstellen</button>
@@ -300,8 +317,7 @@ async function dateienLaden(e) {
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
 function textStart() {
-  const v = VORLAGEN[zustand.teile.length ? 'info' : 'einstieg'];
-  return { text: '', schrift: v.schrift, hg: v.hg, farbe: v.farbe, groesse: 'm', x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null,
+  return { text: '', ...textStil(zustand.teile.length ? 'weitere' : 'einstieg'), x: B / 2, y: POSITIONEN.unten, geltung: 'teil', fit: null,
     karte: { typ: 'keine', wert: '', zusatz: '', label: '', zitat: '', von: '', titel: '', punkte: ['', '', '', ''], hg: 'beige', farbe: 'passend', x: B / 2, y: POSITIONEN.mitte } };
 }
 
@@ -342,7 +358,7 @@ function teileAnzeigen() {
         <div class="feld"><span class="feld-name">Tempo (in Zeitlupe und Zeitraffer ohne Originalton)</span>${chips('tempo', TEMPI, t.tempo)}</div>`
       : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
       <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
-      <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'}"></div>
+      <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${esc(t.hinweis || (i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'))}"></div>
       <details class="gestalten"${t.offen ? ' open' : ''}>
         <summary>✏️ Text gestalten: Stil, Position, wie lange</summary>
         <div class="gruppe">
@@ -1125,6 +1141,15 @@ async function standSetzen(s, dateien = {}) {
     zustand.stimme = null;
     if (stimme) try { await stimmeUebernehmen(stimme, s.stimme || 'Sprachaufnahme'); } catch (_) {}
   }
+  einstellungenAnzeigen();
+  $('editor').hidden = !zustand.teile.length;
+  jetzt = Math.min(jetzt, Math.max(0, gesamtLaenge() - 0.05));
+  synchron(jetzt, false);
+  teileAnzeigen();
+}
+
+// Einstellungen fürs ganze Video in die Knöpfe und Felder übernehmen
+function einstellungenAnzeigen() {
   document.querySelectorAll('[data-global]').forEach(g => {
     for (const x of g.children) x.setAttribute('aria-pressed', x.dataset.wert === zustand[g.dataset.global]);
   });
@@ -1133,11 +1158,92 @@ async function standSetzen(s, dateien = {}) {
   $('endkarte-optionen').hidden = !zustand.endkarte.an;
   $('endkarte-titel').value = zustand.endkarte.titel;
   $('endkarte-unter').value = zustand.endkarte.unter;
-  $('editor').hidden = !zustand.teile.length;
-  jetzt = Math.min(jetzt, Math.max(0, gesamtLaenge() - 0.05));
-  synchron(jetzt, false);
-  teileAnzeigen();
 }
+
+// ── Rezepte ─────────────────────────────────
+// Ein Rezept setzt die Texte aller Teile neu (leer, mit Hinweis, was hinein
+// soll) und stellt Tempo, Übergang und Endkarte ein. Nichts wird erfunden:
+// die Worte kommen von dir. „Vorher“/„Nachher“ sind nur Beschriftungen.
+const REZEPTE = {
+  vorher:   { name: 'Vorher / Nachher', tipp: 'Erster Teil = Vorher, letzter Teil = Nachher, dazwischen gern der Weg dorthin. Harter Schnitt, damit der Unterschied sitzt.' },
+  tipps:    { name: '3 Tipps', tipp: 'Erster Teil: der Hook. Die nächsten drei Teile: je ein Tipp. Am besten 4 Clips oder Fotos.' },
+  kulissen: { name: 'Ein Tag im Salon', tipp: 'Erster Teil: der Hook. Clips in der Mitte laufen doppelt so schnell, der letzte wieder normal. Schreib zu jedem Teil kurz, was passiert, oder lass es leer.' },
+  stimme:   { name: 'Kundinnen-Stimme', tipp: 'Trag im letzten Teil unter „Einblendung“ das Zitat ein: wörtlich, nur mit Einverständnis, höchstens mit Vornamen.' }
+};
+$('rezepte').innerHTML = Object.entries(REZEPTE).map(([k, r]) => `<button data-wert="${k}">${r.name}</button>`).join('');
+
+function rezeptAnwenden(k) {
+  stoppen();
+  const n = zustand.teile.length, letzter = n - 1;
+  zustand.teile.forEach((t, i) => {
+    const art = i === 0 && k !== 'vorher' ? 'einstieg' : 'weitere';
+    Object.assign(t, { text: '', hinweis: '', geltung: 'teil', ...textStil(art), x: B / 2, y: POSITIONEN[i === 0 ? 'oben' : 'unten'] });
+    if (k === 'vorher') {
+      if (i === 0) t.text = 'Vorher';
+      else if (i === letzter) t.text = 'Nachher';
+      t.y = POSITIONEN.unten;
+    } else if (i === 0) t.hinweis = 'Hook: Worum geht es?';
+    if (k === 'tipps' && i >= 1 && i <= 3) Object.assign(t, { hinweis: `Tipp ${i}`, y: POSITIONEN.mitte });
+    if (k === 'kulissen' && i > 0) t.hinweis = 'Was passiert gerade? (optional)';
+    if (k === 'kulissen' && t.art === 'video') t.tempo = i > 0 && i < letzter ? 2 : 1;
+    if (k === 'stimme' && i === letzter && n > 1) {
+      Object.assign(t.karte, { typ: 'zitat', hg: 'beige', farbe: 'passend', x: B / 2, y: POSITIONEN.mitte });
+      t.karteOffen = true;
+    }
+  });
+  zustand.uebergang = k === 'vorher' ? 'hart' : 'weich';
+  zustand.endkarte.an = true;
+  einstellungenAnzeigen();
+  teileAnzeigen();
+  $('rezept-tipp').textContent = REZEPTE[k].tipp + ' Mit „↶ Rückgängig“ kommst du zum vorigen Stand zurück.';
+  $('rezept-tipp').hidden = false;
+}
+$('rezepte').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (b) rezeptAnwenden(b.dataset.wert);
+});
+
+// ── Meine Standards ─────────────────────────
+// Bleiben nur in diesem Browser (localStorage), gelten für jedes neue Video.
+const STANDARDS = 'moment-montage-standards';
+let standards = {};
+try { standards = JSON.parse(localStorage.getItem(STANDARDS)) || {}; } catch (_) {}
+
+// art 'einstieg' (erster Teil) oder 'weitere': aus den Standards, sonst aus den Vorlagen
+function textStil(art) {
+  const { schrift, hg, farbe, groesse = 'm' } = standards[art] || VORLAGEN[art === 'einstieg' ? 'einstieg' : 'info'];
+  return { schrift, hg, farbe, groesse };
+}
+
+function standardsAnzeigen() {
+  const da = Object.keys(standards).length > 0;
+  $('standards-weg').hidden = !da;
+  $('standards-info').hidden = !da;
+  if (da) $('standards-info').textContent = `✓ Gemerkt: ${standards.uebergang === 'hart' ? 'harter Schnitt' : 'weicher Übergang'}, Ton der Clips ${standards.ton === 'an' ? 'an' : 'aus'}, Goldrahmen ${standards.rahmen ? 'an' : 'aus'}, Endkarte ${standards.endkarte.an ? `„${standards.endkarte.titel}“` : 'aus'}.`;
+}
+
+$('standards-merken').addEventListener('click', () => {
+  const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
+  const { uebergang, ton, zoom, rahmen, endkarte } = zustand;
+  const neu = { uebergang, ton, zoom, rahmen, endkarte: { ...endkarte }, einstieg: stil(zustand.teile[0]), weitere: stil(zustand.teile[1]) };
+  try { localStorage.setItem(STANDARDS, JSON.stringify(neu)); } catch (_) {
+    return alert('Die Standards konnten in diesem Browser nicht gemerkt werden (z. B. im privaten Fenster).');
+  }
+  standards = JSON.parse(JSON.stringify(neu));
+  standardsAnzeigen();
+});
+$('standards-weg').addEventListener('click', () => {
+  if (!confirm('Deine Standards löschen? Neue Videos starten dann wieder mit den Grundeinstellungen.')) return;
+  try { localStorage.removeItem(STANDARDS); } catch (_) {}
+  standards = {};
+  standardsAnzeigen();
+});
+
+// beim Öffnen: Standards als Grundeinstellung (ein Entwurf überschreibt sie danach)
+for (const k of ['uebergang', 'ton', 'zoom', 'rahmen']) if (k in standards) zustand[k] = standards[k];
+if (standards.endkarte) zustand.endkarte = { ...zustand.endkarte, ...standards.endkarte };
+einstellungenAnzeigen();
+standardsAnzeigen();
 
 const ablage = Entwurf.ablage('montage', { beiFehler: () => { $('entwurf-fehler').hidden = false; } });
 const verlauf = Entwurf.verlauf({

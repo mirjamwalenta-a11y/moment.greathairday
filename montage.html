@@ -65,6 +65,11 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .balken{height:8px;background:var(--gold-light);border-radius:4px;overflow:hidden;}
 .balken div{height:100%;width:0;background:var(--gold);transition:width .2s;}
 .ergebnis video{width:min(100%, calc(55vh * 9 / 16));align-self:center;border-radius:12px;background:var(--ink);}
+.ut-liste{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
+.ut-zeile{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;}
+.ut-zeile .btn{padding:6px 8px;font-size:12px;font-variant-numeric:tabular-nums;}
+.ut-zeile .eingabe{padding:6px 8px;font-size:14px;}
+.ut-tippen{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:21;padding:18px 14px;font-size:16px;border-radius:14px;box-shadow:0 4px 18px rgba(28,27,25,.25);max-width:448px;margin:0 auto;}
 .rueckgaengig{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:20;border-radius:24px;padding:11px 16px;box-shadow:0 4px 14px rgba(28,27,25,.18);}
 .entwurf{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
 .medien{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0;}
@@ -157,6 +162,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <p class="klein" id="standards-info" hidden></p>
     </div>
 
+    <div class="card" id="untertitel-karte"></div>
+
     <button class="btn neu" id="erstellen">Video erstellen</button>
     <div id="fortschritt" class="card" hidden>
       <div class="reihe"><span>Video wird erstellt …</span></div>
@@ -178,9 +185,11 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 </div>
 
 <button class="btn rueckgaengig" id="rueckgaengig" hidden>↶ Rückgängig</button>
+<button class="btn haupt ut-tippen" id="ut-tippen" hidden></button>
 <div class="medien" id="medien"></div>
 
 <script src="entwurf.js"></script>
+<script src="untertitel.js"></script>
 <script>
 // ════════════════════════════════════════════
 // CLIPS & FOTOS: mehrere Clips und Fotos zu einem Hochkant-Video
@@ -210,6 +219,8 @@ const passendeVorlage = t => Object.keys(VORLAGEN).find(k => ['schrift', 'hg', '
 // Mitte des Textblocks (y); Instagram verdeckt oben und unten Bereiche, dazwischen bleibt der Text
 const POSITIONEN = { oben: 420, mitte: H / 2, unten: 1330 };
 const SICHER_OBEN = 250, SICHER_UNTEN = 1560;
+// Untertitel etwas höher als Texte „unten“, damit beide Platz haben
+const UT_POSITIONEN = { unten: 1180, mitte: H / 2 };
 const positionVon = t => Object.keys(POSITIONEN).find(k => POSITIONEN[k] === t.y && t.x === B / 2);
 
 const $ = id => document.getElementById(id);
@@ -220,7 +231,9 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', 
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
 
 const zustand = { teile: [], uebergang: 'weich', ton: 'aus', zoom: 'an', rahmen: false,
-  endkarte: { an: true, titel: 'A Great Hair Day', unter: 'Wien', dauer: 3 }, exportiert: false };
+  endkarte: { an: true, titel: 'A Great Hair Day', unter: 'Wien', dauer: 3 }, exportiert: false,
+  untertitel: Untertitel.leer(UT_POSITIONEN, B / 2) };
+let utSteuerung = null; // wird unten eingerichtet; zeichnen() kann vorher schon laufen
 let naechsteId = 1, ergebnisUrl = null, ergebnisDatei = null, audio = null;
 let lauf = 0, spielt = false, jetzt = 0;
 // Sprechertext: zustand.stimme = { buffer, dauer, name }; während der Aufnahme läuft das Video ohne Originalton
@@ -777,6 +790,8 @@ function zeichnen(t) {
     const ein = von === 0 ? 1 : (t - von - 0.15) / 0.3, aus = (bis - t) / 0.25;
     textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)));
   }
+  const ut = zustand.untertitel, utZeile = t < videoEnde ? utSteuerung?.zeileJetzt(t) : null;
+  if (utZeile) { ut.text = utZeile; textZeichnen(ut, 1); }
   if (ziehen) hilfslinien();
   if (!zustand.exportiert) $('zeit').value = t;
 }
@@ -821,6 +836,7 @@ const ziehenEnde = () => {
   if (!ziehen) return;
   const karte = document.querySelector(`.teil[data-id="${ziehen.teil.id}"]`);
   if (karte) chipsAktualisieren(karte, ziehen.teil);
+  if (ziehen.teil === zustand.untertitel) utSteuerung.anzeigen();
   ziehen = null;
   zeichnen(jetzt);
 };
@@ -1123,7 +1139,8 @@ function standHolen() {
   const teile = zustand.teile.map(({ url, el, w, h, datei, offen, karteOffen, ...felder }) => felder);
   const dateien = Object.fromEntries(zustand.teile.map(t => ['medium' + t.id, t.datei]));
   if (zustand.stimme) dateien.stimme = zustand.stimme.datei;
-  return { stand: { teile, uebergang, ton, zoom, rahmen, endkarte, naechsteId, stimme: zustand.stimme?.name ?? null }, dateien };
+  return { stand: { teile, uebergang, ton, zoom, rahmen, endkarte, naechsteId, stimme: zustand.stimme?.name ?? null,
+    untertitel: Untertitel.furStand(zustand.untertitel) }, dateien };
 }
 
 async function standSetzen(s, dateien = {}) {
@@ -1134,7 +1151,8 @@ async function standSetzen(s, dateien = {}) {
     if (m.art === 'video' && !m.el.isConnected) $('medien').appendChild(m.el);
     return { ...m, ...f, offen: alt?.offen, karteOffen: alt?.karteOffen };
   });
-  Object.assign(zustand, { uebergang: s.uebergang, ton: s.ton, zoom: s.zoom, rahmen: s.rahmen, endkarte: { ...s.endkarte } });
+  Object.assign(zustand, { uebergang: s.uebergang, ton: s.ton, zoom: s.zoom, rahmen: s.rahmen, endkarte: { ...s.endkarte },
+    untertitel: s.untertitel || Untertitel.leer(UT_POSITIONEN, B / 2) });
   naechsteId = Math.max(naechsteId, s.naechsteId);
   const stimme = dateien.stimme || null;
   if (stimme !== (zustand.stimme?.datei || null)) {
@@ -1158,7 +1176,39 @@ function einstellungenAnzeigen() {
   $('endkarte-optionen').hidden = !zustand.endkarte.an;
   $('endkarte-titel').value = zustand.endkarte.titel;
   $('endkarte-unter').value = zustand.endkarte.unter;
+  utSteuerung?.anzeigen();
 }
+
+// ── Untertitel ──────────────────────────────
+// Ende der Clips und Fotos (ohne Endkarte)
+const inhaltEnde = () => zeitachse().filter(a => a.teil.art !== 'ende').reduce((e, a) => Math.max(e, a.bis), 0);
+utSteuerung = Untertitel.einrichten({
+  karte: $('untertitel-karte'),
+  tippKnopf: $('ut-tippen'),
+  ut: () => zustand.untertitel,
+  positionen: UT_POSITIONEN,
+  mitte: B / 2,
+  erklaerung: 'Viele schauen Reels ohne Ton, Untertitel holen sie trotzdem ab. Füg den Text ein, den du sprichst. Er wird in kurze Zeilen geteilt und über deinen Sprechertext verteilt (ohne Aufnahme über das ganze Video). Mit „Mittippen“ setzt du die Zeiten dann genau.',
+  bereich: () => [0, zustand.stimme ? Math.min(zustand.stimme.dauer, inhaltEnde()) : inhaltEnde()],
+  jetzt: () => jetzt,
+  async abspielenVonAnfang() {
+    stoppen();
+    if (zustand.ton === 'an' || zustand.stimme) audioVorbereiten();
+    jetzt = 0;
+    synchron(0, false);
+    leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    await abspielen();
+  },
+  springen(t) {
+    stoppen();
+    jetzt = t;
+    synchron(t, false);
+    zeichnen(t);
+    leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+  zeichnen: () => zeichnen(jetzt),
+  geaendert: () => verlauf.pruefen()
+});
 
 // ── Rezepte ─────────────────────────────────
 // Ein Rezept setzt die Texte aller Teile neu (leer, mit Hinweis, was hinein
@@ -1225,7 +1275,8 @@ function standardsAnzeigen() {
 $('standards-merken').addEventListener('click', () => {
   const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
   const { uebergang, ton, zoom, rahmen, endkarte } = zustand;
-  const neu = { uebergang, ton, zoom, rahmen, endkarte: { ...endkarte }, einstieg: stil(zustand.teile[0]), weitere: stil(zustand.teile[1]) };
+  const neu = { uebergang, ton, zoom, rahmen, endkarte: { ...endkarte }, einstieg: stil(zustand.teile[0]), weitere: stil(zustand.teile[1]),
+    untertitel: (({ hg, farbe, x, y }) => ({ hg, farbe, x, y }))(zustand.untertitel) };
   try { localStorage.setItem(STANDARDS, JSON.stringify(neu)); } catch (_) {
     return alert('Die Standards konnten in diesem Browser nicht gemerkt werden (z. B. im privaten Fenster).');
   }
@@ -1242,6 +1293,7 @@ $('standards-weg').addEventListener('click', () => {
 // beim Öffnen: Standards als Grundeinstellung (ein Entwurf überschreibt sie danach)
 for (const k of ['uebergang', 'ton', 'zoom', 'rahmen']) if (k in standards) zustand[k] = standards[k];
 if (standards.endkarte) zustand.endkarte = { ...zustand.endkarte, ...standards.endkarte };
+if (standards.untertitel) Object.assign(zustand.untertitel, standards.untertitel);
 einstellungenAnzeigen();
 standardsAnzeigen();
 

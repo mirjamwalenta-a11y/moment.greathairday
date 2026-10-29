@@ -74,6 +74,11 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .schieber b{font-weight:600;text-align:right;}
 .effekt .probe{align-self:flex-start;padding:6px 12px;font-size:12px;}
 .btn.aktiv{background:var(--warn-bg);border-color:var(--warn);color:var(--warn);}
+.ut-liste{display:flex;flex-direction:column;gap:6px;max-height:320px;overflow-y:auto;}
+.ut-zeile{display:grid;grid-template-columns:auto 1fr;gap:6px;align-items:center;}
+.ut-zeile .btn{padding:6px 8px;font-size:12px;font-variant-numeric:tabular-nums;}
+.ut-zeile .eingabe{padding:6px 8px;font-size:14px;}
+.ut-tippen{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:21;padding:18px 14px;font-size:16px;border-radius:14px;box-shadow:0 4px 18px rgba(28,27,25,.25);max-width:448px;margin:0 auto;}
 .rueckgaengig{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:20;border-radius:24px;padding:11px 16px;box-shadow:0 4px 14px rgba(28,27,25,.18);}
 .entwurf{display:flex;flex-direction:column;gap:8px;}
 .quelle{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;left:0;top:0;}
@@ -212,6 +217,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <p class="klein">Tipp: Den ersten Satz (Hook) in den ersten 3 Sekunden zeigen. Unten bleibt Platz für die Instagram-Beschriftung.</p>
     </div>
 
+    <div class="card" id="untertitel-karte"></div>
+
     <div class="card">
       <div class="label">Ton</div>
       <label class="reihe"><input type="checkbox" id="ton" checked style="accent-color:var(--gold);width:16px;height:16px;"> Originalton behalten</label>
@@ -264,9 +271,11 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 </div>
 
 <button class="btn rueckgaengig" id="rueckgaengig" hidden>↶ Rückgängig</button>
+<button class="btn haupt ut-tippen" id="ut-tippen" hidden></button>
 <video id="quelle" class="quelle" playsinline preload="auto"></video>
 
 <script src="entwurf.js"></script>
+<script src="untertitel.js"></script>
 <script>
 // ════════════════════════════════════════════
 // VIDEO + TEXT: kurzes Video kürzen, Text drauf, als 1080x1920 speichern
@@ -297,6 +306,8 @@ const textFarbe = t => t.farbe === 'weiss' ? '#fff' : t.farbe === 'schwarz' ? '#
 const GROESSEN = { s: 0.75, m: 1, l: 1.3 };
 // Mitte des Textblocks; oben/unten mit Abstand zu den Instagram-Bedienelementen
 const POSITIONEN = { oben: 420, mitte: H / 2, unten: 1380 };
+// Untertitel etwas höher als Texte „unten“, damit beide Platz haben
+const UT_POSITIONEN = { unten: 1180, mitte: H / 2 };
 
 const $ = id => document.getElementById(id);
 const video = $('quelle'), leinwand = $('leinwand'), ctx = leinwand.getContext('2d');
@@ -308,8 +319,10 @@ const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', 
 const zustand = {
   start: 0, ende: 0, schnitte: [],
   tempi: [], standbilder: [],
-  modus: 'fuellen', versatz: 0, texte: [], exportiert: false, tonAn: true
+  modus: 'fuellen', versatz: 0, texte: [], exportiert: false, tonAn: true,
+  untertitel: Untertitel.leer(UT_POSITIONEN, B / 2)
 };
+let utSteuerung = null; // wird unten eingerichtet; zeichnen() kann vorher schon laufen
 const TEMPO_WAHL = { lupe: { 0.5: '½ Tempo', 0.25: '¼ Tempo' }, raffer: { 2: '2× schneller', 4: '4× schneller' } };
 const DAUER_WAHL = { 1: '1 Sek.', 2: '2 Sek.', 3: '3 Sek.' };
 let videoUrl = null, quelleDatei = null, ergebnisUrl = null, ergebnisDatei = null, naechsteId = 1;
@@ -1087,6 +1100,8 @@ function zeichnen() {
     const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
     textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)));
   }
+  const ut = zustand.untertitel, utZeile = phase === 'video' ? utSteuerung?.zeileJetzt(t) : null;
+  if (utZeile) { ut.text = utZeile; textZeichnen(ut, 1); }
   if (ziehen) hilfslinien();
   if (zustand.exportiert || phase !== 'video') return;
   // nur in der Vorschau: zeigen, dass diese Stelle nicht ins fertige Video kommt
@@ -1162,6 +1177,7 @@ const ziehenEnde = () => {
   if (!ziehen) return;
   const karte = document.querySelector(`.text-karte[data-id="${ziehen.t.id}"]`);
   if (karte) textChipsAktualisieren(karte, ziehen.t);
+  if (ziehen.t === zustand.untertitel) utSteuerung.anzeigen();
   ziehen = null;
   zeichnen();
 };
@@ -1249,6 +1265,7 @@ function standHolen() {
   const { start, ende, schnitte, tempi, standbilder, modus, versatz, texte } = zustand;
   return {
     stand: { start, ende, schnitte, tempi, standbilder, modus, versatz, texte, naechsteId,
+      untertitel: Untertitel.furStand(zustand.untertitel),
       vorher: { dauer: vorher.dauer, text: vorher.text, nachText: vorher.nachText, versatz: vorher.versatz },
       endkarte: { ...endkarte }, rahmen: rahmenAn, ton: $('ton').checked, titel: $('titelbild-text').value },
     dateien: { quelle: quelleDatei, vorher: vorher.datei }
@@ -1261,6 +1278,7 @@ async function standSetzen(s, dateien = {}) {
   const { start, ende, schnitte, tempi, standbilder, modus, versatz, texte } = s;
   Object.assign(zustand, { start, ende, schnitte, tempi, standbilder, modus, versatz, texte });
   naechsteId = s.naechsteId;
+  zustand.untertitel = s.untertitel || Untertitel.leer(UT_POSITIONEN, B / 2);
   Object.assign(vorher, s.vorher);
   Object.assign(endkarte, s.endkarte);
   rahmenAn = s.rahmen;
@@ -1288,7 +1306,40 @@ function felderAnzeigen() {
   $('endkarte-unter').value = endkarte.unter;
   vorherAnzeigen();
   endkarteAnzeigen();
+  utSteuerung?.anzeigen();
 }
+
+// ── Untertitel ──────────────────────────────
+// Zeit im fertigen Video → Stelle im Originalvideo (ausgabeZeit steigt nur an)
+function quelleZeit(ziel) {
+  let a = zustand.start, b = zustand.ende;
+  for (let i = 0; i < 30; i++) { const m = (a + b) / 2; if (ausgabeZeit(m) < ziel) a = m; else b = m; }
+  return b;
+}
+utSteuerung = Untertitel.einrichten({
+  karte: $('untertitel-karte'),
+  tippKnopf: $('ut-tippen'),
+  ut: () => zustand.untertitel,
+  positionen: UT_POSITIONEN,
+  mitte: B / 2,
+  erklaerung: 'Für Videos, in denen du sprichst. Viele schauen Reels ohne Ton, Untertitel holen sie trotzdem ab. Füg den Text ein, den du sagst, lass ihn in Zeilen teilen und setz dann mit „Mittippen“ die Zeiten genau.',
+  bereich: () => [introDauer(), videoEnde()],
+  jetzt: () => jetztImVideo(),
+  async abspielenVonAnfang() {
+    audioVorbereiten();
+    stoppen();
+    await springen(zustand.start);
+    leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    await abspielen();
+  },
+  springen(t) {
+    stoppen();
+    video.currentTime = quelleZeit(t - introDauer());
+    leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  },
+  zeichnen: () => zeichnen(),
+  geaendert: () => verlauf.pruefen()
+});
 
 // ── Rezepte ─────────────────────────────────
 // Ein Rezept setzt Texte (leer, mit Hinweis, was hinein soll), Tempo,
@@ -1354,7 +1405,8 @@ function standardsAnzeigen() {
 $('standards-merken').addEventListener('click', () => {
   const stil = t => t ? { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse } : undefined;
   const neu = { endkarte: { an: endkarte.an, titel: endkarte.titel, unter: endkarte.unter, dauer: endkarte.dauer },
-    rahmen: rahmenAn, ton: $('ton').checked, modus: zustand.modus, hook: stil(zustand.texte[0]), text: stil(zustand.texte[1]) };
+    rahmen: rahmenAn, ton: $('ton').checked, modus: zustand.modus, hook: stil(zustand.texte[0]), text: stil(zustand.texte[1]),
+    untertitel: (({ hg, farbe, x, y }) => ({ hg, farbe, x, y }))(zustand.untertitel) };
   try { localStorage.setItem(STANDARDS, JSON.stringify(neu)); } catch (_) {
     return alert('Die Standards konnten in diesem Browser nicht gemerkt werden (z. B. im privaten Fenster).');
   }
@@ -1373,6 +1425,7 @@ if (standards.endkarte) Object.assign(endkarte, standards.endkarte);
 if ('rahmen' in standards) rahmenAn = standards.rahmen;
 if ('ton' in standards) $('ton').checked = standards.ton;
 if (standards.modus) zustand.modus = standards.modus;
+if (standards.untertitel) Object.assign(zustand.untertitel, standards.untertitel);
 felderAnzeigen();
 standardsAnzeigen();
 

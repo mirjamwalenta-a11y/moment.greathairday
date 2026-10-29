@@ -6,7 +6,7 @@
 // Neue Seiten/Dateien dieser App hier bei `vorab` ergänzen.
 self.GHD_OFFLINE = {
   app: 'moment',
-  version: '2026-10-27e',
+  version: '2026-10-29e',
   start: './index.html',
   vorab: [
     './',
@@ -20,6 +20,9 @@ self.GHD_OFFLINE = {
     './instagram.html',
     './video.html',
     './montage.html',
+    './entwurf.js',
+    './untertitel.js',
+    './text-animation.js',
     './instagram-mappe.js',
     './karussell-canvas.js',
     './css/app.css?v=20261024a',

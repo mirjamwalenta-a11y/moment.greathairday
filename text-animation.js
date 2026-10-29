@@ -4,6 +4,7 @@
 // Wie ein Text erscheint: einblenden (Standard), von unten hereinfahren,
 // aufploppen oder Wort für Wort. Die Seiten zeichnen den Text selbst und
 // holen sich hier nur, wie weit die Animation gerade ist.
+// Dazu die Textfarbe „Automatisch“: weiß oder schwarz, je nach Bild dahinter.
 
 const TextAnimation = (() => {
   const NAMEN = { blende: 'Einblenden', hoch: 'Von unten', pop: 'Aufploppen', woerter: 'Wort für Wort' };
@@ -49,5 +50,29 @@ const TextAnimation = (() => {
     });
   }
 
-  return { NAMEN, stand, anwenden, wortZahl, zeilenZeichnen };
+  // Automatische Textfarbe: Helligkeit hinter dem Text messen (verkleinert auf
+  // 16×8 Punkte). Mit Spielraum, damit die Farbe nicht bei jedem Bild hin- und
+  // herspringt; nach einem Schnitt auf ein ganz anderes Bild wechselt sie sofort.
+  const mess = document.createElement('canvas');
+  mess.width = 16; mess.height = 8;
+  const messCtx = mess.getContext('2d', { willReadFrequently: true });
+  const zuletzt = new WeakMap();
+  function autoFarbe(quelle, t, x, y, w, h) {
+    if (t.hg === 'hell') return 'schwarz';
+    if (t.hg !== 'ohne') return 'weiss';
+    x = Math.max(0, x); y = Math.max(0, y);
+    w = Math.min(w, quelle.width - x); h = Math.min(h, quelle.height - y);
+    let hell = 0;
+    try {
+      messCtx.drawImage(quelle, x, y, w, h, 0, 0, 16, 8);
+      const d = messCtx.getImageData(0, 0, 16, 8).data;
+      for (let i = 0; i < d.length; i += 4) hell += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+      hell /= 128 * 255;
+    } catch (_) {}
+    const farbe = zuletzt.get(t) === 'schwarz' ? (hell < 0.48 ? 'weiss' : 'schwarz') : (hell > 0.62 ? 'schwarz' : 'weiss');
+    zuletzt.set(t, farbe);
+    return farbe;
+  }
+
+  return { NAMEN, stand, anwenden, wortZahl, zeilenZeichnen, autoFarbe };
 })();

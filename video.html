@@ -63,6 +63,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .schnitt-leiste span.lupe{background:var(--gold);}
 .schnitt-leiste span.raffer{background:var(--sub);}
 .schnitt-leiste span.stand{background:var(--ink);}
+.schnitt-leiste span.szene{background:var(--gold-ink);width:3px!important;}
+.szene-chip{display:inline-flex;border:1px solid var(--line);border-radius:20px;overflow:hidden;background:var(--surface);}
+.szene-chip button{border:none;background:none;padding:6px 9px;font:500 13px var(--sans);color:var(--ink);cursor:pointer;font-variant-numeric:tabular-nums;}
+.szene-chip button + button{border-left:1px solid var(--line);color:var(--warn);padding:6px 8px;}
 .knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
 .gruppe{display:flex;flex-direction:column;gap:10px;}
 .eingabe{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 15px var(--sans);background:var(--surface);color:var(--ink);}
@@ -136,6 +140,25 @@ input[type=range]{width:100%;accent-color:var(--gold);}
       <input type="range" id="ende" min="0" step="0.1" value="0" aria-label="Ende">
       <div class="klein" id="laenge"></div>
       <div class="hinweis" id="zu-lang" hidden></div>
+    </div>
+
+    <div class="card">
+      <div class="label">Szenen, z. B. aus CapCut</div>
+      <p class="klein">Fertiges Video mit Schnitten, z. B. aus einer CapCut-Vorlage? Die App findet die Bildwechsel. Danach kommen und gehen deine Texte genau mit den Schnitten. Läuft nur auf deinem Gerät.</p>
+      <button class="btn" id="szenen-finden">🎬 Szenen finden</button>
+      <div id="szenen-suche" hidden>
+        <div class="balken"><div id="szenen-balken"></div></div>
+        <p class="klein">Szenen werden gesucht …</p>
+      </div>
+      <div id="szenen-ergebnis" class="gruppe" hidden>
+        <p class="klein" id="szenen-info"></p>
+        <div class="chips" id="szenen-liste"></div>
+        <div class="knoepfe">
+          <button class="btn" id="szene-hier">＋ Schnitt hier</button>
+          <button class="btn haupt" id="szenen-texte">Ein Text pro Szene</button>
+        </div>
+        <p class="klein">Tippe auf eine Zeit, um dorthin zu springen. Fehlt ein Schnitt, stell den Regler unter dem Video dorthin und tippe „＋ Schnitt hier“. In jedem Text gibt es dann „🎬 An Szene anpassen“, und „Jetzt“ rastet an Schnitten ein.</p>
+      </div>
     </div>
 
     <div class="card">
@@ -297,10 +320,10 @@ const SCHRIFTEN = {
   sans:  { name: 'Klar',    groesse: 64, font: g => `700 ${g}px ${SANS}` }
 };
 const HINTERGRUENDE = { ohne: ['Ohne', null], dunkel: ['Dunkel', 'rgba(28,27,25,.72)'], hell: ['Hell', '#F5F0EA'], gold: ['Gold', '#8A7346'] };
-const FARBEN = { weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
+const FARBEN = { auto: 'Automatisch', weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
 const VORLAGEN = {
   hook:       { name: 'Hook',       schrift: 'serif', hg: 'dunkel', farbe: 'weiss' },
-  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'weiss' },
+  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'auto' },
   beige:      { name: 'Beige',      schrift: 'sans',  hg: 'hell',   farbe: 'schwarz' }
 };
 const textFarbe = t => t.farbe === 'weiss' ? '#fff' : t.farbe === 'schwarz' ? '#1C1B19' : t.hg === 'hell' ? '#8A7346' : '#D4BC8A';
@@ -321,6 +344,7 @@ const zustand = {
   start: 0, ende: 0, schnitte: [],
   tempi: [], standbilder: [],
   modus: 'fuellen', versatz: 0, texte: [], exportiert: false, tonAn: true,
+  szenen: [], // Bildwechsel (Zeiten im Originalvideo), z. B. Schnitte aus CapCut
   untertitel: Untertitel.leer(UT_POSITIONEN, B / 2)
 };
 let utSteuerung = null; // wird unten eingerichtet; zeichnen() kann vorher schon laufen
@@ -415,8 +439,10 @@ video.addEventListener('loadedmetadata', async () => {
   zustand.schnitte = [];
   zustand.tempi = [];
   zustand.standbilder = [];
+  zustand.szenen = [];
   schnitteAnzeigen();
   effekteAnzeigen();
+  szenenAnzeigen();
   $('start').value = 0; $('ende').value = zustand.ende;
   $('zu-lang').hidden = d <= MAX_LAENGE;
   $('zu-lang').textContent = `Dein Video ist ${fmt(d)} lang. Verwendet wird höchstens 1 Minute – mit Start und Ende wählst du den Teil aus.`;
@@ -717,7 +743,8 @@ function schnittLeiste() {
   const teile = [
     ...zustand.tempi.map(z => [z.von, z.bis, z.faktor < 1 ? 'lupe' : 'raffer']),
     ...aktiveSchnitte().map(c => [c.von, c.bis, '']),
-    ...zustand.standbilder.map(f => [f.bei, f.bei, 'stand'])
+    ...zustand.standbilder.map(f => [f.bei, f.bei, 'stand']),
+    ...zustand.szenen.map(x => [x, x, 'szene'])
   ];
   $('schnitt-leiste').innerHTML = len > 0 ? teile.map(([a, b, k]) =>
     `<span class="${k}" style="left:${(Math.max(a, s) - s) / len * 100}%;width:${Math.max(0.6, (Math.min(b, zustand.ende) - Math.max(a, s)) / len * 100)}%"></span>`).join('') : '';
@@ -900,6 +927,7 @@ function texteRendern() {
         <span class="zeit-label">bis</span><input type="number" data-feld="bis" min="0" step="0.5" inputmode="decimal" placeholder="Ende" value="${t.bis ?? ''}"> Sek.
         <button class="btn" data-jetzt="bis">Jetzt</button>
       </div>
+      ${zustand.szenen.length ? '<button class="btn" data-szene>🎬 An Szene anpassen (wo der Regler steht)</button>' : ''}
       <button class="entfernen" data-entfernen>Text entfernen</button>
     </div>`).join('');
   zeichnen();
@@ -912,6 +940,7 @@ $('texte').addEventListener('input', e => {
   if (e.target.tagName === 'TEXTAREA') t.text = e.target.value;
   else if (e.target.dataset.feld === 'von') t.von = Math.max(0, Number(e.target.value) || 0);
   else if (e.target.dataset.feld === 'bis') t.bis = e.target.value === '' ? null : Math.max(0, Number(e.target.value));
+  if (e.target.dataset.feld) t.szene = false; // von Hand gesetzt: wieder weich ein- und ausblenden
   zeichnen();
 });
 
@@ -925,10 +954,18 @@ $('texte').addEventListener('click', e => {
     return;
   }
   if (b.dataset.jetzt) {
-    const jetzt = Math.round(jetztImVideo() * 10) / 10;
+    // in der Nähe eines Schnitts genau auf den Schnitt
+    const roh = jetztImVideo(), schnitt = szenenGrenzen().find(g => Math.abs(g - roh) < 0.3);
+    const jetzt = schnitt != null ? Math.round(schnitt * 100) / 100 : Math.round(roh * 10) / 10;
     t[b.dataset.jetzt] = jetzt;
     b.closest('.text-karte').querySelector(`[data-feld="${b.dataset.jetzt}"]`).value = jetzt;
     zeichnen();
+    return;
+  }
+  if (b.hasAttribute('data-szene')) {
+    const [von, bis] = szeneBei(jetztImVideo());
+    Object.assign(t, { von, bis, szene: true });
+    texteRendern();
     return;
   }
   const gruppe = b.closest('.chips');
@@ -994,11 +1031,9 @@ let textFlaechen = [];
 // seit: Sekunden, seit der Text erscheint (für die Animation; Infinity = ganz da)
 function textZeichnen(t, alpha, seit = Infinity) {
   const schrift = SCHRIFTEN[t.schrift];
-  const farbe = textFarbe(t);
-  // ohne Hintergrund: Kontur in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
-  const st = { farbe, box: HINTERGRUENDE[t.hg][1], kontur: t.hg === 'ohne' ? (t.farbe === 'schwarz' ? '#fff' : '#1C1B19') : null };
+  const box = HINTERGRUENDE[t.hg][1];
   const g = Math.round(schrift.groesse * GROESSEN[t.groesse]);
-  const pad = st.box ? g * 0.45 : 0;
+  const pad = box ? g * 0.45 : 0;
   ctx.font = schrift.font(g);
   const zs = zeilen(t.text, B - 2 * RAND - 2 * pad);
   if (!zs.length) return;
@@ -1010,6 +1045,11 @@ function textZeichnen(t, alpha, seit = Infinity) {
   const breite = Math.max(...zs.map(z => ctx.measureText(z).width)) + 2 * (pad || g * 0.15);
   const mx = Math.min(Math.max(t.x ?? B / 2, breite / 2 + 30), B - breite / 2 - 30);
   const oben = Math.min(Math.max((t.y ?? POSITIONEN[t.pos]) - hoehe / 2, rahmenAn ? 380 : 260), 1560 - hoehe);
+  // Farbe „Automatisch“: nach der Helligkeit hinter dem Text
+  const rand = pad || g * 0.15;
+  const f = t.farbe === 'auto' ? TextAnimation.autoFarbe(ctx.canvas, t, mx - breite / 2, oben - rand, breite, hoehe + 2 * rand) : t.farbe;
+  // ohne Hintergrund: Kontur in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
+  const st = { farbe: textFarbe({ ...t, farbe: f }), box, kontur: t.hg === 'ohne' ? (f === 'schwarz' ? '#fff' : '#1C1B19') : null };
   const an = TextAnimation.stand(t.anim, seit, TextAnimation.wortZahl(zs));
   ctx.save();
   TextAnimation.anwenden(ctx, an, mx, oben + hoehe / 2);
@@ -1111,10 +1151,11 @@ function zeichnen() {
     const bis = tx.bis ?? videoEnde();
     if (!tx.text.trim()) continue;
     if (t < tx.von || t > bis) { if (blass) textZeichnen(tx, 0.4); continue; }
-    // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende;
+    // weiches Ein- und Ausblenden, aber nicht am Clip-Anfang/-Ende und nicht
+    // bei Texten, die an Szenen hängen (die kommen und gehen mit dem Schnitt);
     // andere Animationen laufen nur beim Abspielen und Erstellen
-    const ein = tx.anim && tx.anim !== 'blende' ? 1 : tx.von > 0 ? (t - tx.von) / BLENDE : 1;
-    const aus = tx.bis != null ? (bis - t) / BLENDE : 1;
+    const ein = tx.szene || (tx.anim && tx.anim !== 'blende') ? 1 : tx.von > 0 ? (t - tx.von) / BLENDE : 1;
+    const aus = tx.bis != null && !tx.szene ? (bis - t) / BLENDE : 1;
     textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)), spielt || zustand.exportiert ? t - tx.von : Infinity);
   }
   const ut = zustand.untertitel, utZeile = phase === 'video' ? utSteuerung?.zeileJetzt(t) : null;
@@ -1281,7 +1322,7 @@ $('erstellen').addEventListener('click', async () => {
 function standHolen() {
   const { start, ende, schnitte, tempi, standbilder, modus, versatz, texte } = zustand;
   return {
-    stand: { start, ende, schnitte, tempi, standbilder, modus, versatz, texte, naechsteId,
+    stand: { start, ende, schnitte, tempi, standbilder, modus, versatz, texte, naechsteId, szenen: zustand.szenen,
       untertitel: Untertitel.furStand(zustand.untertitel),
       vorher: { dauer: vorher.dauer, text: vorher.text, nachText: vorher.nachText, versatz: vorher.versatz },
       endkarte: { ...endkarte }, rahmen: rahmenAn, ton: $('ton').checked, titel: $('titelbild-text').value },
@@ -1296,12 +1337,14 @@ async function standSetzen(s, dateien = {}) {
   Object.assign(zustand, { start, ende, schnitte, tempi, standbilder, modus, versatz, texte });
   naechsteId = s.naechsteId;
   zustand.untertitel = s.untertitel || Untertitel.leer(UT_POSITIONEN, B / 2);
+  zustand.szenen = s.szenen || [];
   Object.assign(vorher, s.vorher);
   Object.assign(endkarte, s.endkarte);
   rahmenAn = s.rahmen;
   $('ton').checked = s.ton;
   $('titelbild-text').value = s.titel;
   felderAnzeigen();
+  szenenAnzeigen();
   schnitteAnzeigen();
   effekteAnzeigen();
   texteRendern();
@@ -1356,6 +1399,161 @@ utSteuerung = Untertitel.einrichten({
   },
   zeichnen: () => zeichnen(),
   geaendert: () => verlauf.pruefen()
+});
+
+// ── Szenen (Bildwechsel) ────────────────────
+// Ein zweites, stummes <video> läuft schnell durch; jedes Bild wird auf
+// 36×64 Punkte verkleinert und mit dem vorigen verglichen. Ein Schnitt ist,
+// wo sich das Bild viel stärker ändert als in der Umgebung (Bewegung
+// ändert es gleichmäßig, ein Schnitt schlagartig). Nichts wird hochgeladen.
+const SZENE_ABSTAND = 0.4; // kürzere Szenen sind meist Übergangs-Effekte
+
+// Schnittzeiten im fertigen Video (nur im gewählten Teil, ohne herausgeschnittene)
+const szenenGrenzen = () => zustand.szenen
+  .filter(x => x > zustand.start + 0.05 && x < zustand.ende - 0.05 && !schnittBei(x))
+  .map(x => introDauer() + ausgabeZeit(x));
+
+// Szene um die Zeit t (im fertigen Video): [von, bis]; bis = null heißt bis zum Video-Ende
+function szeneBei(t) {
+  const g = szenenGrenzen();
+  const von = [introDauer(), ...g].filter(x => x <= t + 0.01).pop() ?? introDauer();
+  const bis = g.find(x => x > t + 0.01) ?? null;
+  return [Math.round(von * 100) / 100, bis == null ? null : Math.round(bis * 100) / 100];
+}
+
+function szenenAnzeigen() {
+  const sz = zustand.szenen;
+  $('szenen-ergebnis').hidden = !sz.length;
+  $('szenen-finden').textContent = sz.length ? '🎬 Szenen neu suchen' : '🎬 Szenen finden';
+  $('szenen-info').textContent = `${sz.length + 1} Szenen, Schnitte bei:`;
+  $('szenen-liste').innerHTML = sz.map((x, i) =>
+    `<span class="szene-chip"><button data-springen="${i}">${fmt(x)}</button><button data-weg="${i}" aria-label="Schnitt bei ${fmt(x)} entfernen">✕</button></span>`).join('');
+  schnittLeiste();
+}
+
+async function szenenSuchen() {
+  stoppen();
+  const v = document.createElement('video');
+  v.className = 'quelle'; v.muted = true; v.playsInline = true; v.preload = 'auto'; v.src = videoUrl;
+  document.body.appendChild(v);
+  const klein = document.createElement('canvas');
+  klein.width = 36; klein.height = 64;
+  const k = klein.getContext('2d', { willReadFrequently: true });
+  const werte = []; // { zeit, d }: Unterschied zum vorigen Bild, 0 … 1
+  let vorig = null;
+  const messen = zeit => {
+    k.drawImage(v, 0, 0, 36, 64);
+    const d = k.getImageData(0, 0, 36, 64).data;
+    if (vorig) {
+      let summe = 0;
+      for (let i = 0; i < d.length; i += 4) summe += Math.abs(d[i] - vorig[i]) + Math.abs(d[i + 1] - vorig[i + 1]) + Math.abs(d[i + 2] - vorig[i + 2]);
+      werte.push({ zeit, d: summe / (36 * 64 * 3 * 255) });
+    }
+    vorig = d;
+  };
+  for (const id of ['szenen-finden', 'erstellen']) $(id).disabled = true;
+  $('szenen-suche').hidden = false;
+  let gefunden = [];
+  try {
+    await new Promise((ok, nein) => { v.onloadeddata = ok; v.onerror = nein; });
+    const hin = async zeit => { v.currentTime = zeit; await warten(v, 'seeked'); };
+    await hin(zustand.start);
+    messen(zustand.start);
+    v.playbackRate = 4;
+    await v.play();
+    const fertig = () => v.ended || v.paused || v.currentTime >= zustand.ende;
+    const anzeigen = zeit => { $('szenen-balken').style.width = Math.min(100, (zeit - zustand.start) / (zustand.ende - zustand.start) * 100) + '%'; };
+    if (v.requestVideoFrameCallback) {
+      // ein Aufruf pro neuem Bild, mit dessen genauer Zeit
+      await new Promise(ok => {
+        const bild = (_, meta) => {
+          messen(meta.mediaTime);
+          anzeigen(meta.mediaTime);
+          if (!fertig()) v.requestVideoFrameCallback(bild);
+        };
+        v.requestVideoFrameCallback(bild);
+        // Ende über die Zeit prüfen, falls der Browser keine Bilder mehr meldet
+        const wache = setInterval(() => { if (fertig()) { clearInterval(wache); ok(); } }, 250);
+      });
+    } else {
+      let zuletzt = -1;
+      while (!fertig()) {
+        if (v.currentTime !== zuletzt) { zuletzt = v.currentTime; messen(zuletzt); anzeigen(zuletzt); }
+        await naechstesBild();
+      }
+    }
+    v.pause();
+    // Spitzen finden: deutlich über dem Mittel der Umgebung und über einer Mindesthöhe
+    werte.forEach((w, i) => {
+      const umgebung = werte.slice(Math.max(0, i - 8), i + 9).filter(x => x !== w).map(x => x.d).sort((a, b) => a - b);
+      const median = umgebung[Math.floor(umgebung.length / 2)] || 0;
+      if (w.d < 0.06 || w.d < 3 * median + 0.02) return;
+      const letzter = gefunden[gefunden.length - 1];
+      if (letzter && w.zeit - letzter.zeit < SZENE_ABSTAND) { if (w.d > letzter.d) gefunden[gefunden.length - 1] = w; return; }
+      gefunden.push(w);
+    });
+    // Beim schnellen Durchlauf liegen zwischen zwei Messungen ein paar Bilder;
+    // dort in 1/60-Sekunden-Schritten nachsehen, wann das neue Bild beginnt.
+    for (const w of gefunden) {
+      const i = werte.indexOf(w), vor = i > 0 ? werte[i - 1].zeit : zustand.start;
+      await hin(vor);
+      vorig = null;
+      messen(vor);
+      for (let tt = vor + 1 / 60; tt < w.zeit - 0.001; tt += 1 / 60) {
+        await hin(tt);
+        const n = werte.length;
+        messen(tt);
+        const d = werte.splice(n, 1)[0]?.d ?? 0;
+        if (d > w.d * 0.5) { w.zeit = tt; break; }
+      }
+    }
+  } catch (_) {
+    alert('Die Szenen konnten in diesem Browser nicht gesucht werden. Du kannst Schnitte mit „＋ Schnitt hier“ selbst setzen.');
+  }
+  v.remove();
+  for (const id of ['szenen-finden', 'erstellen']) $(id).disabled = false;
+  $('szenen-suche').hidden = true;
+  zustand.szenen = gefunden.map(w => Math.round(w.zeit * 1000) / 1000);
+  szenenAnzeigen();
+  texteRendern();
+  verlauf.pruefen();
+  if (!gefunden.length) alert('Keine Schnitte gefunden. Hat das Video weiche Übergänge, setz die Schnitte mit „＋ Schnitt hier“ selbst.');
+}
+$('szenen-finden').addEventListener('click', szenenSuchen);
+
+$('szenen-liste').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  if (b.dataset.weg != null) {
+    zustand.szenen.splice(Number(b.dataset.weg), 1);
+    szenenAnzeigen();
+    texteRendern();
+    return;
+  }
+  stoppen();
+  video.currentTime = zustand.szenen[Number(b.dataset.springen)] + 0.02;
+  leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+});
+
+$('szene-hier').addEventListener('click', () => {
+  const x = Math.round(video.currentTime * 1000) / 1000;
+  if (zustand.szenen.some(y => Math.abs(y - x) < 0.1)) return;
+  zustand.szenen = [...zustand.szenen, x].sort((a, b) => a - b);
+  szenenAnzeigen();
+  texteRendern();
+});
+
+// Für jede Szene ein (leerer) Text, der genau mit ihr kommt und geht
+$('szenen-texte').addEventListener('click', () => {
+  if (zustand.texte.some(t => t.text.trim()) && !confirm('Deine bisherigen Texte werden ersetzt. Mit „↶ Rückgängig“ holst du sie zurück. Weiter?')) return;
+  stoppen();
+  const g = szenenGrenzen(), anfaenge = [introDauer(), ...g];
+  zustand.texte = anfaenge.map((von, i) => textObjekt(i ? 'text' : 'hook', {
+    von: Math.round(von * 100) / 100, bis: i < g.length ? Math.round(g[i] * 100) / 100 : null, szene: true,
+    pos: i ? 'unten' : 'oben', hinweis: i ? `Text für Szene ${i + 1} (leer = kein Text)` : 'Hook für Szene 1'
+  }));
+  texteRendern();
+  $('texte').querySelector('textarea')?.focus({ preventScroll: true });
 });
 
 // ── Rezepte ─────────────────────────────────

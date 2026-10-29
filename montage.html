@@ -207,12 +207,12 @@ const MIMES = ['video/mp4;codecs=avc1.42E01E,mp4a.40.2', 'video/mp4;codecs=avc1'
 // frei kombinierbar; die Vorlagen setzen Schrift, Hintergrund und Farbe auf einmal.
 const SCHRIFTEN = { serif: ['Elegant', g => `700 ${g}px ${SERIF}`, 84], sans: ['Klar', g => `700 ${g}px ${SANS}`, 62] };
 const HINTERGRUENDE = { ohne: ['Ohne', null], dunkel: ['Dunkel', 'rgba(28,27,25,.75)'], hell: ['Hell', '#F5F0EA'], gold: ['Gold', '#8A7346'] };
-const FARBEN = { weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
+const FARBEN = { auto: 'Automatisch', weiss: 'Weiß', schwarz: 'Schwarz', gold: 'Gold' };
 const GROESSEN = { s: ['Klein', 0.75], m: ['Mittel', 1], l: ['Groß', 1.3] };
 const VORLAGEN = {
   einstieg:   { name: 'Einstieg',   schrift: 'serif', hg: 'hell',   farbe: 'schwarz' },
   info:       { name: 'Info',       schrift: 'sans',  hg: 'dunkel', farbe: 'weiss' },
-  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'weiss' }
+  untertitel: { name: 'Untertitel', schrift: 'sans',  hg: 'ohne',   farbe: 'auto' }
 };
 const GELTUNG = { teil: 'Nur hier', ende: 'Bis zum Ende', ganz: 'Ganzes Video' };
 const textFarbe = t => t.farbe === 'weiss' ? '#fff' : t.farbe === 'schwarz' ? '#1C1B19' : t.hg === 'hell' ? '#8A7346' : '#D4BC8A';
@@ -610,6 +610,9 @@ function textZeichnen(t, alpha, seit = Infinity) {
   // im sicheren Bereich halten: links/rechts im Bild, oben/unten nicht unter Instagrams Knöpfen
   const mx = Math.min(Math.max(t.x, breite / 2 + 30), B - breite / 2 - 30);
   const oben = Math.min(Math.max(t.y - hoehe / 2, zustand.rahmen ? 380 : SICHER_OBEN), SICHER_UNTEN - hoehe);
+  // Farbe „Automatisch“: nach der Helligkeit hinter dem Text
+  const f = t.farbe === 'auto' ? TextAnimation.autoFarbe(ctx.canvas, t, mx - breite / 2, oben - pad, breite, hoehe + 2 * pad) : t.farbe;
+  const farbe = textFarbe({ ...t, farbe: f });
   const an = TextAnimation.stand(t.anim, seit, TextAnimation.wortZahl(zs));
   ctx.save();
   TextAnimation.anwenden(ctx, an, mx, oben + hoehe / 2);
@@ -623,8 +626,8 @@ function textZeichnen(t, alpha, seit = Infinity) {
   ctx.lineJoin = 'round';
   TextAnimation.zeilenZeichnen(ctx, zs, an, mx, i => oben + i * zh + zh / 2, (z, x, y) => {
     // ohne Hintergrund: Rand in Gegenfarbe, damit der Text auf jedem Bild lesbar bleibt
-    if (!box) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = t.farbe === 'schwarz' ? '#fff' : '#1C1B19'; ctx.strokeText(z, x, y); }
-    ctx.fillStyle = textFarbe(t);
+    if (!box) { ctx.lineWidth = g * 0.18; ctx.strokeStyle = f === 'schwarz' ? '#fff' : '#1C1B19'; ctx.strokeText(z, x, y); }
+    ctx.fillStyle = farbe;
     ctx.fillText(z, x, y);
   });
   ctx.restore();

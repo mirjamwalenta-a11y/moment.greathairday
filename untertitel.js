@@ -21,7 +21,7 @@ const Untertitel = (() => {
   const AUSSEHEN = { ohne: 'Weiß mit Rand', dunkel: 'Dunkler Kasten', hell: 'Heller Kasten' };
 
   function leer(positionen, mitte) {
-    return { roh: '', zeilen: [], schrift: 'sans', hg: 'ohne', farbe: 'weiss', groesse: 'm', x: mitte, y: positionen.unten };
+    return { roh: '', zeilen: [], schrift: 'sans', hg: 'ohne', farbe: 'auto', groesse: 'm', x: mitte, y: positionen.unten };
   }
 
   // Erst in Stücke an Satzenden teilen (an Komma o. Ä. erst ab etwa halber
@@ -126,7 +126,7 @@ const Untertitel = (() => {
         if (!ut.zeilen.length) alert('Füg zuerst oben den Text ein, den du sprichst.');
       } else if (feld === 'hg') {
         ut.hg = b.dataset.wert;
-        ut.farbe = ut.hg === 'hell' ? 'schwarz' : 'weiss';
+        ut.farbe = ut.hg === 'hell' ? 'schwarz' : ut.hg === 'ohne' ? 'auto' : 'weiss';
       } else if (feld === 'pos') {
         Object.assign(ut, { x: o.mitte, y: o.positionen[b.dataset.wert] });
       } else if (feld === 'weg') {

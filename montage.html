@@ -103,6 +103,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     <p class="klein">Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ (oder „Alben“) findest du die Ordner auf dem Handy, zum Beispiel Kamera, Download und InShot. Oder nimm den zweiten Knopf: Er öffnet die Auswahl mit Galerie, Dateien und Downloads.</p>
   </section>
 
+  <p class="hinweis" id="uebergabe-hinweis" hidden></p>
+
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
     <p class="hinweis warnung" id="entwurf-fehler" hidden>Dein Stand kann auf diesem Gerät nicht gemerkt werden (zu wenig Speicher oder privates Fenster). Bearbeiten und Erstellen geht trotzdem, nur ist der Stand weg, wenn die App zugeht.</p>
     <div class="buehne">
@@ -310,23 +312,33 @@ async function mediumLaden(datei, art) {
 async function dateienLaden(e) {
   const dateien = [...e.target.files];
   e.target.value = '';
-  for (const f of dateien) {
-    const art = artVon(f);
-    if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); continue; }
-    try {
-      const m = await mediumLaden(f, art), id = naechsteId++;
-      medien.set(id, m);
-      zustand.teile.push(art === 'foto'
-        ? { id, ...m, dauer: 3, ...textStart() }
-        : { id, ...m, start: 0, ende: Math.min(m.dauer, 10), tempo: 1, ...textStart() });
-      $('entwurf').hidden = true;
-    } catch (_) {
-      alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
-    }
-  }
+  await dateienHinzufuegen(dateien);
   $('editor').hidden = !zustand.teile.length;
   teileAnzeigen();
   verlauf.pruefen();
+}
+
+// hängt die Dateien als Teile an; Ergebnis in derselben Reihenfolge (null = ging nicht)
+async function dateienHinzufuegen(dateien) {
+  const neu = [];
+  for (const f of dateien) {
+    const art = artVon(f);
+    if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); neu.push(null); continue; }
+    try {
+      const m = await mediumLaden(f, art), id = naechsteId++;
+      medien.set(id, m);
+      const teil = art === 'foto'
+        ? { id, ...m, dauer: 3, ...textStart() }
+        : { id, ...m, start: 0, ende: Math.min(m.dauer, 10), tempo: 1, ...textStart() };
+      zustand.teile.push(teil);
+      neu.push(teil);
+      $('entwurf').hidden = true;
+    } catch (_) {
+      alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
+      neu.push(null);
+    }
+  }
+  return neu;
 }
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
@@ -1332,10 +1344,12 @@ const verlauf = Entwurf.verlauf({
 });
 verlauf.neu(false);
 
+// Kommt man aus „Video + Text“ mit mehreren Videos, liegen sie dort bereit
+const UEBERGABE = location.hash === '#uebergabe';
 let entwurf = null;
 (async () => {
   try { entwurf = await ablage.laden(); } catch (_) { entwurf = null; }
-  if (!entwurf?.stand.teile.length || zustand.teile.length) return;
+  if (!entwurf?.stand.teile.length || zustand.teile.length || UEBERGABE) return;
   const n = entwurf.stand.teile.length;
   $('entwurf-info').textContent = `${n} ${n === 1 ? 'Clip oder Foto' : 'Clips und Fotos'}, zuletzt geändert ${Entwurf.zeitText(entwurf.zeit)}`;
   $('entwurf').hidden = false;
@@ -1380,6 +1394,37 @@ async function teilen(datei) {
   }
   herunterladen(datei);
 }
+// ── Übernahme aus „Video + Text“ ────────────
+// „Video + Text“ legt die gewählten Videos (und für das bisherige Video
+// Start, Ende und ersten Text) kurz in IndexedDB ab und öffnet diese Seite
+// mit #uebergabe. Nichts wird hochgeladen.
+(async () => {
+  if (!UEBERGABE) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  const ablageUeb = Entwurf.ablage('uebergabe');
+  let ub = null;
+  try { ub = await ablageUeb.laden(); } catch (_) { ub = null; }
+  if (!ub) return;
+  const infos = ub.stand.clips || [];
+  const dateien = infos.map((_, i) => ub.dateien['d' + i]);
+  $('uebergabe-hinweis').hidden = false;
+  $('uebergabe-hinweis').textContent = 'Deine Videos werden geladen …';
+  const neu = await dateienHinzufuegen(dateien.filter(Boolean));
+  let j = 0;
+  infos.forEach((info, i) => {
+    if (!dateien[i]) return;
+    const teil = neu[j++];
+    if (!teil || !info) return;
+    if (teil.art === 'video' && info.ende > info.start) Object.assign(teil, { start: Math.max(0, info.start), ende: Math.min(info.ende, teil.dauer) });
+    if (info.text) teil.text = info.text.slice(0, 60);
+  });
+  ablageUeb.verwerfen();
+  $('uebergabe-hinweis').textContent = 'Deine Videos aus „Video + Text“ sind da. Reihenfolge mit ↑ ↓ ändern, jedes Video mit Start und Ende kürzen, pro Video ein Text.';
+  $('editor').hidden = !zustand.teile.length;
+  teileAnzeigen();
+  verlauf.pruefen();
+})();
+
 $('teilen').addEventListener('click', () => { if (ergebnisDatei) teilen(ergebnisDatei); });
 // Android hat im Teilen-Menü oft kein „Speichern“, deshalb direkt aufs Gerät laden
 $('speichern').addEventListener('click', () => { if (ergebnisDatei) herunterladen(ergebnisDatei); });

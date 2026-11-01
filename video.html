@@ -112,9 +112,12 @@ details.gestalten .gruppe{gap:8px;}
         <button class="btn" id="entwurf-weg">Verwerfen</button>
       </div>
     </div>
-    <label class="btn neu" for="datei">🎬 Video auswählen (auch mehrere)</label>
-    <input type="file" id="datei" accept="video/*" multiple hidden>
-    <p class="meta">Aus der Galerie oder direkt aufnehmen. Wählst du mehrere Videos auf einmal, werden sie in <a href="montage.html" style="color:inherit;">Clips &amp; Fotos</a> hintereinander gehängt. Wer im Video zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+    <label class="btn neu" for="datei">＋ Videos oder Fotos auswählen</label>
+    <input type="file" id="datei" accept="video/*,image/*" multiple hidden>
+    <label class="btn" for="datei-alle" style="display:block;">📁 Aus Galerie oder eigenen Dateien wählen</label>
+    <input type="file" id="datei-alle" multiple hidden>
+    <p class="meta">Ein Video, mehrere Videos, nur Fotos oder gemischt: alles geht. Bei einem einzelnen Video kannst du hier fein schneiden (Stellen herausschneiden, Zeitlupe, Vorher-Foto). Bei mehreren Teilen oder Fotos geht es in <a href="montage.html" style="color:inherit;">Clips &amp; Fotos</a> weiter, mit denselben Texten. Wer zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+    <p class="klein">Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ (oder „Alben“) findest du die Ordner auf dem Handy, zum Beispiel Kamera, Download und InShot. Oder nimm den zweiten Knopf: Er öffnet die Auswahl mit Galerie, Dateien und Downloads.</p>
   </section>
 
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
@@ -146,10 +149,12 @@ details.gestalten .gruppe{gap:8px;}
     </div>
 
     <div class="card">
-      <div class="label">Weitere Videos</div>
-      <p class="klein">Noch ein Video dahinter hängen? Dein Video kommt so gekürzt wie jetzt mit, dein erster Text auch, und alles geht in <a href="montage.html" style="color:inherit;">Clips &amp; Fotos</a> weiter. Dort hat jedes Video Start, Ende, Tempo und einen eigenen Text.</p>
-      <label class="btn" for="datei-mehr">＋ Weitere Videos anhängen</label>
+      <div class="label">Weitere Videos oder Fotos</div>
+      <p class="klein">Noch etwas dahinter hängen? Dein Video kommt so gekürzt wie jetzt mit, deine Texte auch (mit Zeiten und Aussehen), und alles geht in <a href="montage.html" style="color:inherit;">Clips &amp; Fotos</a> weiter. Dort hat jedes Video Start, Ende und Tempo.</p>
+      <label class="btn" for="datei-mehr">＋ Videos oder Fotos anhängen</label>
       <input type="file" id="datei-mehr" accept="video/*,image/*" multiple hidden>
+      <label class="btn" for="datei-mehr-alle">📁 Aus Galerie oder eigenen Dateien</label>
+      <input type="file" id="datei-mehr-alle" multiple hidden>
     </div>
 
     <div class="card">
@@ -438,15 +443,32 @@ function videoOeffnen(datei) {
   video.src = videoUrl;
   video.load();
 }
-$('datei').addEventListener('change', e => {
+// Art an Typ oder Dateiendung erkennen (die Datei-Auswahl liefert manchmal keinen Typ)
+const artVon = f => {
+  if (f.type.startsWith('image/')) return 'foto';
+  if (f.type.startsWith('video/')) return 'video';
+  if (/\.(jpe?g|png|webp|gif|heic|heif)$/i.test(f.name)) return 'foto';
+  if (/\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name)) return 'video';
+  return null;
+};
+// Genau ein Video: hier bearbeiten. Mehrere oder Fotos: weiter zu „Clips & Fotos“.
+function dateiGewaehlt(e) {
   const alle = [...e.target.files], f = alle[0];
   e.target.value = '';
   if (!f) return;
-  if (alle.length > 1) return zuClipsUndFotos(alle, []);
+  const passend = alle.filter(x => artVon(x));
+  if (passend.length < alle.length) alert(passend.length ? 'Einige Dateien sind kein Foto und kein Video und werden weggelassen.' : 'Das ist kein Foto und kein Video.');
+  if (!passend.length) return;
+  if (passend.length > 1 || artVon(passend[0]) === 'foto') return zuClipsUndFotos(passend, []);
+  einVideoOeffnen(passend[0]);
+}
+$('datei').addEventListener('change', dateiGewaehlt);
+$('datei-alle').addEventListener('change', dateiGewaehlt);
+function einVideoOeffnen(f) {
   wiederherstellen = null;
   $('entwurf').hidden = true;
   videoOeffnen(f);
-});
+}
 
 video.addEventListener('loadedmetadata', async () => {
   const alt = wiederherstellen;
@@ -487,12 +509,12 @@ video.addEventListener('loadeddata', zeichnen);
 // die Seite dort holt sie ab und löscht die Ablage wieder.
 let uebergabeFehler = false;
 const uebergabe = Entwurf.ablage('uebergabe', { beiFehler: () => { uebergabeFehler = true; } });
-// infos[i]: { start, ende, text } für Datei i oder leer
-async function zuClipsUndFotos(dateien, infos) {
+// infos[i]: { start, ende } für Datei i oder leer; texte: freie Texte, die mitkommen
+async function zuClipsUndFotos(dateien, infos, texte = []) {
   uebergabeFehler = false;
   const ablageDateien = Object.fromEntries(dateien.map((f, i) => ['d' + i, f]));
   await uebergabe.verwerfen();
-  await uebergabe.merken({ clips: dateien.map((_, i) => infos[i] || null) }, ablageDateien);
+  await uebergabe.merken({ clips: dateien.map((_, i) => infos[i] || null), texte }, ablageDateien);
   if (uebergabeFehler) {
     alert('Die Videos konnten auf diesem Gerät nicht weitergegeben werden (zu wenig Speicher oder privates Fenster). Öffne „Clips & Fotos“ und wähl die Videos dort aus.');
     return;
@@ -500,16 +522,19 @@ async function zuClipsUndFotos(dateien, infos) {
   location.href = 'montage.html#uebergabe';
 }
 
-$('datei-mehr').addEventListener('change', async e => {
-  const neu = [...e.target.files];
+async function anhaengen(e) {
+  const neu = [...e.target.files].filter(x => artVon(x));
   e.target.value = '';
   if (!neu.length || !quelleDatei) return;
-  if (!confirm('Mehrere Videos verbindest du in „Clips & Fotos“. Dein Video kommt so gekürzt wie jetzt mit, dein erster Text auch. Herausgeschnittene Stellen, Tempo, weitere Texte und Endkarte stellst du dort neu ein (hier bleibt alles als Entwurf). Weiter?')) return;
+  if (!confirm('Mehrere Teile verbindest du in „Clips & Fotos“. Dein Video kommt so gekürzt wie jetzt mit, deine Texte auch. Herausgeschnittene Stellen, Zeitlupe, Vorher-Foto und Endkarte stellst du dort neu ein (hier bleibt alles als Entwurf). Weiter?')) return;
   stoppen();
   verlauf.pruefen(); // Stand hier noch als Entwurf merken
-  const ersterText = zustand.texte.find(t => t.text.trim());
-  await zuClipsUndFotos([quelleDatei, ...neu], [{ start: zustand.start, ende: zustand.ende, text: ersterText ? einzeilig(ersterText.text) : '' }]);
-});
+  const texte = zustand.texte.filter(t => t.text.trim()).map(({ text, schrift, hg, farbe, groesse, anim, pos, x, y, von, bis }) =>
+    ({ text, schrift, hg, farbe, groesse, anim, pos, x, y, von: Math.max(0, von - introDauer()), bis: bis == null ? null : Math.max(0.3, bis - introDauer()) }));
+  await zuClipsUndFotos([quelleDatei, ...neu], [{ start: zustand.start, ende: zustand.ende }], texte);
+}
+$('datei-mehr').addEventListener('change', anhaengen);
+$('datei-mehr-alle').addEventListener('change', anhaengen);
 
 $('anderes').addEventListener('click', () => {
   stoppen();

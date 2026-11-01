@@ -71,6 +71,14 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 .ut-zeile .eingabe{padding:6px 8px;font-size:14px;}
 .ut-tippen{position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:21;padding:18px 14px;font-size:16px;border-radius:14px;box-shadow:0 4px 18px rgba(28,27,25,.25);max-width:448px;margin:0 auto;}
 .rueckgaengig{position:fixed;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:20;border-radius:24px;padding:11px 16px;box-shadow:0 4px 14px rgba(28,27,25,.18);}
+.text-karte{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg);}
+.text-karte textarea{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 15px var(--sans);resize:vertical;background:var(--surface);color:var(--ink);}
+.text-kopf{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;color:var(--sub);font-variant-numeric:tabular-nums;}
+.zeiten{display:flex;flex-wrap:wrap;align-items:center;gap:6px;font-size:13px;}
+.zeiten input{width:64px;border:1px solid var(--line);border-radius:8px;padding:6px;font:500 14px var(--sans);background:var(--surface);color:var(--ink);}
+.zeiten .btn{padding:6px 9px;font-size:12px;}
+.zeit-label{width:76px;}
+.entfernen{align-self:flex-end;background:none;border:none;font:500 12px var(--sans);color:var(--warn);cursor:pointer;text-decoration:underline;}
 .entwurf{display:flex;flex-direction:column;gap:8px;margin-bottom:10px;}
 .medien{position:absolute;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none;left:0;top:0;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
@@ -103,6 +111,8 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     <p class="klein">Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ (oder „Alben“) findest du die Ordner auf dem Handy, zum Beispiel Kamera, Download und InShot. Oder nimm den zweiten Knopf: Er öffnet die Auswahl mit Galerie, Dateien und Downloads.</p>
   </section>
 
+  <p class="hinweis" id="uebergabe-hinweis" hidden></p>
+
   <section id="editor" hidden style="display:flex;flex-direction:column;gap:14px;">
     <p class="hinweis warnung" id="entwurf-fehler" hidden>Dein Stand kann auf diesem Gerät nicht gemerkt werden (zu wenig Speicher oder privates Fenster). Bearbeiten und Erstellen geht trotzdem, nur ist der Stand weg, wenn die App zugeht.</p>
     <div class="buehne">
@@ -122,6 +132,22 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     <div class="card">
       <div class="label">Reihenfolge</div>
       <div id="teile" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <label class="btn" for="datei">＋ Weitere Clips oder Fotos</label>
+      <label class="btn" for="datei-alle">📁 Weitere aus Galerie oder Dateien</label>
+    </div>
+
+    <div class="card">
+      <div class="label">Texte im Video</div>
+      <p class="klein"><strong>Am schnellsten:</strong> Alle Texte untereinander schreiben, jede Zeile ist ein Text. Die erste Zeile ist der Hook oben. Dann „Übernehmen“: Die Texte kommen nacheinander, gleichmäßig über das ganze Video verteilt, egal wie viele Clips und Fotos. Mit „Zeiten mittippen“ legst du beim Abspielen fest, wann der nächste kommt.</p>
+      <textarea class="eingabe" id="schnell-texte" rows="4" placeholder="Hook, z. B. Ein Tag im Salon&#10;Zweiter Text&#10;Dritter Text" aria-label="Alle Texte, eine Zeile pro Text"></textarea>
+      <div class="knoepfe">
+        <button class="btn haupt" id="schnell-uebernehmen">✓ Texte übernehmen</button>
+        <button class="btn" id="text-mittippen">🎯 Zeiten mittippen</button>
+      </div>
+      <p class="klein">Mittippen: Das Video läuft von vorn. Tippe unten auf den großen Knopf, sobald der nächste Text kommen soll. Am Schluss kannst du noch einmal tippen, damit der letzte Text vor dem Ende verschwindet. Mit ❚❚ hörst du auf, der Rest wird dann verteilt.</p>
+      <div id="texte" style="display:flex;flex-direction:column;gap:10px;"></div>
+      <button class="btn" id="text-neu">＋ Einzelnen Text hinzufügen</button>
+      <p class="klein">Schrift, Farbe, Größe, Position und Zeit stellst du bei jedem Text unter „✏️ Gestalten“ ein, oder du schiebst den Text in der Vorschau mit dem Finger. Ein Text nur für einen Clip oder ein Foto geht auch direkt beim Teil oben.</p>
     </div>
 
     <div class="card">
@@ -186,6 +212,7 @@ input[type=range]{width:100%;accent-color:var(--gold);}
 
 <button class="btn rueckgaengig" id="rueckgaengig" hidden>↶ Rückgängig</button>
 <button class="btn haupt ut-tippen" id="ut-tippen" hidden></button>
+<button class="btn haupt ut-tippen" id="text-tippen" hidden></button>
 <div class="medien" id="medien"></div>
 
 <script src="entwurf.js"></script>
@@ -231,10 +258,11 @@ let ctx = leinwand.getContext('2d');
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]));
 const fmt = s => { s = Math.max(0, s); const m = Math.floor(s / 60); return `${m}:${(s - m * 60).toFixed(1).padStart(4, '0')}`; };
 
-const zustand = { teile: [], uebergang: 'weich', ton: 'aus', zoom: 'an', rahmen: false,
+const zustand = { teile: [], texte: [], uebergang: 'weich', ton: 'aus', zoom: 'an', rahmen: false,
   endkarte: { an: true, titel: 'A Great Hair Day', unter: 'Wien', dauer: 3 }, exportiert: false,
   untertitel: Untertitel.leer(UT_POSITIONEN, B / 2) };
 let utSteuerung = null; // wird unten eingerichtet; zeichnen() kann vorher schon laufen
+let aktiverText = null; // freier Text, der in der angehaltenen Vorschau blass dasteht
 let naechsteId = 1, ergebnisUrl = null, ergebnisDatei = null, audio = null;
 let lauf = 0, spielt = false, jetzt = 0;
 // Sprechertext: zustand.stimme = { buffer, dauer, name }; während der Aufnahme läuft das Video ohne Originalton
@@ -310,23 +338,33 @@ async function mediumLaden(datei, art) {
 async function dateienLaden(e) {
   const dateien = [...e.target.files];
   e.target.value = '';
-  for (const f of dateien) {
-    const art = artVon(f);
-    if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); continue; }
-    try {
-      const m = await mediumLaden(f, art), id = naechsteId++;
-      medien.set(id, m);
-      zustand.teile.push(art === 'foto'
-        ? { id, ...m, dauer: 3, ...textStart() }
-        : { id, ...m, start: 0, ende: Math.min(m.dauer, 10), tempo: 1, ...textStart() });
-      $('entwurf').hidden = true;
-    } catch (_) {
-      alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
-    }
-  }
+  await dateienHinzufuegen(dateien);
   $('editor').hidden = !zustand.teile.length;
   teileAnzeigen();
   verlauf.pruefen();
+}
+
+// hängt die Dateien als Teile an; Ergebnis in derselben Reihenfolge (null = ging nicht)
+async function dateienHinzufuegen(dateien) {
+  const neu = [];
+  for (const f of dateien) {
+    const art = artVon(f);
+    if (!art) { alert(`„${f.name}“ ist kein Foto und kein Video.`); neu.push(null); continue; }
+    try {
+      const m = await mediumLaden(f, art), id = naechsteId++;
+      medien.set(id, m);
+      const teil = art === 'foto'
+        ? { id, ...m, dauer: 3, ...textStart() }
+        : { id, ...m, start: 0, ende: Math.min(m.dauer, 10), tempo: 1, ...textStart() };
+      zustand.teile.push(teil);
+      neu.push(teil);
+      $('entwurf').hidden = true;
+    } catch (_) {
+      alert(`„${f.name}“ kann der Browser leider nicht öffnen.`);
+      neu.push(null);
+    }
+  }
+  return neu;
 }
 
 // Fotos im Querformat passen nicht in 9:16 – dann ganz zeigen, sonst füllen
@@ -372,7 +410,7 @@ function teileAnzeigen() {
         <div class="feld"><span class="feld-name">Tempo (in Zeitlupe und Zeitraffer ohne Originalton)</span>${chips('tempo', TEMPI, t.tempo)}</div>`
       : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
       <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
-      <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${esc(t.hinweis || (i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'))}"></div>
+      <div class="feld"><span class="feld-name">Text nur für diesen Teil (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${esc(t.hinweis || (i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'))}"></div>
       <details class="gestalten"${t.offen ? ' open' : ''}>
         <summary>✏️ Text gestalten: Stil, Position, wie lange</summary>
         <div class="gruppe">
@@ -814,6 +852,16 @@ function zeichnen(t) {
     const ein = von === 0 || eigene ? 1 : (t - start) / 0.3, aus = (bis - t) / 0.25;
     textZeichnen(a.teil, Math.max(0, Math.min(1, ein, aus)), spielt || zustand.exportiert ? t - start : Infinity);
   }
+  // freie Texte übers ganze Video; der gerade bearbeitete steht außerhalb seiner Zeit blass da
+  const blass = !zustand.exportiert && !spielt && t < videoEnde;
+  for (const tx of zustand.texte) {
+    if (!tx.text.trim()) continue;
+    const bis = Math.min(tx.bis ?? videoEnde, videoEnde);
+    if (t < tx.von || t >= bis) { if (blass && tx.id === aktiverText) textZeichnen(tx, 0.4); continue; }
+    const eigene = tx.anim && tx.anim !== 'blende';
+    const ein = tx.von === 0 || eigene ? 1 : (t - tx.von) / 0.25, aus = tx.bis != null ? (bis - t) / 0.25 : 1;
+    textZeichnen(tx, Math.max(0, Math.min(1, ein, aus)), spielt || zustand.exportiert ? t - tx.von : Infinity);
+  }
   const ut = zustand.untertitel, utZeile = t < videoEnde ? utSteuerung?.zeileJetzt(t) : null;
   if (utZeile) { ut.text = utZeile; textZeichnen(ut, 1); }
   if (ziehen) hilfslinien();
@@ -861,6 +909,7 @@ const ziehenEnde = () => {
   const karte = document.querySelector(`.teil[data-id="${ziehen.teil.id}"]`);
   if (karte) chipsAktualisieren(karte, ziehen.teil);
   if (ziehen.teil === zustand.untertitel) utSteuerung.anzeigen();
+  if (zustand.texte.includes(ziehen.teil)) freieTexteAnzeigen();
   ziehen = null;
   zeichnen(jetzt);
 };
@@ -1163,7 +1212,8 @@ function standHolen() {
   const teile = zustand.teile.map(({ url, el, w, h, datei, offen, karteOffen, ...felder }) => felder);
   const dateien = Object.fromEntries(zustand.teile.map(t => ['medium' + t.id, t.datei]));
   if (zustand.stimme) dateien.stimme = zustand.stimme.datei;
-  return { stand: { teile, uebergang, ton, zoom, rahmen, endkarte, naechsteId, stimme: zustand.stimme?.name ?? null,
+  const texte = zustand.texte.map(({ offen, ...felder }) => felder);
+  return { stand: { teile, texte, uebergang, ton, zoom, rahmen, endkarte, naechsteId, stimme: zustand.stimme?.name ?? null,
     untertitel: Untertitel.furStand(zustand.untertitel) }, dateien };
 }
 
@@ -1178,6 +1228,8 @@ async function standSetzen(s, dateien = {}) {
   Object.assign(zustand, { uebergang: s.uebergang, ton: s.ton, zoom: s.zoom, rahmen: s.rahmen, endkarte: { ...s.endkarte },
     untertitel: s.untertitel || Untertitel.leer(UT_POSITIONEN, B / 2) });
   naechsteId = Math.max(naechsteId, s.naechsteId);
+  const offen = new Map(zustand.texte.map(t => [t.id, t.offen]));
+  zustand.texte = (s.texte || []).map(t => ({ ...t, offen: offen.get(t.id) }));
   const stimme = dateien.stimme || null;
   if (stimme !== (zustand.stimme?.datei || null)) {
     zustand.stimme = null;
@@ -1188,6 +1240,7 @@ async function standSetzen(s, dateien = {}) {
   jetzt = Math.min(jetzt, Math.max(0, gesamtLaenge() - 0.05));
   synchron(jetzt, false);
   teileAnzeigen();
+  freieTexteAnzeigen();
 }
 
 // Einstellungen fürs ganze Video in die Knöpfe und Felder übernehmen
@@ -1232,6 +1285,189 @@ utSteuerung = Untertitel.einrichten({
   },
   zeichnen: () => zeichnen(jetzt),
   geaendert: () => verlauf.pruefen()
+});
+
+// ── Freie Texte übers ganze Video ───────────
+// Beliebig viele Texte mit eigener Zeit (von/bis in Sekunden im fertigen
+// Video, bis = null heißt bis zum Ende der Clips), unabhängig davon, wie
+// viele Clips und Fotos es gibt. Eine Zeile im großen Feld = ein Text.
+const POS_NAMEN = { oben: 'oben', mitte: 'Mitte', unten: 'unten' };
+const einzeilig = x => String(x).replace(/\s+/g, ' ').trim();
+const zeitInfo = t => `${fmt(t.von)} – ${t.bis == null ? 'Ende' : fmt(t.bis)} · ${POS_NAMEN[positionVon(t)] || 'verschoben'}`;
+function freierText(art, felder) {
+  return { id: naechsteId++, text: '', ...textStil(art), x: B / 2, y: POSITIONEN[art === 'einstieg' ? 'oben' : 'unten'], von: 0, bis: null, ...felder };
+}
+function textChips(feld, name, auswahl, aktuell) {
+  return `<div class="feld"><span class="feld-name">${name}</span>${chips(feld, auswahl, aktuell)}</div>`;
+}
+const namenVon = obj => Object.fromEntries(Object.entries(obj).map(([k, v]) => [k, Array.isArray(v) ? v[0] : v.name || v]));
+const freiVon = el => zustand.texte.find(t => t.id === Number(el.closest('.text-karte').dataset.id));
+
+function freieTexteAnzeigen() {
+  $('texte').innerHTML = zustand.texte.map((t, i) => `
+    <div class="text-karte" data-id="${t.id}">
+      <div class="text-kopf"><span>Text ${i + 1}${i === 0 ? ' (Hook)' : ''}</span><span class="zeit-info">${zeitInfo(t)}</span></div>
+      <textarea rows="2" placeholder="${i === 0 ? 'z. B. Ein Tag im Salon' : 'Text eingeben'}" aria-label="Text ${i + 1}">${esc(t.text)}</textarea>
+      <details class="gestalten"${t.offen ? ' open' : ''}>
+        <summary>✏️ Gestalten: Stil, Position, Zeit</summary>
+        <div class="gruppe">
+          ${textChips('vorlage', 'Schnellwahl', namenVon(VORLAGEN), passendeVorlage(t))}
+          ${textChips('schrift', 'Schrift', namenVon(SCHRIFTEN), t.schrift)}
+          ${textChips('hg', 'Hintergrund', namenVon(HINTERGRUENDE), t.hg)}
+          ${textChips('farbe', 'Textfarbe', FARBEN, t.farbe)}
+          ${textChips('groesse', 'Größe', namenVon(GROESSEN), t.groesse)}
+          ${textChips('anim', 'Erscheinen (tippen spielt es ab)', TextAnimation.NAMEN, t.anim || 'blende')}
+          ${textChips('pos', 'Position (oder in der Vorschau mit dem Finger verschieben)', { oben: 'Oben', mitte: 'Mitte', unten: 'Unten' }, positionVon(t))}
+          <div class="zeiten"><span class="zeit-label">Zeigen ab</span><input type="number" data-zeit="von" min="0" step="0.5" inputmode="decimal" value="${t.von}"> Sek. <button class="btn" data-jetzt="von">Jetzt</button></div>
+          <div class="zeiten"><span class="zeit-label">bis</span><input type="number" data-zeit="bis" min="0" step="0.5" inputmode="decimal" placeholder="Ende" value="${t.bis ?? ''}"> Sek. <button class="btn" data-jetzt="bis">Jetzt</button></div>
+          ${zustand.texte.length > 1 ? '<button class="btn" data-stil-alle>Diesen Stil für alle Texte</button>' : ''}
+        </div>
+      </details>
+      <button class="entfernen" data-entfernen>Text entfernen</button>
+    </div>`).join('');
+  schnellAnzeigen();
+  zeichnen(jetzt);
+}
+function schnellAnzeigen() {
+  if (document.activeElement === $('schnell-texte')) return;
+  $('schnell-texte').value = zustand.texte.map(t => einzeilig(t.text)).filter(Boolean).join('\n');
+}
+function freiAktualisieren(karte, t) {
+  for (const g of karte.querySelectorAll('.chips')) {
+    const f = g.dataset.feld;
+    const aktuell = f === 'vorlage' ? passendeVorlage(t) : f === 'pos' ? positionVon(t) : f === 'anim' ? t.anim || 'blende' : t[f];
+    for (const x of g.children) x.setAttribute('aria-pressed', String(x.dataset.wert) === String(aktuell));
+  }
+  karte.querySelector('.zeit-info').textContent = zeitInfo(t);
+}
+// in der Vorschau zum Text springen, damit man sieht, was man ändert
+function zeigeFrei(t) {
+  aktiverText = t.id;
+  if (spielt) return;
+  if (jetzt < t.von || (t.bis != null && jetzt >= t.bis)) { jetzt = Math.min(t.von + 0.3, Math.max(0, inhaltEnde() - 0.05)); synchron(jetzt, false); }
+  zeichnen(jetzt);
+}
+
+$('text-neu').addEventListener('click', () => {
+  const t = freierText(zustand.texte.length ? 'weitere' : 'einstieg', { von: zustand.texte.length ? Math.round(jetzt * 10) / 10 : 0 });
+  zustand.texte.push(t);
+  aktiverText = t.id;
+  freieTexteAnzeigen();
+  document.querySelector(`.text-karte[data-id="${t.id}"] textarea`)?.focus();
+});
+$('texte').addEventListener('focusin', e => { if (e.target.closest('.text-karte')) zeigeFrei(freiVon(e.target)); });
+$('texte').addEventListener('toggle', e => {
+  if (e.target.matches('details.gestalten')) freiVon(e.target).offen = e.target.open;
+}, true);
+$('texte').addEventListener('input', e => {
+  const t = freiVon(e.target), karte = e.target.closest('.text-karte');
+  if (e.target.tagName === 'TEXTAREA') { t.text = e.target.value; schnellAnzeigen(); }
+  else if (e.target.dataset.zeit === 'von') t.von = Math.max(0, Number(e.target.value) || 0);
+  else if (e.target.dataset.zeit === 'bis') t.bis = e.target.value === '' ? null : Math.max(0, Number(e.target.value));
+  freiAktualisieren(karte, t);
+  zeigeFrei(t);
+});
+$('texte').addEventListener('click', e => {
+  const b = e.target.closest('button');
+  if (!b) return;
+  const t = freiVon(b), karte = b.closest('.text-karte');
+  if (b.hasAttribute('data-entfernen')) { zustand.texte = zustand.texte.filter(x => x !== t); return freieTexteAnzeigen(); }
+  if (b.hasAttribute('data-stil-alle')) {
+    for (const x of zustand.texte) Object.assign(x, { schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse, anim: t.anim });
+    return freieTexteAnzeigen();
+  }
+  if (b.dataset.jetzt) {
+    t[b.dataset.jetzt] = Math.round(jetzt * 10) / 10;
+    karte.querySelector(`[data-zeit="${b.dataset.jetzt}"]`).value = t[b.dataset.jetzt];
+    freiAktualisieren(karte, t);
+    return zeichnen(jetzt);
+  }
+  const gruppe = b.closest('.chips');
+  if (!gruppe) return;
+  const feld = gruppe.dataset.feld;
+  if (feld === 'vorlage') Object.assign(t, { schrift: VORLAGEN[b.dataset.wert].schrift, hg: VORLAGEN[b.dataset.wert].hg, farbe: VORLAGEN[b.dataset.wert].farbe });
+  else if (feld === 'pos') Object.assign(t, { x: B / 2, y: POSITIONEN[b.dataset.wert] });
+  else t[feld] = b.dataset.wert;
+  freiAktualisieren(karte, t);
+  if (feld === 'anim') return freiProbe(t);
+  zeigeFrei(t);
+});
+
+// Animation ansehen: kurz vor dem Text bis 2 Sekunden danach abspielen
+function freiProbe(t) {
+  if (zustand.exportiert || aufnahmeLaeuft) return;
+  stoppen();
+  if (zustand.ton === 'an' || zustand.stimme) audioVorbereiten();
+  jetzt = Math.max(0, t.von - 0.3);
+  synchron(jetzt, false);
+  leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  abspielen();
+  const meiner = lauf;
+  setTimeout(() => { if (lauf === meiner) stoppen(); }, 2300);
+}
+
+$('schnell-uebernehmen').addEventListener('click', () => {
+  const zeilen = $('schnell-texte').value.split('\n').map(einzeilig).filter(Boolean);
+  if (!zeilen.length) return alert('Schreib zuerst deine Texte in das Feld, jede Zeile ein Text.');
+  stoppen();
+  const alt = zustand.texte.filter(t => t.text.trim());
+  const zeitenBleiben = alt.length === zeilen.length; // z. B. nur ein Tippfehler korrigiert
+  const verteilt = Untertitel.verteilen(zeilen, 0, Math.max(inhaltEnde(), 0.5 * zeilen.length));
+  zustand.texte = zeilen.map((z, i) => {
+    const a = alt[i];
+    const t = a ? { ...a } : freierText(i ? 'weitere' : 'einstieg');
+    t.text = a && einzeilig(a.text) === z ? a.text : z;
+    if (!zeitenBleiben) Object.assign(t, { von: verteilt[i].von, bis: i < zeilen.length - 1 ? verteilt[i].bis : null });
+    return t;
+  });
+  $('schnell-texte').blur();
+  freieTexteAnzeigen();
+  verlauf.pruefen();
+});
+
+// Zeiten mittippen: der erste Text steht ab Anfang, jedes Tippen blendet den nächsten ein
+let textTippen = null;
+const SPAETER = 1e6;
+function tippKnopfText() {
+  const { texte, i } = textTippen, n = texte.length;
+  const kurz = x => { x = einzeilig(x); return x.length > 30 ? x.slice(0, 28) + ' …' : x; };
+  $('text-tippen').textContent = i < n - 1 ? `👆 Jetzt Text ${i + 2}/${n}: „${kurz(texte[i + 1].text)}“`
+    : i === n - 1 ? '👆 Letzten Text ausblenden (oder bis zum Ende stehen lassen)' : '✓ Fertig, das Video läuft noch zu Ende';
+}
+$('text-tippen').addEventListener('click', () => {
+  if (!textTippen) return;
+  const { texte, i } = textTippen, n = texte.length;
+  if (i >= n) return;
+  texte[i].bis = Math.max(Math.round(jetzt * 10) / 10, texte[i].von + 0.3);
+  if (i < n - 1) Object.assign(texte[i + 1], { von: texte[i].bis, bis: null });
+  textTippen.i++;
+  tippKnopfText();
+});
+$('text-mittippen').addEventListener('click', async () => {
+  if (textTippen || zustand.exportiert || aufnahmeLaeuft) return;
+  if (document.activeElement === $('schnell-texte') && $('schnell-texte').value.trim()) $('schnell-uebernehmen').click();
+  const texte = zustand.texte.filter(t => t.text.trim());
+  if (!texte.length) return alert('Schreib zuerst deine Texte und tippe auf „Texte übernehmen“.');
+  texte.forEach((t, k) => Object.assign(t, k ? { von: SPAETER, bis: SPAETER } : { von: 0, bis: null }));
+  textTippen = { texte, i: 0 };
+  tippKnopfText();
+  $('text-tippen').hidden = false;
+  stoppen();
+  if (zustand.ton === 'an' || zustand.stimme) audioVorbereiten();
+  jetzt = 0;
+  synchron(0, false);
+  leinwand.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  await abspielen();
+  const { i } = textTippen, n = texte.length;
+  textTippen = null;
+  $('text-tippen').hidden = true;
+  if (i < n - 1) {
+    const von = texte[i].von, bis = Math.max(inhaltEnde(), von + 0.5 * (n - i));
+    Untertitel.verteilen(texte.slice(i).map(t => t.text), von, bis)
+      .forEach((x, j) => Object.assign(texte[i + j], { von: x.von, bis: i + j < n - 1 ? x.bis : null }));
+  }
+  freieTexteAnzeigen();
+  verlauf.pruefen();
 });
 
 // ── Rezepte ─────────────────────────────────
@@ -1332,10 +1568,12 @@ const verlauf = Entwurf.verlauf({
 });
 verlauf.neu(false);
 
+// Kommt man aus „Video + Text“ mit mehreren Videos, liegen sie dort bereit
+const UEBERGABE = location.hash === '#uebergabe';
 let entwurf = null;
 (async () => {
   try { entwurf = await ablage.laden(); } catch (_) { entwurf = null; }
-  if (!entwurf?.stand.teile.length || zustand.teile.length) return;
+  if (!entwurf?.stand.teile.length || zustand.teile.length || UEBERGABE) return;
   const n = entwurf.stand.teile.length;
   $('entwurf-info').textContent = `${n} ${n === 1 ? 'Clip oder Foto' : 'Clips und Fotos'}, zuletzt geändert ${Entwurf.zeitText(entwurf.zeit)}`;
   $('entwurf').hidden = false;
@@ -1380,6 +1618,44 @@ async function teilen(datei) {
   }
   herunterladen(datei);
 }
+// ── Übernahme aus „Video + Text“ ────────────
+// „Video + Text“ legt die gewählten Videos (und für das bisherige Video
+// Start, Ende und ersten Text) kurz in IndexedDB ab und öffnet diese Seite
+// mit #uebergabe. Nichts wird hochgeladen.
+(async () => {
+  if (!UEBERGABE) return;
+  history.replaceState(null, '', location.pathname + location.search);
+  const ablageUeb = Entwurf.ablage('uebergabe');
+  let ub = null;
+  try { ub = await ablageUeb.laden(); } catch (_) { ub = null; }
+  if (!ub) return;
+  const infos = ub.stand.clips || [];
+  const dateien = infos.map((_, i) => ub.dateien['d' + i]);
+  $('uebergabe-hinweis').hidden = false;
+  $('uebergabe-hinweis').textContent = 'Deine Videos werden geladen …';
+  const neu = await dateienHinzufuegen(dateien.filter(Boolean));
+  let j = 0;
+  infos.forEach((info, i) => {
+    if (!dateien[i]) return;
+    const teil = neu[j++];
+    if (!teil || !info) return;
+    if (teil.art === 'video' && info.ende > info.start) Object.assign(teil, { start: Math.max(0, info.start), ende: Math.min(info.ende, teil.dauer) });
+    if (info.text) teil.text = info.text.slice(0, 60);
+  });
+  // Texte aus „Video + Text“ als freie Texte, mit ihren Zeiten und ihrem Aussehen
+  for (const t of ub.stand.texte || []) {
+    if (!String(t.text || '').trim()) continue;
+    zustand.texte.push(freierText('weitere', { text: t.text, schrift: t.schrift, hg: t.hg, farbe: t.farbe, groesse: t.groesse || 'm', anim: t.anim || 'blende',
+      x: t.x ?? B / 2, y: t.y ?? POSITIONEN[t.pos] ?? POSITIONEN.unten, von: t.von || 0, bis: t.bis ?? null }));
+  }
+  freieTexteAnzeigen();
+  ablageUeb.verwerfen();
+  $('uebergabe-hinweis').textContent = 'Deine Videos und Fotos sind da. Reihenfolge mit ↑ ↓ ändern, Videos mit Start und Ende kürzen. Texte schreibst du unten bei „Texte im Video“, so viele du willst.';
+  $('editor').hidden = !zustand.teile.length;
+  teileAnzeigen();
+  verlauf.pruefen();
+})();
+
 $('teilen').addEventListener('click', () => { if (ergebnisDatei) teilen(ergebnisDatei); });
 // Android hat im Teilen-Menü oft kein „Speichern“, deshalb direkt aufs Gerät laden
 $('speichern').addEventListener('click', () => { if (ergebnisDatei) herunterladen(ergebnisDatei); });

@@ -344,7 +344,9 @@ function kartenFelder(t) {
   if (k.typ === 'liste') return feld('Überschrift', 'titel', k.titel, 'z. B. 3 Tipps für Blond') + k.punkte.map((x, i) => feld(`Punkt ${i + 1}${i > 1 ? ' (optional)' : ''}`, 'punkt' + i, x, i ? '' : 'z. B. Lauwarm waschen')).join('');
   return '';
 }
-const fitVon = t => t.fit || (t.w / t.h > 0.75 ? 'ganz' : 'fuellen');
+// Querformat: ganz zeigen auf ruhigem hellem Rand (der unscharfe Rand wirkte wie ein verschwommenes Video)
+const fitVon = t => t.fit || (t.w / t.h > 0.75 ? 'hell' : 'fuellen');
+const FIT = { fuellen: 'Füllen', hell: 'Ganz, Rand hell', dunkel: 'Ganz, Rand dunkel', ganz: 'Ganz, Rand unscharf' };
 
 // ── Liste der Teile ─────────────────────────
 function chips(feld, auswahl, aktuell) {
@@ -371,7 +373,7 @@ function teileAnzeigen() {
         <input type="range" data-feld="ende" min="0" max="${t.dauer.toFixed(1)}" step="0.1" value="${t.ende}" aria-label="Ende">
         <div class="feld"><span class="feld-name">Tempo (in Zeitlupe und Zeitraffer ohne Originalton)</span>${chips('tempo', TEMPI, t.tempo)}</div>`
       : `<div class="feld"><span class="feld-name">Wie lange zeigen</span>${chips('dauer', { 2: '2 Sek.', 3: '3 Sek.', 4: '4 Sek.', 5: '5 Sek.' }, t.dauer)}</div>`}
-      <div class="feld"><span class="feld-name">Bild</span>${chips('fit', { fuellen: 'Füllen', ganz: 'Ganz zeigen' }, fitVon(t))}</div>
+      <div class="feld"><span class="feld-name">Bild</span>${chips('fit', FIT, fitVon(t))}</div>
       <div class="feld"><span class="feld-name">Text im Bild (leer = kein Text)</span><input class="eingabe" data-feld="text" maxlength="60" value="${esc(t.text)}" placeholder="${esc(t.hinweis || (i ? 'z. B. Female Future Festival Wien' : 'z. B. 1 Koffer, 1 Festival, 1 Tag'))}"></div>
       <details class="gestalten"${t.offen ? ' open' : ''}>
         <summary>✏️ Text gestalten: Stil, Position, wie lange</summary>
@@ -580,17 +582,22 @@ function rundesRechteck(x, y, w, h, r) {
   ctx.closePath();
 }
 
-// Bild oder Clip ins Hochformat: füllen, oder ganz zeigen mit unscharfem Hintergrund
+// Bild oder Clip ins Hochformat: füllen, oder ganz zeigen mit hellem, dunklem oder unscharfem Rand
 function medienZeichnen(t, zoom) {
   const cover = Math.max(B / t.w, H / t.h), contain = Math.min(B / t.w, H / t.h);
   const mitte = (s) => { const w = t.w * s * zoom, h = t.h * s * zoom; ctx.drawImage(t.el, (B - w) / 2, (H - h) / 2, w, h); };
-  if (fitVon(t) === 'ganz') {
+  const fit = fitVon(t);
+  if (fit === 'fuellen') return mitte(cover);
+  if (fit === 'ganz') {
     ctx.save();
     if ('filter' in ctx) ctx.filter = 'blur(40px) brightness(0.7)';
     mitte(cover * 1.1);
     ctx.restore();
-    mitte(contain);
-  } else mitte(cover);
+  } else {
+    ctx.fillStyle = fit === 'dunkel' ? '#1C1B19' : '#F5F0EA';
+    ctx.fillRect(0, 0, B, H);
+  }
+  mitte(contain);
 }
 
 // Zuletzt gezeichnete Textflächen (für das Verschieben mit dem Finger)

@@ -29,7 +29,7 @@ header{text-align:center;padding:6px 0 2px;}
 .label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
 section{display:flex;flex-direction:column;}
 
-.modus{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--gold-light);padding:4px;border-radius:12px;}
+.modus{display:grid;grid-template-columns:1fr 1fr 1fr;gap:4px;background:var(--gold-light);padding:4px;border-radius:12px;}
 .modus button{border:none;background:none;border-radius:9px;padding:10px;font:600 14px var(--sans);color:var(--gold-ink);cursor:pointer;}
 .modus button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
 .schritte{padding-left:1.2em;display:flex;flex-direction:column;gap:4px;font-size:14px;line-height:1.5;color:var(--sub);}
@@ -81,6 +81,9 @@ textarea{resize:vertical;line-height:1.5;}
 .anpassen summary span::after{content:" ▾";color:var(--gold);}
 .anpassen[open] summary span::after{content:" ▴";}
 .anpassen summary small{font-weight:400;font-size:12px;color:var(--sub);line-height:1.4;}
+.link-box{display:flex;flex-direction:column;gap:8px;}
+.link-box code{display:block;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:10px 12px;font:500 13px var(--sans);color:var(--ink);word-break:break-all;}
+.vorschlag{align-self:center;border:1px solid var(--gold);background:var(--surface);color:var(--gold-ink);border-radius:999px;padding:9px 16px;font:600 13px var(--sans);cursor:pointer;}
 .hinweis{background:var(--gold-light);border-left:3px solid var(--gold);border-radius:12px;padding:12px 14px;font-size:13px;color:var(--gold-ink);line-height:1.55;}
 :focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
 [hidden]{display:none!important;}
@@ -93,13 +96,15 @@ textarea{resize:vertical;line-height:1.5;}
   <header>
     <div class="wordmark">Great Hair<span>.</span>Day</div>
     <div class="rule"></div>
-    <p class="intro">HaarKompass-Post: Problemfall oder Haartyp antippen, der fertige Post steht sofort darunter. Spruch und Produkt kannst du danach noch ändern.</p>
+    <p class="intro">HaarKompass-Post: Problemfall, Haartyp oder eine Neuigkeit antippen, der fertige Post steht sofort darunter, mit Link zum HaarKompass. Spruch und Produkt kannst du danach noch ändern.</p>
   </header>
 
   <div class="modus" id="modus" role="tablist" aria-label="Art des Posts">
     <button type="button" role="tab" data-m="pflege" aria-selected="true">Pflege-Tipp</button>
     <button type="button" role="tab" data-m="styling" aria-selected="false">Styling-Tipp</button>
+    <button type="button" role="tab" data-m="neu" aria-selected="false">Neu im HaarKompass</button>
   </div>
+  <button type="button" class="vorschlag" id="btn-vorschlag">✨ Vorschlag für heute</button>
 
   <section>
     <div class="label" id="l-faelle">1 · Problemfall</div>
@@ -115,6 +120,13 @@ textarea{resize:vertical;line-height:1.5;}
           <button class="btn btn-main" id="btn-copy">Text kopieren</button>
           <a class="btn btn-alt" id="btn-bild" href="sprueche.html">Spruch als Bild</a>
         </div>
+      </section>
+
+      <section class="link-box">
+        <div class="label">Link zum HaarKompass</div>
+        <code id="o-link"></code>
+        <div class="reihe"><button class="btn btn-alt" id="btn-link">Link kopieren</button></div>
+        <p class="hinweis" style="margin:0">Instagram: Links im Post-Text sind nicht anklickbar. In der Story den Link als <b>Link-Sticker</b> auf die letzte Folie setzen, oder den Link in die Bio stellen und „Link in der Bio“ schreiben. Facebook, WhatsApp und Google-Profil: Der Link im Text ist anklickbar.</p>
       </section>
 
       <section>
@@ -150,8 +162,6 @@ textarea{resize:vertical;line-height:1.5;}
           </section>
         </div>
       </details>
-
-      <p class="hinweis">Der Link im Text führt direkt zum HaarKompass: <b>https://www.greathairday.at/haarkompass/</b>. Auf Facebook und im Google-Profil ist er anklickbar. Auf Instagram sind Links im Post-Text nicht klickbar: dort in der Story als <b>Link-Sticker</b> auf der letzten Folie einfügen oder den Link in die Bio stellen und „Link in der Bio“ schreiben.</p>
     </div>
   </div>
 </div>
@@ -718,11 +728,71 @@ const STYLING = [
   "styling": true
  }
 ];
+/* ==================================================================
+   "Neu im HaarKompass": Posts über die Funktionen des HaarKompass.
+   Nur Fakten, die wirklich im HaarKompass stehen (keine Wirkversprechen).
+   text: Absätze in Mirjams Stimme (stimme.md), frage: echte Frage am Ende,
+   link: optional eigener Link (z. B. die englische Version)
+================================================================== */
+const NEU = [
+  { id:"neu-start", neu:true, name:"Der neue HaarKompass", kurz:"Was er kann, in einem Post",
+    sprueche:[["Weniger Produkte.","Mehr Klarheit."],["Dein Haar.","Ehrlich beraten."],["Zwei Minuten.","Eine ehrliche Pflege-Routine."]],
+    text:["Ich habe unseren HaarKompass neu gemacht. 7 kurze Fragen zu deinem Haar, deiner Kopfhaut und deinem Alltag, und du bekommst eine ehrliche Pflege-Routine. Bei jeder Empfehlung steht, warum. Ohne Login und ohne Marken.",
+          "Neu ist die Ersteinschätzung ganz oben: Du siehst sofort, ob dein Haar wenig braucht, Aufbau braucht oder ob zuerst die Kopfhaut dran ist."],
+    frage:"Weißt du, welche Produkte in deinem Bad du eigentlich gar nicht brauchst?",
+    folien:[["Neu","Der HaarKompass von A Great Hair Day"],["7 Fragen","Haar, Kopfhaut, Alltag. In unter 2 Minuten."],["Ehrlich","Was du brauchst. Und was du weglassen kannst."],["Probier es aus","Hier geht's zum HaarKompass"]],
+    hashtags:"#Pflegeroutine #EhrlicheBeratung" },
+  { id:"neu-wuensche", neu:true, name:"Ehrliche Antworten auf Wünsche", kurz:"Auch wenn die Antwort Nein heißt",
+    sprueche:[["Manchmal ist die beste Antwort","ein ehrliches Nein."],["Kein Produkt","macht aus glatt lockig."],["Ehrlich beraten","heißt auch: Das kann Pflege nicht."]],
+    text:["Im HaarKompass wählst du bis zu zwei Wünsche, zum Beispiel mehr Volumen, mehr Glanz oder definierte Locken. Jeder Wunsch bekommt eine ehrliche Antwort.",
+          "Auch dann, wenn die Antwort Nein heißt: Glattes Haar lässt sich nicht in Locken pflegen, und gespaltene Spitzen kann man nicht reparieren, nur schneiden. Für mich gehört das zu guter Beratung dazu."],
+    frage:"Welches Pflegeversprechen hast du schon einmal geglaubt?",
+    folien:[["Dein Wunsch","Mehr Volumen? Definierte Locken? Weniger Spliss?"],["Ehrlich","Jeder Wunsch bekommt eine Antwort."],["Auch ein Nein","Spliss kann man nur schneiden. Kein Produkt macht aus glatt lockig."],["Dein Haar, ehrlich beraten","Hier geht's zum HaarKompass"]],
+    hashtags:"#EhrlicheBeratung #Haarpflege" },
+  { id:"neu-weglassen", neu:true, name:"Was du weglassen kannst", kurz:"Weniger Produkte, ehrlich begründet",
+    sprueche:[["Weniger ist","oft mehr."],["Nicht alles im Bad","braucht dein Haar."],["Gute Pflege","ist oft einfacher als gedacht."]],
+    text:["Jede Empfehlung im HaarKompass hat einen Teil, der mir besonders wichtig ist: Was du weglassen kannst.",
+          "Silbershampoo hilft nur bei aufgehelltem Haar. Anti-Schuppen-Shampoo braucht nur, wer echte Schuppen hat. Und Haaröl macht feines Haar schnell platt. Der HaarKompass sagt dir ehrlich, was du dir sparen kannst, und warum."],
+    frage:"Was steht bei dir im Bad, das du vielleicht gar nicht brauchst?",
+    folien:[["Ehrlich gesagt","Das brauchst du nicht."],["Silbershampoo","Nur bei aufgehelltem Haar."],["Haaröl","Macht feines Haar schnell platt."],["Was brauchst du wirklich?","Hier geht's zum HaarKompass"]],
+    hashtags:"#WenigerIstMehr #Haarpflege" },
+  { id:"neu-wasser", neu:true, name:"Wasserhärte in Wien", kurz:"Neu: Postleitzahl eingeben",
+    sprueche:[["Gute Nachricht","für Wiener Haar."],["Wiener Wasser:","weich bis mittelhart."],["Kalk im Haar?","In Wien meist kein Thema."]],
+    text:["Neu im HaarKompass: Du gibst deine Postleitzahl ein und siehst, wie hart das Wasser bei dir ist. Für Wien nutze ich die offiziellen Werte der Stadt Wien.",
+          "Das Wiener Hochquellwasser ist weich bis mittelhart, meist 6 bis 12 °dH. Du brauchst also keine speziellen Produkte gegen Kalk. In den Bezirken 2, 3, 11, 20, 21 und 22 kann es zeitweise härter werden, wenn Grundwasser eingespeist wird. Auch dafür steht im HaarKompass ein Tipp.",
+          "Quelle: Stadt Wien – Wiener Wasser"],
+    frage:"Hast du gewusst, wie hart das Wasser in deinem Bezirk ist?",
+    folien:[["Neu","Wasserhärte nach Postleitzahl"],["Wien","Meist 6 bis 12 °dH: weich bis mittelhart."],["Für dein Haar","Keine speziellen Produkte gegen Kalk nötig."],["Wie ist es bei dir?","Hier geht's zum HaarKompass"]],
+    hashtags:"#WienerWasser #Wasserhärte" },
+  { id:"neu-englisch", neu:true, name:"Jetzt auch auf Englisch", kurz:"Mit englischem Link", englisch:true,
+    sprueche:[["Hair care,","honestly."],["Dein Haar.","Your hair. Honestly."],["Jetzt auch","auf Englisch."]],
+    text:["Unser HaarKompass spricht jetzt auch Englisch. Praktisch für alle, die in Wien leben und lieber auf Englisch lesen, und für Freund:innen aus dem Ausland.",
+          "Our HaarKompass is now available in English: 7 quick questions about your hair, scalp and everyday life, and you get an honest hair care routine. No login, no brands."],
+    frage:"Kennst du jemanden, für den das praktisch wäre?",
+    folien:[["New","The HaarKompass in English"],["7 questions","Hair, scalp, everyday life."],["Honest","What you need. And what you can leave out."],["Try it","Here's the HaarKompass"]],
+    hashtags:"#ViennaHair #HairCareRoutine" },
+  { id:"neu-schuppen", neu:true, name:"Schuppen oder trockene Kopfhaut?", kurz:"Die Hilfe im HaarKompass",
+    sprueche:[["Nicht jede Schuppe","ist eine Schuppe."],["Erst verstehen,","dann pflegen."],["Trocken oder Schuppen?","Das macht den Unterschied."]],
+    text:["Viele verwechseln trockene Kopfhaut mit Schuppen. Dabei braucht beides eine ganz andere Pflege.",
+          "Trockene Kopfhaut: kleine, weiße, puderfeine Schüppchen, die Kopfhaut spannt. Schuppen: größer, oft gelblich und leicht fettig, sie haften und jucken. Im HaarKompass findest du diese Hilfe direkt bei der Frage. Bist du unsicher, schauen wir uns deine Kopfhaut beim nächsten Termin gemeinsam an."],
+    frage:"Hättest du den Unterschied gewusst?",
+    folien:[["Kennst du das?","Kleine Schüppchen auf der Schulter."],["Trockene Kopfhaut","Klein, weiß, puderfein. Die Kopfhaut spannt."],["Schuppen","Größer, gelblich, leicht fettig. Sie jucken."],["Was hast du?","Hier geht's zum HaarKompass"]],
+    hashtags:"#Kopfhaut #Schuppen" },
+  { id:"neu-faden", neu:true, name:"Der Faden-Test", kurz:"Fein, normal oder kräftig?",
+    sprueche:[["Ein Haar.","Ein Faden. Eine Antwort."],["Fein oder kräftig?","Der Faden verrät es."],["Kennst du","deine Haarstärke?"]],
+    text:["Die erste Frage im HaarKompass ist: Wie fühlt sich ein einzelnes Haar an? Viele sind sich da unsicher. Dafür gibt es den Faden-Test.",
+          "Nimm ein ausgefallenes Haar aus den Längen und leg es neben einen normalen Nähfaden. Deutlich dünner als der Faden: fein. Ungefähr gleich: normal. Gleich dick oder dicker: kräftig. Davon hängt ab, welche Pflege dein Haar wirklich braucht."],
+    frage:"Machst du den Test gleich einmal?",
+    folien:[["Fein, normal, kräftig?","Der Faden-Test"],["So geht's","Ein Haar neben einen Nähfaden legen."],["Dünner: fein","Gleich: normal. Dicker: kräftig."],["Und was braucht dein Haar?","Hier geht's zum HaarKompass"]],
+    hashtags:"#Haarstruktur #Haarpflege" }
+];
+
 
 const LINK = "https://www.greathairday.at/haarkompass/";
 const st = { modus:"pflege", fall:null, spruch:0, r:null };
-const liste = () => st.modus === "styling" ? STYLING : FAELLE;
-const alleFaelle = () => FAELLE.concat(STYLING);
+const liste = () => st.modus === "styling" ? STYLING : st.modus === "neu" ? NEU : FAELLE;
+const alleFaelle = () => FAELLE.concat(STYLING, NEU);
+const linkVon = f => f && f.englisch ? LINK + "?lang=en" : LINK;
 const $ = s => document.querySelector(s);
 const ehtml = s => String(s).replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"})[c]);
 
@@ -782,7 +852,7 @@ function frischesterSpruch(fall){
 
 function renderFaelle(){
   for (const b of document.querySelectorAll("#modus button")) b.setAttribute("aria-selected", b.dataset.m === st.modus);
-  $("#l-faelle").textContent = st.modus === "styling" ? "1 · Haartyp" : "1 · Problemfall";
+  $("#l-faelle").textContent = st.modus === "styling" ? "1 · Haartyp" : st.modus === "neu" ? "1 · Thema" : "1 · Problemfall";
   const v = verlaufLesen();
   $("#faelle").innerHTML = liste().map(f => {
     const z = v[f.id] && v[f.id].zuletzt;
@@ -792,8 +862,10 @@ function renderFaelle(){
 
 function waehleFall(id){
   st.fall = alleFaelle().find(f => f.id === id);
-  st.modus = st.fall.styling ? "styling" : "pflege";
+  st.modus = st.fall.styling ? "styling" : st.fall.neu ? "neu" : "pflege";
   st.spruch = frischesterSpruch(st.fall);
+  if (st.fall.neu) return waehleNeu();
+  $("#l-produkt").closest("section").hidden = false;
   st.r = st.fall.styling ? null : recommend(profilZuAntworten(st.fall.profil));
   $("#l-problem").textContent = st.fall.styling ? "Der Haartyp" : "Der Problemfall";
   $("#l-produkt").textContent = st.fall.styling ? "Das richtige Styling" : "Das passende Produkt";
@@ -856,7 +928,34 @@ function folie3(f, p){
 
 function ersterSatz(t){ const m = String(t).match(/^[^.!?]+[.!?]/); return m ? m[0] : t; }
 
+/* "Neu im HaarKompass": eigener, einfacher Aufbau ohne Produkt */
+function waehleNeu(){
+  st.r = null;
+  $("#l-problem").textContent = "Worum es geht";
+  $("#l-produkt").closest("section").hidden = true;
+  renderFaelle();
+  $("#ausgabe").hidden = false;
+  $("#o-problem").textContent = st.fall.text[0];
+  renderSprueche();
+  aktualisieren();
+  $("#s-post").scrollIntoView({ behavior:"smooth", block:"start" });
+}
+function aktualisierenNeu(){
+  const f = st.fall, [a, b] = f.sprueche[st.spruch], link = linkVon(f);
+  const teile = [a + " " + b].concat(f.text, [
+    (f.englisch ? "Probier es aus / Try it: " : "Probier es selbst aus: ") + link,
+    f.frage, "Mirjam", "#GreatHairDay #Friseur #Wien #HaarKompass " + f.hashtags]);
+  $("#caption").value = teile.join("\n\n");
+  $("#o-folien").innerHTML = f.folien.map(([k, t]) => `<div class="folie">${k ? `<small>${ehtml(k)}</small>` : ""}<p>${ehtml(t)}</p></div>`).join("");
+  $("#o-auswahl").textContent = "Spruch: " + a + " " + b;
+  $("#o-link").textContent = link;
+  $("#btn-bild").href = "sprueche.html?rahmen=1&a=" + encodeURIComponent(a) + "&b=" + encodeURIComponent(b);
+  $("#btn-story").href = "sprueche.html?rahmen=1&text=" + encodeURIComponent(f.folien.map(([k, t]) => t).join("\n"));
+}
+
 function aktualisieren(){
+  if (st.fall && st.fall.neu) return aktualisierenNeu();
+  $("#o-link").textContent = linkVon(st.fall);
   const f = st.fall, r = st.r, [a, b] = f.sprueche[st.spruch];
   const p = produktVon(f, r), weg = wegVon(f, r);
   const eigen = $("#f-produkt").value.trim();
@@ -907,6 +1006,19 @@ $("#o-regal").addEventListener("click", e => {
   $("#f-produkt").value = b.dataset.p; renderRegal(); aktualisieren();
 });
 $("#btn-bild").addEventListener("click", verlaufMerken);
+$("#btn-link").addEventListener("click", e => {
+  const btn = e.currentTarget, text = $("#o-link").textContent;
+  const fertig = () => { btn.textContent = "Kopiert ✓"; setTimeout(() => { btn.textContent = "Link kopieren"; }, 2000); };
+  if (navigator.clipboard) navigator.clipboard.writeText(text).then(fertig, () => prompt("Link kopieren:", text));
+  else prompt("Link kopieren:", text);
+});
+// Vorschlag für heute: das Thema, das am längsten nicht (oder noch nie) gepostet wurde
+$("#btn-vorschlag").addEventListener("click", () => {
+  const v = verlaufLesen(), alle = alleFaelle();
+  let best = alle[0];
+  for (const f of alle) if (((v[f.id] || {}).zuletzt || 0) < ((v[best.id] || {}).zuletzt || 0)) best = f;
+  waehleFall(best.id);
+});
 $("#btn-story").addEventListener("click", verlaufMerken);
 $("#btn-copy").addEventListener("click", e => {
   verlaufMerken();
@@ -923,6 +1035,7 @@ $("#modus").addEventListener("click", e => {
 
 const startParams = new URLSearchParams(location.search);
 if (startParams.get("modus") === "styling") st.modus = "styling";
+if (startParams.get("modus") === "neu") st.modus = "neu";
 if (typeof recommend !== "function") {
   // engine.js von greathairday.at nicht erreichbar (offline, Website down)
   $("#modus").hidden = true;

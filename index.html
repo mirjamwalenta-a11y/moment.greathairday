@@ -311,12 +311,14 @@ function tabnavScrollBy(direction) {
   <h2 class="screen-headline">Bilder &amp;<br>Videos</h2>
   <p class="bereich-intro">Fertig zum Posten, im Moment-Design.</p>
   <div class="start-kacheln">
-    <!-- Nur ein Link: der Videomaker selbst liegt in einem privaten Repo (Lizenz) und läuft in Claude Code.
+    <!-- Der Videomaker selbst liegt in einem privaten Repo (Lizenz) und läuft in Claude Code.
+         Claude Code nimmt am Handy keine Videos an: deshalb erst hier aus der Galerie
+         hochladen (privater Speicher), dann den Link in die Sitzung einfügen.
          Bewusst als erste Kachel, damit er ohne Scrollen sichtbar ist. -->
-    <button class="start-kachel" style="grid-column:1/-1" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">
+    <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='videomaker-upload.html'">
       <span class="start-kachel-icon">🤖</span>
       <span class="start-kachel-titel">Videomaker (Claude)</span>
-      <span class="start-kachel-desc">Öffnet Claude Code: Sitzung mit „videomaker-privat“ starten und „Reel start“ schreiben</span>
+      <span class="start-kachel-desc">Videos und Fotos aus der Galerie hochladen, Link in Claude einfügen, Reels bekommen</span>
     </button>
     <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='sprueche.html'">
       <span class="start-kachel-icon">🖼</span>

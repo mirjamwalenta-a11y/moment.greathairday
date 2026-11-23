@@ -110,7 +110,10 @@ input[type=range]{width:100%;accent-color:var(--gold);}
     </div>
     <label class="btn neu" for="datei">🎬 Video auswählen</label>
     <input type="file" id="datei" accept="video/*" hidden>
-    <p class="meta">Aus der Galerie oder direkt aufnehmen. Wer im Video zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+    <label class="btn" for="datei-alle" style="display:block;margin-top:8px">📁 Aus Galerie oder Dateien wählen</label>
+    <input type="file" id="datei-alle" hidden>
+    <p class="hinweis warnung" id="kein-video" hidden>Das ist kein Video. Bitte ein Video auswählen.</p>
+    <p class="meta">Aus der Galerie oder direkt aufnehmen. Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ findest du die Ordner auf dem Handy, oder nimm den zweiten Knopf: Er öffnet die Auswahl mit Galerie, Dateien und Downloads. Wer im Video zu sehen ist, muss mit dem Posten einverstanden sein.</p>
     <p class="hinweis">Mehrere Videos, jedes mit eigenem Tempo (normal, Zeitlupe, Zeitraffer)? Dafür gibt es <a href="montage.html" style="color:inherit;font-weight:600;">Clips &amp; Fotos</a>.</p>
   </section>
 
@@ -420,14 +423,22 @@ function videoOeffnen(datei) {
   video.src = videoUrl;
   video.load();
 }
-$('datei').addEventListener('change', e => {
+// „datei“ mit accept=video/* (am Android oft nur Google Fotos), „datei-alle“ ohne
+// accept: die normale Auswahl mit Galerie, Dateien und Downloads. Dort kann auch
+// anderes kommen, deshalb die Prüfung auf Video.
+function videoGewaehlt(e) {
   const f = e.target.files[0];
   e.target.value = '';
   if (!f) return;
+  const istVideo = /^video\//.test(f.type) || (!f.type && /\.(mp4|mov|m4v|webm|3gp|mkv)$/i.test(f.name));
+  $('kein-video').hidden = istVideo;
+  if (!istVideo) return;
   wiederherstellen = null;
   $('entwurf').hidden = true;
   videoOeffnen(f);
-});
+}
+$('datei').addEventListener('change', videoGewaehlt);
+$('datei-alle').addEventListener('change', videoGewaehlt);
 
 video.addEventListener('loadedmetadata', async () => {
   const alt = wiederherstellen;

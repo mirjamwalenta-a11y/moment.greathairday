@@ -1,0 +1,311 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Videomaker">
+<meta name="theme-color" content="#F5F0EA">
+<title>Für den Videomaker — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<!-- Hochladen in Stücken: große Handy-Videos, und bei kurzem Netzabriss geht es weiter -->
+<script src="https://cdn.jsdelivr.net/npm/tus-js-client@4.1.0/dist/tus.min.js"></script>
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;--gold-ink:#5a4a28;--warn:#8A3B22;--warn-bg:#F3E1DA;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:480px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:18px;}
+header{text-align:center;padding:6px 0 2px;}
+.zurueck{align-self:flex-start;font-size:13px;color:var(--sub);text-decoration:none;}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:10px;}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font:600 13px var(--sans);color:var(--ink);cursor:pointer;text-align:center;}
+.btn.haupt{background:var(--gold);border-color:var(--gold);color:#fff;}
+.btn.neu{width:100%;padding:13px;font-size:15px;background:var(--ink);border-color:var(--ink);color:#fff;display:block;}
+.btn:disabled,.btn.aus{opacity:.5;cursor:default;pointer-events:none;}
+.hinweis{font-size:13px;line-height:1.45;color:var(--gold-ink);background:var(--gold-light);border-radius:10px;padding:8px 11px;}
+.hinweis.warnung{color:var(--warn);background:var(--warn-bg);}
+.klein{font-size:12px;color:var(--sub);line-height:1.45;}
+.knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
+.balken{height:8px;background:var(--gold-light);border-radius:4px;overflow:hidden;}
+.balken div{height:100%;width:0;background:var(--gold);transition:width .2s;}
+.datei{border:1px solid var(--line);border-radius:12px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg);}
+.datei .name{font-size:13px;font-weight:600;word-break:break-all;}
+.datei .name small{display:block;font-weight:400;color:var(--sub);}
+.schritte{font-size:13px;line-height:1.55;color:var(--ink);padding-left:18px;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+[hidden]{display:none!important;}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <a class="zurueck" href="index.html">← Zurück zu Moment</a>
+  <header>
+    <div class="wordmark">Für den <span>Videomaker</span></div>
+    <div class="rule"></div>
+    <p class="intro">Videos und Fotos aus deiner Galerie hochladen und den Link in deine Videomaker-Sitzung einfügen. Die Dateien liegen privat, nur du siehst sie. Gepostet wird nichts.</p>
+  </header>
+
+  <p class="hinweis warnung" id="kein-login" hidden>Du bist nicht angemeldet. Bitte zuerst in <a href="index.html" style="color:inherit;font-weight:600;">Moment</a> anmelden und dann hierher zurückkommen.</p>
+
+  <section class="card" id="auswahl">
+    <span class="label">1 · Auswählen</span>
+    <label class="btn neu" for="datei">＋ Videos oder Fotos aus der Galerie</label>
+    <input type="file" id="datei" accept="video/*,image/*" multiple hidden>
+    <label class="btn" for="datei-alle" style="display:block">📁 Aus Galerie oder Dateien wählen</label>
+    <input type="file" id="datei-alle" multiple hidden>
+    <p class="klein">Mehrere auf einmal gehen. Öffnet sich beim ersten Knopf Google Fotos? Unter „Sammlungen“ findest du die Ordner auf dem Handy. Der zweite Knopf öffnet die Auswahl mit Galerie, Dateien und Downloads. Wer zu sehen ist, muss mit dem Posten einverstanden sein.</p>
+  </section>
+
+  <section class="card" id="laden" hidden>
+    <span class="label">2 · Hochladen</span>
+    <div id="laden-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <p class="klein">Bitte die Seite offen lassen, bis alles fertig ist. Reißt das Netz kurz ab, geht es von selbst weiter.</p>
+  </section>
+
+  <section class="card" id="fertig" hidden>
+    <span class="label">3 · Link in den Videomaker</span>
+    <button class="btn haupt" id="alle-kopieren" style="padding:13px;font-size:15px;">🔗 Link kopieren</button>
+    <ol class="schritte">
+      <li>Unten auf „Videomaker öffnen“ tippen.</li>
+      <li>Sitzung mit <b>videomaker-privat</b> starten.</li>
+      <li>Link einfügen, dazu „start reels“ schreiben und abschicken.</li>
+    </ol>
+    <button class="btn" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">🤖 Videomaker öffnen</button>
+    <p class="klein">Der Link gilt 24 Stunden. Danach hier unten einfach einen neuen kopieren.</p>
+  </section>
+
+  <section class="card" id="bisher" hidden>
+    <span class="label">Schon hochgeladen</span>
+    <div id="bisher-liste" style="display:flex;flex-direction:column;gap:8px;"></div>
+    <p class="klein">Was der Videomaker geholt hat, kannst du hier löschen. Es ist dann nur aus diesem Speicher weg, nicht aus deiner Galerie.</p>
+  </section>
+
+  <button class="btn" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">🤖 Videomaker öffnen (ohne Hochladen)</button>
+</div>
+
+<script>
+// Gleiches Supabase-Projekt und gleicher Login wie index.html (gleiche Adresse,
+// daher teilt sich die Seite die Anmeldung mit Moment).
+const AUTH_URL = 'https://wrxlaltgtgkdomklgrlj.supabase.co';
+const AUTH_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6IndyeGxhbHRndGdrZG9ta2xncmxqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQyNDYwMzYsImV4cCI6MjA5OTgyMjAzNn0.Bw8ch-EJb_cLYTwxHdpjUJWgoCjje3Jc32pB0yiBS8g';
+// Großer Upload in Stücken direkt an den Storage-Server (Supabase empfiehlt das ab ~6 MB)
+const TUS_URL = 'https://wrxlaltgtgkdomklgrlj.storage.supabase.co/storage/v1/upload/resumable';
+const BUCKET = 'videomaker-eingang';
+const LINK_GUELTIG_S = 24 * 60 * 60;
+const sb = supabase.createClient(AUTH_URL, AUTH_KEY);
+const $ = id => document.getElementById(id);
+
+// Ob jemand hochladen darf, entscheidet der Server (Policies in
+// supabase/migrations/20261123120000_videomaker_eingang.sql, nur die Chefin).
+// Hier wird nur geprüft, ob überhaupt jemand angemeldet ist.
+let benutzer = null;
+let fertigeLinks = [];
+
+async function token() {
+  const { data } = await sb.auth.getSession();
+  let s = data?.session;
+  if (!s || (s.expires_at - Date.now() / 1000) < 120) {
+    const r = await sb.auth.refreshSession().catch(() => null);
+    s = r?.data?.session || s;
+  }
+  return s?.access_token || null;
+}
+
+function groesse(b) {
+  return b > 1e9 ? (b / 1e9).toFixed(1).replace('.', ',') + ' GB' : Math.max(1, Math.round(b / 1e6)) + ' MB';
+}
+
+function sichererName(name) {
+  const punkt = name.lastIndexOf('.');
+  const endung = punkt > 0 ? name.slice(punkt + 1).toLowerCase().replace(/[^a-z0-9]/g, '') : '';
+  const basis = (punkt > 0 ? name.slice(0, punkt) : name)
+    .normalize('NFKD').replace(/[̀-ͯ]/g, '')
+    .replace(/[^A-Za-z0-9_-]+/g, '_').replace(/^_+|_+$/g, '').slice(0, 60) || 'datei';
+  const jetzt = new Date();
+  const z = n => String(n).padStart(2, '0');
+  const stempel = `${jetzt.getFullYear()}-${z(jetzt.getMonth() + 1)}-${z(jetzt.getDate())}_${z(jetzt.getHours())}${z(jetzt.getMinutes())}${z(jetzt.getSeconds())}`;
+  return `${stempel}_${basis}${endung ? '.' + endung : ''}`;
+}
+
+function istMedien(datei) {
+  if (/^(video|image)\//.test(datei.type)) return true;
+  // Manche Dateiauswahlen liefern keinen Typ: dann nach der Endung gehen
+  return !datei.type && /\.(mp4|mov|m4v|webm|3gp|mkv|jpe?g|png|heic|heif|webp)$/i.test(datei.name);
+}
+
+function typVon(datei) {
+  if (datei.type) return datei.type;
+  const e = (datei.name.split('.').pop() || '').toLowerCase();
+  return ({ mp4: 'video/mp4', m4v: 'video/mp4', mov: 'video/quicktime', webm: 'video/webm', '3gp': 'video/3gpp', mkv: 'video/x-matroska',
+    jpg: 'image/jpeg', jpeg: 'image/jpeg', png: 'image/png', heic: 'image/heic', heif: 'image/heif', webp: 'image/webp' })[e] || 'application/octet-stream';
+}
+
+async function signierterLink(pfad) {
+  const { data, error } = await sb.storage.from(BUCKET).createSignedUrl(pfad, LINK_GUELTIG_S);
+  if (error) throw error;
+  return data.signedUrl;
+}
+
+async function kopieren(text, knopf) {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch (_) {
+    const t = document.createElement('textarea');
+    t.value = text; document.body.appendChild(t); t.select();
+    try { document.execCommand('copy'); } catch (_) {}
+    t.remove();
+  }
+  const alt = knopf.textContent;
+  knopf.textContent = '✓ Kopiert';
+  setTimeout(() => { knopf.textContent = alt; }, 1800);
+}
+
+function hochladen(datei, pfad, zeile) {
+  const balken = zeile.querySelector('.balken div');
+  const status = zeile.querySelector('small');
+  return new Promise((ok, fehler) => {
+    const upload = new tus.Upload(datei, {
+      endpoint: TUS_URL,
+      retryDelays: [0, 3000, 5000, 10000, 20000],
+      chunkSize: 6 * 1024 * 1024, // Supabase verlangt genau 6 MB je Stück
+      uploadDataDuringCreation: true,
+      removeFingerprintOnSuccess: true,
+      headers: { apikey: AUTH_KEY, 'x-upsert': 'false' },
+      metadata: { bucketName: BUCKET, objectName: pfad, contentType: typVon(datei), cacheControl: '3600' },
+      // Bei langen Uploads läuft der Login-Token ab: vor jedem Stück den aktuellen holen
+      onBeforeRequest: async req => {
+        const t = await token();
+        if (t) req.setHeader('Authorization', 'Bearer ' + t);
+      },
+      onProgress: (geladen, gesamt) => {
+        const p = gesamt ? Math.round(geladen / gesamt * 100) : 0;
+        balken.style.width = p + '%';
+        status.textContent = `${groesse(geladen)} von ${groesse(gesamt)} · ${p} %`;
+      },
+      onSuccess: () => ok(),
+      onError: e => fehler(e)
+    });
+    upload.findPreviousUploads().then(alte => {
+      if (alte.length) upload.resumeFromPreviousUpload(alte[0]);
+      upload.start();
+    });
+  });
+}
+
+function fehlerText(e) {
+  const roh = String(e?.originalResponse?.getBody?.() || e?.message || e || '');
+  const status = e?.originalResponse?.getStatus?.();
+  if (status === 413 || /too large|exceeded the maximum/i.test(roh))
+    return 'Die Datei ist größer als erlaubt. Das Limit stellt man in Supabase unter Storage → Settings ein (Free-Plan: höchstens 50 MB).';
+  if (status === 401 || status === 403 || /row-level security|unauthorized|not authorized/i.test(roh))
+    return 'Kein Zugriff. Hochladen darf nur die Chefin. Bist du mit deinem Chefin-Konto angemeldet?';
+  if (/bucket not found/i.test(roh))
+    return 'Der Speicher „videomaker-eingang“ ist in Supabase noch nicht angelegt.';
+  if (!navigator.onLine) return 'Keine Internetverbindung.';
+  return 'Hochladen hat nicht geklappt. Bitte nochmal versuchen.';
+}
+
+async function dateienGewaehlt(ev) {
+  const dateien = [...ev.target.files];
+  ev.target.value = '';
+  if (!dateien.length) return;
+  if (!benutzer) { $('kein-login').hidden = false; return; }
+
+  $('laden').hidden = false;
+  $('fertig').hidden = true;
+  fertigeLinks = [];
+  const liste = $('laden-liste');
+  liste.innerHTML = '';
+  for (const k of document.querySelectorAll('#auswahl label')) k.classList.add('aus');
+
+  for (const datei of dateien) {
+    const zeile = document.createElement('div');
+    zeile.className = 'datei';
+    zeile.innerHTML = '<div class="name"></div><div class="balken"><div></div></div>';
+    zeile.querySelector('.name').textContent = datei.name;
+    zeile.querySelector('.name').appendChild(document.createElement('small')).textContent = groesse(datei.size);
+    liste.appendChild(zeile);
+
+    if (!istMedien(datei)) {
+      zeile.querySelector('small').textContent = 'Übersprungen: kein Video und kein Foto.';
+      continue;
+    }
+    const pfad = `${benutzer.id}/${sichererName(datei.name)}`;
+    try {
+      await hochladen(datei, pfad, zeile);
+      fertigeLinks.push(await signierterLink(pfad));
+      zeile.querySelector('small').textContent = '✓ Fertig';
+    } catch (e) {
+      console.error(e);
+      zeile.querySelector('small').textContent = fehlerText(e);
+      zeile.querySelector('small').style.color = 'var(--warn)';
+    }
+  }
+
+  for (const k of document.querySelectorAll('#auswahl label')) k.classList.remove('aus');
+  if (fertigeLinks.length) {
+    $('fertig').hidden = false;
+    $('alle-kopieren').textContent = fertigeLinks.length === 1 ? '🔗 Link kopieren' : `🔗 ${fertigeLinks.length} Links kopieren`;
+    $('fertig').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+  bisherLaden();
+}
+
+async function bisherLaden() {
+  if (!benutzer) return;
+  const { data, error } = await sb.storage.from(BUCKET).list(benutzer.id, { limit: 50, sortBy: { column: 'created_at', order: 'desc' } });
+  const box = $('bisher-liste');
+  box.innerHTML = '';
+  const dateien = (data || []).filter(d => d.id);
+  $('bisher').hidden = !!error || !dateien.length;
+  for (const d of dateien) {
+    const pfad = `${benutzer.id}/${d.name}`;
+    const zeile = document.createElement('div');
+    zeile.className = 'datei';
+    zeile.innerHTML = '<div class="name"></div><div class="knoepfe"><button class="btn haupt">🔗 Link kopieren</button><button class="btn">Löschen</button></div>';
+    zeile.querySelector('.name').textContent = d.name.replace(/^\d{4}-\d\d-\d\d_\d{6}_/, '');
+    const tag = d.created_at ? new Date(d.created_at).toLocaleString('de-AT', { dateStyle: 'short', timeStyle: 'short' }) : '';
+    zeile.querySelector('.name').appendChild(document.createElement('small')).textContent =
+      [tag, d.metadata?.size ? groesse(d.metadata.size) : ''].filter(Boolean).join(' · ');
+    const [linkKnopf, weg] = zeile.querySelectorAll('button');
+    linkKnopf.onclick = async () => {
+      try { await kopieren(await signierterLink(pfad), linkKnopf); }
+      catch (_) { linkKnopf.textContent = 'Ging nicht'; }
+    };
+    weg.onclick = async () => {
+      if (!confirm('Aus dem Videomaker-Speicher löschen? In deiner Galerie bleibt die Datei.')) return;
+      const { error: e } = await sb.storage.from(BUCKET).remove([pfad]);
+      if (e) { weg.textContent = 'Ging nicht'; return; }
+      bisherLaden();
+    };
+    box.appendChild(zeile);
+  }
+}
+
+$('datei').addEventListener('change', dateienGewaehlt);
+$('datei-alle').addEventListener('change', dateienGewaehlt);
+$('alle-kopieren').addEventListener('click', e => kopieren(fertigeLinks.join('\n'), e.currentTarget));
+
+(async () => {
+  const t = await token().catch(() => null);
+  if (!t) { $('kein-login').hidden = false; return; }
+  const { data } = await sb.auth.getUser();
+  benutzer = data?.user || null;
+  if (!benutzer) { $('kein-login').hidden = false; return; }
+  bisherLaden();
+})();
+</script>
+</body>
+</html>

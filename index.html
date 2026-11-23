@@ -311,6 +311,13 @@ function tabnavScrollBy(direction) {
   <h2 class="screen-headline">Bilder &amp;<br>Videos</h2>
   <p class="bereich-intro">Fertig zum Posten, im Moment-Design.</p>
   <div class="start-kacheln">
+    <!-- Nur ein Link: der Videomaker selbst liegt in einem privaten Repo (Lizenz) und läuft in Claude Code.
+         Bewusst als erste Kachel, damit er ohne Scrollen sichtbar ist. -->
+    <button class="start-kachel" style="grid-column:1/-1" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">
+      <span class="start-kachel-icon">🤖</span>
+      <span class="start-kachel-titel">Videomaker (Claude)</span>
+      <span class="start-kachel-desc">Öffnet Claude Code: Sitzung mit „videomaker-privat“ starten und „Reel start“ schreiben</span>
+    </button>
     <button class="start-kachel" style="grid-column:1/-1" onclick="location.href='sprueche.html'">
       <span class="start-kachel-icon">🖼</span>
       <span class="start-kachel-titel">Sprüche &amp; Aushänge</span>
@@ -351,12 +358,6 @@ function tabnavScrollBy(direction) {
       <span class="start-kachel-icon">🤝</span>
       <span class="start-kachel-titel">Sponsorenwand &amp; Einladung</span>
       <span class="start-kachel-desc">Danke-Bild oder Einladung mit allen Sponsoren-Logos</span>
-    </button>
-    <!-- Nur ein Link: der Videomaker selbst liegt in einem privaten Repo (Lizenz) und läuft in Claude Code -->
-    <button class="start-kachel" style="grid-column:1/-1" onclick="window.open('https://claude.ai/code', '_blank', 'noopener')">
-      <span class="start-kachel-icon">🤖</span>
-      <span class="start-kachel-titel">Videomaker (Claude)</span>
-      <span class="start-kachel-desc">Lange Aufnahmen mit Untertiteln: in Claude Code eine Sitzung mit deinem privaten Videomaker starten</span>
     </button>
   </div>
 </section>

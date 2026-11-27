@@ -84,6 +84,9 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <section id="aktion-section" style="display:none;flex-direction:column;gap:10px;">
     <div class="label">Aktion wählen</div>
     <div class="chips" id="aktion-chips"></div>
+    <div class="chips"><button class="chip" id="btn-pdf">📄 Text aus PDF übernehmen</button></div>
+    <input type="file" id="f-pdf" accept="application/pdf,.pdf" style="display:none;">
+    <p id="pdf-info" class="hinweis" style="display:none;text-align:left;margin:0;"></p>
     <div class="label">Symbol im Bild</div>
     <div class="chips" id="symbol-chips"></div>
     <label class="feld"><span>Überzeile (klein, gold)</span><input id="f-ueber"></label>
@@ -2125,6 +2128,66 @@ function zeigeBildOptionen(an) {
   document.querySelectorAll('.bild-staerke, #btn-bild-weg').forEach(b => { b.style.display = an ? '' : 'none'; });
   document.getElementById('btn-bild').textContent = an ? 'Anderes Foto' : 'Foto wählen';
 }
+function setzeSchleier(wert) {
+  state.schleier = wert;
+  document.querySelectorAll('.bild-staerke').forEach(x => x.classList.toggle('on', parseFloat(x.dataset.val) === wert));
+}
+// ── Text aus einem PDF (z. B. Aktions-Flyer) in die Beschreibung übernehmen. Das PDF selbst kommt nicht ins Bild.
+// pdf.js (liegt im Repo unter pdfjs/, Apache-2.0) wird erst beim ersten PDF geladen.
+let pdfjsLaden = null;
+function ladePdfjs() {
+  if (!pdfjsLaden) pdfjsLaden = new Promise((ok, fehler) => {
+    const sc = document.createElement('script');
+    sc.src = 'pdfjs/pdf.min.js';
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs/pdf.worker.min.js'; ok(window.pdfjsLib); };
+    sc.onerror = () => { pdfjsLaden = null; fehler(new Error('pdf.js nicht geladen')); };
+    document.head.appendChild(sc);
+  });
+  return pdfjsLaden;
+}
+let vorPdf = null;   // Beschreibung vor der Übernahme, für „Rückgängig“
+function pdfInfo(html) {
+  const el = document.getElementById('pdf-info');
+  el.innerHTML = html; el.style.display = html ? 'block' : 'none';
+}
+async function pdfTextUebernehmen(file) {
+  const knopf = document.getElementById('btn-pdf');
+  knopf.textContent = 'PDF wird gelesen …';
+  try {
+    const lib = await ladePdfjs();
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    let text = '';
+    for (let n = 1; n <= Math.min(pdf.numPages, 3); n++) {
+      const inhalt = await (await pdf.getPage(n)).getTextContent();
+      text += inhalt.items.map(x => x.str + (x.hasEOL ? '\n' : ' ')).join('') + '\n';
+    }
+    text = text.replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+    if (text.length < 5) {
+      pdfInfo('In diesem PDF ist kein lesbarer Text (wahrscheinlich eingescannt). Bitte den Text selbst in die Felder schreiben.');
+      return;
+    }
+    const feld = document.getElementById('f-c');
+    vorPdf = feld.value;
+    feld.value = text;
+    state.c = text;
+    draw();
+    pdfInfo('Der Text aus dem PDF steht jetzt in der Beschreibung. Bitte auf das Wichtigste kürzen. <button class="chip" id="btn-pdf-zurueck" style="margin-top:6px;">Rückgängig</button>');
+    document.getElementById('btn-pdf-zurueck').onclick = () => {
+      feld.value = vorPdf; state.c = vorPdf; draw(); pdfInfo('');
+    };
+    feld.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  } catch (err) {
+    pdfInfo('Das PDF konnte nicht gelesen werden. Bitte den Text selbst in die Felder schreiben.');
+  } finally {
+    knopf.textContent = '📄 Text aus PDF übernehmen';
+  }
+}
+document.getElementById('btn-pdf').onclick = () => document.getElementById('f-pdf').click();
+document.getElementById('f-pdf').addEventListener('change', e => {
+  const file = e.target.files[0];
+  e.target.value = '';
+  if (file) pdfTextUebernehmen(file);
+});
 document.getElementById('btn-bild').onclick = () => document.getElementById('f-bild').click();
 document.getElementById('f-bild').addEventListener('change', e => {
   const file = e.target.files[0];
@@ -2147,7 +2210,7 @@ document.getElementById('f-bild').addEventListener('change', e => {
 });
 document.querySelectorAll('.bild-staerke').forEach(b => b.onclick = () => {
   document.querySelectorAll('.bild-staerke').forEach(x => x.classList.toggle('on', x === b));
-  state.schleier = parseFloat(b.dataset.val);
+  setzeSchleier(parseFloat(b.dataset.val));
   draw();
 });
 document.getElementById('btn-bild-weg').onclick = () => { state.bild = null; zeigeBildOptionen(false); draw(); };

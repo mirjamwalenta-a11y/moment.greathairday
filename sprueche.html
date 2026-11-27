@@ -84,6 +84,8 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <section id="aktion-section" style="display:none;flex-direction:column;gap:10px;">
     <div class="label">Aktion wählen</div>
     <div class="chips" id="aktion-chips"></div>
+    <div class="label">Symbol im Bild</div>
+    <div class="chips" id="symbol-chips"></div>
     <label class="feld"><span>Überzeile (klein, gold)</span><input id="f-ueber"></label>
     <label class="feld"><span>Rabatt im Kreis (z. B. 20 für −20 %, leer = kein Kreis)</span><input id="f-rabatt"></label>
     <label class="feld"><span>Gültigkeit (optional, z. B. „Gültig bis 31. Oktober“)</span><input id="f-gueltig"></label>
@@ -958,7 +960,7 @@ const TEAM = ['Mazen', 'Alina', 'Hassan'];
 const hatName = sp => /\{name\}/.test(sp.a + sp.b + sp.c);
 const mitName = t => t.replace(/\{name\}/g, state.name);
 
-const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'', bild:null, schleier:0.68 };
+const state = { name:TEAM[0], marke:'salon', format:'post', stil:'hell', kat:'alle', idx:0, a:'', b:'', c:'', k:'humor', qr:false, sticker:false, qrLink:QR_LINK_STANDARD, jobLink:JOB_LINK_STANDARD, qrZweck:'bewertung', ueber:'', rabatt:'', gueltig:'', symbol:'', bild:null, schleier:0.68 };
 // QR-Zweck: 'bewertung' (Google-Bewertung, mit Sternen) oder 'lehrstelle' | 'stylist' (Bewerbung über die Karriere-Seite)
 const istBewerbung = () => state.qrZweck !== 'bewertung';
 const aktiverLink = () => istBewerbung() ? state.jobLink : state.qrLink;
@@ -1064,6 +1066,85 @@ function drawStickerPlatz(W, footY, s) {
     for (let i = -2; i <= 2; i++) stern(W / 2 + i * 64, sternY, 22);
   }
   return sternY - 40;
+}
+
+// Aktions-Modus: Symbole als goldene Strichzeichnung (im 24×24-Raster, passt zum ruhigen Look besser als bunte Emojis)
+// emoji = nur für die Knöpfe in der Auswahl; zeichne(ctx) zeichnet im 24er-Raster, Strich und Füllung setzt drawSymbol
+const SYMBOLE = {
+  tannenbaum:   { name:'Tannenbaum', emoji:'🎄', zeichne: c => {
+    c.stroke(new Path2D('M12 3.5L7.5 9.5H10L5.5 15H8.5L4 20.5H20L15.5 15H18.5L14 9.5H16.5Z M12 20.5V23'));
+    stern(c, 12, 1.6, 1.6, 0.7); } },
+  stern:        { name:'Stern', emoji:'⭐', zeichne: c => stern(c, 12, 12.6, 9.5, 4) },
+  schneeflocke: { name:'Schneeflocke', emoji:'❄️', zeichne: c => {
+    for (let i = 0; i < 6; i++) {
+      c.save(); c.translate(12, 12); c.rotate(i * Math.PI / 3);
+      c.stroke(new Path2D('M0 0V-10 M-2.6 -7.6L0 -5L2.6 -7.6'));
+      c.restore();
+    } } },
+  geschenk:     { name:'Geschenk', emoji:'🎁', zeichne: c => c.stroke(new Path2D(
+    'M3 8.5H21V12.5H3Z M4.5 12.5V21H19.5V12.5 M12 8.5V21 M12 8.5C10.5 4 6 3.5 6.5 6.5C7 8.5 12 8.5 12 8.5 M12 8.5C13.5 4 18 3.5 17.5 6.5C17 8.5 12 8.5 12 8.5')) },
+  herz:         { name:'Herz', emoji:'❤️', zeichne: c => c.stroke(new Path2D(
+    'M12 20.5C12 20.5 3 14.8 3 8.8A4.6 4.6 0 0 1 12 7A4.6 4.6 0 0 1 21 8.8C21 14.8 12 20.5 12 20.5Z')) },
+  blume:        { name:'Blume', emoji:'🌷', zeichne: c => {
+    for (let i = 0; i < 5; i++) {
+      const w = i * 2 * Math.PI / 5 - Math.PI / 2;
+      c.beginPath(); c.arc(12 + Math.cos(w) * 5, 10 + Math.sin(w) * 5, 3.2, 0, Math.PI * 2); c.stroke();
+    }
+    c.beginPath(); c.arc(12, 10, 2, 0, Math.PI * 2); c.stroke();
+    c.stroke(new Path2D('M12 15.5V23 M12 20C10 18 7.5 18.5 7 19.5C9 20.5 12 20 12 20')); } },
+  blatt:        { name:'Herbstblatt', emoji:'🍂', zeichne: c => c.stroke(new Path2D(
+    'M4.5 19.5C4.5 10 10 4 20 4C20 14 14 19.5 4.5 19.5Z M2.5 21.5L15 9 M9 15H13 M11.5 12.5V9')) },
+  sonne:        { name:'Sonne', emoji:'☀️', zeichne: c => {
+    c.beginPath(); c.arc(12, 12, 4.5, 0, Math.PI * 2); c.stroke();
+    for (let i = 0; i < 8; i++) {
+      const w = i * Math.PI / 4;
+      c.beginPath(); c.moveTo(12 + Math.cos(w) * 7.5, 12 + Math.sin(w) * 7.5);
+      c.lineTo(12 + Math.cos(w) * 10.5, 12 + Math.sin(w) * 10.5); c.stroke();
+    } } },
+  tropfen:      { name:'Tropfen', emoji:'💧', zeichne: c => c.stroke(new Path2D(
+    'M12 2.5C12 2.5 5.5 10.5 5.5 15A6.5 6.5 0 0 0 18.5 15C18.5 10.5 12 2.5 12 2.5Z M9 15.5A3 3 0 0 0 12 18.5')) },
+  schere:       { name:'Schere', emoji:'✂️', zeichne: c => {
+    c.beginPath(); c.arc(6, 6, 3, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.arc(6, 18, 3, 0, Math.PI * 2); c.stroke();
+    c.stroke(new Path2D('M8.3 8L21 19.5 M8.3 16L21 4.5')); } },
+  pinsel:       { name:'Pinsel (Farbe)', emoji:'🖌️', zeichne: c => c.stroke(new Path2D(
+    'M20.5 3.5L10.5 13.5 M21 3C19 3 12 9 10.5 13.5L12.5 15.5C17 14 21 5 21 3Z M10.5 13.5C7 13.5 6 16 6 17.5C6 19.5 4 20.5 3 21C7 21.5 11.5 20.5 12.5 15.5')) },
+  sekt:         { name:'Sektglas', emoji:'🥂', zeichne: c => {
+    c.stroke(new Path2D('M8 2.5H16L15.2 9.5A3.2 3.2 0 0 1 8.8 9.5Z M12 12.7V20.5 M8.5 20.5H15.5 M8.4 6H15.6'));
+    [[18.5, 4, 0.9], [19.5, 8, 0.6], [5, 7, 0.7]].forEach(([x, y, r]) => { c.beginPath(); c.arc(x, y, r, 0, Math.PI * 2); c.stroke(); }); } },
+  ringe:        { name:'Ringe', emoji:'💍', zeichne: c => {
+    c.beginPath(); c.arc(9, 14.5, 5.5, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.arc(15, 14.5, 5.5, 0, Math.PI * 2); c.stroke();
+    c.stroke(new Path2D('M9 9L7 6.5L9 4L11 6.5Z')); } },
+  preisschild:  { name:'Preisschild', emoji:'🏷️', zeichne: c => {
+    c.stroke(new Path2D('M3 3H11.5L21 12.5L12.5 21L3 11.5Z'));
+    c.beginPath(); c.arc(7.5, 7.5, 1.6, 0, Math.PI * 2); c.stroke(); } },
+  stift:        { name:'Stift (Schule)', emoji:'✏️', zeichne: c => c.stroke(new Path2D(
+    'M16 3L21 8L8.5 20.5L3 21L3.5 15.5Z M13.5 5.5L18.5 10.5 M3.5 15.5L8.5 20.5')) },
+  uhr:          { name:'Uhr', emoji:'🕐', zeichne: c => {
+    c.beginPath(); c.arc(12, 12, 9.5, 0, Math.PI * 2); c.stroke();
+    c.stroke(new Path2D('M12 6.5V12L15.5 14.5')); } },
+};
+// Fünfzackiger Stern um (x|y), außen r1, innen r2
+function stern(c, x, y, r1, r2) {
+  c.beginPath();
+  for (let i = 0; i < 10; i++) {
+    const w = i * Math.PI / 5 - Math.PI / 2, r = i % 2 ? r2 : r1;
+    c[i ? 'lineTo' : 'moveTo'](x + Math.cos(w) * r, y + Math.sin(w) * r);
+  }
+  c.closePath(); c.stroke();
+}
+function drawSymbol(id, cx, top, groesse, farbe) {
+  const sym = SYMBOLE[id];
+  if (!sym) return;
+  ctx.save();
+  ctx.translate(cx - groesse / 2, top);
+  ctx.scale(groesse / 24, groesse / 24);
+  ctx.strokeStyle = farbe;
+  ctx.lineWidth = 1.3;
+  ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  sym.zeichne(ctx);
+  ctx.restore();
 }
 
 // Aktions-Modus: goldener Kreis mit dem Rabatt (z. B. „−20 %“) über dem Fuß; gibt die Oberkante zurück
@@ -1214,6 +1295,10 @@ function draw() {
   // Aktions-Modus: kleine goldene Überzeile (z. B. „NUR FÜR KURZE ZEIT“) über dem Titel
   const ueber = AKTION ? state.ueber.trim().toUpperCase() : '';
   const ueberH = ueber ? (story || a4 ? 96 : state.format === 'quadrat' || state.format === 'folie' ? 64 : 84) : 0;
+  // Symbol (z. B. Tannenbaum) ganz oben im Textblock
+  const symbol = AKTION && SYMBOLE[state.symbol] ? state.symbol : '';
+  const symbolGr = { post:120, quadrat:84, story:150, a4:170, folie:84 }[state.format];
+  const symbolH = symbol ? symbolGr + (story || a4 ? 50 : 36) : 0;
   const layout = mitC => {
     size = Math.min(story || a4 ? 108 : 100, state.maxGroesse || 999);
     // Eigene Texte (Rahmen/Aktion) dürfen länger sein: mehr Zeilen, etwas kleinere Mindestgröße
@@ -1224,7 +1309,7 @@ function draw() {
       lb = state.b ? wrapBalanced(state.b, `italic 500 ${size}px "Playfair Display", Georgia, serif`, maxW) : [];
       lc = mitC && state.c ? wrapBalanced(state.c, subFont, maxW - 60) : [];
       if (AKTION && state.gueltig.trim()) lc = lc.concat(wrap(state.gueltig.trim(), subFont, maxW - 60));
-      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0) + ueberH;
+      blockH = (la.length + lb.length) * lh + (lc.length ? 44 + lc.length * subLH : 0) + ueberH + symbolH;
       // Kein kurzes Wort allein in einer Zeile (außer bei sehr kleiner Schrift)
       const einsam = [[la, 700, ''], [lb, 500, 'italic ']].some(([ls, wt, st]) => ls.length > 1 && ls.some(l => {
         if (l.includes(' ')) return false;
@@ -1243,6 +1328,10 @@ function draw() {
   if (qrTop !== null && lc.length && size < 76 && !AKTION) layout(false);
   letzteSchriftGroesse = size;
   let y = areaTop + (areaH - blockH) / 2 + size * 0.95;
+  if (symbol) {
+    drawSymbol(symbol, W / 2, y - size * 0.95, symbolGr, s.gold);
+    y += symbolH;
+  }
   if (ueber) {
     ctx.fillStyle = s.gold;
     ctx.font = `600 ${story || a4 ? 36 : 32}px Inter, system-ui, sans-serif`;
@@ -1562,7 +1651,7 @@ document.getElementById('btn-zeigen').onclick = () => {
 };
 
 // ── Varianten rendern: dieselbe Vorlage mit anderem Text/Stil/Format, ohne die Auswahl auf der Seite zu ändern ──
-const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'stil', 'format', 'maxGroesse'];
+const FOLIEN_FELDER = ['a', 'b', 'c', 'ueber', 'rabatt', 'gueltig', 'symbol', 'stil', 'format', 'maxGroesse'];
 let letzteSchriftGroesse = null;
 // Gemeinsame Schriftgröße für alle Folien einer Serie: die kleinste, die überall passt — aber nicht winzig.
 // Folien mit sehr viel Text dürfen darunter gehen, alle anderen haben dieselbe Größe.
@@ -1574,7 +1663,8 @@ function serienGroesse(folien, format) {
 function renderMit(werte) {
   const alt = {};
   FOLIEN_FELDER.forEach(k => { alt[k] = state[k]; });
-  Object.assign(state, werte);
+  // Folien ohne eigenes Symbol (z. B. gespeicherte Serien) zeigen keins — Varianten (nur Stil/Format) behalten es
+  Object.assign(state, 'a' in werte && !('symbol' in werte) ? { symbol:'' } : {}, werte);
   draw();
   const c = document.createElement('canvas');
   c.schriftGroesse = letzteSchriftGroesse;   // Größe dieser Folie (vor dem Zurücksetzen merken)
@@ -1650,7 +1740,7 @@ function reelFolien() {
   const leer = { ueber:'', a:'', b:'', c:'', rabatt:'', gueltig:'' };
   let folien;
   if (AKTION) {
-    folien = [{ ...leer, ueber: state.ueber, a: state.a, b: state.b }];
+    folien = [{ ...leer, ueber: state.ueber, a: state.a, b: state.b, symbol: state.symbol }];
     // Beschreibung: bei mehreren Sätzen/Absätzen je eine Folie, sonst eine Folie
     if (state.c.trim()) folien.push(...satzFolien(state.c.trim()));
     if (rabattText()) folien.push({ ...leer, ueber: state.ueber, rabatt: state.rabatt, gueltig: state.gueltig });
@@ -1922,33 +2012,37 @@ document.getElementById('btn-copy').onclick = e => {
 // ── Aktionen: Vorlagen per Knopf, alles danach frei änderbar ──
 // Rabatt nur dort vorbelegt, wo die Aktion feststeht (L'Oréal Herbst-Aktion −20 %); sonst selbst eintragen.
 const AKTIONEN = [
-  { id:'herbst', name:'Herbst-Aktion', ueber:'Nur für kurze Zeit', a:'Herbst-Aktion', b:'Pflege für die kühle Jahreszeit.', c:'20 % Rabatt auf das gesamte L\u2019Oréal Professionnel Sortiment bei uns im Salon.', rabatt:'20' },
-  { id:'winter', name:'Winter-Aktion', ueber:'Nur für kurze Zeit', a:'Winter-Aktion', b:'Pflege gegen trockene Heizungsluft.', c:'Auf ausgewählte Pflegeprodukte bei uns im Salon.', rabatt:'' },
-  { id:'pflege', name:'Pflege-Aktion', ueber:'Aktion', a:'Pflege für zuhause', b:'jetzt zum Aktionspreis.', c:'Wir beraten dich gern, welche Pflege zu deinem Haar passt.', rabatt:'' },
-  { id:'fruehling', name:'Frühlings-Aktion', ueber:'Nur für kurze Zeit', a:'Frühlings-Aktion', b:'Frische Farbe für die neue Saison.', c:'Jetzt Termin für Farbe oder Strähnen sichern.', rabatt:'' },
-  { id:'sommer', name:'Sommer-Aktion', ueber:'Nur für kurze Zeit', a:'Sommer-Aktion', b:'Pflege für Sonne und Salzwasser.', c:'Auf ausgewählte Sommer- und Pflegeprodukte bei uns im Salon.', rabatt:'' },
-  { id:'gutschein', name:'Gutschein', ueber:'Geschenkidee', a:'Schenk einen', b:'Great Hair Day.', c:'Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon.', rabatt:'' },
-  { id:'blackfriday', name:'Black Friday', ueber:'Nur für kurze Zeit', a:'Black Friday', b:'bei uns im Salon.', c:'Auf Pflegeprodukte und Gutscheine. Ideal als Weihnachtsgeschenk.', rabatt:'' },
-  { id:'weihnachten', name:'Weihnachten', ueber:'Geschenkidee', a:'Weihnachts-Aktion', b:'Schöne Haare verschenken.', c:'Gutscheine und Pflege-Sets gibt es bei uns im Salon.', rabatt:'' },
-  { id:'valentinstag', name:'Valentinstag', ueber:'Zum Valentinstag', a:'Schenk einen', b:'schönen Moment.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'' },
-  { id:'muttertag', name:'Muttertag', ueber:'Zum Muttertag', a:'Für die wichtigste Frau', b:'eine Auszeit bei uns.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'' },
-  { id:'ballsaison', name:'Ballsaison', ueber:'Ballsaison & Silvester', a:'Frisur für die Ballnacht', b:'aufgesteckt und gestylt.', c:'Aufstecken und Styling für Ball, Silvester und besondere Abende. Jetzt Termin sichern.', rabatt:'' },
-  { id:'hochzeit', name:'Hochzeit', ueber:'Hochzeit & Anlässe', a:'Dein großer Tag', b:'in besten Händen.', c:'Brautstyling und Aufstecken, gern mit Probetermin vorab.', rabatt:'' },
-  { id:'schulstart', name:'Schulstart', ueber:'Schulstart', a:'Frisch geschnitten', b:'ins neue Schuljahr.', c:'Kinderhaarschnitte bei uns im Salon.', rabatt:'' },
-  { id:'farbe', name:'Farb-Aktion', ueber:'Aktion', a:'Farb-Aktion', b:'Neue Farbe, neues Gefühl.', c:'Auf Farbe und Strähnen bei uns im Salon.', rabatt:'' },
-  { id:'neukunden', name:'Neu bei uns', ueber:'Willkommen', a:'Neu bei uns?', b:'Wir freuen uns auf dich.', c:'Für deinen ersten Besuch bei uns im Salon.', rabatt:'' },
-  { id:'empfehlung', name:'Empfehlung', ueber:'Danke', a:'Empfiehl uns weiter', b:'und freu dich über ein Dankeschön.', c:'Für jede neue Kundin und jeden neuen Kunden, die oder den du uns empfiehlst.', rabatt:'' },
-  { id:'alphacooling', name:'Alpha Cooling', ueber:'Wohlbefinden', a:'Alpha Cooling', b:'die Kraft der Kälte.', c:'Kälteanwendung für dein Wohlbefinden, einzeln buchbar oder im Anschluss an deinen Friseurtermin.', rabatt:'' },
-  { id:'alphacooling-neu', name:'Alpha Cooling kennenlernen', ueber:'Zum Ausprobieren', a:'Alpha Cooling', b:'zum ersten Mal erleben.', c:'Etwa 2 Minuten, ohne Umziehen und ohne Frieren. Wir zeigen dir in Ruhe, wie es geht. Termin: 01 586 31 30', rabatt:'' },
-  { id:'alphacooling-kombi', name:'Alpha Cooling + Haarschnitt', ueber:'Kombi', a:'Haare fertig,', b:'jetzt bist du dran.', c:'Alpha Cooling direkt im Anschluss an deinen Friseurtermin. Einfach beim Buchen dazusagen.', rabatt:'' },
-  { id:'alphacooling-gutschein', name:'Alpha Cooling Gutschein', ueber:'Geschenkidee', a:'Schenk eine', b:'kühle Auszeit.', c:'Gutscheine für Alpha Cooling gibt es bei uns im Salon.', rabatt:'' },
-  { id:'termin', name:'Termin frei', ueber:'Kurzfristig', a:'Termin frei', b:'noch heute oder morgen.', c:'Einfach anrufen: 01 586 31 30', rabatt:'' },
-  { id:'eigene', name:'Eigene Aktion', ueber:'Aktion', a:'', b:'', c:'', rabatt:'' },
+  { id:'herbst', name:'Herbst-Aktion', ueber:'Nur für kurze Zeit', a:'Herbst-Aktion', b:'Pflege für die kühle Jahreszeit.', c:'20 % Rabatt auf das gesamte L\u2019Oréal Professionnel Sortiment bei uns im Salon.', rabatt:'20', symbol:'blatt' },
+  { id:'winter', name:'Winter-Aktion', ueber:'Nur für kurze Zeit', a:'Winter-Aktion', b:'Pflege gegen trockene Heizungsluft.', c:'Auf ausgewählte Pflegeprodukte bei uns im Salon.', rabatt:'', symbol:'schneeflocke' },
+  { id:'pflege', name:'Pflege-Aktion', ueber:'Aktion', a:'Pflege für zuhause', b:'jetzt zum Aktionspreis.', c:'Wir beraten dich gern, welche Pflege zu deinem Haar passt.', rabatt:'', symbol:'tropfen' },
+  { id:'fruehling', name:'Frühlings-Aktion', ueber:'Nur für kurze Zeit', a:'Frühlings-Aktion', b:'Frische Farbe für die neue Saison.', c:'Jetzt Termin für Farbe oder Strähnen sichern.', rabatt:'', symbol:'blume' },
+  { id:'sommer', name:'Sommer-Aktion', ueber:'Nur für kurze Zeit', a:'Sommer-Aktion', b:'Pflege für Sonne und Salzwasser.', c:'Auf ausgewählte Sommer- und Pflegeprodukte bei uns im Salon.', rabatt:'', symbol:'sonne' },
+  { id:'gutschein', name:'Gutschein', ueber:'Geschenkidee', a:'Schenk einen', b:'Great Hair Day.', c:'Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon.', rabatt:'', symbol:'geschenk' },
+  { id:'blackfriday', name:'Black Friday', ueber:'Nur für kurze Zeit', a:'Black Friday', b:'bei uns im Salon.', c:'Auf Pflegeprodukte und Gutscheine. Ideal als Weihnachtsgeschenk.', rabatt:'', symbol:'preisschild' },
+  { id:'weihnachten', name:'Weihnachten', ueber:'Geschenkidee', a:'Weihnachts-Aktion', b:'Schöne Haare verschenken.', c:'Gutscheine und Pflege-Sets gibt es bei uns im Salon.', rabatt:'', symbol:'tannenbaum' },
+  { id:'valentinstag', name:'Valentinstag', ueber:'Zum Valentinstag', a:'Schenk einen', b:'schönen Moment.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'', symbol:'herz' },
+  { id:'muttertag', name:'Muttertag', ueber:'Zum Muttertag', a:'Für die wichtigste Frau', b:'eine Auszeit bei uns.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'', symbol:'blume' },
+  { id:'ballsaison', name:'Ballsaison', ueber:'Ballsaison & Silvester', a:'Frisur für die Ballnacht', b:'aufgesteckt und gestylt.', c:'Aufstecken und Styling für Ball, Silvester und besondere Abende. Jetzt Termin sichern.', rabatt:'', symbol:'sekt' },
+  { id:'hochzeit', name:'Hochzeit', ueber:'Hochzeit & Anlässe', a:'Dein großer Tag', b:'in besten Händen.', c:'Brautstyling und Aufstecken, gern mit Probetermin vorab.', rabatt:'', symbol:'ringe' },
+  { id:'schulstart', name:'Schulstart', ueber:'Schulstart', a:'Frisch geschnitten', b:'ins neue Schuljahr.', c:'Kinderhaarschnitte bei uns im Salon.', rabatt:'', symbol:'stift' },
+  { id:'farbe', name:'Farb-Aktion', ueber:'Aktion', a:'Farb-Aktion', b:'Neue Farbe, neues Gefühl.', c:'Auf Farbe und Strähnen bei uns im Salon.', rabatt:'', symbol:'pinsel' },
+  { id:'neukunden', name:'Neu bei uns', ueber:'Willkommen', a:'Neu bei uns?', b:'Wir freuen uns auf dich.', c:'Für deinen ersten Besuch bei uns im Salon.', rabatt:'', symbol:'stern' },
+  { id:'empfehlung', name:'Empfehlung', ueber:'Danke', a:'Empfiehl uns weiter', b:'und freu dich über ein Dankeschön.', c:'Für jede neue Kundin und jeden neuen Kunden, die oder den du uns empfiehlst.', rabatt:'', symbol:'herz' },
+  { id:'alphacooling', name:'Alpha Cooling', ueber:'Wohlbefinden', a:'Alpha Cooling', b:'die Kraft der Kälte.', c:'Kälteanwendung für dein Wohlbefinden, einzeln buchbar oder im Anschluss an deinen Friseurtermin.', rabatt:'', symbol:'schneeflocke' },
+  { id:'alphacooling-neu', name:'Alpha Cooling kennenlernen', ueber:'Zum Ausprobieren', a:'Alpha Cooling', b:'zum ersten Mal erleben.', c:'Etwa 2 Minuten, ohne Umziehen und ohne Frieren. Wir zeigen dir in Ruhe, wie es geht. Termin: 01 586 31 30', rabatt:'', symbol:'schneeflocke' },
+  { id:'alphacooling-kombi', name:'Alpha Cooling + Haarschnitt', ueber:'Kombi', a:'Haare fertig,', b:'jetzt bist du dran.', c:'Alpha Cooling direkt im Anschluss an deinen Friseurtermin. Einfach beim Buchen dazusagen.', rabatt:'', symbol:'schere' },
+  { id:'alphacooling-gutschein', name:'Alpha Cooling Gutschein', ueber:'Geschenkidee', a:'Schenk eine', b:'kühle Auszeit.', c:'Gutscheine für Alpha Cooling gibt es bei uns im Salon.', rabatt:'', symbol:'geschenk' },
+  { id:'termin', name:'Termin frei', ueber:'Kurzfristig', a:'Termin frei', b:'noch heute oder morgen.', c:'Einfach anrufen: 01 586 31 30', rabatt:'', symbol:'uhr' },
+  { id:'eigene', name:'Eigene Aktion', ueber:'Aktion', a:'', b:'', c:'', rabatt:'', symbol:'' },
 ];
+function markiereSymbol() {
+  document.querySelectorAll('#symbol-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === state.symbol));
+}
 function waehleAktion(id) {
   const ak = AKTIONEN.find(x => x.id === id) || AKTIONEN[0];
   document.querySelectorAll('#aktion-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === ak.id));
-  Object.assign(state, { k:'eigen', idx:-1, ueber:ak.ueber, a:ak.a, b:ak.b, c:ak.c, rabatt:ak.rabatt });
+  Object.assign(state, { k:'eigen', idx:-1, ueber:ak.ueber, a:ak.a, b:ak.b, c:ak.c, rabatt:ak.rabatt, symbol:ak.symbol });
+  markiereSymbol();
   document.getElementById('f-ueber').value = ak.ueber;
   document.getElementById('f-rabatt').value = ak.rabatt;
   document.getElementById('f-a').value = ak.a;
@@ -1960,9 +2054,18 @@ if (AKTION) {
   const wrapAk = document.getElementById('aktion-chips');
   AKTIONEN.forEach(ak => {
     const b = document.createElement('button');
-    b.className = 'chip'; b.dataset.val = ak.id; b.textContent = ak.name;
+    b.className = 'chip'; b.dataset.val = ak.id;
+    b.textContent = (SYMBOLE[ak.symbol] ? SYMBOLE[ak.symbol].emoji + ' ' : '') + ak.name;
     b.onclick = () => waehleAktion(ak.id);
     wrapAk.appendChild(b);
+  });
+  // Symbol frei wählbar (oder keins)
+  const wrapSym = document.getElementById('symbol-chips');
+  [['', 'Kein Symbol'], ...Object.entries(SYMBOLE).map(([id, x]) => [id, x.emoji + ' ' + x.name])].forEach(([id, label]) => {
+    const b = document.createElement('button');
+    b.className = 'chip'; b.dataset.val = id; b.textContent = label;
+    b.onclick = () => { state.symbol = id; markiereSymbol(); draw(); };
+    wrapSym.appendChild(b);
   });
   [['f-ueber', 'ueber'], ['f-rabatt', 'rabatt'], ['f-gueltig', 'gueltig']].forEach(([id, key]) =>
     document.getElementById(id).addEventListener('input', e => { state[key] = e.target.value; draw(); }));

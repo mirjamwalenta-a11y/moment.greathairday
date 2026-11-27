@@ -6,7 +6,7 @@
 // Neue Seiten/Dateien dieser App hier bei `vorab` ergänzen.
 self.GHD_OFFLINE = {
   app: 'moment',
-  version: '2026-11-27c',
+  version: '2026-11-27d',
   start: './index.html',
   vorab: [
     './',
@@ -33,6 +33,8 @@ self.GHD_OFFLINE = {
     './ki-check.js',
     './bewerber-texte.js',
     './qrcode-generator.js',
+    './pdfjs/pdf.min.js',
+    './pdfjs/pdf.worker.min.js',
     './manifest.webmanifest',
     './logo-m.png',
     './logo-name.png',

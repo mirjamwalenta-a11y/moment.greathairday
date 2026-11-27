@@ -111,16 +111,21 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   </section>
 
   <section id="bild-section">
-    <div class="label">Hintergrundbild (optional)</div>
+    <div class="label">Hintergrund: Foto oder PDF (optional)</div>
     <div class="chips" id="bild-chips">
-      <button class="chip" id="btn-bild">Foto wählen</button>
+      <button class="chip" id="btn-bild">Foto oder PDF wählen</button>
       <button class="chip bild-staerke" data-val="0.82" style="display:none;">Foto dezent</button>
       <button class="chip bild-staerke on" data-val="0.68" style="display:none;">Foto mittel</button>
       <button class="chip bild-staerke" data-val="0.5" style="display:none;">Foto kräftig</button>
       <button class="chip" id="btn-bild-weg" style="display:none;">Entfernen</button>
     </div>
-    <input type="file" id="f-bild" accept="image/*" style="display:none;">
-    <p class="hinweis" style="margin-top:8px;text-align:left;">Eigenes Foto, z. B. Herbstblätter. Das Foto bleibt auf deinem Handy und wird nirgends hochgeladen.</p>
+    <input type="file" id="f-bild" accept="image/*,application/pdf,.pdf" style="display:none;">
+    <p class="hinweis" style="margin-top:8px;text-align:left;">Eigenes Foto (z. B. Herbstblätter) oder ein PDF, z. B. ein Aktions-Flyer: Beim PDF wird die erste Seite zum Hintergrund. Alles bleibt auf deinem Handy und wird nirgends hochgeladen.</p>
+    <div id="pdf-text-box" style="display:none;margin-top:10px;padding:12px;border:1px solid var(--line);border-radius:12px;background:var(--surface);">
+      <p class="hinweis" style="text-align:left;margin:0 0 8px;">Im PDF steht Text. Der erscheint nur blass im Hintergrund. Damit er gut lesbar ist, übernimm das Wichtigste in die Textfelder oben, am besten kurz.</p>
+      <p id="pdf-text-vorschau" class="hinweis" style="text-align:left;margin:0 0 8px;font-style:italic;max-height:120px;overflow:auto;"></p>
+      <button class="chip" id="btn-pdf-text">PDF-Text in die Beschreibung übernehmen</button>
+    </div>
   </section>
 
   <section id="marke-section">
@@ -2123,12 +2128,72 @@ if (RAHMEN) {
 // ── Hintergrundbild: lokal laden, auf max. 2000 px verkleinern (große Handyfotos), nichts wird hochgeladen ──
 function zeigeBildOptionen(an) {
   document.querySelectorAll('.bild-staerke, #btn-bild-weg').forEach(b => { b.style.display = an ? '' : 'none'; });
-  document.getElementById('btn-bild').textContent = an ? 'Anderes Foto' : 'Foto wählen';
+  document.getElementById('btn-bild').textContent = an ? 'Anderes Foto oder PDF' : 'Foto oder PDF wählen';
+  if (!an) document.getElementById('pdf-text-box').style.display = 'none';
 }
+function setzeSchleier(wert) {
+  state.schleier = wert;
+  document.querySelectorAll('.bild-staerke').forEach(x => x.classList.toggle('on', parseFloat(x.dataset.val) === wert));
+}
+// ── PDF als Hintergrund: pdf.js (liegt im Repo unter pdfjs/, Apache-2.0) wird erst beim ersten PDF geladen ──
+let pdfjsLaden = null;
+function ladePdfjs() {
+  if (!pdfjsLaden) pdfjsLaden = new Promise((ok, fehler) => {
+    const sc = document.createElement('script');
+    sc.src = 'pdfjs/pdf.min.js';
+    sc.onload = () => { window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'pdfjs/pdf.worker.min.js'; ok(window.pdfjsLib); };
+    sc.onerror = () => { pdfjsLaden = null; fehler(new Error('pdf.js nicht geladen')); };
+    document.head.appendChild(sc);
+  });
+  return pdfjsLaden;
+}
+let pdfText = '';
+async function pdfAlsHintergrund(file) {
+  const knopf = document.getElementById('btn-bild');
+  knopf.textContent = 'PDF wird geladen …';
+  try {
+    const lib = await ladePdfjs();
+    const pdf = await lib.getDocument({ data: new Uint8Array(await file.arrayBuffer()) }).promise;
+    const seite = await pdf.getPage(1);
+    const v1 = seite.getViewport({ scale: 1 });
+    const vp = seite.getViewport({ scale: 2000 / Math.max(v1.width, v1.height) });
+    const c = document.createElement('canvas');
+    c.width = Math.round(vp.width); c.height = Math.round(vp.height);
+    const g = c.getContext('2d');
+    g.fillStyle = '#fff'; g.fillRect(0, 0, c.width, c.height);   // PDFs ohne Hintergrund nicht schwarz zeigen
+    await seite.render({ canvasContext: g, viewport: vp }).promise;
+    // Text der ersten Seite (falls das PDF echten Text enthält, nicht nur ein eingescanntes Bild)
+    const inhalt = await seite.getTextContent();
+    pdfText = inhalt.items.map(x => x.str + (x.hasEOL ? '\n' : ' ')).join('')
+      .replace(/[ \t]+/g, ' ').replace(/\s*\n\s*/g, '\n').trim();
+    state.bild = c;
+    zeigeBildOptionen(true);
+    setzeSchleier(pdfText.length > 20 ? 0.82 : 0.68);   // Text im PDF: dezent, damit er sich nicht mit dem Aktions-Text beißt
+    const box = document.getElementById('pdf-text-box');
+    box.style.display = pdfText.length > 20 && EIGEN ? 'block' : 'none';
+    document.getElementById('pdf-text-vorschau').textContent = pdfText.length > 400 ? pdfText.slice(0, 400) + ' …' : pdfText;
+    draw();
+  } catch (err) {
+    zeigeBildOptionen(!!state.bild);
+    alert(navigator.onLine === false && !pdfjsLaden
+      ? 'Das PDF kann gerade nicht geöffnet werden (ohne Internet). Bitte später noch einmal oder einen Screenshot als Foto nehmen.'
+      : 'Das PDF konnte nicht geöffnet werden. Tipp: einen Screenshot davon machen und als Foto wählen.');
+  }
+}
+document.getElementById('btn-pdf-text').onclick = () => {
+  const feld = document.getElementById('f-c');
+  feld.value = pdfText;
+  state.c = pdfText;
+  draw();
+  feld.focus();
+  feld.scrollIntoView({ behavior: 'smooth', block: 'center' });
+};
 document.getElementById('btn-bild').onclick = () => document.getElementById('f-bild').click();
 document.getElementById('f-bild').addEventListener('change', e => {
   const file = e.target.files[0];
   if (!file) return;
+  if (file.type === 'application/pdf' || /\.pdf$/i.test(file.name)) { pdfAlsHintergrund(file); e.target.value = ''; return; }
+  document.getElementById('pdf-text-box').style.display = 'none';
   const img = new Image();
   const url = URL.createObjectURL(file);
   img.onload = () => {
@@ -2147,7 +2212,7 @@ document.getElementById('f-bild').addEventListener('change', e => {
 });
 document.querySelectorAll('.bild-staerke').forEach(b => b.onclick = () => {
   document.querySelectorAll('.bild-staerke').forEach(x => x.classList.toggle('on', x === b));
-  state.schleier = parseFloat(b.dataset.val);
+  setzeSchleier(parseFloat(b.dataset.val));
   draw();
 });
 document.getElementById('btn-bild-weg').onclick = () => { state.bild = null; zeigeBildOptionen(false); draw(); };

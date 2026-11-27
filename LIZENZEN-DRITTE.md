@@ -33,3 +33,10 @@ SOFTWARE.
 ```
 
 Änderungen und Übersetzung der Instagram-Skills © 2026 MakersLab, ebenfalls MIT.
+
+## PDF als Hintergrund (`pdfjs/`)
+
+`pdfjs/pdf.min.js` und `pdfjs/pdf.worker.min.js` sind unveränderte Dateien
+aus pdf.js (Paket `pdfjs-dist` 3.11.174, Legacy-Build) von Mozilla. pdf.js
+steht unter der Apache License 2.0; der vollständige Lizenztext liegt in
+`pdfjs/LICENSE`.

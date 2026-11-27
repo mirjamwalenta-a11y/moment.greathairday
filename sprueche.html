@@ -1121,6 +1121,30 @@ const SYMBOLE = {
     c.beginPath(); c.arc(7.5, 7.5, 1.6, 0, Math.PI * 2); c.stroke(); } },
   stift:        { name:'Stift (Schule)', emoji:'✏️', zeichne: c => c.stroke(new Path2D(
     'M16 3L21 8L8.5 20.5L3 21L3.5 15.5Z M13.5 5.5L18.5 10.5 M3.5 15.5L8.5 20.5')) },
+  osterei:      { name:'Osterei', emoji:'🥚', zeichne: c => {
+    c.stroke(new Path2D('M12 2.5C8 2.5 5 9 5 14.5A7 7 0 0 0 19 14.5C19 9 16 2.5 12 2.5Z M5.4 11.5L8 13.5L10.7 11.5L13.3 13.5L16 11.5L18.6 13.5'));
+    [8.5, 12, 15.5].forEach(x => { c.beginPath(); c.arc(x, 17.3, 0.6, 0, Math.PI * 2); c.stroke(); }); } },
+  hase:         { name:'Osterhase', emoji:'🐰', zeichne: c => {
+    // Ohren nur außerhalb des Kopfes zeichnen (Kopf ausgespart)
+    c.save(); c.beginPath(); c.rect(-2, -2, 28, 28); c.arc(12, 16, 6, 0, Math.PI * 2); c.clip('evenodd');
+    c.beginPath(); c.ellipse(9.3, 6.5, 1.9, 5, -0.18, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.ellipse(14.7, 6.5, 1.9, 5, 0.18, 0, Math.PI * 2); c.stroke();
+    c.restore();
+    c.fillStyle = c.strokeStyle;
+    c.beginPath(); c.arc(12, 16, 6, 0, Math.PI * 2); c.stroke();
+    [[9.8, 15], [14.2, 15]].forEach(([x, y]) => { c.beginPath(); c.arc(x, y, 0.55, 0, Math.PI * 2); c.fill(); });
+    c.stroke(new Path2D('M11.2 17.3L12 18L12.8 17.3 M12 18V19 M10.6 19.6Q12 20.6 13.4 19.6')); } },
+  kuerbis:      { name:'Kürbis', emoji:'🎃', zeichne: c => {
+    c.beginPath(); c.ellipse(12, 14.5, 9.5, 7, 0, 0, Math.PI * 2); c.stroke();
+    c.beginPath(); c.ellipse(12, 14.5, 4.5, 7, 0, 0, Math.PI * 2); c.stroke();
+    c.stroke(new Path2D('M12 7.5V5C12 3.8 13 3 14.5 3')); } },
+  feuerwerk:    { name:'Feuerwerk', emoji:'🎆', zeichne: c => {
+    for (let i = 0; i < 12; i++) {
+      const w = i * Math.PI / 6, r1 = i % 2 ? 4 : 3, r2 = i % 2 ? 8 : 10;
+      c.beginPath(); c.moveTo(12 + Math.cos(w) * r1, 12 + Math.sin(w) * r1);
+      c.lineTo(12 + Math.cos(w) * r2, 12 + Math.sin(w) * r2); c.stroke();
+    }
+    c.beginPath(); c.arc(12, 12, 0.8, 0, Math.PI * 2); c.stroke(); } },
   uhr:          { name:'Uhr', emoji:'🕐', zeichne: c => {
     c.beginPath(); c.arc(12, 12, 9.5, 0, Math.PI * 2); c.stroke();
     c.stroke(new Path2D('M12 6.5V12L15.5 14.5')); } },
@@ -2020,7 +2044,9 @@ const AKTIONEN = [
   { id:'gutschein', name:'Gutschein', ueber:'Geschenkidee', a:'Schenk einen', b:'Great Hair Day.', c:'Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon.', rabatt:'', symbol:'geschenk' },
   { id:'blackfriday', name:'Black Friday', ueber:'Nur für kurze Zeit', a:'Black Friday', b:'bei uns im Salon.', c:'Auf Pflegeprodukte und Gutscheine. Ideal als Weihnachtsgeschenk.', rabatt:'', symbol:'preisschild' },
   { id:'weihnachten', name:'Weihnachten', ueber:'Geschenkidee', a:'Weihnachts-Aktion', b:'Schöne Haare verschenken.', c:'Gutscheine und Pflege-Sets gibt es bei uns im Salon.', rabatt:'', symbol:'tannenbaum' },
+  { id:'neujahr', name:'Neujahr', ueber:'Neues Jahr', a:'Neues Jahr,', b:'neuer Look.', c:'Starte mit frischem Schnitt oder neuer Farbe ins Jahr. Jetzt Termin sichern.', rabatt:'', symbol:'feuerwerk' },
   { id:'valentinstag', name:'Valentinstag', ueber:'Zum Valentinstag', a:'Schenk einen', b:'schönen Moment.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'', symbol:'herz' },
+  { id:'ostern', name:'Ostern', ueber:'Zu Ostern', a:'Frisch ins Frühjahr', b:'mit neuem Look.', c:'Gutscheine fürs Osternest und Termine für Schnitt und Farbe gibt es bei uns im Salon.', rabatt:'', symbol:'hase' },
   { id:'muttertag', name:'Muttertag', ueber:'Zum Muttertag', a:'Für die wichtigste Frau', b:'eine Auszeit bei uns.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'', symbol:'blume' },
   { id:'ballsaison', name:'Ballsaison', ueber:'Ballsaison & Silvester', a:'Frisur für die Ballnacht', b:'aufgesteckt und gestylt.', c:'Aufstecken und Styling für Ball, Silvester und besondere Abende. Jetzt Termin sichern.', rabatt:'', symbol:'sekt' },
   { id:'hochzeit', name:'Hochzeit', ueber:'Hochzeit & Anlässe', a:'Dein großer Tag', b:'in besten Händen.', c:'Brautstyling und Aufstecken, gern mit Probetermin vorab.', rabatt:'', symbol:'ringe' },

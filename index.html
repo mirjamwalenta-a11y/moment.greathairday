@@ -5505,6 +5505,13 @@ function blackFriday(jahr) {                     // Freitag nach dem 4. Donnerst
   d.setDate(1 + ((11 - d.getDay()) % 7) + 21 + 1);
   return d;
 }
+function ostersonntag(jahr) {                   // Gauß'sche Osterformel (gregorianisch)
+  const a = jahr % 19, b = Math.floor(jahr / 100), c = jahr % 100, d = Math.floor(b / 4), e = b % 4;
+  const f = Math.floor((b + 8) / 25), g = Math.floor((b - f + 1) / 3), h = (19 * a + b - d - g + 15) % 30;
+  const i = Math.floor(c / 4), k = c % 4, l = (32 + 2 * e + 2 * i - h - k) % 7, m = Math.floor((a + 11 * h + 22 * l) / 451);
+  const monat = Math.floor((h + l - 7 * m + 114) / 31), tag = ((h + l - 7 * m + 114) % 31) + 1;
+  return new Date(jahr, monat - 1, tag);
+}
 function ersterMontag(jahr, monat) {             // Schulstart Wien = 1. Montag im September
   const d = new Date(jahr, monat, 1);
   d.setDate(1 + ((8 - d.getDay()) % 7));
@@ -5513,6 +5520,7 @@ function ersterMontag(jahr, monat) {             // Schulstart Wien = 1. Montag 
 const SAISON_ANLAESSE = [
   { id:'valentinstag', name:'Valentinstag', titel:'Valentinstags-Gutschein vorbereiten', datum: j => new Date(j, 1, 14), vorlauf: 21, warum:'Gutscheine sind ein beliebtes Geschenk. Wer jetzt davon erfährt, denkt rechtzeitig an euch.' },
   { id:'fruehling', name:'Frühlingsbeginn', titel:'Frühlings-Aktion vorbereiten', datum: j => new Date(j, 2, 20), vorlauf: 21, warum:'Im Frühling wollen viele eine Veränderung. Jetzt ist ein guter Zeitpunkt für Farbe und Strähnen.' },
+  { id:'ostern', name:'Ostern', titel:'Oster-Aktion vorbereiten', datum: j => ostersonntag(j), vorlauf: 21, warum:'Vor Ostern wollen viele frisch ins Frühjahr starten, und Gutscheine sind ein beliebtes Geschenk fürs Osternest.' },
   { id:'hochzeit', name:'Beginn der Hochzeitssaison', titel:'Brautstyling zeigen', datum: j => new Date(j, 4, 1), vorlauf: 30, warum:'Brautpaare planen früh. Wer jetzt sieht, dass ihr Brautstyling macht, bucht rechtzeitig einen Probetermin.' },
   { id:'muttertag', name:'Muttertag', titel:'Muttertags-Gutschein vorbereiten', datum: j => nterSonntag(j, 4, 2), vorlauf: 21, warum:'Ein Gutschein ist ein schönes Geschenk. Mit Vorlauf haben alle Zeit, ihn zu besorgen.' },
   { id:'sommer', name:'Sommerbeginn', titel:'Sommer-Aktion vorbereiten', datum: j => new Date(j, 5, 21), vorlauf: 21, warum:'Sonne und Salzwasser strapazieren das Haar. Jetzt passt der Hinweis auf Sommerpflege.' },

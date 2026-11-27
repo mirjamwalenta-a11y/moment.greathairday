@@ -84,7 +84,8 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
   <section id="aktion-section" style="display:none;flex-direction:column;gap:10px;">
     <div class="label">Aktion wählen <a href="jahresplan.html" style="float:right;color:var(--gold);text-decoration:none;text-transform:none;letter-spacing:0;font-weight:500;">🗓 Jahresplan</a></div>
     <div class="chips" id="aktion-chips"></div>
-    <div class="chips"><button class="chip" id="btn-pdf">📄 Text aus PDF übernehmen</button></div>
+    <div class="chips"><button class="chip" id="btn-pdf">📄 Text aus PDF übernehmen</button><button class="chip" id="btn-spruch-dazu">💬 Passenden Spruch dazu</button></div>
+    <p class="hinweis" style="text-align:left;margin:0;">„Passenden Spruch dazu“: Sprüche zum Anlass für einen eigenen Post. Im Bildtext steht dann schon ein Satz zu dieser Aktion.</p>
     <input type="file" id="f-pdf" accept="application/pdf,.pdf" style="display:none;">
     <p id="pdf-info" class="hinweis" style="display:none;text-align:left;margin:0;"></p>
     <div class="label">Symbol im Bild</div>
@@ -235,6 +236,8 @@ const URL_PARAMS = new URLSearchParams(location.search);
 const AKTION = URL_PARAMS.has('aktion');
 const RAHMEN = URL_PARAMS.has('rahmen') && !AKTION;
 const EIGEN = RAHMEN || AKTION;   // eigener Text statt Spruch-Liste
+// Von einer Aktion aus („Passenden Spruch dazu“): ?hinweis=… kommt als eigener Satz in den Bildtext
+const AKTION_HINWEIS = !EIGEN ? (URL_PARAMS.get('hinweis') || '').trim().slice(0, 300) : '';
 if (EIGEN) {
   ['marke-section', 'qr-section', 'team-section', 'sprueche-section', 'caption-section', 'btn-random']
     .forEach(id => { document.getElementById(id).style.display = 'none'; });
@@ -1318,6 +1321,7 @@ function updateCaption() {
   const spruch = [state.a, state.b].filter(Boolean).join(' ');
   const teile = [spruch];
   if (state.c) teile.push(state.c);
+  if (AKTION_HINWEIS && state.marke !== 'haarnetzwerk') teile.push(AKTION_HINWEIS);
   teile.push(FRAGEN[state.k] || (state.marke === 'haarnetzwerk' ? FRAGEN.haarnetzwerk : state.qr ? FRAGEN.bewertung : FRAGEN.eigen));
   if (HAARKOMPASS_THEMEN.includes(state.k) && state.marke !== 'haarnetzwerk') teile.push(HAARKOMPASS_ZEILE);
   // Gehaltszeile bei Stellen-Sprüchen und bei jedem Spruch mit Bewerbungs-QR
@@ -2000,6 +2004,17 @@ const AKTIONEN = [
   { id:'geburtstag', name:'Salon-Geburtstag', ueber:'Wir feiern', a:`${new Date().getFullYear() - 1993} Jahre Great Hair Day.`, b:'Danke für eure Treue.', c:'Seit 1993 in der Rechten Wienzeile. Wir freuen uns auf viele weitere Jahre mit euch.', rabatt:'', symbol:'torte' },
   { id:'eigene', name:'Eigene Aktion', ueber:'Aktion', a:'', b:'', c:'', rabatt:'', symbol:'' },
 ];
+// Ein Satz zur Aktion für den Bildtext eines Spruch-Posts, z. B. „Übrigens: −20 % auf ausgewählte Pflegeprodukte bei uns im Salon.“
+function aktionsHinweis() {
+  let c = state.c.replace(/\s+/g, ' ').trim();
+  const r = rabattText();
+  if (r && !/%/.test(c)) c = c ? `${r} ${c.charAt(0).toLowerCase()}${c.slice(1)}` : `${r} bei uns im Salon.`;
+  if (!c) c = [state.a, state.b].filter(Boolean).join(' ').trim();
+  if (!c) return '';
+  if (!/[.!?…]$/.test(c)) c += '.';
+  const g = state.gueltig.trim();
+  return `Übrigens: ${c}${g ? ' ' + g.replace(/[.!?…]?$/, '.') : ''}`;
+}
 function markiereSymbol() {
   document.querySelectorAll('#symbol-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === state.symbol));
 }
@@ -2024,6 +2039,21 @@ if (AKTION) {
     b.onclick = () => waehleAktion(ak.id);
     wrapAk.appendChild(b);
   });
+  // „Passenden Spruch dazu“: Sprüche zum Anlass (oder zur passenden Kategorie), Aktion als Satz im Bildtext
+  const SPRUCH_KAT = { pflege:'pflege', farbe:'leistungen', alphacooling:'alphacooling', 'alphacooling-neu':'alphacooling',
+    'alphacooling-kombi':'alphacooling', 'alphacooling-gutschein':'alphacooling', gutschein:'anlaesse', geburtstag:'anlaesse', neukunden:'humor' };
+  const SPRUCH_ANLASS = { neujahr:'winter' };
+  document.getElementById('btn-spruch-dazu').onclick = () => {
+    const aktiv = document.querySelector('#aktion-chips .chip.on');
+    const id = aktiv ? aktiv.dataset.val : '';
+    const anlass = SAISON_ANLAESSE.find(a => a.id === (SPRUCH_ANLASS[id] || id));
+    const ziel = new URLSearchParams();
+    if (anlass) ziel.set('anlass', anlass.id);
+    else ziel.set('kat', SPRUCH_KAT[id] || 'alle');
+    const hinweis = aktionsHinweis();
+    if (hinweis) ziel.set('hinweis', hinweis);
+    location.href = 'sprueche.html?' + ziel.toString();
+  };
   // Symbol frei wählbar (oder keins)
   const wrapSym = document.getElementById('symbol-chips');
   [['', 'Kein Symbol'], ...Object.entries(SYMBOLE).map(([id, x]) => [id, x.emoji + ' ' + x.name])].forEach(([id, label]) => {
@@ -2201,6 +2231,11 @@ if (AKTION) {
     document.querySelectorAll('#kat-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'anlaesse'));
     // Kategorie-Wechsel hebt den Anlass-Filter auf
     document.querySelectorAll('#kat-chips .chip').forEach(c => c.addEventListener('click', () => { anlassTags = null; hinweis.style.display = 'none'; renderListe(); }));
+    const erster = SPRUECHE.findIndex(passtFilter);
+    waehle(erster >= 0 ? erster : 0);
+  } else if (URL_PARAMS.get('kat') && document.querySelector(`#kat-chips .chip[data-val="${CSS.escape(URL_PARAMS.get('kat'))}"]`)) {
+    state.kat = URL_PARAMS.get('kat');
+    document.querySelectorAll('#kat-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === state.kat));
     const erster = SPRUECHE.findIndex(passtFilter);
     waehle(erster >= 0 ? erster : 0);
   } else waehle(0);

@@ -173,6 +173,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 
   <section id="sprueche-section">
     <div class="label">Sprüche</div>
+    <p id="anlass-filter" class="hinweis" style="display:none;text-align:left;margin-bottom:10px;"></p>
     <div class="chips" id="kat-chips" style="margin-bottom:10px;">
       <button class="chip on" data-val="alle">Alle</button>
       <button class="chip" data-val="humor">Humorvoll</button>
@@ -225,6 +226,7 @@ input:focus,textarea:focus{outline:2px solid var(--gold);outline-offset:1px;}
 <script src="eigene-saetze.js"></script>
 <script src="gehalt.js"></script>
 <script src="aktion-symbole.js"></script>
+<script src="saison-anlaesse.js"></script>
 <script>
 // ── Rahmen-Modus: aus der App (Rahmen → „Im Spruch-Stil“) aufgerufen mit ?rahmen=1.
 // Aktions-Modus: aus der App (Aktion / Aushang) mit ?aktion=1 — Aushang oder Post für Salon-Aktionen, mit Rabatt-Kreis.
@@ -508,6 +510,18 @@ const SPRUECHE = [
   { k:'anlaesse', a:'Erstes Date?', b:'Die Nervosität bleibt. Die Frisur sitzt.', c:'', h:'#Date' },
   { k:'anlaesse', a:'Regen in Wien?', b:'Zeit für einen Termin im Trockenen.', c:'', h:'#Wien' },
   { k:'anlaesse', a:'Wiener Wiesn,', b:'Zöpfe mit Charme.', c:'', h:'#WienerWiesn #Flechtfrisur' },
+  { k:'anlaesse', a:'Rabattschlacht im Netz?', b:'Bei uns gibt es Ruhe und Kaffee.', c:'', h:'#BlackFriday' },
+  { k:'anlaesse', a:'Das beste Schnäppchen', b:'ist ein Schnitt, der lange hält.', c:'', h:'#BlackFriday' },
+  { k:'anlaesse', a:'Schon an Weihnachten gedacht?', b:'Ein Gutschein passt immer.', c:'', h:'#BlackFriday #Weihnachten' },
+  { k:'anlaesse', a:'Neues Schuljahr,', b:'frischer Schnitt.', c:'', h:'#Schulstart' },
+  { k:'anlaesse', a:'Schultasche gepackt.', b:'Pony geschnitten.', c:'', h:'#Schulstart' },
+  { k:'anlaesse', a:'Die Ferien sind vorbei.', b:'Die Sommersträhnen dürfen bleiben.', c:'', h:'#Schulstart #Herbst' },
+  { k:'anlaesse', a:'Lieber Nikolaus,', b:'ich war brav. Bitte einen Gutschein.', c:'', h:'#Nikolaus' },
+  { k:'anlaesse', a:'In den Stiefel passt viel.', b:'Am schönsten ein Great Hair Day.', c:'', h:'#Nikolaus' },
+  { k:'anlaesse', a:'Eier suchen?', b:'Den richtigen Schnitt finden wir.', c:'', h:'#Ostern' },
+  { k:'anlaesse', a:'Bunt wie Ostereier?', b:'Oder lieber natürlich schön.', c:'', h:'#Ostern #Haarfarbe' },
+  { k:'anlaesse', a:'Mama hat immer Zeit für alle.', b:'Heute hat sie Zeit für sich.', c:'', h:'#Muttertag' },
+  { k:'anlaesse', a:'Heizungsluft und Kälte:', b:'Dein Haar wünscht sich Pflege.', c:'', h:'#Winter #Haarpflege' },
   // Haarnetzwerk — Verein für Friseurunternehmer:innen (eigener Absender, nie mit dem Salon vermischen)
   { k:'haarnetzwerk', a:'Allein schneidet man Haare.', b:'Gemeinsam gestaltet man die Branche.', c:'' },
   { k:'haarnetzwerk', a:'Konkurrenz war gestern.', b:'Heute ist Netzwerk.', c:'' },
@@ -1353,11 +1367,18 @@ function waehle(i) {
   draw();
   updateCaption();
 }
+// Aus dem Jahresplan: ?anlass=ostern zeigt nur die Sprüche zu diesem Anlass (über die Hashtags)
+const ANLASS = !EIGEN && typeof SAISON_ANLAESSE !== 'undefined' ? SAISON_ANLAESSE.find(a => a.id === URL_PARAMS.get('anlass')) : null;
+let anlassTags = ANLASS ? ANLASS.sprueche : null;
+function passtFilter(sp) {
+  if (anlassTags) return sp.k === 'anlaesse' && anlassTags.some(t => (sp.h || '').split(/\s+/).includes(t));
+  return state.kat === 'alle' || sp.k === state.kat;
+}
 function renderListe() {
   const el = document.getElementById('liste');
   el.innerHTML = '';
   SPRUECHE.forEach((sp, i) => {
-    if (state.kat !== 'alle' && sp.k !== state.kat) return;
+    if (!passtFilter(sp)) return;
     const b = document.createElement('button');
     b.className = 'spruch' + (i === state.idx ? ' on' : '');
     const t1 = document.createElement('b'); t1.textContent = mitName(sp.a) + ' ';
@@ -1463,7 +1484,7 @@ chipGroup('kat-chips', 'kat', renderListe);
 }));
 
 document.getElementById('btn-random').onclick = () => {
-  const pool = SPRUECHE.map((sp, i) => i).filter(i => state.kat === 'alle' || SPRUECHE[i].k === state.kat);
+  const pool = SPRUECHE.map((sp, i) => i).filter(i => passtFilter(SPRUECHE[i]));
   const andere = pool.filter(i => i !== state.idx);
   const liste = andere.length ? andere : pool;
   waehle(liste[Math.floor(Math.random() * liste.length)]);
@@ -2168,7 +2189,21 @@ if (AKTION) {
   document.getElementById('f-b').value = b;
   draw();
 } else {
-  waehle(0);
+  if (ANLASS) {
+    const hinweis = document.getElementById('anlass-filter');
+    hinweis.style.display = 'block';
+    hinweis.innerHTML = `Sprüche zu <b></b> · <a href="#" style="color:var(--gold);">alle Sprüche zeigen</a>`;
+    hinweis.querySelector('b').textContent = ANLASS.name;
+    hinweis.querySelector('a').onclick = ev => {
+      ev.preventDefault(); anlassTags = null; hinweis.style.display = 'none'; renderListe();
+    };
+    state.kat = 'anlaesse';
+    document.querySelectorAll('#kat-chips .chip').forEach(c => c.classList.toggle('on', c.dataset.val === 'anlaesse'));
+    // Kategorie-Wechsel hebt den Anlass-Filter auf
+    document.querySelectorAll('#kat-chips .chip').forEach(c => c.addEventListener('click', () => { anlassTags = null; hinweis.style.display = 'none'; renderListe(); }));
+    const erster = SPRUECHE.findIndex(passtFilter);
+    waehle(erster >= 0 ? erster : 0);
+  } else waehle(0);
 }
 Promise.all([
   document.fonts.load('700 64px "Playfair Display"'),

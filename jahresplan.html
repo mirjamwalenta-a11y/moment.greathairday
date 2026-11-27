@@ -139,7 +139,7 @@ function plusTage(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); ret
 function eintraege(j) {
   const liste = SAISON_ANLAESSE.map(a => {
     const d = a.datum(j); d.setHours(0, 0, 0, 0);
-    return { name: a.name, warum: a.warum, datum: d, vorlauf: a.vorlauf, vorlage: a.id, symbol: a.symbol, schluessel: `${a.id}-${j}` };
+    return { name: a.name, warum: a.warum, datum: d, vorlauf: a.vorlauf, vorlage: a.id, symbol: a.symbol, schluessel: `${a.id}-${j}`, anlass: a.sprueche ? a.id : null };
   });
   ladeTermine().filter(t => t.kontext !== 'haarnetzwerk' && (!t.jahr || t.jahr === j)).forEach(t => {
     const v = VORLAGEN.find(x => x[0] === t.aktion);
@@ -176,6 +176,7 @@ function karte(e) {
       ${pill}${e.eigen ? ' <span class="pill eigen">Eigene</span>' : ''}
       <div class="k-knoepfe">
         <a class="haupt" href="sprueche.html?aktion=${encodeURIComponent(e.vorlage)}${e.eigen && e.vorlage === 'eigene' ? '&titel=' + encodeURIComponent(e.name) : ''}">Vorlage öffnen</a>
+        ${e.anlass ? `<a href="sprueche.html?anlass=${encodeURIComponent(e.anlass)}">💬 Sprüche</a>` : ''}
         <button data-k="erledigt">${st === 'erledigt' ? 'Wieder offen' : 'Erledigt'}</button>
         ${e.eigen ? '<button data-k="weg">Löschen</button>' : ''}
       </div>

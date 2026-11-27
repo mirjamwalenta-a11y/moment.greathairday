@@ -34,7 +34,7 @@ SOFTWARE.
 
 Änderungen und Übersetzung der Instagram-Skills © 2026 MakersLab, ebenfalls MIT.
 
-## PDF als Hintergrund (`pdfjs/`)
+## Text aus PDF übernehmen (`pdfjs/`)
 
 `pdfjs/pdf.min.js` und `pdfjs/pdf.worker.min.js` sind unveränderte Dateien
 aus pdf.js (Paket `pdfjs-dist` 3.11.174, Legacy-Build) von Mozilla. pdf.js

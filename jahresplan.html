@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Jahresplan">
+<meta name="theme-color" content="#F5F0EA">
+<title>Jahresplan Aktionen — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;--ok:#4F6B4A;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:520px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:18px;}
+header{text-align:center;padding:6px 0 2px;}
+.zurueck{align-self:flex-start;font-size:13px;color:var(--sub);text-decoration:none;}
+.zurueck:hover{color:var(--gold);}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);margin-bottom:8px;}
+.chips{display:flex;flex-wrap:wrap;gap:8px;}
+.chip{border:1px solid var(--line);background:var(--surface);color:var(--ink);font:500 13px var(--sans);padding:8px 13px;border-radius:999px;cursor:pointer;}
+.chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+.hinweis{font-size:12.5px;color:var(--sub);line-height:1.5;}
+
+.monat h2{font-family:var(--serif);font-size:20px;font-weight:700;margin-bottom:8px;display:flex;align-items:baseline;gap:8px;}
+.monat h2 small{font:500 12px var(--sans);color:var(--sub);}
+.monat.leer h2{color:var(--sub);}
+.karten{display:flex;flex-direction:column;gap:8px;}
+.karte{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:12px;display:grid;grid-template-columns:44px 1fr;gap:12px;align-items:start;}
+.karte.jetzt{border-color:var(--gold);box-shadow:inset 0 0 0 1px var(--gold);}
+.karte.vorbei,.karte.erledigt{opacity:.62;}
+.karte canvas{width:44px;height:44px;}
+.k-name{font:600 15px var(--sans);}
+.k-datum{font-size:13px;color:var(--sub);margin-top:2px;line-height:1.45;}
+.pill{display:inline-block;font:600 11px var(--sans);letter-spacing:.3px;padding:3px 8px;border-radius:999px;margin-top:6px;}
+.pill.jetzt{background:var(--gold);color:#fff;}
+.pill.bald{background:var(--gold-light);color:#5a4a28;}
+.pill.ok{background:#E3EBDF;color:var(--ok);}
+.pill.eigen{background:#ECE7F3;color:#5B4D73;}
+.k-knoepfe{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+.k-knoepfe button,.k-knoepfe a{font:600 12.5px var(--sans);padding:7px 11px;border-radius:9px;border:1px solid var(--line);background:var(--bg);color:var(--ink);cursor:pointer;text-decoration:none;}
+.k-knoepfe .haupt{background:var(--ink);border-color:var(--ink);color:var(--bg);}
+
+.box{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px;display:flex;flex-direction:column;gap:10px;}
+.feld{display:flex;flex-direction:column;gap:6px;}
+.feld span{font-size:12px;color:var(--sub);}
+input,select{font:15px var(--sans);color:var(--ink);background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:10px 12px;width:100%;}
+input:focus,select:focus{outline:2px solid var(--gold);outline-offset:1px;}
+.zeile{display:flex;gap:8px;align-items:center;font-size:14px;}
+.zeile input{width:auto;}
+.btn{border:none;border-radius:12px;padding:13px 12px;font:600 15px var(--sans);cursor:pointer;background:var(--ink);color:var(--bg);}
+.btn-alt{background:var(--gold-light);color:#5a4a28;}
+
+@media print{
+  body{background:#fff;}
+  .zurueck,.k-knoepfe,#neu-box,#jahr-chips,#drucken,#jetzt-section{display:none !important;}
+  .karte{break-inside:avoid;opacity:1 !important;}
+  .monat{break-inside:avoid;}
+}
+</style>
+<script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar -->
+</head>
+<body>
+<div class="wrap">
+  <a class="zurueck" href="index.html">← Zurück zu Reichweite</a>
+  <header>
+    <div class="wordmark">Great Hair<span>.</span>Day</div>
+    <div class="rule"></div>
+    <p class="intro">Alle Aktionen fürs Jahr auf einen Blick: wann der Anlass ist, ab wann du vorbereiten solltest, und mit einem Tipp die passende Vorlage.</p>
+  </header>
+
+  <section id="jetzt-section" style="display:none;">
+    <div class="label">Jetzt vorbereiten</div>
+    <div class="karten" id="jetzt"></div>
+  </section>
+
+  <section>
+    <div class="label">Jahr</div>
+    <div class="chips" id="jahr-chips"></div>
+  </section>
+
+  <div id="monate" style="display:flex;flex-direction:column;gap:20px;"></div>
+
+  <section class="box" id="neu-box">
+    <div class="label" style="margin:0;">Eigene Aktion eintragen</div>
+    <label class="feld"><span>Name, z. B. „Salon-Geburtstag“ oder „L’Oréal-Wochen“</span><input id="n-titel" maxlength="80"></label>
+    <label class="feld"><span>Datum (Tag der Aktion)</span><input id="n-datum" type="date"></label>
+    <label class="zeile"><input id="n-jaehrlich" type="checkbox"> Jedes Jahr am selben Tag</label>
+    <label class="feld"><span>Vorlage, die sich öffnen soll</span><select id="n-vorlage"></select></label>
+    <button class="btn" id="n-speichern">Eintragen</button>
+    <p class="hinweis">Eigene Aktionen erscheinen auch im Planer und kurz vorher unter „Heute“. Alles wird nur auf diesem Gerät gespeichert.</p>
+  </section>
+
+  <button class="btn btn-alt" id="drucken">Jahresplan drucken</button>
+</div>
+
+<script src="saison-anlaesse.js"></script>
+<script src="aktion-symbole.js"></script>
+<script>
+// Eigene Aktionen liegen bei den Planer-Terminen (gleicher Speicher wie in index.html), damit „Heute“ sie auch kennt.
+const TERMINE_KEY = 'ghd_termine_v1';
+const EIGEN_VORLAUF = 21;
+const MONATE = ['Jänner','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+const WOCHENTAGE = ['So','Mo','Di','Mi','Do','Fr','Sa'];
+// Vorlagen aus „Aktion & Aushang“, die nicht an einen festen Anlass gebunden sind
+const WEITERE_VORLAGEN = [
+  ['eigene', 'Eigene Aktion (leer)', 'stern'], ['gutschein', 'Gutschein', 'geschenk'], ['pflege', 'Pflege-Aktion', 'tropfen'],
+  ['farbe', 'Farb-Aktion', 'pinsel'], ['neukunden', 'Neu bei uns', 'stern'], ['empfehlung', 'Empfehlung', 'herz'],
+  ['geburtstag', 'Salon-Geburtstag', 'torte'], ['neujahr', 'Neujahr', 'feuerwerk'], ['alphacooling', 'Alpha Cooling', 'schneeflocke'],
+  ['termin', 'Termin frei', 'uhr'],
+];
+const VORLAGEN = [...WEITERE_VORLAGEN, ...SAISON_ANLAESSE.map(a => [a.id, a.name, a.symbol])];
+
+const heute = new Date(); heute.setHours(0, 0, 0, 0);
+let jahr = heute.getFullYear();
+
+function esc(t) { return String(t).replace(/[&<>"']/g, c => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c])); }
+function ladeTermine() { try { return JSON.parse(localStorage.getItem(TERMINE_KEY)) || []; } catch { return []; } }
+function speichereTermine(l) { try { localStorage.setItem(TERMINE_KEY, JSON.stringify(l)); } catch {} }
+function istErledigt(schluessel) { return ladeSaisonErledigt().includes(schluessel); }
+function setzeErledigt(schluessel, an) {
+  const rest = ladeSaisonErledigt().filter(x => x !== schluessel);
+  try { localStorage.setItem(SAISON_KEY, JSON.stringify(an ? [...rest, schluessel].slice(-80) : rest)); } catch {}
+}
+function datumText(d) { return `${WOCHENTAGE[d.getDay()]} ${d.getDate()}. ${MONATE[d.getMonth()]}`; }
+function plusTage(d, n) { const x = new Date(d); x.setDate(x.getDate() + n); return x; }
+
+// Alle Einträge eines Jahres: feste Anlässe + eigene Aktionen (Salon)
+function eintraege(j) {
+  const liste = SAISON_ANLAESSE.map(a => {
+    const d = a.datum(j); d.setHours(0, 0, 0, 0);
+    return { name: a.name, warum: a.warum, datum: d, vorlauf: a.vorlauf, vorlage: a.id, symbol: a.symbol, schluessel: `${a.id}-${j}`, anlass: a.sprueche ? a.id : null };
+  });
+  ladeTermine().filter(t => t.kontext !== 'haarnetzwerk' && (!t.jahr || t.jahr === j)).forEach(t => {
+    const v = VORLAGEN.find(x => x[0] === t.aktion);
+    liste.push({ name: t.titel, datum: new Date(j, t.monat - 1, t.tag), vorlauf: EIGEN_VORLAUF, vorlage: t.aktion || 'eigene',
+      symbol: v ? v[2] : 'stern', schluessel: `termin-${t.id}-${j}`, eigen: t.id, jaehrlich: !t.jahr });
+  });
+  return liste.sort((a, b) => a.datum - b.datum);
+}
+function status(e) {
+  if (istErledigt(e.schluessel)) return 'erledigt';
+  if (e.datum < heute) return 'vorbei';
+  const ab = plusTage(e.datum, -e.vorlauf);
+  if (ab <= heute) return 'jetzt';
+  if (plusTage(ab, -30) <= heute) return 'bald';
+  return 'spaeter';
+}
+
+function karte(e) {
+  const st = status(e);
+  const ab = plusTage(e.datum, -e.vorlauf);
+  const tage = Math.round((e.datum - heute) / 86400000);
+  const pill = {
+    erledigt: '<span class="pill ok">Erledigt ✓</span>',
+    jetzt: `<span class="pill jetzt">Jetzt vorbereiten · ${tage === 0 ? 'heute' : tage === 1 ? 'morgen' : 'in ' + tage + ' Tagen'}</span>`,
+    bald: `<span class="pill bald">Bald: ab ${ab.getDate()}. ${MONATE[ab.getMonth()]} vorbereiten</span>`,
+    vorbei: '', spaeter: '',
+  }[st];
+  const div = document.createElement('div');
+  div.className = 'karte ' + st;
+  div.innerHTML = `<canvas width="88" height="88" aria-hidden="true"></canvas>
+    <div>
+      <div class="k-name">${esc(e.name)}</div>
+      <div class="k-datum">${datumText(e.datum)}${e.eigen ? (e.jaehrlich ? ' · jedes Jahr' : '') : ''}<br>Vorbereiten ab ${datumText(ab)}</div>
+      ${pill}${e.eigen ? ' <span class="pill eigen">Eigene</span>' : ''}
+      <div class="k-knoepfe">
+        <a class="haupt" href="sprueche.html?aktion=${encodeURIComponent(e.vorlage)}${e.eigen && e.vorlage === 'eigene' ? '&titel=' + encodeURIComponent(e.name) : ''}">Vorlage öffnen</a>
+        ${e.anlass ? `<a href="sprueche.html?anlass=${encodeURIComponent(e.anlass)}">💬 Sprüche</a>` : ''}
+        <button data-k="erledigt">${st === 'erledigt' ? 'Wieder offen' : 'Erledigt'}</button>
+        ${e.eigen ? '<button data-k="weg">Löschen</button>' : ''}
+      </div>
+    </div>`;
+  zeichneSymbol(div.querySelector('canvas'), e.symbol);
+  div.querySelector('[data-k="erledigt"]').onclick = () => { setzeErledigt(e.schluessel, st !== 'erledigt'); zeigen(); };
+  const weg = div.querySelector('[data-k="weg"]');
+  if (weg) weg.onclick = () => {
+    if (!confirm(`„${e.name}“ löschen?${e.jaehrlich ? ' (für alle Jahre)' : ''}`)) return;
+    speichereTermine(ladeTermine().filter(t => t.id !== e.eigen));
+    zeigen();
+  };
+  return div;
+}
+function zeichneSymbol(cv, id) {
+  const sym = SYMBOLE[id] || SYMBOLE.stern;
+  const g = cv.getContext('2d');
+  g.scale(cv.width / 24, cv.height / 24);
+  g.strokeStyle = '#8A7346'; g.lineWidth = 1.3; g.lineCap = 'round'; g.lineJoin = 'round';
+  sym.zeichne(g);
+}
+
+function zeigen() {
+  // Oben: was jetzt dran ist (auch Anlässe Anfang nächsten Jahres, z. B. Ballsaison im Dezember)
+  const jetzt = [...eintraege(heute.getFullYear()), ...eintraege(heute.getFullYear() + 1)].filter(e => status(e) === 'jetzt');
+  const boxJetzt = document.getElementById('jetzt');
+  boxJetzt.innerHTML = '';
+  jetzt.forEach(e => boxJetzt.appendChild(karte(e)));
+  document.getElementById('jetzt-section').style.display = jetzt.length ? '' : 'none';
+
+  document.getElementById('jahr-chips').innerHTML = [heute.getFullYear(), heute.getFullYear() + 1]
+    .map(j => `<button class="chip${j === jahr ? ' on' : ''}" data-j="${j}">${j}</button>`).join('');
+  document.querySelectorAll('#jahr-chips .chip').forEach(c => c.onclick = () => { jahr = Number(c.dataset.j); zeigen(); });
+
+  const alle = eintraege(jahr);
+  const wrap = document.getElementById('monate');
+  wrap.innerHTML = '';
+  MONATE.forEach((m, i) => {
+    const imMonat = alle.filter(e => e.datum.getMonth() === i);
+    const sec = document.createElement('section');
+    sec.className = 'monat' + (imMonat.length ? '' : ' leer');
+    sec.innerHTML = `<h2>${m} ${jahr}${imMonat.length ? '' : ' <small>keine Aktion geplant</small>'}</h2><div class="karten"></div>`;
+    imMonat.forEach(e => sec.querySelector('.karten').appendChild(karte(e)));
+    wrap.appendChild(sec);
+  });
+}
+
+// Formular „Eigene Aktion“
+document.getElementById('n-vorlage').innerHTML = VORLAGEN.map(([id, name]) => `<option value="${esc(id)}">${esc(name)}</option>`).join('');
+document.getElementById('n-speichern').onclick = () => {
+  const titel = document.getElementById('n-titel').value.trim();
+  const datum = document.getElementById('n-datum').value;   // JJJJ-MM-TT
+  if (!titel || !/^\d{4}-\d{2}-\d{2}$/.test(datum)) { alert('Bitte Name und Datum eintragen.'); return; }
+  const [j, m, t] = datum.split('-').map(Number);
+  const jaehrlich = document.getElementById('n-jaehrlich').checked;
+  const liste = ladeTermine();
+  liste.push({ id: Date.now(), titel, monat: m, tag: t, jahr: jaehrlich ? null : j, kontext: 'salon', aktion: document.getElementById('n-vorlage').value });
+  speichereTermine(liste);
+  document.getElementById('n-titel').value = '';
+  document.getElementById('n-datum').value = '';
+  document.getElementById('n-jaehrlich').checked = false;
+  if (!jaehrlich && (j === heute.getFullYear() || j === heute.getFullYear() + 1)) jahr = j;
+  zeigen();
+};
+document.getElementById('drucken').onclick = () => window.print();
+zeigen();
+</script>
+</body>
+</html>

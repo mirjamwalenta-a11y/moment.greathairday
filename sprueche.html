@@ -1145,6 +1145,12 @@ const SYMBOLE = {
       c.lineTo(12 + Math.cos(w) * r2, 12 + Math.sin(w) * r2); c.stroke();
     }
     c.beginPath(); c.arc(12, 12, 0.8, 0, Math.PI * 2); c.stroke(); } },
+  stiefel:      { name:'Nikolausstiefel', emoji:'🥾', zeichne: c => c.stroke(new Path2D(
+    'M6 3H14V6.5H6Z M7 6.5V20.5H20.5V18.5C20.5 17 20 15.8 18.5 15.1L13 12.5V6.5 M14.5 20.5V18.5'))
+  },
+  torte:        { name:'Torte', emoji:'🎂', zeichne: c => {
+    c.stroke(new Path2D('M3.5 21H20.5 M5 21V14.5H19V21 M5 17.5C7 19 9.5 16 12 17.5C14.5 19 17 16 19 17.5 M7 14.5V11H17V14.5 M9 11V8.5 M12 11V8.5 M15 11V8.5'));
+    [9, 12, 15].forEach(x => c.stroke(new Path2D(`M${x} 6.8C${x - 0.9} 5.8 ${x} 4 ${x} 4C${x} 4 ${x + 0.9} 5.8 ${x} 6.8Z`))); } },
   uhr:          { name:'Uhr', emoji:'🕐', zeichne: c => {
     c.beginPath(); c.arc(12, 12, 9.5, 0, Math.PI * 2); c.stroke();
     c.stroke(new Path2D('M12 6.5V12L15.5 14.5')); } },
@@ -2041,8 +2047,10 @@ const AKTIONEN = [
   { id:'pflege', name:'Pflege-Aktion', ueber:'Aktion', a:'Pflege für zuhause', b:'jetzt zum Aktionspreis.', c:'Wir beraten dich gern, welche Pflege zu deinem Haar passt.', rabatt:'', symbol:'tropfen' },
   { id:'fruehling', name:'Frühlings-Aktion', ueber:'Nur für kurze Zeit', a:'Frühlings-Aktion', b:'Frische Farbe für die neue Saison.', c:'Jetzt Termin für Farbe oder Strähnen sichern.', rabatt:'', symbol:'blume' },
   { id:'sommer', name:'Sommer-Aktion', ueber:'Nur für kurze Zeit', a:'Sommer-Aktion', b:'Pflege für Sonne und Salzwasser.', c:'Auf ausgewählte Sommer- und Pflegeprodukte bei uns im Salon.', rabatt:'', symbol:'sonne' },
+  { id:'halloween', name:'Halloween', ueber:'Halloween', a:'Schaurig schön?', b:'Lieber nur schön.', c:'Frisch geschnitten und gepflegt durch den Herbst. Jetzt Termin sichern.', rabatt:'', symbol:'kuerbis' },
   { id:'gutschein', name:'Gutschein', ueber:'Geschenkidee', a:'Schenk einen', b:'Great Hair Day.', c:'Gutscheine für Schnitt, Farbe und Pflege gibt es bei uns im Salon.', rabatt:'', symbol:'geschenk' },
   { id:'blackfriday', name:'Black Friday', ueber:'Nur für kurze Zeit', a:'Black Friday', b:'bei uns im Salon.', c:'Auf Pflegeprodukte und Gutscheine. Ideal als Weihnachtsgeschenk.', rabatt:'', symbol:'preisschild' },
+  { id:'nikolaus', name:'Nikolaus', ueber:'Zum Nikolaus', a:'Ein kleines Geschenk', b:'für den Nikolausstiefel.', c:'Gutscheine und Pflege-Sets gibt es bei uns im Salon.', rabatt:'', symbol:'stiefel' },
   { id:'weihnachten', name:'Weihnachten', ueber:'Geschenkidee', a:'Weihnachts-Aktion', b:'Schöne Haare verschenken.', c:'Gutscheine und Pflege-Sets gibt es bei uns im Salon.', rabatt:'', symbol:'tannenbaum' },
   { id:'neujahr', name:'Neujahr', ueber:'Neues Jahr', a:'Neues Jahr,', b:'neuer Look.', c:'Starte mit frischem Schnitt oder neuer Farbe ins Jahr. Jetzt Termin sichern.', rabatt:'', symbol:'feuerwerk' },
   { id:'valentinstag', name:'Valentinstag', ueber:'Zum Valentinstag', a:'Schenk einen', b:'schönen Moment.', c:'Gutscheine für Schnitt, Farbe und Pflege bei uns im Salon.', rabatt:'', symbol:'herz' },
@@ -2059,6 +2067,7 @@ const AKTIONEN = [
   { id:'alphacooling-kombi', name:'Alpha Cooling + Haarschnitt', ueber:'Kombi', a:'Haare fertig,', b:'jetzt bist du dran.', c:'Alpha Cooling direkt im Anschluss an deinen Friseurtermin. Einfach beim Buchen dazusagen.', rabatt:'', symbol:'schere' },
   { id:'alphacooling-gutschein', name:'Alpha Cooling Gutschein', ueber:'Geschenkidee', a:'Schenk eine', b:'kühle Auszeit.', c:'Gutscheine für Alpha Cooling gibt es bei uns im Salon.', rabatt:'', symbol:'geschenk' },
   { id:'termin', name:'Termin frei', ueber:'Kurzfristig', a:'Termin frei', b:'noch heute oder morgen.', c:'Einfach anrufen: 01 586 31 30', rabatt:'', symbol:'uhr' },
+  { id:'geburtstag', name:'Salon-Geburtstag', ueber:'Wir feiern', a:`${new Date().getFullYear() - 1993} Jahre Great Hair Day.`, b:'Danke für eure Treue.', c:'Seit 1993 in der Rechten Wienzeile. Wir freuen uns auf viele weitere Jahre mit euch.', rabatt:'', symbol:'torte' },
   { id:'eigene', name:'Eigene Aktion', ueber:'Aktion', a:'', b:'', c:'', rabatt:'', symbol:'' },
 ];
 function markiereSymbol() {

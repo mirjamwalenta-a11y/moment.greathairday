@@ -164,7 +164,7 @@ const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 const woerter = t => (String(t || '').match(/\S+/g) || []).length;
 const sek = t => Math.round(woerter(t) / WPM * 60);
-const saetze = t => String(t || '').replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+(?=[A-ZÄÖÜ„"»0-9])/).map(s => s.trim()).filter(s => s.length >= 8);
+const saetze = t => String(t || '').replace(/\s+/g, ' ').trim().replace(/([.!?…])\s+(?=[A-ZÄÖÜ„"»0-9])/g, '$1\n').split('\n').map(s => s.trim()).filter(s => s.length >= 8);
 const leerText = t => /^\(noch (leer|offen|kein text)\)$/i.test(String(t).trim()) ? '' : String(t).trim();
 
 let S = { roh: '', projekt: '', kontext: 'salon', tab: 'reel', pitch: null, reel: null, caption: '' };

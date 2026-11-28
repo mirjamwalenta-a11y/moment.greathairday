@@ -1655,6 +1655,22 @@ if (standards.untertitel) Object.assign(zustand.untertitel, standards.untertitel
 felderAnzeigen();
 standardsAnzeigen();
 
+// Übergabe aus pitch.html („Pitch zu Reel“): das gesprochene Skript kommt
+// einmalig als Untertitel-Text herein. Gilt für ein neu gewähltes Video;
+// „Weitermachen“ mit einem alten Entwurf behält dessen Untertitel.
+(() => {
+  let u = null;
+  try { u = JSON.parse(localStorage.getItem('moment-pitch-video')); localStorage.removeItem('moment-pitch-video'); } catch (_) {}
+  if (!u || !u.roh || Date.now() - (u.zeit || 0) > 3600000) return;
+  zustand.untertitel.roh = String(u.roh).slice(0, 4000);
+  utSteuerung?.anzeigen();
+  const h = document.createElement('p');
+  h.className = 'hinweis';
+  h.textContent = '🎤 Dein Skript aus „Pitch zu Reel“ liegt bei den Untertiteln bereit. Wähle das Video, in dem du es sprichst.' +
+    (u.hook ? ` Text im Bild für den Hook: „${u.hook}“ (unter „Texte im Video“ einsetzen).` : '');
+  $('wahl').prepend(h);
+})();
+
 const ablage = Entwurf.ablage('video', { beiFehler: () => { $('entwurf-fehler').hidden = false; } });
 const verlauf = Entwurf.verlauf({
   holen: standHolen,

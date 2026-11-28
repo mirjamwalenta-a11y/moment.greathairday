@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Pitch zu Reel">
+<meta name="theme-color" content="#F5F0EA">
+<title>Pitch zu Reel — A great hair day</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Playfair+Display:ital,wght@0,700;1,500&display=swap" rel="stylesheet">
+<!-- Stile wie instagram.html (gleiche Farben, Schriften, Karten), nichts Neues -->
+<style>
+:root{
+  --bg:#F5F0EA;--surface:#FCFAF5;--ink:#1C1B19;--sub:#5B5750;
+  --line:#E4DCCD;--gold:#8A7346;--gold-light:#EFE6D4;--gold-ink:#5a4a28;--warn:#8A3B22;--warn-bg:#F3E1DA;
+  --serif:'Playfair Display',Georgia,serif;--sans:'Inter',system-ui,sans-serif;--r:14px;
+}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent;}
+body{font-family:var(--sans);background:var(--bg);color:var(--ink);display:flex;justify-content:center;min-height:100vh;}
+.wrap{width:100%;max-width:480px;padding:22px 16px 60px;display:flex;flex-direction:column;gap:18px;}
+header{text-align:center;padding:6px 0 2px;}
+.zurueck{align-self:flex-start;font-size:13px;color:var(--sub);text-decoration:none;}
+.wordmark{font-family:var(--serif);font-weight:700;font-size:26px;}
+.wordmark span{color:var(--gold);}
+.rule{width:64px;height:2px;background:var(--gold);margin:12px auto;}
+.intro{font-size:14px;color:var(--sub);line-height:1.5;}
+.label{font-size:11px;font-weight:600;letter-spacing:.8px;text-transform:uppercase;color:var(--gold);}
+.modus{display:grid;grid-template-columns:1fr 1fr;gap:4px;background:var(--gold-light);padding:4px;border-radius:12px;}
+.modus button{border:none;background:none;border-radius:9px;padding:10px;font:600 14px var(--sans);color:var(--gold-ink);cursor:pointer;}
+.modus button[aria-selected="true"]{background:var(--surface);color:var(--ink);box-shadow:0 1px 4px rgba(0,0,0,.08);}
+.liste{display:flex;flex-direction:column;gap:14px;}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--r);padding:14px 15px;display:flex;flex-direction:column;gap:10px;}
+.card h2{font-family:var(--serif);font-size:19px;line-height:1.3;}
+.meta{font-size:12px;color:var(--sub);line-height:1.45;}
+.folien{display:flex;gap:8px;overflow-x:auto;padding-bottom:4px;scroll-snap-type:x mandatory;}
+.knoepfe{display:flex;flex-wrap:wrap;gap:8px;}
+.btn{border:1px solid var(--line);background:var(--surface);border-radius:10px;padding:9px 12px;font:600 13px var(--sans);color:var(--ink);cursor:pointer;}
+.btn.haupt{background:var(--gold);border-color:var(--gold);color:#fff;}
+.btn.neu{width:100%;padding:13px;font-size:15px;background:var(--ink);border-color:var(--ink);color:#fff;}
+.folien canvas{width:128px;height:160px;border-radius:8px;border:1px solid var(--line);display:block;flex:0 0 auto;background:var(--gold-light);}
+.btn.ok{background:var(--gold-light);border-color:var(--gold);color:var(--gold-ink);}
+details summary{cursor:pointer;font-size:13px;font-weight:600;color:var(--gold-ink);}
+.text{white-space:pre-wrap;font-size:14px;line-height:1.5;background:var(--bg);border-radius:10px;padding:10px 12px;margin-top:8px;word-break:break-word;}
+.zeile{display:flex;align-items:center;gap:8px;justify-content:space-between;background:var(--bg);border-radius:10px;padding:8px 8px 8px 12px;}
+.zeile span{font-size:14px;font-weight:500;word-break:break-word;}
+.zeile .btn{padding:6px 10px;font-size:12px;flex:0 0 auto;}
+.zeile .punkte{flex:0 0 auto;word-break:normal;}
+.zaehler{font-size:11px;color:var(--sub);text-align:right;}
+.punkte{display:inline-block;font-size:12px;font-weight:700;border-radius:20px;padding:2px 9px;background:var(--gold-light);color:var(--gold-ink);}
+.hinweis{font-size:13px;line-height:1.45;color:var(--gold-ink);background:var(--gold-light);border-radius:10px;padding:8px 11px;}
+.hinweis.warnung{color:var(--warn);background:var(--warn-bg);}
+.fuss{font-size:12px;color:var(--sub);line-height:1.5;text-align:center;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:2px;}
+[hidden]{display:none!important;}
+/* Eingabefelder wie .eingabe in video.html */
+textarea,input{width:100%;border:1px solid var(--line);border-radius:8px;padding:8px 10px;font:500 15px var(--sans);background:var(--surface);color:var(--ink);}
+</style>
+<script src="https://mirjamwalenta-a11y.github.io/abwesenheiten-ghd/ghd-offline.js"></script>  <!-- offline nutzbar: Service Worker, gemerkte Daten, Nachsync -->
+<script src="ki-check-daten.js"></script>
+<script src="ki-check.js"></script>
+<script src="karussell-canvas.js"></script>
+</head>
+<body>
+<div class="wrap">
+  <a class="zurueck" href="index.html">← Zurück zu Moment</a>
+  <header>
+    <div class="wordmark">Pitch zu <span>Reel</span></div>
+    <div class="rule"></div>
+    <p class="intro">Aus deinem 2-Minuten-Pitch werden ein Reel mit 30 Sekunden, ein Karussell und eine Caption. Es kommt nur hinein, was im Pitch steht. Nichts wird gepostet, alles bleibt auf diesem Gerät.</p>
+  </header>
+
+  <section class="card">
+    <div class="label">1 · Dein Pitch</div>
+    <p class="meta">In der Great Hair Day Academy: Meisterin-Bereich → Einreichungen &amp; Projekte → 2-Minuten-Pitch → Fassung „Sprechtext“ → Text kopieren. Hier einfügen. Ein eigener Text ohne Abschnitte geht auch.</p>
+    <textarea id="roh" rows="7" placeholder="[0:00] Hook&#10;…&#10;&#10;[0:20] Problem &amp; Lösung&#10;…"></textarea>
+    <input id="projekt" maxlength="60" placeholder="Worum geht's? z. B. Great Hair Day Academy" aria-label="Projektname">
+    <div class="modus" role="tablist" aria-label="Für welches Profil">
+      <button role="tab" data-kontext="salon" aria-selected="true">🏠 Mein Salon</button>
+      <button role="tab" data-kontext="haarnetzwerk" aria-selected="false">🤝 Haarnetzwerk</button>
+    </div>
+    <button class="btn neu" id="einlesen">Pitch einlesen</button>
+    <p class="meta" id="erkannt"></p>
+  </section>
+
+  <div id="ergebnis" class="liste" hidden>
+    <div class="modus" role="tablist" style="grid-template-columns:repeat(3,1fr)">
+      <button role="tab" data-tab="reel" aria-selected="true">Reel 30 s</button>
+      <button role="tab" data-tab="karussell" aria-selected="false">Karussell</button>
+      <button role="tab" data-tab="caption" aria-selected="false">Caption</button>
+    </div>
+
+    <!-- REEL -->
+    <section id="tab-reel" class="liste">
+      <p class="meta">Drei Teile, gesprochen in die Kamera. Vorausgefüllt mit Sätzen aus deinem Pitch, die meist zu lang sind: kürzen, bis die Zeit grün ist. Gerechnet mit zügigen 150 Wörtern pro Minute.</p>
+      <div id="beats" class="liste"></div>
+      <div class="card">
+        <div class="label">Prüfung</div>
+        <div id="pruefung"></div>
+      </div>
+      <div class="card">
+        <div class="label">Weiter damit</div>
+        <div class="knoepfe">
+          <button class="btn haupt" id="ins-video">🎬 In „Video + Text“ öffnen</button>
+          <button class="btn" id="skript-kopieren">Skript kopieren</button>
+        </div>
+        <p class="meta">„Video + Text“ übernimmt den gesprochenen Text als Untertitel. Dort „In Zeilen aufteilen“ und mit „Mittippen“ die Zeiten setzen.</p>
+      </div>
+    </section>
+
+    <!-- KARUSSELL -->
+    <section id="tab-karussell" class="liste" hidden>
+      <p class="meta">Folien aus deinem Pitch: Titel mit dem Satz zum Merken, das Problem, drei Dinge aus „Zeigen“, der Beleg. Feinschliff, Reihenfolge und Bilder machst du im Karussell-Editor.</p>
+      <div class="card">
+        <div class="folien" id="folien"></div>
+        <div id="folien-text" class="liste" style="gap:6px"></div>
+        <button class="btn haupt" id="ins-karussell">🗂 Im Karussell-Editor öffnen</button>
+      </div>
+    </section>
+
+    <!-- CAPTION -->
+    <section id="tab-caption" class="liste" hidden>
+      <div class="card">
+        <div class="label">Caption-Entwurf</div>
+        <p class="meta">Erste Zeile ist dein Hook, dann der Kern, am Ende der Satz zum Merken. Bitte, Frage und Hashtags ergänzt du selbst.</p>
+        <textarea id="caption" rows="9"></textarea>
+        <div class="zaehler" id="caption-zaehler"></div>
+        <div id="caption-pruefung"></div>
+        <div class="knoepfe"><button class="btn" id="caption-kopieren">Caption kopieren</button><button class="btn" id="caption-neu">Neu aus dem Reel</button></div>
+      </div>
+    </section>
+  </div>
+
+  <p class="fuss">Faustregeln, im Handy berechnet. Kein KI-Text, nichts wird hochgeladen.</p>
+</div>
+
+<script>
+// ════════════════════════════════════════════
+// PITCH ZU REEL
+// ════════════════════════════════════════════
+// Gegenstück zum Reiter „2-Minuten-Pitch“ der Great Hair Day Academy
+// (lernquiz.greathairday, Einreichungen & Projekte). Der Pitch wird hier
+// eingefügt, nicht aus der Datenbank geholt: Die Einreichungen darf nur die
+// Meisterin lesen, und so braucht diese Seite gar keinen Datenzugriff.
+// Daraus: Reel (30 s, drei Teile), Karussell (Folien für den Editor in
+// index.html), Caption. Bausteine sind wörtliche Sätze aus dem Pitch, keine
+// KI. Stand bleibt in localStorage auf dem Gerät.
+const SPEICHER = 'moment-pitch';
+const VIDEO_UEBERGABE = 'moment-pitch-video';   // liest video.html einmal
+const KAR_SPEICHER = 'ig-karussells-eigene';    // wie in index.html
+const WPM = 150;
+const BEATS = [
+  { key: 'hook', name: 'Hook', von: 0, bis: 5, frage: 'Der erste Satz entscheidet, ob weitergeschaut wird. Ein Moment, ein Gegensatz oder eine Frage.' },
+  { key: 'kern', name: 'Kern', von: 5, bis: 22, frage: 'Was ist anders? Ein, zwei Dinge, die man sieht.' },
+  { key: 'schluss', name: 'Schluss', von: 22, bis: 30, frage: 'Der Satz zum Merken oder ein echter Beleg.' }
+];
+const ABSCHNITTE = [
+  { key: 'hook', rx: /hook/i }, { key: 'loesung', rx: /problem|lösung|loesung/i },
+  { key: 'zeigen', rx: /zeigen/i }, { key: 'schluss', rx: /beleg|schluss/i }
+];
+
+const $ = id => document.getElementById(id);
+const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+const woerter = t => (String(t || '').match(/\S+/g) || []).length;
+const sek = t => Math.round(woerter(t) / WPM * 60);
+const saetze = t => String(t || '').replace(/\s+/g, ' ').trim().split(/(?<=[.!?…])\s+(?=[A-ZÄÖÜ„"»0-9])/).map(s => s.trim()).filter(s => s.length >= 8);
+const leerText = t => /^\(noch (leer|offen|kein text)\)$/i.test(String(t).trim()) ? '' : String(t).trim();
+
+let S = { roh: '', projekt: '', kontext: 'salon', tab: 'reel', pitch: null, reel: null, caption: '' };
+function laden() { try { Object.assign(S, JSON.parse(localStorage.getItem(SPEICHER)) || {}); } catch (_) {} }
+function merken() { try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } catch (_) {} }
+
+// ── Pitch zerlegen ───────────────────────────
+// Erkennt die Fassungen aus der Academy: Sprechtext („[0:00] Hook“),
+// Video-Drehbuch („0:00–0:20 · Hook“ mit „Ton:“) und Schriftlich (Absätze).
+function zerlegen(roh) {
+  const p = { hook: '', loesung: '', zeigen: '', schluss: '', merksatz: '', art: '' };
+  const text = String(roh || '').replace(/\r/g, '').trim();
+  const zuordnen = (titel, inhalt) => {
+    if (/^zum schluss/i.test(titel)) { p.merksatz = leerText(inhalt); return; }
+    const a = ABSCHNITTE.find(x => x.rx.test(titel));
+    if (a) p[a.key] = (p[a.key] ? p[a.key] + ' ' : '') + leerText(inhalt);
+  };
+  if (/^\[\d+:\d\d\]/m.test(text)) {
+    p.art = 'Sprechtext';
+    const teile = text.split(/^(?=\[\d+:\d\d\]|Zum Schluss:)/m);
+    for (const t of teile) {
+      const m = t.match(/^(?:\[\d+:\d\d\]\s*([^\n]*)|(Zum Schluss):)\n?([\s\S]*)$/);
+      if (m) zuordnen(m[1] || m[2], m[3]);
+    }
+  } else if (/^\d+:\d\d[–-]\d+:\d\d\s*·/m.test(text)) {
+    p.art = 'Video-Drehbuch';
+    for (const t of text.split(/^(?=\d+:\d\d[–-]\d+:\d\d\s*·)/m)) {
+      const m = t.match(/^\d+:\d\d[–-]\d+:\d\d\s*·\s*([^\n]*)[\s\S]*?^Ton:\s*([\s\S]*)$/m);
+      if (m) zuordnen(m[1], m[2]);
+    }
+  } else {
+    const abs = text.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
+    if (abs.length === 5) { p.art = 'Schriftlich'; [p.merksatz, p.hook, p.loesung, p.zeigen, p.schluss] = abs; }
+    else if (abs.length === 4) { p.art = 'Schriftlich'; [p.hook, p.loesung, p.zeigen, p.schluss] = abs; }
+    else {
+      p.art = 'frei';
+      const s = saetze(text);
+      p.hook = s[0] || '';
+      p.schluss = s.length > 1 ? s[s.length - 1] : '';
+      p.zeigen = s.slice(1, -1).join(' ');
+    }
+  }
+  for (const k of ['hook', 'loesung', 'zeigen', 'schluss', 'merksatz']) p[k] = p[k].replace(/\s+/g, ' ').trim();
+  return p;
+}
+
+// Vorbelegung: nur Sätze aus dem Pitch, nichts dazu
+function reelVorschlag(p) {
+  const hook = saetze(p.hook).slice(0, 2).join(' ');
+  const kern = [saetze(p.loesung).slice(-1)[0], ...saetze(p.zeigen).slice(0, 2)].filter(Boolean).join(' ');
+  const schluss = p.merksatz || saetze(p.schluss).slice(-1)[0] || '';
+  const erster = saetze(hook)[0] || hook;
+  return { hook, kern, schluss, bild: { hook: woerter(erster) <= 8 ? erster : '', kern: '', schluss: woerter(p.merksatz) <= 10 ? p.merksatz : '' } };
+}
+function bausteine(key) {
+  const p = S.pitch;
+  const q = key === 'hook' ? [p.hook, p.loesung] : key === 'kern' ? [p.loesung, p.zeigen] : [p.schluss, p.merksatz];
+  return [...new Set(q.flatMap(saetze))].slice(0, 12);
+}
+
+// ── Einlesen ─────────────────────────────────
+function einlesen() {
+  const roh = $('roh').value.trim();
+  if (!roh) { $('erkannt').textContent = 'Füg zuerst deinen Pitch ein.'; return; }
+  const hatReel = S.reel && (S.reel.hook || S.reel.kern || S.reel.schluss);
+  if (hatReel && !confirm('Reel, Karussell und Caption neu aus diesem Pitch füllen? Deine Änderungen daran gehen verloren.')) return;
+  S.roh = roh; S.pitch = zerlegen(roh);
+  S.reel = reelVorschlag(S.pitch);
+  S.caption = captionAusReel();
+  S.projekt = $('projekt').value.trim();
+  merken();
+  zeigeErkannt();
+  $('ergebnis').hidden = false;
+  alles();
+  $('ergebnis').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+function zeigeErkannt() {
+  const p = S.pitch; if (!p) return;
+  const da = ['hook', 'loesung', 'zeigen', 'schluss', 'merksatz'].filter(k => p[k]);
+  const namen = { hook: 'Hook', loesung: 'Problem & Lösung', zeigen: 'Zeigen', schluss: 'Beleg & Schluss', merksatz: 'Satz zum Merken' };
+  $('erkannt').textContent = (p.art === 'frei' ? 'Ohne Abschnitte eingelesen: erster Satz als Hook, letzter als Schluss.' : 'Erkannt als ' + p.art + ': ' + da.map(k => namen[k]).join(', ') + '.') +
+    (p.merksatz ? '' : ' Kein Satz zum Merken gefunden.');
+}
+
+// ── Reel ─────────────────────────────────────
+function beatsZeigen() {
+  $('beats').innerHTML = BEATS.map(b => `
+    <div class="card" id="beat-${b.key}">
+      <div class="label">${b.von}–${b.bis} s · ${b.name}</div>
+      <p class="meta">${esc(b.frage)}</p>
+      <textarea id="r-${b.key}" rows="${b.key === 'kern' ? 5 : 3}" maxlength="1200" aria-label="${b.name}, gesprochen">${esc(S.reel[b.key])}</textarea>
+      <div class="zaehler" id="r-${b.key}-zeit"></div>
+      <input id="r-${b.key}-bild" maxlength="80" placeholder="Text im Bild, höchstens 6 bis 8 Wörter" aria-label="${b.name}, Text im Bild" value="${esc(S.reel.bild[b.key] || '')}">
+      <details><summary>Sätze aus deinem Pitch</summary><div class="liste" style="gap:6px;margin-top:8px" id="r-${b.key}-bst"></div></details>
+    </div>`).join('');
+  for (const b of BEATS) {
+    $('r-' + b.key).addEventListener('input', e => { S.reel[b.key] = e.target.value; reelAktualisieren(); });
+    $('r-' + b.key + '-bild').addEventListener('input', e => { S.reel.bild[b.key] = e.target.value; merken(); });
+    $('beat-' + b.key).querySelector('details').addEventListener('toggle', e => { if (e.target.open) bausteineZeigen(b.key); });
+  }
+  reelAktualisieren();
+}
+function bausteineZeigen(key) {
+  const box = $('r-' + key + '-bst'), liste = bausteine(key), drin = S.reel[key];
+  box.innerHTML = liste.length ? liste.map((s, i) => `<div class="zeile"><span>${esc(s)}</span>${drin.includes(s) ? '<span class="punkte">drin</span>' : `<button class="btn" data-i="${i}">übernehmen</button>`}</div>`).join('')
+    : '<p class="meta">Dazu steht im Pitch nichts.</p>';
+  box.querySelectorAll('[data-i]').forEach(b => b.onclick = () => {
+    const el = $('r-' + key);
+    el.value = (el.value.trim() ? el.value.trim() + ' ' : '') + liste[+b.dataset.i];
+    S.reel[key] = el.value; reelAktualisieren(); bausteineZeigen(key);
+  });
+}
+function reelAktualisieren() {
+  let gesamt = 0;
+  for (const b of BEATS) {
+    const t = S.reel[b.key], n = woerter(t), s = sek(t), plan = b.bis - b.von, ziel = Math.round(plan * WPM / 60);
+    gesamt += s;
+    const el = $('r-' + b.key + '-zeit');
+    el.textContent = n ? `ca. ${s} s von ${plan} s · ${n} Wörter` + (s > plan * 1.15 ? ` · kürzen auf etwa ${ziel} Wörter` : '') : `Ziel: etwa ${ziel} Wörter`;
+    el.style.color = n && s > plan * 1.15 ? 'var(--warn)' : n ? 'var(--gold-ink)' : '';
+  }
+  pruefungZeigen(gesamt);
+  merken();
+}
+function pruefungZeigen(gesamt) {
+  const r = S.reel, out = [];
+  const alle = [r.hook, r.kern, r.schluss].join('\n');
+  if (!alle.trim()) { $('pruefung').innerHTML = '<p class="meta">Noch leer.</p>'; return; }
+  out.push(`<div class="zeile"><span>Gesamt ca. ${gesamt} s von 30 s</span><span class="punkte"${gesamt > 34 ? ' style="background:var(--warn-bg);color:var(--warn)"' : ''}>${gesamt > 34 ? 'zu lang' : 'passt'}</span></div>`);
+  const ersterSatz = saetze(r.hook)[0] || r.hook.trim();
+  if (ersterSatz && typeof KiCheck !== 'undefined') {
+    const h = KiCheck.hook(ersterSatz, 'reel');
+    const urteil = { stark: 'stark', ok: 'okay', schwach: 'schwach' }[h.urteil] || h.urteil;
+    out.push(`<div class="zeile"><span>Hook: „${esc(ersterSatz)}“</span><span class="punkte">${h.gesamt} · ${urteil}</span></div>`);
+    if (h.urteil !== 'stark') out.push(`<p class="meta">Am schwächsten: <b>${esc(h.schwaechste.name)}</b> (${esc(h.schwaechste.detail)}).</p>`);
+    h.ko.forEach(k => out.push(`<p class="hinweis warnung">${esc(k)}</p>`));
+  }
+  const hinweise = [];
+  if (/^\s*(wir|unser\w*|ich|die app|unsere app)\b/i.test(r.hook)) hinweise.push('Der Hook beginnt bei euch. Stärker ist ein Einstieg beim Publikum.');
+  if (/\bbis zu\b/i.test(alle)) hinweise.push('„bis zu …“ klingt nach Werbung. Besser die echte Zahl aus einem Beleg.');
+  const lang = saetze(alle).filter(s => woerter(s) > 20).length;
+  if (lang) hinweise.push(`${lang} ${lang === 1 ? 'Satz hat' : 'Sätze haben'} mehr als 20 Wörter, gesprochen im Reel zu lang. Teilen.`);
+  if (!r.bild.hook?.trim()) hinweise.push('Für den Hook fehlt der Text im Bild: Viele schauen ohne Ton.');
+  if (typeof KiCheck !== 'undefined') {
+    const ki = KiCheck.pruefen(alle);
+    ki.floskeln.forEach(f => hinweise.push(`„${f.wort}“ klingt nach KI${f.ersatz === null ? ', bitte umformulieren' : f.ersatz === '' ? ', streichen' : `, besser „${f.ersatz}“`}.`));
+    ki.muster.forEach(m => hinweise.push(`${m.name}: ${m.fix}`));
+  }
+  out.push(hinweise.length ? hinweise.map(h => `<p class="hinweis">${esc(h)}</p>`).join('') : '<p class="meta">Formal fällt nichts auf. Laut sprechen und einmal aufnehmen, dann hörst du es.</p>');
+  $('pruefung').innerHTML = out.join('');
+}
+function skriptText() {
+  const r = S.reel;
+  return BEATS.map(b => `${b.von}–${b.bis} s · ${b.name}\n${r[b.key].trim() || '(noch leer)'}${r.bild[b.key]?.trim() ? `\nIm Bild: ${r.bild[b.key].trim()}` : ''}`).join('\n\n');
+}
+
+// ── Karussell ────────────────────────────────
+function karussellDaten() {
+  const p = S.pitch, projekt = S.projekt || $('projekt').value.trim();
+  const problem = saetze(p.loesung), zeigen = saetze(p.zeigen), beleg = saetze(p.schluss);
+  const folien = [{ typ: 'titel', kicker: projekt || 'Pitch', titel: p.merksatz || saetze(p.hook)[0] || 'Dein Titel', unter: projekt ? '' : 'Eine Zeile mit dem Versprechen.' }];
+  if (problem.length) folien.push({ typ: 'dunkel', kicker: 'Das Problem', titel: problem[0], text: problem.slice(1, 3).join(' ') });
+  zeigen.slice(0, 3).forEach((s, i) => folien.push({ typ: 'punkt', nr: i + 1, kicker: 'Punkt ' + (i + 1), titel: s, text: '' }));
+  if (beleg.length) folien.push({ typ: 'dunkel', kicker: 'Was sich zeigt', titel: beleg[0], text: beleg.slice(1, 2).join(' ') });
+  return { kontext: S.kontext, folien };
+}
+let karZeichnen = 0;
+async function karussellZeigen() {
+  const daten = karussellDaten(), lauf = ++karZeichnen;
+  $('folien').innerHTML = daten.folien.map(() => '<canvas width="1080" height="1350"></canvas>').join('');
+  const typName = { titel: 'Titel', dunkel: 'Dunkel', punkt: 'Punkt', liste: 'Liste' };
+  $('folien-text').innerHTML = daten.folien.map((f, i) => `<div class="zeile"><span>${i + 1} · ${esc(f.titel)}</span><span class="punkte">${typName[f.typ]}</span></div>`).join('');
+  if (typeof KarussellCanvas === 'undefined') return;
+  const lw = [...$('folien').querySelectorAll('canvas')];
+  for (let i = 0; i < lw.length; i++) { if (lauf !== karZeichnen) return; await KarussellCanvas.zeichne(lw[i], daten, i); }
+}
+function insKarussell() {
+  let liste = [];
+  try { liste = JSON.parse(localStorage.getItem(KAR_SPEICHER) || '[]'); } catch (_) {}
+  const id = 'eigen-' + Date.now();
+  liste.unshift({ id, titel: (S.projekt || 'Pitch') + ' · Karussell', daten: karussellDaten(), caption: $('caption').value || S.caption || '', alt: '' });
+  try { localStorage.setItem(KAR_SPEICHER, JSON.stringify(liste.slice(0, 30))); }
+  catch (_) { alert('Auf diesem Gerät ist kein Platz zum Merken. Das Karussell kann nicht übergeben werden.'); return; }
+  location.href = 'index.html?zeige=karussell&k=' + encodeURIComponent(id);
+}
+
+// ── Caption ──────────────────────────────────
+function captionAusReel() {
+  const r = S.reel || {}, p = S.pitch || {};
+  const teile = [r.hook, r.kern, p.merksatz && !String(r.schluss || '').includes(p.merksatz) ? r.schluss + '\n\n' + p.merksatz : r.schluss];
+  return teile.map(t => String(t || '').trim()).filter(Boolean).join('\n\n');
+}
+function captionPruefen() {
+  const t = $('caption').value;
+  $('caption-zaehler').textContent = t.length + ' Zeichen';
+  if (!t.trim() || typeof KiCheck === 'undefined') { $('caption-pruefung').innerHTML = ''; return; }
+  const c = KiCheck.caption(t);
+  $('caption-pruefung').innerHTML = `<p class="meta">Im Feed vor „… mehr“:</p><div class="text" style="margin-top:0">${esc(c.fenster)}${c.gekuerzt ? ' … mehr' : ''}</div>` +
+    c.checks.map(x => `<p class="meta">${x.ok ? '✓' : '⚠️'} <b>${esc(x.name)}</b> ${esc(x.detail)}</p>`).join('');
+}
+
+// ── Kopieren, Tabs, Start ────────────────────
+function kopieren(text, knopf) {
+  const alt = knopf.textContent;
+  const fertig = () => { knopf.textContent = '✓ Kopiert'; setTimeout(() => { knopf.textContent = alt; }, 1600); };
+  const ersatz = () => { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); fertig(); } catch (_) {} ta.remove(); };
+  if (navigator.clipboard?.writeText) navigator.clipboard.writeText(text).then(fertig, ersatz); else ersatz();
+}
+function tabZeigen(tab) {
+  S.tab = tab; merken();
+  document.querySelectorAll('[data-tab]').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+  for (const t of ['reel', 'karussell', 'caption']) $('tab-' + t).hidden = t !== tab;
+  if (tab === 'karussell') karussellZeigen();
+  if (tab === 'caption') { if (!$('caption').value.trim()) $('caption').value = S.caption || captionAusReel(); captionPruefen(); }
+}
+function alles() {
+  beatsZeigen();
+  $('caption').value = S.caption || '';
+  tabZeigen(S.tab || 'reel');
+}
+
+$('einlesen').onclick = einlesen;
+$('projekt').addEventListener('input', e => { S.projekt = e.target.value.trim(); merken(); });
+document.querySelectorAll('[data-kontext]').forEach(b => b.onclick = () => {
+  S.kontext = b.dataset.kontext; merken();
+  document.querySelectorAll('[data-kontext]').forEach(x => x.setAttribute('aria-selected', String(x === b)));
+  if (!$('tab-karussell').hidden) karussellZeigen();
+});
+document.querySelectorAll('[data-tab]').forEach(b => b.onclick = () => tabZeigen(b.dataset.tab));
+$('skript-kopieren').onclick = e => kopieren(skriptText(), e.currentTarget);
+$('ins-video').onclick = () => {
+  const r = S.reel, roh = [r.hook, r.kern, r.schluss].map(t => t.trim()).filter(Boolean).join('\n');
+  if (!roh) { alert('Das Reel ist noch leer.'); return; }
+  try { localStorage.setItem(VIDEO_UEBERGABE, JSON.stringify({ roh, hook: (r.bild.hook || '').trim(), zeit: Date.now() })); }
+  catch (_) { alert('Auf diesem Gerät ist kein Platz zum Merken. Bitte „Skript kopieren“ nehmen.'); return; }
+  location.href = 'video.html';
+};
+$('ins-karussell').onclick = insKarussell;
+$('caption').addEventListener('input', e => { S.caption = e.target.value; merken(); captionPruefen(); });
+$('caption-neu').onclick = () => { if ($('caption').value.trim() && !confirm('Caption neu aus dem Reel füllen?')) return; $('caption').value = S.caption = captionAusReel(); merken(); captionPruefen(); };
+$('caption-kopieren').onclick = e => kopieren($('caption').value, e.currentTarget);
+
+laden();
+$('roh').value = S.roh || '';
+$('projekt').value = S.projekt || '';
+document.querySelectorAll('[data-kontext]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.kontext === S.kontext)));
+if (S.pitch && S.reel) {
+  S.reel.bild = S.reel.bild || {};
+  zeigeErkannt();
+  $('ergebnis').hidden = false;
+  alles();
+}
+</script>
+</body>
+</html>

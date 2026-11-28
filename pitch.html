@@ -155,10 +155,22 @@ const BEATS = [
   { key: 'kern', name: 'Kern', von: 5, bis: 22, frage: 'Was ist anders? Ein, zwei Dinge, die man sieht.' },
   { key: 'schluss', name: 'Schluss', von: 22, bis: 30, frage: 'Der Satz zum Merken oder ein echter Beleg.' }
 ];
+// Fünf Teile wie in der Academy (Hook, Problem, Lösung, Impact, Abschluss).
+// Ältere Überschriften („Problem & Lösung“, „Zeigen statt erzählen“,
+// „Beleg & Schluss“) werden weiter erkannt. Reihenfolge der Prüfung zählt.
+const TEILE = ['hook', 'problem', 'loesung', 'impact', 'schluss'];
 const ABSCHNITTE = [
-  { key: 'hook', rx: /hook/i }, { key: 'loesung', rx: /problem|lösung|loesung/i },
-  { key: 'zeigen', rx: /zeigen/i }, { key: 'schluss', rx: /beleg|schluss/i }
+  { key: 'hook', rx: /hook/i }, { key: 'impact', rx: /impact|wirkung/i },
+  { key: 'problem', rx: /problem/i }, { key: 'loesung', rx: /lösung|loesung|zeigen/i },
+  { key: 'schluss', rx: /beleg|schluss/i }
 ];
+// gemerkter Stand aus der ersten Fassung dieser Seite (hook, loesung, zeigen, schluss)
+function pitchNorm(p) {
+  if (!p) return p;
+  if ('zeigen' in p) { p.problem = p.loesung || ''; p.loesung = p.zeigen || ''; delete p.zeigen; }
+  for (const k of [...TEILE, 'merksatz']) p[k] = String(p[k] || '');
+  return p;
+}
 
 const $ = id => document.getElementById(id);
 const esc = s => String(s).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -175,7 +187,7 @@ function merken() { try { localStorage.setItem(SPEICHER, JSON.stringify(S)); } c
 // Erkennt die Fassungen aus der Academy: Sprechtext („[0:00] Hook“),
 // Video-Drehbuch („0:00–0:20 · Hook“ mit „Ton:“) und Schriftlich (Absätze).
 function zerlegen(roh) {
-  const p = { hook: '', loesung: '', zeigen: '', schluss: '', merksatz: '', art: '' };
+  const p = { hook: '', problem: '', loesung: '', impact: '', schluss: '', merksatz: '', art: '' };
   const text = String(roh || '').replace(/\r/g, '').trim();
   const zuordnen = (titel, inhalt) => {
     if (/^zum schluss/i.test(titel)) { p.merksatz = leerText(inhalt); return; }
@@ -197,31 +209,35 @@ function zerlegen(roh) {
     }
   } else {
     const abs = text.split(/\n\s*\n/).map(x => x.trim()).filter(Boolean);
-    if (abs.length === 5) { p.art = 'Schriftlich'; [p.merksatz, p.hook, p.loesung, p.zeigen, p.schluss] = abs; }
-    else if (abs.length === 4) { p.art = 'Schriftlich'; [p.hook, p.loesung, p.zeigen, p.schluss] = abs; }
+    // Schriftlich aus der Academy: Satz zum Merken zuerst, dann die fünf Teile
+    if (abs.length === 6) { p.art = 'Schriftlich'; [p.merksatz, p.hook, p.problem, p.loesung, p.impact, p.schluss] = abs; }
+    else if (abs.length === 5) { p.art = 'Schriftlich'; [p.hook, p.problem, p.loesung, p.impact, p.schluss] = abs; }
+    else if (abs.length === 4) { p.art = 'Schriftlich'; [p.hook, p.problem, p.loesung, p.schluss] = abs; }
     else {
       p.art = 'frei';
       const s = saetze(text);
       p.hook = s[0] || '';
       p.schluss = s.length > 1 ? s[s.length - 1] : '';
-      p.zeigen = s.slice(1, -1).join(' ');
+      p.loesung = s.slice(1, -1).join(' ');
     }
   }
-  for (const k of ['hook', 'loesung', 'zeigen', 'schluss', 'merksatz']) p[k] = p[k].replace(/\s+/g, ' ').trim();
+  for (const k of [...TEILE, 'merksatz']) p[k] = p[k].replace(/\s+/g, ' ').trim();
   return p;
 }
 
 // Vorbelegung: nur Sätze aus dem Pitch, nichts dazu
 function reelVorschlag(p) {
   const hook = saetze(p.hook).slice(0, 2).join(' ');
-  const kern = [saetze(p.loesung).slice(-1)[0], ...saetze(p.zeigen).slice(0, 2)].filter(Boolean).join(' ');
+  const ls = saetze(p.loesung);
+  if (ls.length > 2 && /academy|gebaut|entwickelt/i.test(ls[0])) ls.shift();   // Einleitungssatz überspringen
+  const kern = ls.slice(0, 2).join(' ');
   const schluss = p.merksatz || saetze(p.schluss).slice(-1)[0] || '';
   const erster = saetze(hook)[0] || hook;
   return { hook, kern, schluss, bild: { hook: woerter(erster) <= 8 ? erster : '', kern: '', schluss: woerter(p.merksatz) <= 10 ? p.merksatz : '' } };
 }
 function bausteine(key) {
   const p = S.pitch;
-  const q = key === 'hook' ? [p.hook, p.loesung] : key === 'kern' ? [p.loesung, p.zeigen] : [p.schluss, p.merksatz];
+  const q = key === 'hook' ? [p.hook, p.problem] : key === 'kern' ? [p.loesung, p.impact, p.problem] : [p.schluss, p.impact, p.merksatz];
   return [...new Set(q.flatMap(saetze))].slice(0, 12);
 }
 
@@ -243,8 +259,8 @@ function einlesen() {
 }
 function zeigeErkannt() {
   const p = S.pitch; if (!p) return;
-  const da = ['hook', 'loesung', 'zeigen', 'schluss', 'merksatz'].filter(k => p[k]);
-  const namen = { hook: 'Hook', loesung: 'Problem & Lösung', zeigen: 'Zeigen', schluss: 'Beleg & Schluss', merksatz: 'Satz zum Merken' };
+  const da = [...TEILE, 'merksatz'].filter(k => p[k]);
+  const namen = { hook: 'Hook', problem: 'Problem', loesung: 'Lösung', impact: 'Impact', schluss: 'Abschluss', merksatz: 'Satz zum Merken' };
   $('erkannt').textContent = (p.art === 'frei' ? 'Ohne Abschnitte eingelesen: erster Satz als Hook, letzter als Schluss.' : 'Erkannt als ' + p.art + ': ' + da.map(k => namen[k]).join(', ') + '.') +
     (p.merksatz ? '' : ' Kein Satz zum Merken gefunden.');
 }
@@ -305,6 +321,7 @@ function pruefungZeigen(gesamt) {
   const hinweise = [];
   if (/^\s*(wir|unser\w*|ich|die app|unsere app)\b/i.test(r.hook)) hinweise.push('Der Hook beginnt bei euch. Stärker ist ein Einstieg beim Publikum.');
   if (/\bbis zu\b/i.test(alle)) hinweise.push('„bis zu …“ klingt nach Werbung. Besser die echte Zahl aus einem Beleg.');
+  if (/\[platzhalter/i.test(alle)) hinweise.push('Ein [Platzhalter] aus dem Pitch ist noch offen. Vor dem Dreh mit einem echten Beleg füllen oder streichen.');
   const lang = saetze(alle).filter(s => woerter(s) > 20).length;
   if (lang) hinweise.push(`${lang} ${lang === 1 ? 'Satz hat' : 'Sätze haben'} mehr als 20 Wörter, gesprochen im Reel zu lang. Teilen.`);
   if (!r.bild.hook?.trim()) hinweise.push('Für den Hook fehlt der Text im Bild: Viele schauen ohne Ton.');
@@ -324,11 +341,13 @@ function skriptText() {
 // ── Karussell ────────────────────────────────
 function karussellDaten() {
   const p = S.pitch, projekt = S.projekt || $('projekt').value.trim();
-  const problem = saetze(p.loesung), zeigen = saetze(p.zeigen), beleg = saetze(p.schluss);
+  const problem = saetze(p.problem), zeigen = saetze(p.loesung), beleg = saetze((p.impact + ' ' + p.schluss).replace(/\[Platzhalter[^\]]*\]/gi, ''));
   const folien = [{ typ: 'titel', kicker: projekt || 'Pitch', titel: p.merksatz || saetze(p.hook)[0] || 'Dein Titel', unter: projekt ? '' : 'Eine Zeile mit dem Versprechen.' }];
   if (problem.length) folien.push({ typ: 'dunkel', kicker: 'Das Problem', titel: problem[0], text: problem.slice(1, 3).join(' ') });
+  // Der Einleitungssatz („Deshalb haben wir … gebaut“) ist kein eigener Punkt
+  if (zeigen.length > 3 && /academy|gebaut|entwickelt/i.test(zeigen[0])) zeigen.shift();
   zeigen.slice(0, 3).forEach((s, i) => folien.push({ typ: 'punkt', nr: i + 1, kicker: 'Punkt ' + (i + 1), titel: s, text: '' }));
-  if (beleg.length) folien.push({ typ: 'dunkel', kicker: 'Was sich zeigt', titel: beleg[0], text: beleg.slice(1, 2).join(' ') });
+  if (beleg.length) folien.push({ typ: 'dunkel', kicker: 'Was sich verändert', titel: beleg[0], text: beleg.slice(1, 2).join(' ') });
   return { kontext: S.kontext, folien };
 }
 let karZeichnen = 0;
@@ -408,6 +427,7 @@ $('caption-neu').onclick = () => { if ($('caption').value.trim() && !confirm('Ca
 $('caption-kopieren').onclick = e => kopieren($('caption').value, e.currentTarget);
 
 laden();
+S.pitch = pitchNorm(S.pitch);
 $('roh').value = S.roh || '';
 $('projekt').value = S.projekt || '';
 document.querySelectorAll('[data-kontext]').forEach(x => x.setAttribute('aria-selected', String(x.dataset.kontext === S.kontext)));
